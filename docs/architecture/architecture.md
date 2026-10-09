@@ -8,6 +8,9 @@
 **Orchestrator amendments (2026-10-09):**
 - A1. Locale keys use camelCase with prefixes as in §12; the UX spec's string list is mapped onto these keys by the implementer.
 - A2. `package.json` keeps the already-installed `playwright@1.56.1` (not `@playwright/test`); e2e uses `node --test` + `playwright` library.
+- A3 (after UX spec, supersedes A1). Locale keys: use the UX spec's message keys (`docs/design/design-spec.md` §6) verbatim; Chrome allows `[A-Za-z0-9_@]`.
+- A4. `body[data-state]` gains `opened` (cert page opened by the user from confirm, edit, manual entry or recent). The UX spec's finer task-card states (`result`, `edit`, …) live on `section#task[data-state]`; `body[data-state]` keeps the §13 values plus `opened`.
+- A5. Answers to the UX handoff: UX2 confirmed (global panel opened with `{windowId}`); "Try again" re-runs the in-memory job while the activeTab grant lasts (same tab, same origin) and falls back to the restricted/upload path otherwise; limits are the ADR values (15 MB, 12,000 px/side, 40 MP, digits 7–13, history 25 — UX copy must use these numbers); restoring the last completed result on panel reopen via `storage.session` key `lastResult:<windowId>` (no image data) is a *should*, not a release gate.
 
 ---
 

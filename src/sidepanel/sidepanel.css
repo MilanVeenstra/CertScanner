@@ -1,0 +1,98 @@
+/* Minimal, tokenized styles. Final visuals come with the UX spec (S6). */
+:root {
+  color-scheme: light dark;
+  --cs-font: system-ui, -apple-system, "Segoe UI", Roboto, "Liberation Sans", Arial, sans-serif;
+  --cs-font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --cs-space-1: 4px;
+  --cs-space-2: 8px;
+  --cs-space-3: 12px;
+  --cs-space-4: 16px;
+  --cs-radius: 8px;
+  --cs-bg: #f6f7f9;
+  --cs-surface: #ffffff;
+  --cs-text: #1b1f24;
+  --cs-text-muted: #57606a;
+  --cs-border: #d0d7de;
+  --cs-accent: #0b57d0;
+  --cs-accent-text: #ffffff;
+  --cs-danger: #b3261e;
+  --cs-warning-bg: #fff4ce;
+  --cs-warning-text: #5c4400;
+  --cs-focus: #0b57d0;
+  --cs-selected-bg: #e8f0fe;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cs-bg: #15181c;
+    --cs-surface: #1f2328;
+    --cs-text: #e6edf3;
+    --cs-text-muted: #9da7b1;
+    --cs-border: #3d444d;
+    --cs-accent: #8ab4f8;
+    --cs-accent-text: #0b1d3a;
+    --cs-danger: #f2b8b5;
+    --cs-warning-bg: #3d3200;
+    --cs-warning-text: #ffe08a;
+    --cs-focus: #8ab4f8;
+    --cs-selected-bg: #263449;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.45 var(--cs-font); background: var(--cs-bg); color: var(--cs-text); }
+h1 { font-size: 1.15rem; margin: 0; }
+h2 { font-size: 1rem; margin: 0 0 var(--cs-space-2); }
+h3 { font-size: 0.9rem; margin: var(--cs-space-3) 0 var(--cs-space-1); }
+p { margin: 0 0 var(--cs-space-2); }
+.app-header { padding: var(--cs-space-3) var(--cs-space-4); background: var(--cs-surface); border-bottom: 1px solid var(--cs-border); }
+main { padding: var(--cs-space-3); display: grid; gap: var(--cs-space-3); }
+.card { background: var(--cs-surface); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: var(--cs-space-3); }
+.app-footer { padding: var(--cs-space-3) var(--cs-space-4) var(--cs-space-4); color: var(--cs-text-muted); font-size: 0.8rem; }
+
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+[hidden] { display: none !important; }
+
+:focus-visible { outline: 3px solid var(--cs-focus); outline-offset: 2px; }
+#result-heading:focus { outline: none; }
+#result-heading:focus-visible { outline: 3px solid var(--cs-focus); }
+
+.btn { font: inherit; min-height: 36px; padding: var(--cs-space-1) var(--cs-space-3); border-radius: var(--cs-radius); border: 1px solid var(--cs-border); background: var(--cs-surface); color: var(--cs-text); cursor: pointer; }
+.btn-primary { background: var(--cs-accent); color: var(--cs-accent-text); border-color: var(--cs-accent); }
+.btn-danger { color: var(--cs-danger); border-color: currentColor; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--cs-space-2); }
+
+.field { display: grid; gap: var(--cs-space-1); margin-bottom: var(--cs-space-2); }
+input[type="text"], select { font: inherit; min-height: 36px; padding: var(--cs-space-1) var(--cs-space-2); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); background: var(--cs-surface); color: var(--cs-text); }
+#number-input, .cand-number { font-family: var(--cs-font-mono); letter-spacing: 0.04em; }
+input[aria-invalid="true"] { border-color: var(--cs-danger); }
+.field-error { color: var(--cs-danger); min-height: 1em; }
+.hint, .note, .result-meta, .label { color: var(--cs-text-muted); font-size: 0.85rem; }
+.check { display: flex; gap: var(--cs-space-2); align-items: flex-start; margin-bottom: var(--cs-space-2); }
+.check input { margin-top: 3px; }
+
+progress { width: 100%; height: 8px; margin-bottom: var(--cs-space-2); }
+.error-box { border-left: 4px solid var(--cs-danger); padding-left: var(--cs-space-2); }
+.preview { display: block; max-width: 100%; max-height: 220px; margin: 0 auto var(--cs-space-2); border-radius: 4px; border: 1px solid var(--cs-border); }
+.result-summary { display: flex; gap: var(--cs-space-2); align-items: baseline; flex-wrap: wrap; font-size: 1.1rem; }
+.result-grader { font-weight: 600; }
+.result-number { font-family: var(--cs-font-mono); font-size: 1.25rem; font-weight: 600; }
+.warnings ul { margin: 0 0 var(--cs-space-2); padding: var(--cs-space-2) var(--cs-space-3); background: var(--cs-warning-bg); color: var(--cs-warning-text); border-radius: var(--cs-radius); list-style: none; }
+
+.candidate-list, .history-list, .sites-list { list-style: none; margin: 0 0 var(--cs-space-2); padding: 0; display: grid; gap: var(--cs-space-1); }
+.candidate-list button, .history-item { width: 100%; display: flex; gap: var(--cs-space-2); align-items: baseline; flex-wrap: wrap; text-align: start; font: inherit; color: inherit; background: var(--cs-surface); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: var(--cs-space-2); cursor: pointer; }
+.candidate-list button[aria-pressed="true"] { background: var(--cs-selected-bg); border-color: var(--cs-accent); }
+.cand-conf, .history-host, .history-item time { color: var(--cs-text-muted); font-size: 0.85rem; }
+.sites-list li { display: flex; justify-content: space-between; gap: var(--cs-space-2); align-items: center; }
+
+.drop-zone { border: 2px dashed var(--cs-border); border-radius: var(--cs-radius); padding: var(--cs-space-3); text-align: center; }
+.drop-zone.is-dragover { border-color: var(--cs-accent); background: var(--cs-selected-bg); }
+.file-label { display: inline-flex; align-items: center; position: relative; }
+.file-input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.file-label:focus-within { outline: 3px solid var(--cs-focus); outline-offset: 2px; }
+.inline-confirm { border: 1px solid var(--cs-danger); border-radius: var(--cs-radius); padding: var(--cs-space-2); margin-bottom: var(--cs-space-2); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media (forced-colors: active) { .btn, .candidate-list button, .history-item { border: 1px solid ButtonText; } }
+/* In the error state the error box shows the message; the live region still announces it but is not shown twice. */
+body[data-state="error"] #status-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -1,4 +1,5 @@
 node_modules/
 dist/
+dist-e2e/
 *.zip
 .extension-builder/.state.lock

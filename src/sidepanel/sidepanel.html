@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title data-i18n="extName">CertScanner</title>
+<link rel="stylesheet" href="sidepanel.css">
+<!-- Packaged vendor IIFEs (classic scripts): global Tesseract and ZXingWASM. Paths are overridden in code. -->
+<script src="../vendor/tesseract/tesseract.min.js"></script>
+<script src="../vendor/zxing/zxing-reader.iife.js"></script>
+<script type="module" src="main.js"></script>
+</head>
+<body data-state="idle">
+<header class="app-header">
+  <h1 data-i18n="extName">CertScanner</h1>
+</header>
+
+<main>
+  <section class="card status-card" aria-labelledby="status-heading">
+    <h2 id="status-heading" class="visually-hidden" data-i18n="a11yStatusHeading">Scan status</h2>
+    <p data-testid="status-live" id="status-live" role="status" aria-live="polite" aria-atomic="true"></p>
+    <progress data-testid="progress" id="progress" max="1" value="0" hidden data-i18n-attr="aria-label:a11yProgress"></progress>
+    <button type="button" class="btn btn-secondary" data-testid="cancel-button" id="cancel-button" hidden data-i18n="actionCancel">Cancel scan</button>
+    <div id="error-box" class="error-box" hidden>
+      <p data-testid="error-message" id="error-message" tabindex="-1"></p>
+      <button type="button" class="btn btn-secondary" data-testid="sharper-button" id="sharper-button" hidden></button>
+    </div>
+  </section>
+
+  <section class="card result-card" id="result" hidden aria-labelledby="result-heading">
+    <h2 id="result-heading" tabindex="-1" data-i18n="stateResultHeading">Result</h2>
+    <img data-testid="preview" id="preview" class="preview" alt="" data-i18n-attr="alt:labelPreview" hidden>
+    <div id="candidates-block">
+      <p class="result-summary">
+        <span data-testid="result-grader" id="result-grader" class="result-grader"></span>
+        <span data-testid="result-number" id="result-number" class="result-number"></span>
+      </p>
+      <p id="result-meta" class="result-meta"></p>
+      <div class="warnings" hidden>
+        <h3 class="visually-hidden" data-i18n="labelWarnings">Notes</h3>
+        <ul id="warnings"></ul>
+      </div>
+      <p id="candidates-label" class="label" data-i18n="stateCandidates">Numbers found</p>
+      <ul data-testid="candidate-list" id="candidate-list" class="candidate-list" aria-labelledby="candidates-label"></ul>
+      <form id="confirm-form" class="confirm-form" novalidate>
+        <div class="field">
+          <label for="grader-select" data-i18n="labelGrader">Grader</label>
+          <select data-testid="grader-select" id="grader-select">
+            <option value="" data-i18n="graderChoose">Choose grader…</option>
+            <option value="psa" data-i18n="graderPsa">PSA</option>
+            <option value="cgc-comics" data-i18n="graderCgcComics">CGC Comics</option>
+            <option value="cgc-cards" data-i18n="graderCgcCards">CGC Cards</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="number-input" data-i18n="labelNumber">Cert number</label>
+          <input type="text" data-testid="number-input" id="number-input" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="16" aria-describedby="confirm-error">
+        </div>
+        <p id="confirm-error" class="field-error" aria-live="polite"></p>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" data-testid="open-button" id="open-button" data-i18n="actionOpen">Open cert page</button>
+          <button type="button" class="btn btn-secondary" data-testid="copy-button" id="copy-button" data-i18n="actionCopy">Copy number</button>
+        </div>
+      </form>
+      <p class="note" data-i18n="stateNotAuthenticity"></p>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="inputs-heading">
+    <h2 id="inputs-heading" data-i18n="labelScanImage">Scan an image</h2>
+    <div id="drop-zone" class="drop-zone" role="group" data-i18n-attr="aria-label:a11yDropZone">
+      <p data-i18n="labelDropHint"></p>
+      <label class="btn btn-secondary file-label">
+        <span data-i18n="actionUpload">Choose image…</span>
+        <input type="file" accept="image/*" data-testid="upload-input" id="upload-input" class="file-input">
+      </label>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="manual-heading">
+    <h2 id="manual-heading" data-i18n="labelManual">Type a cert number</h2>
+    <form id="manual-form" novalidate>
+      <div class="field">
+        <label for="manual-input" data-i18n="labelManualInput">Cert number or official cert link</label>
+        <input type="text" data-testid="manual-input" id="manual-input" autocomplete="off" spellcheck="false" maxlength="2048" aria-describedby="manual-hint manual-error">
+      </div>
+      <p id="manual-hint" class="hint" data-i18n="labelManualHint"></p>
+      <p data-testid="manual-error" id="manual-error" class="field-error" aria-live="polite"></p>
+      <button type="submit" class="btn btn-primary" data-testid="manual-submit" id="manual-submit" data-i18n="actionManualSubmit">Open</button>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="history-heading">
+    <h2 id="history-heading" data-i18n="labelHistory">Recent scans</h2>
+    <p id="history-empty" class="hint" data-i18n="stateHistoryEmpty">No recent scans.</p>
+    <ol data-testid="history-list" id="history-list" class="history-list"></ol>
+    <button type="button" class="btn btn-secondary" data-testid="history-clear" id="history-clear" data-i18n="actionClearHistory">Clear recent scans</button>
+  </section>
+
+  <section class="card" aria-labelledby="settings-heading">
+    <h2 id="settings-heading" data-i18n="settingsHeading">Settings</h2>
+    <label class="check"><input type="checkbox" data-testid="setting-autoOpen" id="setting-autoOpen"> <span data-i18n="settingsAutoOpen"></span></label>
+    <label class="check"><input type="checkbox" data-testid="setting-openInBackground" id="setting-openInBackground"> <span data-i18n="settingsOpenInBackground"></span></label>
+    <label class="check"><input type="checkbox" data-testid="setting-saveHistory" id="setting-saveHistory"> <span data-i18n="settingsSaveHistory"></span></label>
+    <div id="history-off-confirm" class="inline-confirm" role="group" aria-labelledby="history-off-text" hidden>
+      <p id="history-off-text" data-i18n="settingsHistoryOffConfirm"></p>
+      <button type="button" class="btn btn-danger" id="history-off-yes" data-i18n="actionDeleteHistory">Turn off and delete</button>
+      <button type="button" class="btn btn-secondary" id="history-off-no" data-i18n="actionKeepHistory">Keep recent scans</button>
+    </div>
+    <p id="settings-status" class="hint" role="status" aria-live="polite"></p>
+    <h3 data-i18n="settingsSitesHeading">Sites with sharper scans</h3>
+    <p id="sites-empty" class="hint" data-i18n="settingsSitesEmpty"></p>
+    <ul id="sites-list" class="sites-list"></ul>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <p data-i18n="footerDisclaimer">Not affiliated with PSA or CGC.</p>
+  <p data-i18n="footerPrivacy"></p>
+</footer>
+</body>
+</html>

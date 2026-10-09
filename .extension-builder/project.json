@@ -31,14 +31,11 @@
     "architecture": {
       "status": "evidenced",
       "evidence": "docs/architecture/architecture.md",
-      "sha256": "250fdd9ff47b52002c462f0b7dad3d9b4255fcea3a14c48623bfae463a3390b1",
-      "recorded_at": "2026-10-09T20:35:46.245176+00:00"
+      "sha256": "52402158bae70d1cf1172e845029febcd7e4b5fd16f68071152296ffe6b07861",
+      "recorded_at": "2026-10-09T21:14:57.437208+00:00"
     },
     "design": {
-      "status": "evidenced",
-      "evidence": "docs/design/design-spec.md",
-      "sha256": "c4d61b2aa1af4833bee90bbd2a87dd42c38465411d39ad3d986b3840a3f84a39",
-      "recorded_at": "2026-10-09T20:35:46.328077+00:00"
+      "status": "pending"
     },
     "build": {
       "status": "pending"
@@ -76,6 +73,35 @@
         }
       },
       "recorded_at": "2026-10-09T20:35:46.157223+00:00"
+    },
+    {
+      "action": "invalidate",
+      "stage": "architecture",
+      "reason": "ADR amendment A6 after S1-S5 handoff",
+      "previous": {
+        "architecture": {
+          "status": "evidenced",
+          "evidence": "docs/architecture/architecture.md",
+          "sha256": "250fdd9ff47b52002c462f0b7dad3d9b4255fcea3a14c48623bfae463a3390b1",
+          "recorded_at": "2026-10-09T20:35:46.245176+00:00"
+        },
+        "design": {
+          "status": "evidenced",
+          "evidence": "docs/design/design-spec.md",
+          "sha256": "c4d61b2aa1af4833bee90bbd2a87dd42c38465411d39ad3d986b3840a3f84a39",
+          "recorded_at": "2026-10-09T20:35:46.328077+00:00"
+        },
+        "build": {
+          "status": "pending"
+        },
+        "test": {
+          "status": "pending"
+        },
+        "release": {
+          "status": "pending"
+        }
+      },
+      "recorded_at": "2026-10-09T21:14:57.366482+00:00"
     }
   ]
 }

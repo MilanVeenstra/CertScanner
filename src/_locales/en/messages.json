@@ -1,0 +1,361 @@
+{
+  "extName": {
+    "message": "CertScanner"
+  },
+  "extDescription": {
+    "message": "Reads the cert number from a PSA or CGC slab photo you choose and opens the official verification page. Images stay on your device."
+  },
+  "actionTitle": {
+    "message": "Open CertScanner"
+  },
+  "localeCode": {
+    "message": "en"
+  },
+  "menuScan": {
+    "message": "Scan slab cert number"
+  },
+  "stateIdle": {
+    "message": "Right-click a slab photo on a web page and choose “Scan slab cert number”, or add an image below."
+  },
+  "stateScanning": {
+    "message": "Scanning image…"
+  },
+  "stateAcquire": {
+    "message": "Getting the image…"
+  },
+  "stateDecode": {
+    "message": "Preparing the image…"
+  },
+  "stateBarcode": {
+    "message": "Looking for barcodes and QR codes…"
+  },
+  "stateOcrInit": {
+    "message": "Starting text recognition…"
+  },
+  "stateOcr": {
+    "message": "Reading the label…"
+  },
+  "stateParse": {
+    "message": "Checking the number…"
+  },
+  "stateAutoOpen": {
+    "message": "Opened $GRADER$ cert $NUMBER$ in a new tab.",
+    "placeholders": {
+      "grader": {
+        "content": "$1"
+      },
+      "number": {
+        "content": "$2"
+      }
+    }
+  },
+  "stateOpened": {
+    "message": "Opened $GRADER$ cert $NUMBER$.",
+    "placeholders": {
+      "grader": {
+        "content": "$1"
+      },
+      "number": {
+        "content": "$2"
+      }
+    }
+  },
+  "stateConfirm": {
+    "message": "Check the number and grader, then open the cert page."
+  },
+  "stateConfirmGrader": {
+    "message": "Number found. Choose the grader, then open the cert page."
+  },
+  "stateNone": {
+    "message": "No certification number found. Try a sharper image, or type the number below."
+  },
+  "stateCancelled": {
+    "message": "Scan cancelled."
+  },
+  "stateCopied": {
+    "message": "Copied $NUMBER$.",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
+  },
+  "stateHistoryCleared": {
+    "message": "Recent scans cleared."
+  },
+  "stateResultHeading": {
+    "message": "Result"
+  },
+  "stateCandidates": {
+    "message": "Numbers found"
+  },
+  "stateNotAuthenticity": {
+    "message": "The grader’s page shows the record for this number. A matching record does not prove that the slab itself is genuine."
+  },
+  "stateHistoryEmpty": {
+    "message": "No recent scans."
+  },
+  "stateConfidence": {
+    "message": "$PCT$% sure",
+    "placeholders": {
+      "pct": {
+        "content": "$1"
+      }
+    }
+  },
+  "stateNoGrader": {
+    "message": "Grader unknown"
+  },
+  "errorRestricted": {
+    "message": "Chrome doesn’t allow extensions to read this page. Save the image and upload it, or copy and paste it here."
+  },
+  "errorNotFound": {
+    "message": "The image is no longer on the page. Try again, or upload the image."
+  },
+  "errorTooLarge": {
+    "message": "This image is too large to scan. Use a smaller copy."
+  },
+  "errorFetchFailed": {
+    "message": "The site didn’t let CertScanner read this image. Upload or paste the image instead."
+  },
+  "errorCaptureFailed": {
+    "message": "The image couldn’t be captured from the screen. Upload or paste the image instead."
+  },
+  "errorTabChanged": {
+    "message": "The tab changed before the image could be read. Go back to the page and try again."
+  },
+  "errorInvalidImage": {
+    "message": "This isn’t an image CertScanner can read."
+  },
+  "errorEngineFailed": {
+    "message": "Text recognition couldn’t start. Close and reopen the side panel, then try again."
+  },
+  "errorTimeout": {
+    "message": "The scan took too long. Try again, or use a smaller image."
+  },
+  "errorAborted": {
+    "message": "Scan cancelled."
+  },
+  "errorManualEmpty": {
+    "message": "Type a cert number, for example PSA 12345678."
+  },
+  "errorManualNoNumber": {
+    "message": "No cert number found in what you typed."
+  },
+  "errorManualBadLength": {
+    "message": "That number has the wrong number of digits for this grader."
+  },
+  "errorManualInvalid": {
+    "message": "Use digits, optionally with the grader name (PSA, CGC comics, CGC cards)."
+  },
+  "errorManualUntrustedUrl": {
+    "message": "Only cert links from psacard.com, cgccomics.com or cgccards.com can be used."
+  },
+  "errorManualTooLong": {
+    "message": "That’s too long to be a cert number."
+  },
+  "errorChooseGrader": {
+    "message": "Choose a grader first."
+  },
+  "errorBadNumber": {
+    "message": "Enter a cert number with the right number of digits for this grader."
+  },
+  "errorCopyFailed": {
+    "message": "Couldn’t copy to the clipboard."
+  },
+  "errorOpenFailed": {
+    "message": "Couldn’t open a new tab."
+  },
+  "errorSettingsSave": {
+    "message": "Couldn’t save the setting. Try again."
+  },
+  "errorPermissionDenied": {
+    "message": "Access not granted. You can still upload or paste the image."
+  },
+  "warningQrUntrusted": {
+    "message": "This image has a QR code that points to $HOST$, which is not an official grader site. It was not opened.",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "warningLowResolution": {
+    "message": "Low-resolution image: check the number carefully."
+  },
+  "warningOcrUnavailable": {
+    "message": "Text recognition is unavailable; showing barcode results only."
+  },
+  "warningScreenResolution": {
+    "message": "Scanned at screen resolution."
+  },
+  "actionOpen": {
+    "message": "Open cert page"
+  },
+  "actionCopy": {
+    "message": "Copy number"
+  },
+  "actionCancel": {
+    "message": "Cancel scan"
+  },
+  "actionUpload": {
+    "message": "Choose image…"
+  },
+  "actionManualSubmit": {
+    "message": "Open"
+  },
+  "actionClearHistory": {
+    "message": "Clear recent scans"
+  },
+  "actionDeleteHistory": {
+    "message": "Turn off and delete"
+  },
+  "actionKeepHistory": {
+    "message": "Keep recent scans"
+  },
+  "actionSharper": {
+    "message": "Sharper scans on $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "actionRemoveSite": {
+    "message": "Remove"
+  },
+  "labelScanImage": {
+    "message": "Scan an image"
+  },
+  "labelDropHint": {
+    "message": "Drop a slab photo here, paste it (Ctrl+V), or"
+  },
+  "labelManual": {
+    "message": "Type a cert number"
+  },
+  "labelManualInput": {
+    "message": "Cert number or official cert link"
+  },
+  "labelManualHint": {
+    "message": "For example: PSA 01234567, CGC 4012345001 or 4012345-001"
+  },
+  "labelHistory": {
+    "message": "Recent scans"
+  },
+  "labelGrader": {
+    "message": "Grader"
+  },
+  "labelNumber": {
+    "message": "Cert number"
+  },
+  "labelPreview": {
+    "message": "Scanned image"
+  },
+  "labelWarnings": {
+    "message": "Notes"
+  },
+  "graderPsa": {
+    "message": "PSA"
+  },
+  "graderCgcComics": {
+    "message": "CGC Comics"
+  },
+  "graderCgcCards": {
+    "message": "CGC Cards"
+  },
+  "graderChoose": {
+    "message": "Choose grader…"
+  },
+  "sourceOcr": {
+    "message": "read from label"
+  },
+  "sourceBarcode": {
+    "message": "from barcode"
+  },
+  "sourceQrUrl": {
+    "message": "from QR code"
+  },
+  "sourceManual": {
+    "message": "typed"
+  },
+  "settingsHeading": {
+    "message": "Settings"
+  },
+  "settingsAutoOpen": {
+    "message": "Open the cert page automatically when the result is clear (off = always ask)"
+  },
+  "settingsOpenInBackground": {
+    "message": "Open cert pages in a background tab"
+  },
+  "settingsSaveHistory": {
+    "message": "Keep a list of recent scans on this device"
+  },
+  "settingsHistoryOffConfirm": {
+    "message": "Turning this off deletes your recent scans."
+  },
+  "settingsSaved": {
+    "message": "Saved."
+  },
+  "settingsSitesHeading": {
+    "message": "Sites with sharper scans"
+  },
+  "settingsSitesEmpty": {
+    "message": "None. CertScanner only asks for a site when you choose “Sharper scans”."
+  },
+  "settingsSiteRemoved": {
+    "message": "Removed access to $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "a11yStatusHeading": {
+    "message": "Scan status"
+  },
+  "a11yProgress": {
+    "message": "Scan progress"
+  },
+  "a11yCandidate": {
+    "message": "Use $NUMBER$, $GRADER$, $PCT$% sure",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      },
+      "grader": {
+        "content": "$2"
+      },
+      "pct": {
+        "content": "$3"
+      }
+    }
+  },
+  "a11yHistoryOpen": {
+    "message": "Open $GRADER$ cert $NUMBER$",
+    "placeholders": {
+      "grader": {
+        "content": "$1"
+      },
+      "number": {
+        "content": "$2"
+      }
+    }
+  },
+  "a11yRemoveSite": {
+    "message": "Remove access to $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "a11yDropZone": {
+    "message": "Image drop area"
+  },
+  "footerDisclaimer": {
+    "message": "Not affiliated with PSA or CGC."
+  },
+  "footerPrivacy": {
+    "message": "Images are processed on this device and never uploaded."
+  }
+}

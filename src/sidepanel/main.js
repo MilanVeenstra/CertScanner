@@ -212,7 +212,7 @@ async function onTaskFormSubmit() {
   }
 }
 
-async function copyNumber(button) {
+async function copyNumber() {
   let number;
   let grader = null;
   let source = 'manual';
@@ -224,14 +224,14 @@ async function copyNumber(button) {
     grader = s.grader;
     if (last.picked?.number === number) source = last.picked.source;
   }
-  if (!/^\d{7,13}$/.test(number ?? '')) { ui.showCopyState(button, false); return; }
+  if (!/^\d{7,13}$/.test(number ?? '')) { ui.showCopyState(false); return; }
   try {
     await navigator.clipboard.writeText(number);
-    ui.showCopyState(button, true);
+    ui.showCopyState(true);
     ui.announce(t('status_copied'));
     if (ui.taskState === 'confirm' && grader && isValidCert(grader, number)) await recordHistory({ grader, number, source }, last.job, settings);
   } catch {
-    ui.showCopyState(button, false);
+    ui.showCopyState(false);
   }
 }
 
@@ -267,7 +267,7 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'type') focusCertInput();
   else if (a === 'retry') retry();
   else if (a === 'reload') location.reload();
-  else if (a === 'copy') copyNumber(b);
+  else if (a === 'copy') copyNumber();
   else if (a === 'open-again') openAgain();
   else if (a === 'edit') ui.showEdit({ number: last.opened.number, grader: last.opened.grader });
   else if (a === 'edit-cancel') cancelEdit();

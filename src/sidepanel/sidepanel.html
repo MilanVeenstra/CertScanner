@@ -160,44 +160,30 @@
   <p><span data-i18n="about_disclaimer">Not affiliated with PSA or CGC.</span> · <span data-i18n="footer_local">Images stay on this device</span></p>
 </footer>
 
-<!-- ============================ task-card templates (UX spec §3) ============================ -->
+<!-- ============================ task-card templates (UX spec §3) ============================
+     Elements carrying ADR §13 test ids are singletons kept in #parking and moved into [data-slot] placeholders,
+     so each id exists exactly once in the document at all times (e2e presence + Playwright strict locators). -->
 <template id="tpl-idle">
   <p data-ref="idle-body"></p>
   <p class="muted" data-i18n="idle_body_alt"></p>
 </template>
 
 <template id="tpl-scanning">
-  <div class="media-row">
-    <div class="thumb" data-ref="thumb-box"><svg class="icon thumb-placeholder" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><img data-testid="preview" data-ref="thumb" alt="" hidden></div>
-    <ol class="steps" data-testid="progress" data-ref="steps">
-      <li data-step="load"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_load"></span><span class="step-state visually-hidden"></span></li>
-      <li data-step="barcode"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_barcode"></span><span class="step-state visually-hidden"></span></li>
-      <li data-step="text"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_text"></span><span class="step-state visually-hidden"></span><span class="step-sub muted" data-i18n="step_text_starting" hidden></span></li>
-      <li data-step="match"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_match"></span><span class="step-state visually-hidden"></span></li>
-    </ol>
-  </div>
+  <div class="media-row"><span data-slot="thumb"></span><span data-slot="steps"></span></div>
   <p class="caption muted" data-ref="caption"></p>
   <p class="muted" data-ref="slow" data-i18n="scan_slow" hidden></p>
-  <div class="actions"><button type="button" class="btn btn-secondary" data-testid="cancel-button" data-action="cancel" data-i18n="cancel_button">Cancel</button></div>
+  <div class="actions"><span data-slot="cancel"></span></div>
 </template>
 
 <template id="tpl-result">
-  <div class="media-row">
-    <div class="thumb" data-ref="thumb-box" hidden><img data-testid="preview" data-ref="thumb" alt=""></div>
-    <div class="read">
-      <span class="chip" data-testid="result-grader" data-ref="chip"></span>
-      <p class="cert" dir="ltr" data-testid="result-number" data-ref="number"></p>
-      <p class="muted" data-ref="method"></p>
-      <p class="muted path" dir="ltr" data-testid="result-url" data-ref="path"></p>
-    </div>
-  </div>
+  <div class="media-row"><span data-slot="thumb"></span><span data-slot="read"></span></div>
   <div class="note" data-ref="bg-note" hidden>
     <p class="muted" data-i18n="result_bg_note"></p>
     <button type="button" class="btn btn-secondary" data-action="go-to-tab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tab"/></svg><span data-i18n="go_to_tab"></span></button>
   </div>
   <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="actions">
-    <button type="button" class="btn btn-secondary" data-testid="copy-button" data-action="copy"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span data-ref="copy-label" data-i18n="copy_button"></span></button>
+    <span data-slot="copy"></span>
     <button type="button" class="btn btn-secondary" data-testid="open-again-button" data-action="open-again"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_again"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
   </div>
   <p class="field-error" data-ref="copy-error" aria-live="polite"></p>
@@ -206,34 +192,8 @@
   <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
 </template>
 
-<template id="tpl-cert-form">
-  <form class="cert-form" data-ref="form" novalidate>
-    <div class="field">
-      <label data-ref="field-label" data-i18n="field_cert_label"></label>
-      <input type="text" class="cert-field" data-testid="number-input" data-ref="input" autocomplete="off" spellcheck="false" maxlength="64" dir="ltr">
-      <p class="field-error" data-ref="error" aria-live="polite"></p>
-    </div>
-    <fieldset class="segmented" data-testid="grader-select" data-ref="graders" data-value="">
-      <legend data-i18n="grader_legend"></legend>
-      <div class="segments">
-        <label class="segment"><input type="radio" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa"></span></label>
-        <label class="segment"><input type="radio" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics"></span></label>
-        <label class="segment"><input type="radio" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards"></span></label>
-      </div>
-      <p class="hint grader-hint" data-ref="grader-hint"></p>
-    </fieldset>
-    <div class="actions" data-ref="form-actions">
-      <button type="submit" class="btn btn-primary" data-testid="open-button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_button"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      <button type="button" class="btn btn-secondary" data-action="copy" data-testid="copy-button" data-ref="form-copy" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span data-ref="copy-label" data-i18n="copy_button"></span></button>
-      <button type="button" class="btn btn-secondary" data-action="edit-cancel" data-testid="edit-cancel" data-ref="form-cancel" hidden><span data-i18n="cancel_button"></span></button>
-    </div>
-    <p class="field-error" data-ref="copy-error" aria-live="polite"></p>
-    <p class="hint url-preview" data-ref="preview-line" dir="auto"></p>
-  </form>
-</template>
-
 <template id="tpl-edit">
-  <div data-ref="form-slot"></div>
+  <span data-slot="certform"></span>
   <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
 </template>
@@ -242,20 +202,14 @@
   <div data-ref="qr-slot"></div>
   <div class="alert alert-info" data-ref="reasons" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><div data-ref="reason-list"></div></div>
   <div class="media-row">
-    <div class="thumb" data-ref="thumb-box" hidden><img data-testid="preview" data-ref="thumb" alt=""></div>
-    <div class="read">
-      <span class="chip" data-testid="result-grader" data-ref="chip"></span>
-      <p class="cert cert-sm" dir="ltr" data-testid="result-number" data-ref="number"></p>
-      <p class="muted" data-ref="method"></p>
+    <span data-slot="thumb"></span>
+    <div class="read-wrap"><span data-slot="read"></span>
       <button type="button" class="link" data-ref="larger" data-action="larger" aria-expanded="false" hidden></button>
       <p class="caption muted" data-ref="caption"></p>
     </div>
   </div>
-  <fieldset class="candidates" data-testid="candidate-list" data-ref="candidates" hidden>
-    <legend data-i18n="candidates_legend"></legend>
-    <div data-ref="candidate-items"></div>
-  </fieldset>
-  <div data-ref="form-slot"></div>
+  <span data-slot="candidates"></span>
+  <span data-slot="certform"></span>
   <div data-ref="lowres-slot"></div>
   <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
@@ -266,10 +220,7 @@
 </template>
 
 <template id="tpl-none">
-  <div class="media-row">
-    <div class="thumb" data-ref="thumb-box" hidden><img data-testid="preview" data-ref="thumb" alt=""></div>
-    <p data-i18n="none_body"></p>
-  </div>
+  <div class="media-row"><span data-slot="thumb"></span><p data-i18n="none_body"></p></div>
   <div data-ref="qr-slot"></div>
   <p class="muted" data-ref="ocr-note" data-i18n="ocr_unavailable_note" hidden></p>
   <div class="actions" data-ref="none-actions">
@@ -280,7 +231,7 @@
 </template>
 
 <template id="tpl-error">
-  <p data-testid="error-message" data-ref="body" tabindex="-1"></p>
+  <span data-slot="error"></span>
   <div class="actions" data-ref="error-actions">
     <button type="button" class="btn btn-primary" data-testid="retry-button" data-action="retry" hidden><span data-i18n="retry_button"></span></button>
     <button type="button" class="btn btn-primary" data-action="reload" hidden><span data-i18n="reload_button"></span></button>
@@ -299,9 +250,7 @@
     <div>
       <p class="alert-title" data-ref="lowres-title"></p>
       <p data-ref="lowres-body"></p>
-      <div class="actions" data-ref="lowres-actions">
-        <button type="button" class="btn btn-secondary host-btn" data-testid="sharper-button" data-action="sharper"></button>
-      </div>
+      <div class="actions" data-ref="lowres-actions"><span data-slot="sharper"></span></div>
       <p class="hint" data-ref="lowres-fine"></p>
       <button type="button" class="link" data-action="not-now" data-i18n="lowres_dismiss"></button>
       <div class="actions" data-ref="rescan-row" hidden><button type="button" class="btn btn-secondary" data-testid="rescan-button" data-action="rescan"><span data-i18n="rescan_button"></span></button></div>
@@ -322,5 +271,53 @@
 <template id="tpl-site-row">
   <li class="site-row"><span class="site-host" dir="ltr" data-ref="host"></span><button type="button" class="btn btn-secondary btn-sm" data-ref="remove"><span data-ref="remove-label" data-i18n="remove_button"></span></button></li>
 </template>
+
+<!-- Parking for the §13 singletons while their state is not shown (hidden; not in the tab order). -->
+<div id="parking" hidden>
+  <div class="thumb" data-single="thumb"><svg class="icon thumb-placeholder" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><img data-testid="preview" alt="" hidden></div>
+  <ol class="steps" data-testid="progress" data-single="steps">
+    <li data-step="load"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_load"></span><span class="step-state visually-hidden"></span></li>
+    <li data-step="barcode"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_barcode"></span><span class="step-state visually-hidden"></span></li>
+    <li data-step="text"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_text"></span><span class="step-state visually-hidden"></span><span class="step-sub muted" data-i18n="step_text_starting" hidden></span></li>
+    <li data-step="match"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_match"></span><span class="step-state visually-hidden"></span></li>
+  </ol>
+  <div class="read" data-single="read">
+    <span class="chip" data-testid="result-grader" data-ref="chip"></span>
+    <p class="cert" dir="ltr" data-testid="result-number" data-ref="number"></p>
+    <p class="muted" data-ref="method"></p>
+    <p class="muted path" dir="ltr" data-testid="result-url" data-ref="path"></p>
+  </div>
+  <fieldset class="candidates" data-testid="candidate-list" data-single="candidates">
+    <legend data-i18n="candidates_legend"></legend>
+    <div data-ref="candidate-items"></div>
+  </fieldset>
+  <form class="cert-form" data-single="certform" novalidate>
+    <div class="field">
+      <label for="task-cert-input" data-i18n="field_cert_label"></label>
+      <input type="text" id="task-cert-input" class="cert-field" data-testid="number-input" data-ref="input" autocomplete="off" spellcheck="false" maxlength="64" dir="ltr" aria-describedby="task-cert-error">
+      <p class="field-error" id="task-cert-error" data-ref="error" aria-live="polite"></p>
+    </div>
+    <fieldset class="segmented" data-testid="grader-select" data-ref="graders" data-value="">
+      <legend data-i18n="grader_legend"></legend>
+      <div class="segments">
+        <label class="segment"><input type="radio" name="task-grader" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa"></span></label>
+        <label class="segment"><input type="radio" name="task-grader" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics"></span></label>
+        <label class="segment"><input type="radio" name="task-grader" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards"></span></label>
+      </div>
+      <p class="hint grader-hint" data-ref="grader-hint"></p>
+    </fieldset>
+    <div class="actions" data-ref="form-actions">
+      <button type="submit" class="btn btn-primary" data-testid="open-button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_button"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <span data-ref="form-copy-slot"></span>
+      <button type="button" class="btn btn-secondary" data-action="edit-cancel" data-testid="edit-cancel" data-ref="form-cancel" hidden><span data-i18n="cancel_button"></span></button>
+    </div>
+    <p class="field-error" data-ref="form-copy-error" aria-live="polite"></p>
+    <p class="hint url-preview" data-ref="preview-line" dir="auto"></p>
+  </form>
+  <button type="button" class="btn btn-secondary" data-testid="copy-button" data-action="copy" data-single="copy"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span data-ref="copy-label" data-i18n="copy_button"></span></button>
+  <button type="button" class="btn btn-secondary" data-testid="cancel-button" data-action="cancel" data-single="cancel" data-i18n="cancel_button">Cancel</button>
+  <button type="button" class="btn btn-secondary host-btn" data-testid="sharper-button" data-action="sharper" data-single="sharper"><span data-ref="sharper-label"></span></button>
+  <p data-testid="error-message" data-single="error" tabindex="-1"></p>
+</div>
 </body>
 </html>

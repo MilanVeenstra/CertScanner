@@ -1,5 +1,7 @@
 // Side-panel rendering (UX spec §2.3, §3; ADR §13 + A4). Templates are cloned from sidepanel.html and filled
 // with textContent/attributes only: OCR, QR, page and file text never reach innerHTML.
+// Elements with ADR §13 test ids are singletons: parked in #parking and moved into [data-slot] placeholders,
+// so every id exists exactly once at all times.
 import { t, applyI18n } from '../shared/i18n.js';
 import { createCertField } from './certField.js';
 import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates } from './viewModel.js';
@@ -24,20 +26,52 @@ export function createUi(doc, actions) {
   const headingIcon = heading.querySelector('.state-icon');
   const body = $('task-body');
   const status = $('status');
-  let field = null;       // createCertField controller in the task card
+  const parking = $('parking');
+  const singles = Object.fromEntries([...parking.querySelectorAll('[data-single]')].map((el) => [el.dataset.single, el]));
+  const ref = (root, name) => root.querySelector(`[data-ref="${name}"]`);
+  let field = null;
   let slowTimer = null;
   let stages = [];
   let lastAnnounced = '';
   let thumbUrl = null;
   let recentExpanded = false;
+  let currentCandidates = [];
+
+  applyI18n(parking);
+  singles.certform.addEventListener('submit', (e) => { e.preventDefault(); actions.submitTaskForm(); });
+  singles.candidates.addEventListener('change', (e) => {
+    const c = currentCandidates[Number(e.target.value)];
+    if (!c) return;
+    fillRead(c, { path: null });
+    field?.fill(c.number, c.grader);
+    actions.candidatePicked?.(c);
+  });
 
   // ------------------------------------------------------------ helpers
+  /** Move every singleton back to #parking and clear its content, so hidden ids never expose stale results. */
+  function park() {
+    for (const el of Object.values(singles)) if (el.parentElement !== parking) parking.appendChild(el);
+    singles.thumb.classList.remove('is-large');
+    for (const name of ['chip', 'number', 'method', 'path']) ref(singles.read, name).textContent = '';
+    const items = ref(singles.candidates, 'candidate-items');
+    while (items.firstChild) items.firstChild.remove();
+    currentCandidates = [];
+    const form = singles.certform;
+    ref(form, 'input').value = '';
+    for (const r of form.querySelectorAll('input[type="radio"]')) r.checked = false;
+    ref(form, 'graders').dataset.value = '';
+    for (const name of ['error', 'grader-hint', 'preview-line', 'form-copy-error']) ref(form, name).textContent = '';
+    singles.error.textContent = '';
+    delete singles.error.dataset.code;
+    delete singles.error.dataset.errorId;
+  }
+
   function clone(id) {
     const frag = $(id).content.cloneNode(true);
     applyI18n(frag);
+    for (const slot of frag.querySelectorAll('[data-slot]')) slot.replaceWith(singles[slot.dataset.slot]);
     return frag;
   }
-  const ref = (root, name) => root.querySelector(`[data-ref="${name}"]`);
 
   /** F3: polite status; an identical message is cleared and re-set after 100 ms so it is read again. */
   function announce(text) {
@@ -76,6 +110,7 @@ export function createUi(doc, actions) {
     clearTimeout(slowTimer);
     field?.destroy();
     field = null;
+    park();
     task.dataset.state = state;
     if (state === 'scanning') task.setAttribute('aria-busy', 'true'); else task.removeAttribute('aria-busy');
     while (body.firstChild) body.firstChild.remove();
@@ -86,18 +121,23 @@ export function createUi(doc, actions) {
     doc.body.dataset.state = state;
   }
 
-  function setThumb(root, view) {
-    const box = ref(root, 'thumb-box');
-    const img = ref(root, 'thumb');
-    if (!box || !img) return;
-    if (view.thumbUrl) {
-      img.src = view.thumbUrl;
-      img.alt = view.thumbAlt ?? '';
+  /** Thumbnail singleton: image when known; placeholder only while scanning; hidden otherwise. */
+  function setThumb({ thumbUrl: url = null, thumbAlt = '' }, { placeholder = false } = {}) {
+    const box = singles.thumb;
+    const img = box.querySelector('img');
+    const ph = box.querySelector('.thumb-placeholder');
+    if (url) {
+      img.src = url;
+      img.alt = thumbAlt;
       img.hidden = false;
+      ph.setAttribute('hidden', '');
       box.hidden = false;
-      box.querySelector('.thumb-placeholder')?.setAttribute('hidden', '');
-    } else if (!box.querySelector('.thumb-placeholder')) {
-      box.hidden = true;
+    } else {
+      img.removeAttribute('src');
+      img.alt = '';
+      img.hidden = true;
+      if (placeholder) ph.removeAttribute('hidden'); else ph.setAttribute('hidden', '');
+      box.hidden = !placeholder;
     }
   }
 
@@ -108,42 +148,57 @@ export function createUi(doc, actions) {
     return thumbUrl;
   }
 
+  function fillRead(c, { path }) {
+    const r = singles.read;
+    ref(r, 'chip').textContent = c.grader ? graderName(c.grader) : t('candidate_grader_unknown');
+    ref(r, 'number').textContent = c.number;
+    ref(r, 'method').textContent = t(methodKey(c.method ?? c.source));
+    const p = ref(r, 'path');
+    p.textContent = path ?? '';
+    p.hidden = !path;
+  }
+
   function offline(root) {
     const el = ref(root, 'offline');
     if (el) el.hidden = navigator.onLine !== false;
   }
 
-  function mountForm(root, { number, grader, autofocusSelect = false, withCopy = false, withCancel = false, cgcHint = true }) {
-    const slot = ref(root, 'form-slot');
-    const frag = clone('tpl-cert-form');
-    const form = ref(frag, 'form');
-    const input = ref(frag, 'input');
-    const label = ref(frag, 'field-label');
-    const error = ref(frag, 'error');
-    const id = `task-cert-${Math.random().toString(36).slice(2, 8)}`;
-    input.id = id;
-    label.htmlFor = id;
-    error.id = `${id}-error`;
-    input.setAttribute('aria-describedby', error.id);
-    ref(frag, 'form-copy').hidden = !withCopy;
-    ref(frag, 'form-cancel').hidden = !withCancel;
-    slot.appendChild(frag);
+  function mountForm({ number, grader, withCopy = false, withCancel = false, cgcHint = true }) {
+    const form = singles.certform;
+    const input = ref(form, 'input');
+    const error = ref(form, 'error');
+    error.textContent = '';
+    error.classList.remove('is-warning');
+    input.removeAttribute('aria-invalid');
+    ref(form, 'form-copy-error').textContent = '';
+    if (withCopy) ref(form, 'form-copy-slot').appendChild(singles.copy);
+    ref(form, 'form-cancel').hidden = !withCancel;
+    resetCopyLabel();
     field = createCertField({
       input, fieldset: ref(form, 'graders'), errorEl: error, previewEl: ref(form, 'preview-line'), hintEl: ref(form, 'grader-hint'),
-      radioName: `${id}-grader`, prefill: { number, grader }, cgcHint,
+      radioName: 'task-grader', prefill: { number, grader }, cgcHint,
     });
-    form.addEventListener('submit', (e) => { e.preventDefault(); actions.submitTaskForm(); });
-    if (autofocusSelect) { input.focus(); input.select(); }
     return { form, input };
   }
 
-  function lowresBlock(root, lowres) {
-    const slot = ref(root, 'lowres-slot');
-    if (slot && lowres) renderLowres(slot, lowres);
+  function resetCopyLabel() {
+    ref(singles.copy, 'copy-label').textContent = t('copy_button');
+  }
+
+  function qrBlock(root, qrHost, numberUsed) {
+    const slot = ref(root, 'qr-slot');
+    if (!slot || !qrHost) return;
+    const frag = clone('tpl-qr-warning');
+    ref(frag, 'qr-body').textContent = t('qr_offsite_body', [qrHost]);
+    ref(frag, 'qr-number').hidden = !numberUsed;
+    slot.appendChild(frag);
   }
 
   /** N1 notice in one of its sub-states: offer | granted | denied | failed. */
   function renderLowres(slot, lowres) {
+    if (singles.sharper.parentElement !== parking) parking.appendChild(singles.sharper);
+    while (slot.firstChild) slot.firstChild.remove();
+    if (!lowres) return;
     const frag = clone('tpl-lowres');
     const box = ref(frag, 'lowres-box');
     const title = ref(frag, 'lowres-title');
@@ -152,12 +207,9 @@ export function createUi(doc, actions) {
     const fine = ref(frag, 'lowres-fine');
     const notNow = frag.querySelector('[data-action="not-now"]');
     const rescanRow = ref(frag, 'rescan-row');
-    const sharper = frag.querySelector('[data-action="sharper"]');
     const host = lowres.host;
-    const label = doc.createElement('span');
-    label.textContent = t('lowres_button', [host]);
-    sharper.append(label);
-    sharper.title = host;
+    ref(singles.sharper, 'sharper-label').textContent = t('lowres_button', [host]);
+    singles.sharper.title = host;
     const setIcon = (name) => ref(frag, 'lowres-icon')?.setAttribute('href', `#${name}`);
     if (lowres.state === 'offer') {
       title.textContent = t('lowres_title');
@@ -185,15 +237,6 @@ export function createUi(doc, actions) {
     slot.appendChild(frag);
   }
 
-  function qrBlock(root, qrHost, numberUsed) {
-    const slot = ref(root, 'qr-slot');
-    if (!slot || !qrHost) return;
-    const frag = clone('tpl-qr-warning');
-    ref(frag, 'qr-body').textContent = t('qr_offsite_body', [qrHost]);
-    ref(frag, 'qr-number').hidden = !numberUsed;
-    slot.appendChild(frag);
-  }
-
   // ------------------------------------------------------------ states
   function showIdle({ focus = false } = {}) {
     setTaskState('idle');
@@ -211,7 +254,7 @@ export function createUi(doc, actions) {
     const frag = clone('tpl-scanning');
     ref(frag, 'caption').textContent = caption;
     body.appendChild(frag);
-    setThumb(body, { thumbUrl: url, thumbAlt });
+    setThumb({ thumbUrl: url, thumbAlt }, { placeholder: true });
     renderSteps();
     slowTimer = setTimeout(() => { const s = ref(body, 'slow'); if (s) s.hidden = false; }, SLOW_MS);
     settle(t('status_scan_started'));
@@ -224,12 +267,10 @@ export function createUi(doc, actions) {
   }
 
   function renderSteps() {
-    const list = ref(body, 'steps');
-    if (!list) return;
     const s = stepStates(stages);
     const icons = { waiting: 'i-circle', active: reducedMotion() ? 'i-half' : 'i-spinner', done: 'i-step-done', skipped: 'i-circle-dash' };
     const labels = { waiting: 'step_state_waiting', active: 'step_state_active', done: 'step_state_done', skipped: 'step_state_skipped' };
-    for (const li of list.children) {
+    for (const li of singles.steps.children) {
       const state = s[li.dataset.step];
       li.dataset.state = state;
       li.querySelector('use').setAttribute('href', `#${icons[state]}`);
@@ -240,25 +281,23 @@ export function createUi(doc, actions) {
   }
 
   function updateScanThumb(url, alt) {
-    if (task.dataset.state === 'scanning') setThumb(body, { thumbUrl: url, thumbAlt: alt });
+    if (task.dataset.state === 'scanning') setThumb({ thumbUrl: url, thumbAlt: alt }, { placeholder: true });
   }
 
-  /**
-   * S2. view: {opened:{grader, number, method, url, background, tabId}, thumbUrl, thumbAlt}
-   * @param {{moveFocus?:boolean, summary?:boolean}} opts
-   */
+  /** S2. view: {opened:{grader, number, method, url, background, tabId}, thumbUrl, thumbAlt} */
   function showResult(view, { moveFocus = true } = {}) {
     setTaskState('result');
     const o = view.opened;
     setHeading(t('result_heading', [graderName(o.grader)]), 'success');
     const frag = clone('tpl-result');
-    ref(frag, 'chip').textContent = graderName(o.grader);
-    ref(frag, 'number').textContent = o.number;
-    ref(frag, 'method').textContent = t(methodKey(o.method));
-    ref(frag, 'path').textContent = displayUrl(o.url ?? buildCertUrl(o.grader, o.number));
     ref(frag, 'bg-note').hidden = !(o.background && Number.isInteger(o.tabId));
     body.appendChild(frag);
-    setThumb(body, view);
+    fillRead({ grader: o.grader, number: o.number, method: o.method }, { path: displayUrl(o.url ?? buildCertUrl(o.grader, o.number)) });
+    // The (parked) grader control mirrors the opened grader so §13 readers see the routed grader in S2 too.
+    for (const r of singles.certform.querySelectorAll('input[type="radio"]')) r.checked = r.value === o.grader;
+    ref(singles.certform, 'graders').dataset.value = o.grader;
+    setThumb(view);
+    resetCopyLabel();
     offline(body);
     settle(t('status_opened', [graderName(o.grader), o.number]), { moveFocus });
   }
@@ -268,12 +307,12 @@ export function createUi(doc, actions) {
     if (el) el.hidden = false;
   }
 
-  function showCopyState(button, ok) {
-    const label = button?.querySelector('[data-ref="copy-label"]');
-    const err = ref(body, 'copy-error');
-    if (ok && label) {
+  function showCopyState(ok) {
+    const label = ref(singles.copy, 'copy-label');
+    const err = ref(body, 'copy-error') ?? ref(singles.certform, 'form-copy-error');
+    if (ok) {
       label.textContent = t('copy_done');
-      setTimeout(() => { if (label.isConnected) label.textContent = t('copy_button'); }, COPIED_MS);
+      setTimeout(() => { label.textContent = t('copy_button'); }, COPIED_MS);
     }
     if (err) err.textContent = ok ? '' : t('copy_failed');
   }
@@ -282,90 +321,68 @@ export function createUi(doc, actions) {
   function showEdit({ number, grader }) {
     setTaskState('edit');
     setHeading(t('edit_heading'));
-    const frag = clone('tpl-edit');
-    body.appendChild(frag);
-    const { form } = mountForm(body, { number, grader, withCancel: true });
+    body.appendChild(clone('tpl-edit'));
+    const { input } = mountForm({ number, grader, withCancel: true });
     offline(body);
-    const input = form.querySelector('[data-testid="number-input"]');
     input.focus();
     input.select();
   }
 
   /**
-   * S3. view: {result, reasons:[{key,subs}], candidates, thumbUrl, thumbAlt, caption, qrHost, lowres, prefill:{number, grader}}
+   * S3. view: {result, reasons:[{key,subs}], candidates, thumbUrl, thumbAlt, caption, qrHost, qrNumberUsed, lowres, prefill}
    */
   function showConfirm(view, { moveFocus = true } = {}) {
     setTaskState('confirm');
     setHeading(t('confirm_heading'), 'info');
-    const frag = clone('tpl-confirm');
-    body.appendChild(frag);
+    body.appendChild(clone('tpl-confirm'));
     qrBlock(body, view.qrHost, view.qrNumberUsed);
     if (view.reasons.length) {
-      const box = ref(body, 'reasons');
       const list = ref(body, 'reason-list');
       for (const r of view.reasons) {
         const p = doc.createElement('p');
         p.textContent = t(r.key, r.subs);
         list.appendChild(p);
       }
-      box.hidden = false;
+      ref(body, 'reasons').hidden = false;
     }
-    setThumb(body, view);
+    setThumb(view);
     ref(body, 'caption').textContent = view.caption ?? '';
     const larger = ref(body, 'larger');
-    if (view.thumbUrl) {
-      larger.hidden = false;
-      larger.textContent = t('image_larger');
-    }
+    larger.hidden = !view.thumbUrl;
+    larger.textContent = t('image_larger');
     const cands = view.candidates.slice(0, 3);
-    const top = cands[0];
-    const summarize = (c) => {
-      ref(body, 'chip').textContent = c.grader ? graderName(c.grader) : t('candidate_grader_unknown');
-      ref(body, 'number').textContent = c.number;
-      ref(body, 'method').textContent = t(methodKey(c.source));
-    };
-    summarize(top);
+    currentCandidates = cands;
+    fillRead(cands[0], { path: null });
+    const fs = singles.candidates;
+    const items = ref(fs, 'candidate-items');
+    while (items.firstChild) items.firstChild.remove();
+    fs.hidden = cands.length < 2;
     if (cands.length >= 2) {
-      const fs = ref(body, 'candidates');
-      const items = ref(body, 'candidate-items');
-      fs.hidden = false;
       cands.forEach((c, i) => {
         const cf = clone('tpl-candidate');
         const label = cf.querySelector('label');
         const radio = cf.querySelector('input');
         label.dataset.testid = `candidate-${i}`;
-        radio.name = 'candidate';
         radio.value = String(i);
         radio.checked = i === 0;
         ref(cf, 'number').textContent = c.number;
         ref(cf, 'best').hidden = i !== 0;
-        const meta = [t(methodKey(c.source))];
-        meta.push(c.grader ? t('candidate_grader_guess', [graderName(c.grader)]) : t('candidate_grader_unknown'));
+        const meta = [t(methodKey(c.source)), c.grader ? t('candidate_grader_guess', [graderName(c.grader)]) : t('candidate_grader_unknown')];
         ref(cf, 'meta').textContent = meta.join(' · ');
         items.appendChild(cf);
       });
-      fs.addEventListener('change', (e) => {
-        const c = cands[Number(e.target.value)];
-        if (!c) return;
-        summarize(c);
-        field?.fill(c.number, c.grader);
-        actions.candidatePicked?.(c);
-      });
-    } else {
-      // A single candidate still keeps the §13 hook; it is not a choice.
-      ref(body, 'candidates').hidden = true;
     }
-    mountForm(body, { ...view.prefill, withCopy: true, cgcHint: !view.reasons.some((r) => r.key === 'reason_cgc_both') });
-    lowresBlock(body, view.lowres);
+    mountForm({ ...view.prefill, withCopy: true, cgcHint: !view.reasons.some((r) => r.key === 'reason_cgc_both') });
+    renderLowres(ref(body, 'lowres-slot'), view.lowres);
     offline(body);
     const summary = [t('confirm_heading'), view.reasons[0] ? t(view.reasons[0].key, view.reasons[0].subs) : ''].filter(Boolean).join('. ');
     settle(summary, { moveFocus });
   }
 
   function toggleLarger() {
-    const box = ref(body, 'thumb-box');
+    const box = singles.thumb;
     const btn = ref(body, 'larger');
-    if (!box || !btn) return;
+    if (!btn) return;
     const large = !box.classList.contains('is-large');
     box.classList.toggle('is-large', large);
     btn.setAttribute('aria-expanded', String(large));
@@ -376,12 +393,11 @@ export function createUi(doc, actions) {
   function showNone(view, { moveFocus = true } = {}) {
     setTaskState('none');
     setHeading(t('none_heading'), 'info');
-    const frag = clone('tpl-none');
-    body.appendChild(frag);
-    setThumb(body, view);
+    body.appendChild(clone('tpl-none'));
+    setThumb(view);
     qrBlock(body, view.qrHost, false);
     ref(body, 'ocr-note').hidden = !view.ocrUnavailable;
-    lowresBlock(body, view.lowres);
+    renderLowres(ref(body, 'lowres-slot'), view.lowres);
     settle(t('none_heading'), { moveFocus });
   }
 
@@ -390,13 +406,12 @@ export function createUi(doc, actions) {
     setTaskState('error');
     setHeading(t(ev.heading), ev.tone);
     const frag = clone('tpl-error');
-    const p = ref(frag, 'body');
+    for (const b of frag.querySelectorAll('[data-action]')) b.hidden = !ev.actions.includes(b.dataset.action);
+    body.appendChild(frag);
+    const p = singles.error;
     p.textContent = t(ev.body, ev.bodySubs);
     p.dataset.code = code ?? '';
     p.dataset.errorId = ev.id;
-    for (const b of frag.querySelectorAll('[data-action]')) b.hidden = !ev.actions.includes(b.dataset.action);
-    // Exactly one primary per state: retry/reload are primary only when present.
-    body.appendChild(frag);
     settle(`${t(ev.heading)}. ${t(ev.body, ev.bodySubs)}`, { moveFocus });
   }
 

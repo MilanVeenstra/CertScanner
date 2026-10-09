@@ -110,7 +110,6 @@ p:last-child { margin-block-end: 0; }
 .app-header h1 { flex: 1 1 auto; min-inline-size: 0; }
 main { max-inline-size: 40rem; padding: var(--cs-space-4) var(--cs-pad-inline) 0; }
 .section { padding-block: var(--cs-space-6) 0; margin-block-start: var(--cs-space-6); border-block-start: 1px solid var(--cs-border-subtle); }
-#home > .section:first-of-type { }
 .app-footer {
   max-inline-size: 40rem; margin-block-start: var(--cs-space-6); padding: 12px var(--cs-pad-inline);
   border-block-start: 1px solid var(--cs-border-subtle); color: var(--cs-text-muted); font-size: var(--cs-text-xs); line-height: 1.4;
@@ -133,7 +132,7 @@ main { max-inline-size: 40rem; padding: var(--cs-space-4) var(--cs-pad-inline) 0
 #task-body > * + * { margin-block-start: var(--cs-space-3); }
 .media-row { display: flex; gap: var(--cs-space-3); align-items: flex-start; }
 .media-row > :last-child { flex: 1 1 auto; min-inline-size: 0; }
-.read > * + * { margin-block-start: var(--cs-space-1); }
+.read > * + *, .read-wrap > * + * { margin-block-start: var(--cs-space-1); }
 .read p { margin: 0; }
 .caption { font-size: var(--cs-text-sm); overflow-wrap: anywhere; }
 .path { font-size: var(--cs-text-sm); overflow-wrap: anywhere; }
@@ -305,8 +304,9 @@ body.is-dragover .drop-icon { color: var(--cs-accent); }
 /* ---------------------------------------------------------------- settings: toggle switch (§8) */
 .switch-row { display: flex; align-items: center; gap: var(--cs-space-3); min-block-size: 40px; cursor: pointer; position: relative; }
 .switch-text { flex: 1 1 auto; min-inline-size: 0; font-weight: var(--cs-weight-strong); }
-.switch-row input { position: absolute; opacity: 0; inline-size: 36px; block-size: 20px; inset-inline-end: 0; margin: 0; cursor: pointer; }
+.switch-row input { position: absolute; opacity: 0; inline-size: 36px; block-size: 20px; inset-inline-end: 0; margin: 0; cursor: pointer; z-index: 1; }
 .switch-track {
+  pointer-events: none; /* clicks go to the (transparent) checkbox underneath or the row label */
   position: relative; flex: none; inline-size: 36px; block-size: 20px; border-radius: var(--cs-radius-full);
   border: 1px solid var(--cs-border-control); background: var(--cs-bg); transition: background-color var(--cs-dur-fast) var(--cs-ease);
 }
@@ -325,6 +325,8 @@ body.is-dragover .drop-icon { color: var(--cs-accent); }
 
 /* ---------------------------------------------------------------- responsive (§2.4) */
 @media (max-width: 279.98px) {
+  .task-card { padding: var(--cs-space-3); }
+  .alert { padding: var(--cs-space-2); gap: var(--cs-space-1); }
   .segments { flex-direction: column; }
   .segment, .segment:first-child, .segment:last-child { margin: 0 0 -1px; border-radius: var(--cs-radius-sm); padding-inline: 12px; }
   .actions .btn, .settings-top .btn, .drop-zone .btn { inline-size: 100%; }

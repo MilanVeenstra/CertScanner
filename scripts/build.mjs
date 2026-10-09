@@ -5,10 +5,15 @@
  *   node scripts/build.mjs           -> dist/      (release layout; load unpacked or zip)
  *   node scripts/build.mjs --e2e     -> dist-e2e/  (dist + e2e-harness/ from tests/e2e/harness/ + host_permissions ["<all_urls>"])
  *   node scripts/build.mjs --check   -> builds dist/ and validates it (exit 1 on any failure)
+ *   node scripts/build.mjs --package -> builds + checks dist/, writes certscanner-<version>.zip from dist/ only
+ *                                       (deterministic order/timestamps), re-validates the manifest inside the ZIP
+ *                                       and prints its sha256. Refuses target != release or a dirty tree unless
+ *                                       --allow-dirty (SEC-12).
  *
  * Env: SOURCE_DATE_EPOCH (seconds) makes builtAt reproducible.
  */
 import { createHash } from 'node:crypto';
+import * as zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -19,10 +24,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
 const NM = path.join(ROOT, 'node_modules');
 const args = new Set(process.argv.slice(2));
-for (const a of args) if (!['--e2e', '--check'].includes(a)) { console.error(`Unknown argument: ${a}`); process.exit(2); }
+for (const a of args) if (!['--e2e', '--check', '--package', '--allow-dirty'].includes(a)) { console.error(`Unknown argument: ${a}`); process.exit(2); }
 const E2E = args.has('--e2e');
-const CHECK = args.has('--check');
-if (E2E && CHECK) { console.error('--e2e and --check are exclusive (check validates the release dist/)'); process.exit(2); }
+const PACKAGE = args.has('--package');
+const CHECK = args.has('--check') || PACKAGE;
+const ALLOW_DIRTY = args.has('--allow-dirty');
+if (E2E && CHECK) { console.error('--e2e cannot be combined with --check/--package (they validate the release dist/)'); process.exit(2); }
 const OUT = path.join(ROOT, E2E ? 'dist-e2e' : 'dist');
 
 /** Executable/data files shipped from node_modules (ADR §12). */
@@ -183,6 +190,130 @@ All code, WebAssembly and model data are packaged with the extension; nothing is
 // ------------------------------------------------------------------------------------------------
 // --check
 // ------------------------------------------------------------------------------------------------
+/** Release-manifest rules (ADR §3 + A7/SEC-01). `has(file)` tells whether a referenced file exists. */
+function manifestProblems(manifestRaw, has) {
+  const out = [];
+  let m;
+  try { m = JSON.parse(manifestRaw); } catch { return ['manifest.json is not valid JSON']; }
+  if (m.manifest_version !== 3) out.push('manifest_version must be 3');
+  if ('host_permissions' in m) out.push('release manifest must not declare host_permissions');
+  if (manifestRaw.includes('<all_urls>')) out.push('release manifest must not mention <all_urls>');
+  for (const k of ['content_scripts', 'web_accessible_resources', 'externally_connectable']) if (k in m) out.push(`manifest must not declare ${k}`);
+  const perms = [...(m.permissions ?? [])].sort();
+  if (JSON.stringify(perms) !== JSON.stringify([...REQUIRED_PERMISSIONS].sort())) out.push(`permissions ${JSON.stringify(m.permissions)} != ${JSON.stringify(REQUIRED_PERMISSIONS)}`);
+  if (JSON.stringify(m.optional_host_permissions) !== JSON.stringify(['https://*/*'])) out.push('optional_host_permissions must be ["https://*/*"]');
+  if (m.content_security_policy?.extension_pages !== RELEASE_CSP) out.push('extension_pages CSP differs from ADR §3');
+  if (m.minimum_chrome_version !== '116') out.push('minimum_chrome_version must be 116');
+  if (m.incognito !== 'not_allowed') out.push('manifest must set "incognito": "not_allowed" (SEC-01: no history writes from incognito)');
+  const referenced = [m.background?.service_worker, m.side_panel?.default_path, ...Object.values(m.icons ?? {})].filter(Boolean);
+  for (const f of referenced) if (!has(f)) out.push(`manifest references missing file ${f}`);
+  return out;
+}
+
+// ------------------------------------------------------------------------------------------------
+// --package (SEC-12): deterministic ZIP of dist/ only
+// ------------------------------------------------------------------------------------------------
+const { deflateRawSync, inflateRawSync } = zlib;
+const CRC_TABLE = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+/** zlib.crc32 exists from Node 22.2; fallback for Node 20 (package.json engines). */
+const zlibCrc32 = typeof zlib.crc32 === 'function' ? zlib.crc32 : (buf) => {
+  let c = 0xffffffff;
+  for (const byte of buf) c = CRC_TABLE[(c ^ byte) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+};
+const DOS_TIME = 0;                          // 00:00:00
+const DOS_DATE = (0 << 9) | (1 << 5) | 1;    // 1980-01-01
+
+function zipFiles(entries) {
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const { name, data } of entries) {
+    const nameBuf = Buffer.from(name, 'utf8');
+    const crc = zlibCrc32(data) >>> 0;
+    const deflated = deflateRawSync(data, { level: 9 });
+    const useDeflate = deflated.length < data.length;
+    const body = useDeflate ? deflated : data;
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0); local.writeUInt16LE(20, 4); local.writeUInt16LE(0x0800, 6);
+    local.writeUInt16LE(useDeflate ? 8 : 0, 8); local.writeUInt16LE(DOS_TIME, 10); local.writeUInt16LE(DOS_DATE, 12);
+    local.writeUInt32LE(crc, 14); local.writeUInt32LE(body.length, 18); local.writeUInt32LE(data.length, 22);
+    local.writeUInt16LE(nameBuf.length, 26); local.writeUInt16LE(0, 28);
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0); central.writeUInt16LE(20, 4); central.writeUInt16LE(20, 6); central.writeUInt16LE(0x0800, 8);
+    central.writeUInt16LE(useDeflate ? 8 : 0, 10); central.writeUInt16LE(DOS_TIME, 12); central.writeUInt16LE(DOS_DATE, 14);
+    central.writeUInt32LE(crc, 16); central.writeUInt32LE(body.length, 20); central.writeUInt32LE(data.length, 24);
+    central.writeUInt16LE(nameBuf.length, 28); central.writeUInt32LE(0, 38); central.writeUInt32LE(offset, 42);
+    locals.push(local, nameBuf, body);
+    centrals.push(central, nameBuf);
+    offset += 30 + nameBuf.length + body.length;
+  }
+  const centralBuf = Buffer.concat(centrals);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(entries.length, 8); end.writeUInt16LE(entries.length, 10);
+  end.writeUInt32LE(centralBuf.length, 12); end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...locals, centralBuf, end]);
+}
+
+/** Minimal reader for the ZIPs written above: [{name, data}] with CRC verification. */
+function unzipFiles(buf) {
+  const endAt = buf.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  if (endAt < 0) throw new Error('ZIP end record not found');
+  const count = buf.readUInt16LE(endAt + 10);
+  let p = buf.readUInt32LE(endAt + 16);
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error('bad central directory');
+    const method = buf.readUInt16LE(p + 10);
+    const crc = buf.readUInt32LE(p + 16);
+    const csize = buf.readUInt32LE(p + 20);
+    const nlen = buf.readUInt16LE(p + 28);
+    const elen = buf.readUInt16LE(p + 30);
+    const clen = buf.readUInt16LE(p + 32);
+    const local = buf.readUInt32LE(p + 42);
+    const name = buf.subarray(p + 46, p + 46 + nlen).toString('utf8');
+    const dataAt = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+    const raw = buf.subarray(dataAt, dataAt + csize);
+    const data = method === 8 ? inflateRawSync(raw) : Buffer.from(raw);
+    if ((zlibCrc32(data) >>> 0) !== crc) throw new Error(`CRC mismatch for ${name}`);
+    out.push({ name, data });
+    p += 46 + nlen + elen + clen;
+  }
+  return out;
+}
+
+async function packageZip(info) {
+  if (info.target !== 'release') throw new Error(`refusing to package target=${info.target} (release only)`);
+  if (info.gitDirty !== false) {
+    if (!ALLOW_DIRTY) throw new Error(`refusing to package: gitDirty=${info.gitDirty} (commit first, or pass --allow-dirty for a local test package)`);
+    console.warn('WARNING: packaging a dirty working tree (--allow-dirty); not for Store upload.');
+  }
+  const files = (await walk(OUT)).map((f) => path.relative(OUT, f).split(path.sep).join('/')).sort();
+  const entries = await Promise.all(files.map(async (name) => ({ name, data: await readFile(path.join(OUT, name)) })));
+  const zip = zipFiles(entries);
+  const zipPath = path.join(ROOT, `certscanner-${info.version}.zip`);
+  await writeFile(zipPath, zip);
+
+  // Re-validate what is actually inside the ZIP.
+  const back = unzipFiles(await readFile(zipPath));
+  const names = new Set(back.map((e) => e.name));
+  const problems = [];
+  if (back.length !== files.length || files.some((f) => !names.has(f))) problems.push('ZIP entries differ from dist/');
+  if ([...names].some((n) => n.startsWith('e2e-harness/') || n.endsWith('.map') || n.startsWith('/') || n.includes('..'))) problems.push('ZIP contains harness, source maps or unsafe paths');
+  const manifest = back.find((e) => e.name === 'manifest.json');
+  if (!manifest) problems.push('manifest.json missing from ZIP');
+  else problems.push(...manifestProblems(manifest.data.toString('utf8'), (f) => names.has(f)));
+  const zipInfo = JSON.parse(back.find((e) => e.name === 'build-info.json')?.data.toString('utf8') ?? '{}');
+  if (zipInfo.target !== 'release') problems.push('build-info.json inside the ZIP is not a release build');
+  if (problems.length) {
+    await rm(zipPath, { force: true });
+    throw new Error(`package validation failed: ${problems.join('; ')}`);
+  }
+  console.log(`\npackaged ${rel(zipPath)}: ${back.length} files, ${(zip.length / 1024 / 1024).toFixed(2)} MiB, manifest re-validated inside the ZIP`);
+  console.log(`sha256 ${sha256(zip)}  ${path.basename(zipPath)}`);
+  console.log(`source ${info.gitCommit}${info.gitDirty ? ' (dirty)' : ''}`);
+}
+
 async function check(info) {
   const problems = [];
   const ok = [];
@@ -191,19 +322,9 @@ async function check(info) {
 
   // 1. Manifest (release)
   const manifestRaw = await readFile(path.join(OUT, 'manifest.json'), 'utf8');
-  const m = JSON.parse(manifestRaw);
-  if (m.manifest_version !== 3) fail('manifest_version must be 3');
-  if ('host_permissions' in m) fail('release manifest must not declare host_permissions');
-  if (manifestRaw.includes('<all_urls>')) fail('release manifest must not mention <all_urls>');
-  for (const k of ['content_scripts', 'web_accessible_resources', 'externally_connectable']) if (k in m) fail(`manifest must not declare ${k}`);
-  const perms = [...(m.permissions ?? [])].sort();
-  if (JSON.stringify(perms) !== JSON.stringify([...REQUIRED_PERMISSIONS].sort())) fail(`permissions ${JSON.stringify(m.permissions)} != ${JSON.stringify(REQUIRED_PERMISSIONS)}`);
-  if (JSON.stringify(m.optional_host_permissions) !== JSON.stringify(['https://*/*'])) fail('optional_host_permissions must be ["https://*/*"]');
-  if (m.content_security_policy?.extension_pages !== RELEASE_CSP) fail('extension_pages CSP differs from ADR §3');
-  if (m.minimum_chrome_version !== '116') fail('minimum_chrome_version must be 116');
-  const referenced = [m.background?.service_worker, m.side_panel?.default_path, ...Object.values(m.icons ?? {})].filter(Boolean);
-  for (const f of referenced) if (!existsSync(path.join(OUT, f))) fail(`manifest references missing file ${f}`);
-  if (!problems.length) pass('manifest: MV3, exact permissions, no host_permissions/<all_urls>, ADR CSP, referenced files exist');
+  const manifestIssues = manifestProblems(manifestRaw, (f) => existsSync(path.join(OUT, f)));
+  for (const p of manifestIssues) fail(p);
+  if (!manifestIssues.length) pass('manifest: MV3, exact permissions, no host_permissions/<all_urls>, incognito not_allowed, ADR CSP, referenced files exist');
 
   // 2. No e2e harness in the release build
   if (existsSync(path.join(OUT, 'e2e-harness'))) fail('dist/ contains e2e-harness/'); else pass('no e2e-harness/ in dist/');
@@ -289,9 +410,11 @@ async function check(info) {
       if (/\b(verified|authentic|genuine|echt)\b/i.test(msgs[k].message) && !['verify_note', 'about_lookup'].includes(k)) { fail(`${lang}.${k}: authenticity wording outside the negative notes`); i18nOk = false; }
     }
   }
-  for (const [lang, msgs] of [['en', en], ['nl', nl]]) {
+  // SEC-02: every shipped locale's description stays within the Chrome Web Store limit.
+  for (const lang of await readdir(path.join(SRC, '_locales'))) {
+    const msgs = JSON.parse(await readFile(path.join(SRC, '_locales', lang, 'messages.json'), 'utf8'));
     const d = msgs.ext_description?.message ?? '';
-    if (d.length > 132) { fail(`${lang}.ext_description is ${d.length} > 132 characters`); i18nOk = false; }
+    if (!d || d.length > 132) { fail(`${lang}.ext_description is ${d.length} characters (must be 1-132)`); i18nOk = false; }
   }
   const used = new Set();
   for (const k of manifestRaw.match(/__MSG_(\w+)__/g) ?? []) used.add(k.slice(6, -2));
@@ -322,6 +445,7 @@ async function check(info) {
 try {
   const info = await build();
   if (CHECK && !(await check(info))) process.exit(1);
+  if (PACKAGE) await packageZip(info);
 } catch (e) {
   console.error(`build failed: ${e.message}`);
   process.exit(1);

@@ -226,12 +226,11 @@ export async function launchExtension({ extensionPath = DIST_E2E, args = [] } = 
   const env = {
     context, extensionId, userDataDir, net, browserVersion,
     get sw() { return sw; },
-    async refreshServiceWorker() {
-      sw = context.serviceWorkers().find((w) => w.url().startsWith(`chrome-extension://${extensionId}/`))
-        ?? await context.waitForEvent('serviceworker', { timeout: 20000 });
-      await poll(() => sw.evaluate(() => !!chrome?.windows && !!chrome.storage?.session), { message: 'restarted service worker' });
-      return sw;
-    },
+    /**
+     * Use another trusted extension context (e.g. the panel page) for chrome.* helper calls. Needed after a
+     * service-worker stop: Chromium restarts the worker, but Playwright 1.56 does not surface the new instance.
+     */
+    setDriver(target) { sw = target; },
     url: (p) => `chrome-extension://${extensionId}/${p}`,
     async close() {
       await context.close().catch(() => {});
@@ -365,15 +364,19 @@ export async function readResult(page) {
     const gs = q('grader-select');
     let grader = null;
     if (gs instanceof HTMLSelectElement) grader = gs.value || null;
-    else if (gs) {
+    else if (gs && visible(gs)) {
       const r = gs.querySelector('input[type=radio]:checked, [aria-checked="true"], [aria-pressed="true"]');
-      grader = r ? (r.value || r.dataset.value || null) : null;
+      grader = r ? (r.value || r.dataset.value || null) : (gs.dataset.value || null);
     }
+    // Result views without the grader control (auto-open / opened) show the official URL (result-url).
+    const urlText = visible(q('result-url')) ? q('result-url').textContent : '';
+    if (!grader && urlText) grader = /psacard\./.test(urlText) ? 'psa' : /cgccomics\./.test(urlText) ? 'cgc-comics' : /cgccards\./.test(urlText) ? 'cgc-cards' : null;
     const numberText = q('result-number')?.textContent ?? '';
     const err = q('error-message');
     return {
       state: document.body.dataset.state,
-      number: numberText.replace(/\D/g, '') || null,
+      number: visible(q('result-number')) ? numberText.replace(/\D/g, '') || null : null,
+      resultUrl: urlText.trim(),
       grader,
       candidates: [...document.querySelectorAll('[data-testid]')].filter((e) => /^candidate-\d+$/.test(e.dataset.testid)).length,
       error: visible(err) ? err.textContent.trim() : '',

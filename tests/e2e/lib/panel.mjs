@@ -32,15 +32,25 @@ export async function isVisible(page, testId) {
   }, testId);
 }
 
-/** Toggle a settings checkbox. Uses a real click when the control is visible, else el.click() (settings sub-view). */
+/**
+ * Settings switches. `data-inverted="true"` marks a switch whose checked state is the opposite of the
+ * setting (the UX shows autoOpen as "Always ask before opening", ADR D5).
+ */
+export async function getSetting(page, key) {
+  return page.locator(tid(`setting-${key}`)).evaluate((el) => (el.dataset.inverted === 'true' ? !el.checked : el.checked));
+}
+
+/** Change a setting through its switch (real click when visible, el.click() inside the hidden Settings view). */
 export async function setSetting(page, key, value) {
-  const sel = tid(`setting-${key}`);
-  const current = await page.locator(sel).isChecked();
-  if (current === value) return;
-  if (await isVisible(page, `setting-${key}`)) await page.locator(sel).click();
-  else await page.locator(sel).evaluate((el) => el.click());
-  // Turning history off may ask for confirmation; that flow is tested separately.
-  await poll(async () => (await page.locator(sel).isChecked()) === value || key === 'saveHistory', { message: `setting ${key}` });
+  if ((await getSetting(page, key)) === value) return;
+  if (await isVisible(page, `setting-${key}`)) await page.locator(tid(`setting-${key}`)).click();
+  else await page.locator(tid(`setting-${key}`)).evaluate((el) => el.click());
+  await poll(async () => (await getSetting(page, key)) === value, { message: `setting ${key}` });
+}
+
+/** Read chrome.storage from the panel realm (independent of the service worker's lifetime). */
+export async function storageGet(page, area, key) {
+  return page.evaluate(async ({ area, key }) => (await chrome.storage[area].get(key))[key] ?? null, { area, key });
 }
 
 /** Fire a synthetic paste of an image file at the panel document. */
@@ -82,6 +92,29 @@ export async function accessibleNames(page, ids) {
     };
     return Object.fromEntries(list.map((id) => [id, name(document.querySelector(`[data-testid="${id}"]`))]));
   }, ids);
+}
+
+/**
+ * Replace chrome.permissions.contains/request in the panel realm only. The e2e build holds <all_urls>
+ * and headless Chromium cannot show the permission prompt; this stub lets the real UI, acquisition,
+ * capture, OCR and tab opening run while "not granted until the user accepts" is simulated.
+ */
+export async function stubPermissions(page, { grant }) {
+  return page.evaluate((grantOnRequest) => {
+    const perms = chrome.permissions;
+    let granted = false;
+    window.__perm = { requests: 0, origins: [] };
+    const contains = async () => granted;
+    const request = async (p) => { window.__perm.requests++; window.__perm.origins.push(p?.origins ?? []); granted = grantOnRequest; return grantOnRequest; };
+    try { perms.contains = contains; perms.request = request; } catch { /* try defineProperty */ }
+    if (perms.contains !== contains) {
+      try {
+        Object.defineProperty(perms, 'contains', { value: contains, configurable: true, writable: true });
+        Object.defineProperty(perms, 'request', { value: request, configurable: true, writable: true });
+      } catch { return false; }
+    }
+    return chrome.permissions.contains === contains && chrome.permissions.request === request;
+  }, grant);
 }
 
 export { sleep };

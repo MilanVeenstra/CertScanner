@@ -1,0 +1,629 @@
+{
+  "schemaVersion": 1,
+  "generator": "scripts/gen-fixtures.mjs",
+  "synthetic": true,
+  "notice": "All images are synthetic HTML/CSS renders. Grader names appear only as plain printed text; no logos, trademark artwork or real card/comic images. Cert numbers are test values (some match publicly indexed formats); e2e tests must intercept navigations to grader hosts instead of loading live pages.",
+  "environment": {
+    "chromium": "141.0.7390.37",
+    "playwright": "1.56.1",
+    "bwipJs": "4.8.0",
+    "labelFont": "\"Liberation Sans\", Arial, Helvetica, sans-serif",
+    "labelFontInstalled": true,
+    "deviceScaleFactor": 1
+  },
+  "evaluation": "A run passes a fixture when the observed status is in (accept ?? [expected.status]); when expected.number is non-null the top candidate must equal it exactly (string compare, leading zeros kept); when expected.grader is non-null the routed grader must equal it, when null no grader may be auto-selected; mustNotOpen URLs/hosts must never be navigated to.",
+  "statusLegend": {
+    "auto-open": "single high-confidence candidate with a known grader; official page opens automatically (when the setting allows)",
+    "confirm": "candidate(s) shown, user must confirm/choose grader; no automatic tab",
+    "none": "no usable certification number; no tab"
+  },
+  "fixtures": [
+    {
+      "file": "psa-8digit-leading-zero.png",
+      "description": "PSA-style front label, 8-digit cert with leading zero, grade \"GEM MT 10\", plain-text \"PSA\" brand. Crisp natural-size render.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "01234567"
+      },
+      "tags": [
+        "ocr",
+        "psa",
+        "front-label",
+        "leading-zero"
+      ],
+      "labelText": [
+        "2023 POKEMON SV 151",
+        "CHARIZARD ex",
+        "#199",
+        "GEM MT 10",
+        "PSA",
+        "01234567"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 113159,
+      "sha256": "cfd9bfc8657d551341fcde48ac939e2a1b5d40c4e95b5ccb38521316aee09715"
+    },
+    {
+      "file": "psa-9digit.png",
+      "description": "PSA-style front label, 9-digit cert, grade \"MINT 9\", plain-text \"PSA\" brand.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "108114622"
+      },
+      "tags": [
+        "ocr",
+        "psa",
+        "front-label"
+      ],
+      "labelText": [
+        "1986 FLEER",
+        "MICHAEL JORDAN",
+        "#57",
+        "MINT 9",
+        "PSA",
+        "108114622"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 110173,
+      "sha256": "9df2767290c6c980aa17bbbf81ddde0976ba50abcd23527c0df5e38995a43985"
+    },
+    {
+      "file": "psa-back-barcode.png",
+      "description": "PSA-style back label: crisp Code128 (3 px modules, >=12-module quiet zone each side) encoding 81234567 with the number printed underneath; card back below.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "81234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "barcode",
+        "code128",
+        "ocr",
+        "psa",
+        "back-label"
+      ],
+      "notes": "Number must match exactly (barcode path). An 8-digit barcode-only number may legitimately ask for confirmation if the keyword pass misses the plain-text \"PSA\" brand; auto-open is preferred.",
+      "labelText": [
+        "PSA",
+        "81234567"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 196
+      },
+      "barcode": {
+        "format": "Code128",
+        "text": "81234567",
+        "modulePx": 3,
+        "quietZonePx": 36
+      },
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 910,
+      "bytes": 65863,
+      "sha256": "2f06616eb2f80c4a205181321aaa780a69835d1b2e396918b58155a26b346c84"
+    },
+    {
+      "file": "cgc-comic-10digit.png",
+      "description": "CGC-style comic label (blue band): \"CGC\", \"UNIVERSAL GRADE\", \"9.8\", \"WHITE PAGES\", title \"Amazing Spider-Man #300\", \"Marvel Comics, 5/88\", 10-digit cert.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4012345001"
+      },
+      "tags": [
+        "ocr",
+        "cgc",
+        "comic"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4012345001",
+        "Amazing Spider-Man #300",
+        "Marvel Comics, 5/88"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 83990,
+      "sha256": "36d86b5b5f4308dda9426a2d7d8ca0fb3e815517278eb70abd531b0e0bba6a37"
+    },
+    {
+      "file": "cgc-comic-dash.png",
+      "description": "Same CGC comic layout; cert printed with a separator as \"4012346-002\" (expected normalised to 4012346002).",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4012346002"
+      },
+      "tags": [
+        "ocr",
+        "cgc",
+        "comic",
+        "separator"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4012346-002",
+        "Amazing Spider-Man #300",
+        "Marvel Comics, 5/88"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 83814,
+      "sha256": "9ae82f10d8db5cc6794e13117043059fbdcb550b92315afef24e3bf68fe0d75d"
+    },
+    {
+      "file": "cgc-comic-qr.png",
+      "description": "CGC comic label with a QR (4 px modules, version 4, ECC M, 4-module quiet zone) encoding https://www.cgccomics.com/certlookup/4012347003/; number also printed.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4012347003"
+      },
+      "tags": [
+        "qr",
+        "ocr",
+        "cgc",
+        "comic"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4012347003",
+        "Amazing Spider-Man #300",
+        "Marvel Comics, 5/88"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": {
+        "format": "QRCode",
+        "text": "https://www.cgccomics.com/certlookup/4012347003/",
+        "modulePx": 4,
+        "quietZonePx": 16
+      },
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 84600,
+      "sha256": "cf8e915f738d0b68c1e075b92e5d9ee52717172bc830c727ff5f5e347fb18540"
+    },
+    {
+      "file": "cgc-card-13digit.png",
+      "description": "CGC-style card label: \"CGC\", \"GEM MINT 10\", \"2022 Pokemon Sword & Shield / Pikachu - Holo\", 13-digit cert starting 1401.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1401036622258"
+      },
+      "tags": [
+        "ocr",
+        "cgc",
+        "card",
+        "13-digit"
+      ],
+      "labelText": [
+        "CGC",
+        "2022 Pokemon Sword & Shield",
+        "Pikachu - Holo",
+        "GEM MINT",
+        "10",
+        "1401036622258"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 111816,
+      "sha256": "59664a7971f8ccf5364a343060871eac90f2c5893c70b213747cbabfeb6f5c31"
+    },
+    {
+      "file": "qr-foreign-host.png",
+      "description": "Label-like slab whose only number is inside a QR encoding https://evil.example/cert/12345678 (host not on the grader allow-list); no printed number, no grader words.",
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "tags": [
+        "qr",
+        "negative",
+        "security",
+        "foreign-host"
+      ],
+      "notes": "Security negative: the decoded URL must never be opened and its embedded number must not become an auto-open candidate. A warning about an unrecognised QR is expected.",
+      "mustNotOpen": [
+        "https://evil.example/cert/12345678"
+      ],
+      "mustNotOpenHosts": [
+        "evil.example"
+      ],
+      "labelText": [
+        "SCAN TO VERIFY"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 184
+      },
+      "barcode": {
+        "format": "QRCode",
+        "text": "https://evil.example/cert/12345678",
+        "modulePx": 4,
+        "quietZonePx": 16
+      },
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 898,
+      "bytes": 101724,
+      "sha256": "23a231ff69ff64bdbf88a97225800b091c6f9a9119a176c7a29a296c51d43535"
+    },
+    {
+      "file": "ambiguous-10digit.png",
+      "description": "Plain white label containing only the 10-digit number 5012345678; no grader words, so the grader cannot be decided.",
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": "5012345678"
+      },
+      "tags": [
+        "ocr",
+        "ambiguous"
+      ],
+      "notes": "Must not auto-open. Show 5012345678 as the candidate with a grader selector.",
+      "labelText": [
+        "5012345678"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 101156,
+      "sha256": "6abc4a3a3da2538771842791a9c35244ce90db64010bec294de574e8d061569c"
+    },
+    {
+      "file": "non-slab.png",
+      "description": "Photo-like landscape gradient (sky, sun, hills) with no digits or text.",
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "tags": [
+        "negative"
+      ],
+      "labelText": [],
+      "labelBox": null,
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 640,
+      "height": 420,
+      "bytes": 34611,
+      "sha256": "bade01b08fe0d189317ed7dd3478f2625b75fb89cd6569ff14a07b163a98b652"
+    },
+    {
+      "file": "psa-lowres.jpg",
+      "description": "psa-8digit-leading-zero.png downscaled to 260 px wide (high-quality resample) and saved as JPEG quality 0.7, like a marketplace thumbnail.",
+      "expected": {
+        "status": "confirm",
+        "grader": "psa",
+        "number": "01234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "ocr",
+        "psa",
+        "lowres",
+        "jpeg",
+        "leading-zero",
+        "derived"
+      ],
+      "notes": "Either auto-open or confirm is acceptable; the shown number must be 01234567 (leading zero kept) and the grader PSA.",
+      "labelText": [
+        "2023 POKEMON SV 151",
+        "CHARIZARD ex",
+        "#199",
+        "GEM MT 10",
+        "PSA",
+        "01234567"
+      ],
+      "labelBox": {
+        "x": 21,
+        "y": 20,
+        "width": 218,
+        "height": 65
+      },
+      "barcode": null,
+      "derivedFrom": "psa-8digit-leading-zero.png",
+      "transform": {
+        "type": "downscale",
+        "width": 260,
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "mimeType": "image/jpeg",
+      "width": 260,
+      "height": 406,
+      "bytes": 12492,
+      "sha256": "50ce1ee7cf237ba092c1e73d052295f8b26237a7aa76ef91cebd49cc20ca8e93"
+    },
+    {
+      "file": "cgc-comic-rotated.png",
+      "description": "cgc-comic-10digit.png rotated 4 degrees clockwise on a neutral background.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4012345001"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "ocr",
+        "cgc",
+        "comic",
+        "rotated",
+        "derived"
+      ],
+      "notes": "Skew robustness. Number and grader must match; confirm is tolerated if confidence drops.",
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4012345001",
+        "Amazing Spider-Man #300",
+        "Marvel Comics, 5/88"
+      ],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "cgc-comic-10digit.png",
+      "transform": {
+        "type": "rotate",
+        "degrees": 4,
+        "background": "#e6e3dc",
+        "margin": 8,
+        "format": "image/png"
+      },
+      "mimeType": "image/png",
+      "width": 768,
+      "height": 1105,
+      "bytes": 317297,
+      "sha256": "fa76b7624cc937b99a2de2529cd6a037633f8153799615f72c493156ccc00067"
+    }
+  ],
+  "pages": [
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-psa-leading-zero",
+      "kind": "img",
+      "fixture": "psa-8digit-leading-zero.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 270,
+        "height": 422
+      },
+      "notes": "Plain <img>, scaled down to 270 px CSS width (natural size is larger). Journey 1."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-srcset",
+      "kind": "img-srcset",
+      "fixture": "psa-lowres.jpg",
+      "largestCandidate": "psa-8digit-leading-zero.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 260,
+        "height": 406
+      },
+      "notes": "src/currentSrc at DPR 1 is the 260 px JPEG; the srcset also offers the full-size PNG (largest candidate). Expected result is the PSA 01234567 read."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-ambiguous",
+      "kind": "img",
+      "fixture": "ambiguous-10digit.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 270,
+        "height": 422
+      },
+      "notes": "Must end in confirm with no tab opened."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-qr-foreign",
+      "kind": "img",
+      "fixture": "qr-foreign-host.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 270,
+        "height": 446
+      },
+      "notes": "Security negative: evil.example must never be opened."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-non-slab",
+      "kind": "img",
+      "fixture": "non-slab.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 320,
+        "height": 210
+      },
+      "notes": "No number found; no tab."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "bg-psa-9digit",
+      "kind": "css-background",
+      "fixture": "psa-9digit.png",
+      "contextMenu": "none",
+      "display": {
+        "width": 270,
+        "height": 422
+      },
+      "notes": "<div role=\"img\"> with a CSS background-image: Chrome offers no \"image\" context-menu entry here. Expected fallback: upload/paste or capture."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-under-overlay",
+      "kind": "img-under-overlay",
+      "overlayId": "overlay-shield",
+      "fixture": "cgc-comic-dash.png",
+      "contextMenu": "none",
+      "display": {
+        "width": 300,
+        "height": 461
+      },
+      "notes": "A transparent <div id=\"overlay-shield\"> covers the image, so right-clicking it hits the overlay (no \"image\" context). Image itself is loaded."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-data-url",
+      "kind": "img-data-url",
+      "fixture": "psa-lowres.jpg",
+      "contextMenu": "image",
+      "display": {
+        "width": 260,
+        "height": 406
+      },
+      "notes": "Same bytes as psa-lowres.jpg inlined as a data: URL (srcUrl is a data: URL)."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-blob",
+      "kind": "img-blob",
+      "fixture": "cgc-comic-qr.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 300,
+        "height": 461
+      },
+      "notes": "Inline script fetches the PNG and assigns a blob: URL; <html data-ready=\"1\"> is set once it has loaded."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-back-barcode",
+      "kind": "img",
+      "fixture": "psa-back-barcode.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 270,
+        "height": 452
+      },
+      "notes": "Displayed at about half size, so the on-screen barcode has ~1.5 px modules (capture fallback may fail to decode; full-resolution fetch should succeed)."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-rotated",
+      "kind": "img",
+      "fixture": "cgc-comic-rotated.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 300,
+        "height": 432
+      },
+      "notes": "Rotated label."
+    },
+    {
+      "page": "pages/frame.html",
+      "parentPage": "pages/gallery.html",
+      "elementId": "img-in-frame",
+      "frameId": "frame-same-origin",
+      "kind": "img-in-iframe",
+      "fixture": "cgc-card-13digit.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 270,
+        "height": 422
+      },
+      "notes": "Inside a same-origin <iframe id=\"frame-same-origin\">. With ?frameOrigin=http://localhost:<port> (gallery served from 127.0.0.1) a second <iframe id=\"frame-cross-origin\"> loads the same frame page cross-origin."
+    },
+    {
+      "page": "pages/gallery.html",
+      "elementId": "img-lazy",
+      "kind": "img-lazy",
+      "fixture": "cgc-comic-10digit.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 300,
+        "height": 461
+      },
+      "notes": "loading=\"lazy\" below a 4000 px spacer: not fetched until scrolled near."
+    }
+  ],
+  "labelBoxNotes": "labelBox = axis-aligned label band in natural image pixels ({x,y,width,height}); null for non-slab and rotated images.",
+  "pagesNotes": "Serve tests/fixtures (or the repository root) over http; pages use relative URLs (../<fixture>). Element ids are stable. gallery.html sets <html data-ready=\"1\"> after the blob: image loads. Append ?frameOrigin=http://localhost:<port> when the gallery is served from 127.0.0.1 to add a cross-origin iframe (#frame-cross-origin) containing #img-in-frame."
+}

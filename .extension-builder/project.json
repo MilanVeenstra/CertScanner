@@ -31,11 +31,14 @@
     "architecture": {
       "status": "evidenced",
       "evidence": "docs/architecture/architecture.md",
-      "sha256": "47a73f36f7127db9801850e3e55133afebb335c1591ebeb923318867267b82f9",
-      "recorded_at": "2026-10-09T20:34:04.788327+00:00"
+      "sha256": "250fdd9ff47b52002c462f0b7dad3d9b4255fcea3a14c48623bfae463a3390b1",
+      "recorded_at": "2026-10-09T20:35:46.245176+00:00"
     },
     "design": {
-      "status": "pending"
+      "status": "evidenced",
+      "evidence": "docs/design/design-spec.md",
+      "sha256": "c4d61b2aa1af4833bee90bbd2a87dd42c38465411d39ad3d986b3840a3f84a39",
+      "recorded_at": "2026-10-09T20:35:46.328077+00:00"
     },
     "build": {
       "status": "pending"
@@ -46,5 +49,33 @@
     "release": {
       "status": "pending"
     }
-  }
+  },
+  "history": [
+    {
+      "action": "invalidate",
+      "stage": "architecture",
+      "reason": "ADR amended with A3-A5 after UX spec handoff",
+      "previous": {
+        "architecture": {
+          "status": "evidenced",
+          "evidence": "docs/architecture/architecture.md",
+          "sha256": "47a73f36f7127db9801850e3e55133afebb335c1591ebeb923318867267b82f9",
+          "recorded_at": "2026-10-09T20:34:04.788327+00:00"
+        },
+        "design": {
+          "status": "pending"
+        },
+        "build": {
+          "status": "pending"
+        },
+        "test": {
+          "status": "pending"
+        },
+        "release": {
+          "status": "pending"
+        }
+      },
+      "recorded_at": "2026-10-09T20:35:46.157223+00:00"
+    }
+  ]
 }

@@ -29,7 +29,10 @@
       "recorded_at": "2026-10-09T20:15:40.242031+00:00"
     },
     "architecture": {
-      "status": "pending"
+      "status": "evidenced",
+      "evidence": "docs/architecture/architecture.md",
+      "sha256": "47a73f36f7127db9801850e3e55133afebb335c1591ebeb923318867267b82f9",
+      "recorded_at": "2026-10-09T20:34:04.788327+00:00"
     },
     "design": {
       "status": "pending"

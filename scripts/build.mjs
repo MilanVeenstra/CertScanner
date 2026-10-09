@@ -42,6 +42,16 @@ const LICENSES = [
   { from: 'tesseract.js-core/LICENSE', to: 'vendor/tesseract/LICENSE-tesseract.js-core.txt' },
   { from: 'zxing-wasm/LICENSE', to: 'vendor/zxing/LICENSE-zxing-wasm.txt' },
 ];
+/** Licence texts of libraries linked into the vendor WASM (SEC-05); kept in the repo, see third_party/licenses/README.md. */
+const LINKED_LICENSES_DIR = path.join(ROOT, 'third_party', 'licenses');
+const LINKED_LICENSES = [
+  'leptonica.BSD-2-Clause.txt',
+  'libjpeg-turbo-and-IJG.debian-copyright.txt',
+  'libpng.debian-copyright.txt',
+  'libtiff.debian-copyright.txt',
+  'zlib.debian-copyright.txt',
+  'zxing-cpp.Apache-2.0.txt',
+];
 const EXPECTED_VERSIONS = { 'tesseract.js': '7.0.0', 'tesseract.js-core': /^7\./, '@tesseract.js-data/eng': '1.0.0', 'zxing-wasm': '3.1.5' };
 
 /** Hosts allowed to appear as http(s) URLs anywhere in src/** (CERT_URL / QR_HOSTS only). */
@@ -104,6 +114,8 @@ async function build() {
     await mkdir(path.dirname(dest), { recursive: true });
     await cp(path.join(NM, l.from), dest);
   }
+  await mkdir(path.join(OUT, 'vendor', 'licenses'), { recursive: true });
+  for (const f of LINKED_LICENSES) await cp(path.join(LINKED_LICENSES_DIR, f), path.join(OUT, 'vendor', 'licenses', f));
   await writeFile(path.join(OUT, 'vendor', 'THIRD_PARTY_NOTICES.txt'), notices());
 
   const manifestPath = path.join(OUT, 'manifest.json');
@@ -154,7 +166,15 @@ tesseract.js-core ${v('tesseract.js-core')} (Apache-2.0; Emscripten build of Tes
   Model: Tesseract "eng" 4.0.0_best_int traineddata from the tesseract-ocr/tessdata project (Apache-2.0).
 zxing-wasm ${v('zxing-wasm')} (MIT) - vendor/zxing/{zxing-reader.iife.js,zxing_reader.wasm}
   License: vendor/zxing/LICENSE-zxing-wasm.txt
-  Built from zxing-cpp (Apache-2.0).
+  Built from zxing-cpp (Apache-2.0) - License: vendor/licenses/zxing-cpp.Apache-2.0.txt
+
+Libraries statically linked into vendor/tesseract/tesseract-core-simd-lstm.wasm:
+  Leptonica (BSD-2-Clause) - vendor/licenses/leptonica.BSD-2-Clause.txt
+  libjpeg (Independent JPEG Group) - vendor/licenses/libjpeg-turbo-and-IJG.debian-copyright.txt
+    This software is based in part on the work of the Independent JPEG Group.
+  libpng (libpng license) - vendor/licenses/libpng.debian-copyright.txt
+  LibTIFF (libtiff license) - vendor/licenses/libtiff.debian-copyright.txt
+  zlib (zlib license) - vendor/licenses/zlib.debian-copyright.txt
 
 All code, WebAssembly and model data are packaged with the extension; nothing is downloaded at runtime.
 `;
@@ -198,7 +218,9 @@ async function check(info) {
     if (h !== recorded || h !== sha256(await readFile(path.join(NM, v.from)))) { fail(`vendor hash mismatch ${v.to}`); vendorOk = false; }
   }
   for (const l of LICENSES) if (!existsSync(path.join(OUT, l.to))) { fail(`missing license ${l.to}`); vendorOk = false; }
-  if (vendorOk) pass(`vendor: ${VENDOR.length} files + ${LICENSES.length} licenses present, sha256 recorded in build-info.json`);
+  for (const f of LINKED_LICENSES) if (!existsSync(path.join(OUT, 'vendor', 'licenses', f))) { fail(`missing linked-library license vendor/licenses/${f}`); vendorOk = false; }
+  if (!readFileSync(path.join(OUT, 'vendor', 'THIRD_PARTY_NOTICES.txt'), 'utf8').includes('based in part on the work of the Independent JPEG Group')) { fail('THIRD_PARTY_NOTICES.txt lacks the IJG acknowledgement'); vendorOk = false; }
+  if (vendorOk) pass(`vendor: ${VENDOR.length} files + ${LICENSES.length + LINKED_LICENSES.length} licenses present (incl. WASM-linked libraries), sha256 recorded in build-info.json`);
 
   // 4. Source scan: URLs, dangerous sinks, inline scripts, remote code
   const srcFiles = (await walk(SRC)).filter((f) => TEXT_EXT.has(path.extname(f)));

@@ -15,20 +15,34 @@ test('constants and key', () => {
   assert.equal(jobKey(7), 'scanJob:7');
 });
 
-test('createScanJob maps OnClickData + Tab', () => {
-  const job = createScanJob(info({ frameUrl: 'https://shop.example.com/frame' }), tab(), NOW, ID);
+test('createScanJob maps OnClickData + Tab (A7: no frameUrl, pageUrl without query/hash)', () => {
+  const job = createScanJob(info({ frameUrl: 'https://shop.example.com/frame', pageUrl: 'https://shop.example.com/item/1?token=secret#x' }), tab(), NOW, ID);
   assert.deepEqual(job, {
     v: 1, id: ID, createdAt: NOW, source: 'contextMenu', srcUrl: 'https://img.example.com/a.jpg',
-    pageUrl: 'https://shop.example.com/item/1', frameUrl: 'https://shop.example.com/frame', frameId: 0, tabId: 42, windowId: 7, mediaType: 'image',
+    pageUrl: 'https://shop.example.com/item/1', frameId: 0, tabId: 42, windowId: 7, mediaType: 'image',
   });
   assert.deepEqual(parseScanJob(job, { now: NOW, windowId: 7 }), { ok: true, job });
 });
 
-test('createScanJob defaults frameId to 0 and frameUrl to null; falls back to tab.url', () => {
-  const job = createScanJob(info({ frameId: undefined, pageUrl: undefined }), tab(), NOW, ID);
+test('createScanJob defaults frameId to 0; falls back to tab.url (stripped)', () => {
+  const job = createScanJob(info({ frameId: undefined, pageUrl: undefined }), tab({ url: 'https://shop.example.com/item/1?a=b' }), NOW, ID);
   assert.equal(job.frameId, 0);
-  assert.equal(job.frameUrl, null);
+  assert.equal('frameUrl' in job, false);
   assert.equal(job.pageUrl, 'https://shop.example.com/item/1');
+});
+
+test('pageUrl minimisation keeps restricted-page detection working', () => {
+  assert.equal(createScanJob(info({ pageUrl: 'chrome://version/?x' }), tab(), NOW, ID).pageUrl, 'chrome://version/');
+  assert.equal(createScanJob(info({ pageUrl: 'https://chromewebstore.google.com/detail/abc?hl=nl' }), tab(), NOW, ID).pageUrl, 'https://chromewebstore.google.com/detail/abc');
+  assert.equal(createScanJob(info({ pageUrl: 'not a url' }), tab(), NOW, ID).pageUrl, '');
+});
+
+test('parseScanJob accepts older jobs with frameUrl and drops it (QA e2e compatibility)', () => {
+  const job = createScanJob(info(), tab(), NOW, ID);
+  const withFrame = parseScanJob({ ...job, frameUrl: 'https://shop.example.com/frame' }, { now: NOW, windowId: 7 });
+  assert.equal(withFrame.ok, true);
+  assert.equal('frameUrl' in withFrame.job, false);
+  assert.equal(parseScanJob({ ...job, frameUrl: null }, { now: NOW, windowId: 7 }).ok, true);
 });
 
 test('createScanJob turns oversize or unsupported srcUrl into null and says why (srcIssue)', () => {
@@ -52,7 +66,7 @@ test('createScanJob turns oversize or unsupported srcUrl into null and says why 
 });
 
 test('createScanJob shortens a very long pageUrl to its origin', () => {
-  const long = 'https://shop.example.com/' + 'a'.repeat(9000);
+  const long = 'https://shop.example.com/' + 'a'.repeat(9000) + '?q=1';
   const job = createScanJob(info({ pageUrl: long }), tab(), NOW, ID);
   assert.equal(job.pageUrl, 'https://shop.example.com/');
   assert.equal(parseScanJob(job, { now: NOW, windowId: 7 }).ok, true);
@@ -87,7 +101,6 @@ test('parseScanJob rejects bad shapes', () => {
   bad({ tabId: '42' });
   bad({ mediaType: 'video' });
   bad({ source: 'page' });
-  bad({ frameUrl: 5 });
   // boundaries accepted
   assert.equal(parseScanJob({ ...good, createdAt: NOW - JOB_TTL_MS }, { now: NOW, windowId: 7 }).ok, true);
   assert.equal(parseScanJob({ ...good, createdAt: NOW + 5000 }, { now: NOW, windowId: 7 }).ok, true);

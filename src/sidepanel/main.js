@@ -9,11 +9,11 @@ import { scan, disposeEngines } from '../pipeline/scanner.js';
 import { imageOriginOf } from '../pipeline/acquire.js';
 import { createUi, graderName } from './ui.js';
 import { createCertField } from './certField.js';
-import { confirmReasons, errorView, sharperOfferHost, MAX_IMAGE_MB } from './viewModel.js';
+import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, recordHistory } from './opener.js';
 import { wireInputs } from './inputs.js';
-import { requestSharper, listGrantedSites, removeSite, onPermissionsChanged } from './permissionsUi.js';
+import { requestSharper, listGrantedSites, removeSite, removeAllSites, onPermissionsChanged } from './permissionsUi.js';
 
 const DECLINED_KEY = 'sharperDeclined';
 const doc = document;
@@ -101,10 +101,10 @@ async function startScan(input) {
   if (!isCurrent()) return; // superseded: newest trigger wins, stale results are discarded
   current = null;
   last.result = result;
-  await handleResult(result, id);
+  await handleResult(result, autoOpenKey(input, id));
 }
 
-async function handleResult(result, scanId) {
+async function handleResult(result, openKey) {
   if (result.status === 'error') {
     if (result.error?.code === 'aborted') {
       setBody('idle');
@@ -127,8 +127,9 @@ async function handleResult(result, scanId) {
     return;
   }
   const top = result.candidates[0];
-  if (result.status === 'auto-open' && !autoOpened.has(scanId)) {
-    autoOpened.add(scanId);
+  // SEC-06: at most one automatic tab per context-menu job (a Sharper-scans re-run keeps the job id).
+  if (result.status === 'auto-open' && !autoOpened.has(openKey)) {
+    autoOpened.add(openKey);
     try {
       const r = await openCert(top, last.job, settings, { windowId });
       showOpened({ grader: top.grader, number: top.number, method: top.source, url: r.url, background: !r.active, tabId: r.tabId }, 'auto-open');
@@ -418,12 +419,19 @@ $('clear-history').addEventListener('click', async () => {
 });
 
 async function refreshSites({ focusAfterRemove = null } = {}) {
-  let hosts = [];
-  try { hosts = await listGrantedSites(); } catch { hosts = []; }
-  ui.renderSites(hosts, async (host, index) => {
-    await removeSite(host).catch(() => false);
-    ui.announce(t('status_site_removed', [host]));
-    refreshSites({ focusAfterRemove: index });
+  let granted = { hosts: [], allSites: [] };
+  try { granted = await listGrantedSites(); } catch { /* keep empty */ }
+  ui.renderSites(granted, {
+    onRemove: async (host, index) => {
+      await removeSite(host).catch(() => false);
+      ui.announce(t('status_site_removed', [host]));
+      refreshSites({ focusAfterRemove: index });
+    },
+    onRemoveAll: async () => {
+      await removeAllSites(granted.allSites);
+      ui.announce(t('status_site_removed', [t('settings_sites_all')]));
+      refreshSites({ focusAfterRemove: 0 });
+    },
   });
   if (focusAfterRemove !== null) {
     const buttons = [...doc.querySelectorAll('#sites-list button')];

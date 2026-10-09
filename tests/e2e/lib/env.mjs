@@ -265,17 +265,28 @@ export async function findTab(env, urlPrefix) {
   return poll(async () => (await allTabs(env)).find((t) => t.url.startsWith(urlPrefix)), { message: `tab ${urlPrefix}` });
 }
 
-/** Write a ScanJob v1 for `windowId` into chrome.storage.session from the service worker (mirrors sw.js). */
-export async function writeJob(env, { windowId, tabId, srcUrl, pageUrl, frameId = 0, frameUrl = null, ageMs = 0, overrides = {} }) {
+/** Mirror of jobContract.minimizePageUrl (ADR A7 / SEC-09): scheme + host + path only. */
+export function minimizePageUrl(url) {
+  let u;
+  try { u = new URL(url); } catch { return ''; }
+  const origin = u.origin && u.origin !== 'null' ? u.origin : `${u.protocol}//${u.host}`;
+  return `${origin}${u.pathname}`;
+}
+
+/**
+ * Write a ScanJob v1 for `windowId` into chrome.storage.session from the service worker, shaped like
+ * sw.js/createScanJob after amendment A7 (no frameUrl, pageUrl without query/hash).
+ */
+export async function writeJob(env, { windowId, tabId, srcUrl, pageUrl, frameId = 0, ageMs = 0, overrides = {} }) {
   return env.sw.evaluate(async (a) => {
     const job = {
       v: 1, id: crypto.randomUUID(), createdAt: Date.now() - a.ageMs, source: 'contextMenu', srcUrl: a.srcUrl,
-      pageUrl: a.pageUrl, frameUrl: a.frameUrl, frameId: a.frameId, tabId: a.tabId, windowId: a.windowId, mediaType: 'image',
+      pageUrl: a.pageUrl, frameId: a.frameId, tabId: a.tabId, windowId: a.windowId, mediaType: 'image',
       ...a.overrides,
     };
     await chrome.storage.session.set({ [`scanJob:${a.windowId}`]: job });
     return job;
-  }, { windowId, tabId, srcUrl, pageUrl, frameId, frameUrl, ageMs, overrides });
+  }, { windowId, tabId, srcUrl, pageUrl: minimizePageUrl(pageUrl), frameId, ageMs, overrides });
 }
 
 export async function sessionGet(env, key) {
@@ -431,4 +442,32 @@ export function parseNetLog(text) {
     renderer: Object.prototype.hasOwnProperty.call(RENDERER_ANNOTATIONS, r.annotation),
     annotationName: RENDERER_ANNOTATIONS[r.annotation] ?? `other:${r.annotation}`,
   }));
+}
+
+// ------------------------------------------------------------------------------------------------
+// HTTPS image origin (self-signed, test-only; launch with --ignore-certificate-errors)
+// ------------------------------------------------------------------------------------------------
+export async function startHttpsImageServer() {
+  const { execFileSync } = await import('node:child_process');
+  const https = await import('node:https');
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'certscanner-tls-'));
+  execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', path.join(dir, 'key.pem'), '-out', path.join(dir, 'cert.pem'),
+    '-days', '1', '-subj', '/CN=127.0.0.1', '-addext', 'subjectAltName=IP:127.0.0.1'], { stdio: 'ignore' });
+  const log = [];
+  const server = https.createServer({ key: await readFile(path.join(dir, 'key.pem')), cert: await readFile(path.join(dir, 'cert.pem')) }, async (req, res) => {
+    const { pathname } = new URL(req.url, 'https://x');
+    log.push({ path: pathname, dest: req.headers['sec-fetch-dest'] ?? null });
+    const file = resolveUnder(FIXTURES, decodeURIComponent(pathname.slice(1)));
+    try {
+      const body = await readFile(file);
+      res.writeHead(200, { 'content-type': MIME[path.extname(file).toLowerCase()] ?? 'application/octet-stream', 'cache-control': 'no-store' });
+      res.end(body);
+    } catch { res.writeHead(404).end(); }
+  });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  return {
+    origin: `https://127.0.0.1:${server.address().port}`,
+    log,
+    close: async () => { await new Promise((r) => server.close(r)); await rm(dir, { recursive: true, force: true }); },
+  };
 }

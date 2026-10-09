@@ -7,6 +7,7 @@ import { createOcrEngine, PSM } from './ocr.js';
 import { analyze, hasValidRun } from '../core/certParser.js';
 import { parseQrPayload } from '../core/certUrls.js';
 import { decide } from '../core/routing.js';
+import { raceAbort } from '../shared/raceAbort.js';
 
 export const SCAN_TIMEOUT_MS = 25_000;
 export const MAX_RECOGNIZE_CALLS = 8;
@@ -106,9 +107,10 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
 
     let t = now();
     let acq;
-    if (typeof acquire === 'function') acq = await acquire(input, { signal: sig });
-    else if (input?.kind === 'job') acq = await acquireFromJob(input.job, { signal: sig, ...(acquire ?? {}) });
-    else acq = await acquireFromBlob(input?.blob, input?.method ?? 'upload', { signal: sig });
+    // SEC-03: the acquire call itself is raced so Cancel and the 25 s budget always settle.
+    if (typeof acquire === 'function') acq = await raceAbort(acquire(input, { signal: sig }), sig);
+    else if (input?.kind === 'job') acq = await raceAbort(acquireFromJob(input.job, { signal: sig, ...(acquire ?? {}) }), sig);
+    else acq = await raceAbort(acquireFromBlob(input?.blob, input?.method ?? 'upload', { signal: sig }), sig);
     timings.acquireMs = ms(now() - t);
     if (!acq.ok) {
       if (acq.reason === 'aborted' || acq.reason === 'timeout') throw new ScanStop(sig.aborted ? stopCode() : acq.reason);
@@ -122,7 +124,7 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
 
     progress('decode');
     t = now();
-    const prep = await preprocess(bitmap);
+    const prep = await raceAbort(preprocess(bitmap), sig);
     timings.preprocessMs = ms(now() - t);
     check();
 
@@ -130,7 +132,7 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
     t = now();
     let barcodes = [];
     try {
-      barcodes = await eng.detectBarcodes(prep.imageData, { signal: sig });
+      barcodes = await raceAbort(eng.detectBarcodes(prep.imageData, { signal: sig }), sig);
     } catch {
       check();
       barcodes = [];
@@ -166,7 +168,7 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
     const step = () => progress('ocr', Math.min(1, calls / MAX_RECOGNIZE_CALLS));
     const recognize = async (fn) => {
       calls++;
-      const page = await fn();
+      const page = await raceAbort(fn(), sig);
       check();
       pages.push(page);
       step();

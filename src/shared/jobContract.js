@@ -14,15 +14,18 @@ const SRC_SCHEME_RE = /^(https?|data|blob):/i;
 export const SRC_ISSUES = new Set(['too-long', 'unsupported']);
 const isNonNegInt = (v) => Number.isInteger(v) && v >= 0;
 
-function shortenUrl(url) {
-  if (typeof url !== 'string') return '';
-  if (url.length <= MAX_PAGE_URL_CHARS) return url;
-  try {
-    const origin = new URL(url).origin;
-    return origin && origin !== 'null' ? `${origin}/` : '';
-  } catch {
-    return '';
-  }
+/**
+ * A7 / SEC-09: keep only scheme + host + path of the page (no query, hash or credentials);
+ * very long paths fall back to the origin. Unparseable values become ''.
+ */
+export function minimizePageUrl(url) {
+  if (typeof url !== 'string' || !url) return '';
+  let u;
+  try { u = new URL(url); } catch { return ''; }
+  const origin = u.origin && u.origin !== 'null' ? u.origin : `${u.protocol}//${u.host}`;
+  const out = `${origin}${u.pathname}`;
+  if (out.length <= MAX_PAGE_URL_CHARS) return out;
+  return u.origin && u.origin !== 'null' ? `${u.origin}/` : '';
 }
 
 /**
@@ -36,15 +39,13 @@ export function createScanJob(info, tab, now, id) {
   if (raw !== null && raw.length > MAX_SRC_URL_CHARS) srcIssue = 'too-long';
   else if (raw !== null && !SRC_SCHEME_RE.test(raw)) srcIssue = 'unsupported';
   else src = raw;
-  const frameUrl = typeof info?.frameUrl === 'string' && info.frameUrl.length <= MAX_PAGE_URL_CHARS ? info.frameUrl : null;
   const job = {
     v: SCAN_JOB_VERSION,
     id,
     createdAt: now,
     source: 'contextMenu',
     srcUrl: src,
-    pageUrl: shortenUrl(info?.pageUrl ?? tab?.url ?? ''),
-    frameUrl,
+    pageUrl: minimizePageUrl(info?.pageUrl ?? tab?.url ?? ''),
     frameId: isNonNegInt(info?.frameId) ? info.frameId : 0,
     tabId: tab.id,
     windowId: tab.windowId,
@@ -72,16 +73,15 @@ export function parseScanJob(raw, { now, windowId }) {
     && raw.source === 'contextMenu'
     && srcOk
     && typeof raw.pageUrl === 'string' && raw.pageUrl.length <= MAX_PAGE_URL_CHARS
-    && (raw.frameUrl === null || raw.frameUrl === undefined || (typeof raw.frameUrl === 'string' && raw.frameUrl.length <= MAX_PAGE_URL_CHARS))
     && isNonNegInt(raw.frameId)
     && isNonNegInt(raw.tabId)
     && Number.isInteger(raw.windowId)
     && raw.mediaType === 'image';
   if (!ok) return { ok: false, reason: 'shape' };
   const job = {
+    // Older writers (and QA e2e) may still send frameUrl: accepted and dropped (A7).
     v: SCAN_JOB_VERSION, id: raw.id, createdAt: raw.createdAt, source: 'contextMenu', srcUrl: raw.srcUrl,
-    pageUrl: raw.pageUrl, frameUrl: raw.frameUrl ?? null, frameId: raw.frameId, tabId: raw.tabId,
-    windowId: raw.windowId, mediaType: 'image',
+    pageUrl: raw.pageUrl, frameId: raw.frameId, tabId: raw.tabId, windowId: raw.windowId, mediaType: 'image',
   };
   if (raw.srcUrl === null && SRC_ISSUES.has(raw.srcIssue)) job.srcIssue = raw.srcIssue;
   return { ok: true, job };

@@ -12,13 +12,13 @@ test('sniffDimensions reads PNG, GIF and JPEG headers', () => {
   png.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   png.set([0, 0, 0x2e, 0xe0], 16); // 12000
   png.set([0, 0, 0x03, 0x52], 20); // 850
-  assert.deepEqual(sniffDimensions(png), { width: 12000, height: 850 });
+  assert.deepEqual(sniffDimensions(png), { format: 'png', width: 12000, height: 850 });
   const gif = new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x10, 0x00, 0x20, 0x00]);
-  assert.deepEqual(sniffDimensions(gif), { width: 16, height: 32 });
+  assert.deepEqual(sniffDimensions(gif), { format: 'gif', width: 16, height: 32 });
   // JPEG: SOI, APP0 (len 4), SOF0 with height 406, width 260
   const jpg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x04, 0x00, 0x00, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x01, 0x96, 0x01, 0x04, 0x03, 0, 0, 0, 0]);
-  assert.deepEqual(sniffDimensions(jpg), { width: 260, height: 406 });
-  assert.equal(sniffDimensions(new Uint8Array([1, 2, 3])), null);
+  assert.deepEqual(sniffDimensions(jpg), { format: 'jpeg', width: 260, height: 406 });
+  assert.deepEqual(sniffDimensions(new Uint8Array([1, 2, 3])), { format: 'unknown', width: null, height: null });
 });
 
 test('imageOriginOf handles http(s), blob and data URLs', () => {

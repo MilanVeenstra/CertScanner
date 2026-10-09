@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Hostile page: busy main thread (synthetic)</title>
+<style>body{margin:0;padding:16px;font-family:"Liberation Sans",Arial,sans-serif;background:#fff}img{display:block}</style></head>
+<body>
+<h1 style="font-size:16px;margin:0 0 8px">Hostile test page: blocks its main thread (SEC-03)</h1>
+<img id="img-busy" data-fixture="psa-8digit-leading-zero.png" width="400" alt="Synthetic PSA-style slab on a hostile page">
+<script>
+(() => {
+  // ?img=<http(s) URL> (default ../psa-8digit-leading-zero.png), ?delay=<ms after decode, default 500>,
+  // ?ms=<blocking duration, default 30000, max 120000>. <html data-ready="1"> after decode, data-busy="1" while blocked.
+  const q = new URLSearchParams(location.search);
+  const img = document.getElementById('img-busy');
+  const src = q.get('img');
+  img.src = src && /^https?:\/\//.test(src) ? src : '../psa-8digit-leading-zero.png';
+  const delay = Math.min(Math.max(Number(q.get('delay') ?? 500) || 0, 0), 10000);
+  const ms = Math.min(Math.max(Number(q.get('ms') ?? 30000) || 0, 0), 120000);
+  img.decode().catch(() => {}).finally(() => {
+    document.documentElement.dataset.ready = '1';
+    setTimeout(() => {
+      document.documentElement.dataset.busy = '1';
+      const end = Date.now() + ms;
+      while (Date.now() < end) { /* hostile: never yields to the event loop */ }
+      document.documentElement.dataset.busy = 'done';
+    }, delay);
+  });
+})();
+</script>
+</body>
+</html>

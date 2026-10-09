@@ -662,5 +662,9 @@
   "ocr_unavailable_note": {
     "message": "The text reader didn't start, so only the barcode was used.",
     "description": "Added in S6: barcode result while OCR failed."
+  },
+  "settings_sites_all": {
+    "message": "All sites",
+    "description": "Added in S6 (SEC-11): row shown when access to all https sites is granted."
   }
 }

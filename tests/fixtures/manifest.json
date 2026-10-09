@@ -631,8 +631,51 @@
         "height": 461
       },
       "notes": "loading=\"lazy\" below a 4000 px spacer: not fetched until scrolled near."
+    },
+    {
+      "page": "pages/busy.html",
+      "elementId": "img-busy",
+      "kind": "hostile-busy-loop",
+      "finding": "SEC-03",
+      "fixture": "psa-8digit-leading-zero.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 400,
+        "height": 625
+      },
+      "params": {
+        "img": "http(s) image URL (default ../psa-8digit-leading-zero.png)",
+        "delay": "ms after decode before blocking (default 500)",
+        "ms": "blocking duration (default 30000, max 120000)"
+      },
+      "expected": {
+        "status": "error",
+        "error": "timeout",
+        "maxSettleMs": 12500,
+        "cancelSettleMs": 1000
+      },
+      "notes": "Blocks its main thread with a busy loop after the image renders (html[data-ready=\"1\"], then data-busy=\"1\"). Serve it on a different site than other test pages (e.g. localhost vs 127.0.0.1) so the hang stays in its own renderer. The image must not be fetchable by the extension (e.g. a hotlink-protected URL) so acquisition has to inject the page probe."
     }
   ],
   "labelBoxNotes": "labelBox = axis-aligned label band in natural image pixels ({x,y,width,height}); null for non-slab and rotated images.",
-  "pagesNotes": "Serve tests/fixtures (or the repository root) over http; pages use relative URLs (../<fixture>). Element ids are stable. gallery.html sets <html data-ready=\"1\"> after the blob: image loads. Append ?frameOrigin=http://localhost:<port> when the gallery is served from 127.0.0.1 to add a cross-origin iframe (#frame-cross-origin) containing #img-in-frame."
+  "pagesNotes": "Serve tests/fixtures (or the repository root) over http; pages use relative URLs (../<fixture>). Element ids are stable. gallery.html sets <html data-ready=\"1\"> after the blob: image loads. Append ?frameOrigin=http://localhost:<port> when the gallery is served from 127.0.0.1 to add a cross-origin iframe (#frame-cross-origin) containing #img-in-frame.",
+  "securityFixtures": [
+    {
+      "file": "security/decode-bomb-rle8.bmp",
+      "finding": "SEC-04",
+      "description": "BI_RLE8 BMP of 1,080 bytes declaring 16000x16000 px (256 MP); pixel data is only the end-of-bitmap escape.",
+      "declared": {
+        "width": 16000,
+        "height": 16000
+      },
+      "expected": {
+        "status": "error",
+        "error": "too-large",
+        "maxSettleMs": 2000
+      },
+      "mimeType": "image/bmp",
+      "bytes": 1080,
+      "sha256": "044f4d9412de9c5bac314a720f770d46fb2fe453070ba461ad5ef6ae086a24ff"
+    }
+  ]
 }

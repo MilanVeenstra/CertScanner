@@ -1,0 +1,555 @@
+// CertScanner end-to-end journeys (ADR-001 §14, research §11 J1–J11) against the real extension.
+//
+// Prerequisite: `npm run build:e2e` (done by `npm run e2e`). Runs Playwright's bundled Chromium headless
+// with dist-e2e/ loaded; everything except 127.0.0.1/localhost resolves to NOTFOUND, so grader pages are
+// never contacted. Jobs are written to chrome.storage.session from the extension's own service worker,
+// exactly like the context-menu handler does; the side panel runs as the popup-window fallback (?w=).
+// Hard checks: zero wrong auto-opens; the foreign QR URL/host is never navigated or requested.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { after, before, describe, test } from 'node:test';
+import bwipjs from 'bwip-js/node';
+import * as E from './lib/env.mjs';
+import { accessibleNames, chooseGrader, dropImage, isVisible, pasteImage, setSetting, tabTo, tid } from './lib/panel.mjs';
+
+const FIX = (f) => path.join(E.FIXTURES, f);
+const fixtureManifest = JSON.parse(readFileSync(FIX('manifest.json'), 'utf8'));
+const fixture = (file) => fixtureManifest.fixtures.find((f) => f.file === file);
+const T = { timeout: 120_000 };
+
+/** Every auto-opened URL in the whole run (hard check: each must match its fixture's expected URL). */
+const autoOpens = [];
+const foreignHost = 'evil.example';
+
+describe('CertScanner e2e journeys', { concurrency: false }, () => {
+  let servers;
+  let env;
+  let galleryPage;
+  let galleryTab;
+  let panel;
+
+  async function newGraderTabsSince(before) {
+    const ids = new Set(before.map((t) => t.id));
+    return (await E.graderTabs(env)).filter((t) => !ids.has(t.id));
+  }
+
+  /** Run one job against the shared panel and return {result, opened, job}. */
+  async function runJob({ srcUrl, pageUrl = galleryTab.url, tabId = galleryTab.id, windowId = galleryTab.windowId, frameId = 0, settle = 800 }) {
+    const beforeTabs = await E.graderTabs(env);
+    const mark = await E.logMark(panel.page);
+    const job = await E.writeJob(env, { windowId, tabId, srcUrl, pageUrl, frameId });
+    const result = await E.waitForScanEnd(panel.page, mark);
+    await E.sleep(settle);
+    const opened = await newGraderTabsSince(beforeTabs);
+    if (result.state === 'auto-open') autoOpens.push({ srcUrl, urls: opened.map((t) => t.url) });
+    return { result, opened, job };
+  }
+
+  async function upload(file, opts) {
+    const beforeTabs = await E.graderTabs(env);
+    const result = await E.uploadAndWait(panel.page, file, opts);
+    await E.sleep(600);
+    const opened = await newGraderTabsSince(beforeTabs);
+    if (result.state === 'auto-open') autoOpens.push({ file: typeof file === 'string' ? path.basename(file) : file.name, urls: opened.map((t) => t.url) });
+    return { result, opened };
+  }
+
+  async function showGallery(url = `${servers.A}/pages/gallery.html`) {
+    await galleryPage.goto(url);
+    await galleryPage.waitForSelector('html[data-ready]', { state: 'attached', timeout: 15000 });
+    galleryTab = await E.findTab(env, url);
+    await env.sw.evaluate((id) => chrome.tabs.update(id, { active: true }), galleryTab.id);
+  }
+
+  before(async () => {
+    E.assertBuilt();
+    servers = await E.startServers();
+    env = await E.launchExtension();
+    galleryPage = env.context.pages()[0] ?? await env.context.newPage();
+    await showGallery();
+    panel = await E.openPanel(env, galleryTab.windowId);
+  });
+
+  after(async () => {
+    await env?.close();
+    await servers?.close();
+  });
+
+  test('install: service worker, context menu, panel behaviour, no message listeners, §13 test ids', T, async () => {
+    const sw = await env.sw.evaluate(async () => {
+      let menu = 'missing';
+      try { await chrome.contextMenus.update('certscanner-scan', {}); menu = 'present'; } catch (e) { menu = `missing: ${e.message}`; }
+      const behavior = await chrome.sidePanel.getPanelBehavior();
+      const options = await chrome.sidePanel.getOptions({});
+      return {
+        menu, behavior, options,
+        onMessage: chrome.runtime.onMessage.hasListeners(),
+        onMessageExternal: chrome.runtime.onMessageExternal.hasListeners(),
+        onConnect: chrome.runtime.onConnect.hasListeners(),
+        manifest: chrome.runtime.getManifest(),
+      };
+    });
+    assert.equal(sw.menu, 'present', 'context menu item certscanner-scan registered on install');
+    assert.equal(sw.behavior.openPanelOnActionClick, true, 'toolbar action opens the side panel');
+    assert.equal(sw.options.path, 'sidepanel/sidepanel.html');
+    assert.equal(sw.onMessage, false, 'no runtime.onMessage listener (ADR §10)');
+    assert.equal(sw.onMessageExternal, false, 'no runtime.onMessageExternal listener');
+    assert.equal(sw.onConnect, false, 'no runtime.onConnect listener');
+    assert.deepEqual([...sw.manifest.permissions].sort(), ['activeTab', 'contextMenus', 'scripting', 'sidePanel', 'storage']);
+    assert.deepEqual(sw.manifest.optional_host_permissions, ['https://*/*']);
+    assert.deepEqual(sw.manifest.host_permissions, ['<all_urls>'], 'dist-e2e test patch only (release check proves dist/ has none)');
+    assert.equal(sw.manifest.incognito, 'not_allowed', 'ADR A7 / SEC-01: cannot run in incognito');
+    const allowedIncognito = await env.sw.evaluate(() => chrome.extension.isAllowedIncognitoAccess());
+    assert.equal(allowedIncognito, false);
+
+    const page = panel.page;
+    const ids = ['status-live', 'progress', 'preview', 'result-number', 'result-grader', 'candidate-list', 'grader-select', 'number-input',
+      'open-button', 'copy-button', 'cancel-button', 'sharper-button', 'upload-input', 'manual-input', 'manual-submit', 'manual-error',
+      'error-message', 'history-list', 'history-clear', 'setting-autoOpen', 'setting-openInBackground', 'setting-saveHistory'];
+    const missing = await page.evaluate((list) => list.filter((id) => !document.querySelector(`[data-testid="${id}"]`)), ids);
+    assert.deepEqual(missing, [], `missing §13 test ids: ${missing.join(', ')}`);
+    const live = await page.locator(tid('status-live')).getAttribute('aria-live');
+    assert.equal(live, 'polite');
+    assert.equal(await page.evaluate(() => document.body.dataset.windowId), String(galleryTab.windowId), 'body[data-window-id] = ?w=');
+    const pageListeners = await page.evaluate(() => chrome.runtime.onMessage.hasListeners() || chrome.runtime.onMessageExternal.hasListeners());
+    assert.equal(pageListeners, false, 'panel registers no runtime message listeners');
+    const names = await accessibleNames(page, ['upload-input', 'manual-input', 'manual-submit', 'setting-autoOpen', 'setting-openInBackground', 'setting-saveHistory', 'history-clear']);
+    for (const [id, n] of Object.entries(names)) assert.ok(n && n.length > 1, `${id} has an accessible name`);
+    assert.equal(await page.evaluate(() => document.documentElement.lang), 'en');
+  });
+
+  test('J1 PSA happy path: context-menu job, same-origin image → auto-open psacard.com/cert/01234567 next to the source tab', T, async () => {
+    await E.closeGraderTabs(env);
+    const { result, opened, job } = await runJob({ srcUrl: `${servers.A}/psa-8digit-leading-zero.png` });
+    assert.equal(result.state, 'auto-open');
+    assert.equal(result.number, '01234567', 'leading zero kept');
+    assert.equal(result.grader, 'psa');
+    assert.equal(opened.length, 1);
+    assert.equal(opened[0].url, 'https://www.psacard.com/cert/01234567');
+    assert.equal(opened[0].windowId, galleryTab.windowId);
+    assert.equal(opened[0].openerTabId, galleryTab.id, 'opened with the source tab as opener');
+    assert.equal(opened[0].index, galleryTab.index + 1, 'opened right after the source tab');
+    assert.equal(await E.sessionGet(env, `scanJob:${galleryTab.windowId}`), null, 'job consumed (removed from session storage)');
+    const history = await env.sw.evaluate(async () => (await chrome.storage.local.get('history')).history ?? null);
+    assert.ok(history?.entries?.some((e) => e.grader === 'psa' && e.number === '01234567'), 'history entry written');
+    assert.ok(!JSON.stringify(history).includes(job.srcUrl), 'history holds no image URL');
+    assert.ok(!JSON.stringify(history).includes('data:image'), 'history holds no image data');
+  });
+
+  test('J2 CGC comic: cross-origin CORS image (:C) → auto-open cgccomics; dash form from no-CORS origin (:B) normalised', T, async () => {
+    await E.closeGraderTabs(env);
+    const a = await runJob({ srcUrl: `${servers.C}/cgc-comic-10digit.png` });
+    assert.equal(a.result.state, 'auto-open');
+    assert.deepEqual(a.opened.map((t) => t.url), ['https://www.cgccomics.com/certlookup/4012345001/']);
+    await E.closeGraderTabs(env);
+    const b = await runJob({ srcUrl: `${servers.B}/cgc-comic-dash.png` });
+    assert.equal(b.result.number, '4012346002');
+    assert.ok(['auto-open', 'confirm'].includes(b.result.state));
+    if (b.result.state === 'auto-open') assert.deepEqual(b.opened.map((t) => t.url), ['https://www.cgccomics.com/certlookup/4012346002/']);
+  });
+
+  test('J3 CGC card: 13-digit image inside a same-origin iframe → cgccards; 10-digit with card wording (upload) → cgccards', T, async () => {
+    await E.closeGraderTabs(env);
+    const frames = await env.sw.evaluate(async (tabId) => (await chrome.scripting.executeScript({ target: { tabId, allFrames: true }, func: () => location.href }))
+      .map((r) => ({ frameId: r.frameId, url: r.result })), galleryTab.id);
+    const frame = frames.find((f) => f.url.endsWith('/pages/frame.html'));
+    assert.ok(frame, 'same-origin frame found');
+    const a = await runJob({ srcUrl: `${servers.A}/cgc-card-13digit.png`, frameId: frame.frameId });
+    assert.equal(a.result.state, 'auto-open');
+    assert.deepEqual(a.opened.map((t) => t.url), ['https://www.cgccards.com/certlookup/1401036622258/']);
+    await E.closeGraderTabs(env);
+    const b = await upload(path.join(E.BENCH, 'cgcd-c16.png'));
+    assert.equal(b.result.number, '3901234567');
+    assert.ok(['auto-open', 'confirm'].includes(b.result.state));
+    if (b.result.state === 'auto-open') assert.deepEqual(b.opened.map((t) => t.url), ['https://www.cgccards.com/certlookup/3901234567/']);
+    else assert.equal(b.result.grader, 'cgc-cards', 'card wording resolves the 10-digit grader');
+  });
+
+  test('J4 QR allow-listed (blob: image via page-fetch) → OCR skipped, URL rebuilt; foreign host never opened', T, async () => {
+    await E.closeGraderTabs(env);
+    const blobUrl = await galleryPage.evaluate(() => document.getElementById('img-blob').src);
+    assert.match(blobUrl, /^blob:/);
+    const a = await runJob({ srcUrl: blobUrl });
+    assert.equal(a.result.state, 'auto-open');
+    assert.deepEqual(a.opened.map((t) => t.url), ['https://www.cgccomics.com/certlookup/4012347003/']);
+    const direct = await E.scanInPanel(panel.page, { kind: 'blob-url', url: `${servers.A}/cgc-comic-qr.png` });
+    assert.equal(direct.candidates[0].source, 'qr-url');
+    assert.equal(direct.timings.ocrMs, 0, 'allow-listed QR finishes the scan without OCR');
+
+    await E.closeGraderTabs(env);
+    const fx = fixture('qr-foreign-host.png');
+    const b = await runJob({ srcUrl: `${servers.A}/qr-foreign-host.png`, settle: 2000 });
+    assert.ok(fx.accept.includes(b.result.state), `foreign QR status ${b.result.state} in ${fx.accept}`);
+    assert.notEqual(b.result.state, 'auto-open');
+    assert.equal(b.opened.length, 0, 'nothing opened automatically');
+    const directForeign = await E.scanInPanel(panel.page, { kind: 'blob-url', url: `${servers.A}/qr-foreign-host.png` });
+    assert.notEqual(directForeign.status, 'auto-open');
+    if (directForeign.candidates.length) {
+      assert.ok(directForeign.warnings.some((w) => w.code === 'qr-untrusted-host'), 'qr-untrusted-host warning');
+      assert.ok(directForeign.candidates.every((c) => c.confidence <= 0.5), 'untrusted QR digits capped at 0.50');
+    }
+    if (b.result.state === 'confirm') {
+      // The user may still open the number, but only through the rebuilt official URL.
+      if (!b.result.grader) await chooseGrader(panel.page, 'psa');
+      const beforeTabs = await E.graderTabs(env);
+      await panel.page.locator(tid('open-button')).click();
+      await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'tab from confirm' });
+      const [t] = await newGraderTabsSince(beforeTabs);
+      assert.equal(t.url, 'https://www.psacard.com/cert/12345678', 'URL rebuilt from grader + digits');
+    }
+    const all = await E.allTabs(env);
+    assert.ok(!all.some((t) => E.hostOf(t.url) === foreignHost || E.hostOf(t.pendingUrl ?? '') === foreignHost), 'evil.example never navigated');
+    assert.ok(!env.net.some((n) => E.hostOf(n.url) === foreignHost), 'evil.example never requested');
+  });
+
+  test('J4b QR edge cases generated at test time: allow-listed host with unmatched path, look-alike host', T, async () => {
+    const mk = (text) => bwipjs.toBuffer({ bcid: 'qrcode', text, scale: 4, eclevel: 'M', paddingwidth: 8, paddingheight: 8, backgroundcolor: 'FFFFFF' });
+    const unmatched = await mk('https://www.psacard.com/certificate/lookup?id=23456789');
+    const lookalike = await mk('https://www.psacard.com.evil.example/cert/34567890');
+    await E.closeGraderTabs(env);
+    const a = await upload({ name: 'qr-unmatched.png', mimeType: 'image/png', buffer: unmatched });
+    assert.ok(['auto-open', 'confirm'].includes(a.result.state), `unmatched path → ${a.result.state}`);
+    assert.equal(a.result.number, '23456789');
+    if (a.result.state === 'auto-open') assert.deepEqual(a.opened.map((t) => t.url), ['https://www.psacard.com/cert/23456789'], 'rebuilt, never the QR URL');
+    await E.closeGraderTabs(env);
+    const b = await upload({ name: 'qr-lookalike.png', mimeType: 'image/png', buffer: lookalike });
+    assert.notEqual(b.result.state, 'auto-open', 'look-alike host never auto-opens');
+    assert.equal(b.opened.length, 0);
+    assert.ok(!(await E.allTabs(env)).some((t) => t.url.includes('evil.example')));
+  });
+
+  test('J5 ambiguous 10 digits: confirm with grader unresolved, no tab; user picks CGC Comics → opens rebuilt URL', T, async () => {
+    await E.closeGraderTabs(env);
+    const { result, opened } = await runJob({ srcUrl: `${servers.A}/ambiguous-10digit.png`, settle: 2000 });
+    assert.equal(result.state, 'confirm');
+    assert.equal(result.number, '5012345678');
+    assert.equal(result.grader, null, 'grader not pre-selected');
+    assert.equal(opened.length, 0, 'no automatic tab');
+    // Opening without a grader must not open anything.
+    const beforeTabs = await E.graderTabs(env);
+    await panel.page.locator(tid('open-button')).click();
+    await E.sleep(800);
+    assert.equal((await newGraderTabsSince(beforeTabs)).length, 0, 'no tab without a grader');
+    await chooseGrader(panel.page, 'cgc-comics');
+    await panel.page.locator(tid('open-button')).click();
+    await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'tab after confirm' });
+    const [t] = await newGraderTabsSince(beforeTabs);
+    assert.equal(t.url, 'https://www.cgccomics.com/certlookup/5012345678/');
+    await E.poll(async () => (await panel.page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'state opened' });
+  });
+
+  test('J6 no number: non-slab image → none, no tab, upload and manual entry offered', T, async () => {
+    await E.closeGraderTabs(env);
+    const { result, opened } = await runJob({ srcUrl: `${servers.A}/non-slab.png`, settle: 1500 });
+    assert.equal(result.state, 'none');
+    assert.equal(opened.length, 0);
+    assert.ok(await isVisible(panel.page, 'manual-input'), 'manual entry offered');
+    assert.equal(await panel.page.locator(tid('upload-input')).count(), 1, 'upload offered');
+  });
+
+  test('J7 fetch blocked (hotlink CDN): capture fallback reads the on-screen image; harness strategies → capture/screen', T, async () => {
+    await E.closeGraderTabs(env);
+    const img = `${servers.B}/hotlink/psa-8digit-leading-zero.png`;
+    await showGallery(`${servers.A}/__e2e/page.html?img=${encodeURIComponent(img)}&w=400&id=img-hotlink`);
+    assert.equal(await galleryPage.evaluate(() => document.documentElement.dataset.ready), '1', 'image renders in the page');
+    const logStart = servers.log.length;
+    const { result, opened } = await runJob({ srcUrl: img, pageUrl: galleryTab.url, tabId: galleryTab.id });
+    const denied = servers.log.slice(logStart).filter((r) => r.server === 'B' && r.path.startsWith('/hotlink/') && r.dest !== 'image');
+    assert.ok(denied.length >= 1, 'extension/page fetch was attempted and refused by the CDN');
+    assert.ok(['auto-open', 'confirm', 'none'].includes(result.state), `capture result ${result.state}`);
+    if (result.number) assert.equal(result.number, '01234567', 'never a wrong number from the capture');
+    if (result.state === 'auto-open') assert.deepEqual(opened.map((t) => t.url), ['https://www.psacard.com/cert/01234567']);
+    assert.equal(result.sharperVisible, false, 'http origin (and e2e grant): no "Sharper scans" offer');
+
+    // ADR §14 harness case: strategies ['page-fetch','capture'] with a no-CORS (:B) image.
+    await showGallery(`${servers.A}/__e2e/page.html?img=${encodeURIComponent(`${servers.B}/psa-8digit-leading-zero.png`)}&w=400&id=img-nocors`);
+    const job = { v: 1, id: 'harness-capture', createdAt: Date.now(), source: 'contextMenu', srcUrl: `${servers.B}/psa-8digit-leading-zero.png`,
+      pageUrl: E.minimizePageUrl(galleryTab.url), frameId: 0, tabId: galleryTab.id, windowId: galleryTab.windowId, mediaType: 'image' };
+    const r = await E.scanInPanel(panel.page, { kind: 'job', job }, { acquire: { strategies: ['page-fetch', 'capture'] }, settings: { v: 1, autoOpen: false, openInBackground: false, saveHistory: false } });
+    assert.equal(r.imageInfo?.method, 'capture', `acquired by ${r.imageInfo?.method} (${r.error?.code ?? 'ok'})`);
+    assert.equal(r.imageInfo.resolution, 'screen');
+    assert.equal(r.imageInfo.canRequestSharper, false, 'http: origin → canRequestSharper false (https only)');
+    assert.ok(Math.abs(r.imageInfo.width - 400) <= 2, `cropped to the on-screen rect (${r.imageInfo.width}px)`);
+    if (r.candidates[0]) assert.equal(r.candidates[0].number, '01234567');
+    await showGallery();
+  });
+
+  test('J8 restricted pages: chrome://version and Chrome Web Store → restricted error, no uncaught errors', T, async () => {
+    await E.closeGraderTabs(env);
+    const errorsBefore = panel.errors.length;
+    const cv = await env.context.newPage();
+    await cv.goto('chrome://version');
+    const cvTab = await E.findTab(env, 'chrome://version');
+    const a = await runJob({ srcUrl: `${servers.A}/psa-8digit-leading-zero.png`, pageUrl: cvTab.url, tabId: cvTab.id, windowId: galleryTab.windowId });
+    assert.equal(a.result.state, 'error');
+    assert.ok(a.result.error.length > 0, 'error message shown');
+    assert.equal(a.opened.length, 0);
+    const b = await runJob({ srcUrl: 'https://lh3.googleusercontent.com/x.png', pageUrl: 'https://chromewebstore.google.com/detail/abc', tabId: galleryTab.id });
+    assert.equal(b.result.state, 'error');
+    assert.equal(b.result.error, a.result.error, 'same restricted message');
+    assert.ok(!env.net.some((n) => n.url.includes('googleusercontent')), 'restricted job never fetched its image');
+    assert.ok(await isVisible(panel.page, 'manual-input'));
+    assert.deepEqual(panel.errors.slice(errorsBefore), [], 'no uncaught panel errors');
+    await cv.close();
+  });
+
+  test('J9 keyboard-only manual entry: PSA 12345678 and 13-digit CGC → URLs; invalid input → inline aria-live error', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    await page.bringToFront();
+    await page.evaluate(() => document.activeElement?.blur());
+    await tabTo(page, 'manual-input');
+    let beforeTabs = await E.graderTabs(env);
+    await page.keyboard.type('PSA 12345678');
+    await page.keyboard.press('Enter');
+    await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'manual PSA tab' });
+    assert.equal((await newGraderTabsSince(beforeTabs))[0].url, 'https://www.psacard.com/cert/12345678');
+    await E.poll(async () => (await page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'state opened' });
+
+    beforeTabs = await E.graderTabs(env);
+    await tabTo(page, 'manual-input');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type('1401234567890');
+    await page.keyboard.press('Enter');
+    await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'manual CGC cards tab' });
+    assert.equal((await newGraderTabsSince(beforeTabs))[0].url, 'https://www.cgccards.com/certlookup/1401234567890/');
+
+    beforeTabs = await E.graderTabs(env);
+    await tabTo(page, 'manual-input');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type('hello');
+    await page.keyboard.press('Enter');
+    await E.poll(async () => (await page.locator(tid('manual-error')).textContent()).trim().length > 0, { message: 'manual error text' });
+    const a11y = await page.evaluate(() => {
+      const input = document.querySelector('[data-testid="manual-input"]');
+      const err = document.querySelector('[data-testid="manual-error"]');
+      const live = err.closest('[aria-live]')?.getAttribute('aria-live') ?? err.getAttribute('role');
+      return {
+        invalid: input.getAttribute('aria-invalid'),
+        describedBy: (input.getAttribute('aria-describedby') ?? '').split(/\s+/).includes(err.id),
+        live,
+        focused: document.activeElement === input,
+      };
+    });
+    assert.equal(a11y.invalid, 'true', 'aria-invalid on the field');
+    assert.ok(a11y.describedBy, 'error linked with aria-describedby');
+    assert.ok(['polite', 'assertive', 'alert', 'status'].includes(a11y.live), 'error is announced (live region)');
+    assert.ok(a11y.focused, 'focus stays in the field');
+    await E.sleep(500);
+    assert.equal((await newGraderTabsSince(beforeTabs)).length, 0, 'invalid input opens nothing');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+  });
+
+  test('J10 upload, paste and drop work offline; bad files show an error', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    await env.context.setOffline(true);
+    try {
+      assert.equal(await page.evaluate(() => navigator.onLine), false, 'panel sees the browser offline');
+      const a = await upload(FIX('psa-9digit.png'));
+      assert.equal(a.result.number, '108114622');
+      assert.ok(['auto-open', 'confirm'].includes(a.result.state));
+      if (a.result.state === 'auto-open') assert.deepEqual(a.opened.map((t) => t.url), ['https://www.psacard.com/cert/108114622']);
+      await E.closeGraderTabs(env);
+      const p = await pasteImage(page, await readFile(FIX('cgc-comic-10digit.png')));
+      assert.equal(p.number, '4012345001', 'paste → same pipeline');
+      await E.closeGraderTabs(env);
+      const d = await dropImage(page, await readFile(FIX('cgc-card-13digit.png')));
+      assert.equal(d.number, '1401036622258', 'drop → same pipeline');
+      await E.closeGraderTabs(env);
+    } finally {
+      await env.context.setOffline(false);
+    }
+    const bad = await upload({ name: 'notes.png', mimeType: 'image/png', buffer: Buffer.from('this is not an image') });
+    assert.equal(bad.result.state, 'error');
+    assert.ok(bad.result.error.length > 0);
+    const tiny = await upload({ name: 'tiny.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') });
+    assert.equal(tiny.result.state, 'error', '1x1 image rejected');
+  });
+
+  test('two quick jobs: the first is cancelled, only the second result is shown and opened', T, async () => {
+    await E.closeGraderTabs(env);
+    const beforeTabs = await E.graderTabs(env);
+    const mark = await E.logMark(panel.page);
+    await E.writeJob(env, { windowId: galleryTab.windowId, tabId: galleryTab.id, srcUrl: `${servers.A}/psa-8digit-leading-zero.png`, pageUrl: galleryTab.url });
+    await E.sleep(60);
+    await E.writeJob(env, { windowId: galleryTab.windowId, tabId: galleryTab.id, srcUrl: `${servers.A}/cgc-comic-10digit.png`, pageUrl: galleryTab.url });
+    const result = await E.waitForScanEnd(panel.page, mark);
+    await E.sleep(4000);
+    const opened = await newGraderTabsSince(beforeTabs);
+    assert.equal(result.number, '4012345001');
+    assert.deepEqual(opened.map((t) => t.url), ['https://www.cgccomics.com/certlookup/4012345001/'], 'only the second job opened');
+    assert.equal(await panel.page.evaluate(() => document.body.dataset.state), 'auto-open');
+  });
+
+  test('panel reload: a consumed job never re-runs (after completion and mid-scan)', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    await runJob({ srcUrl: `${servers.A}/psa-9digit.png` });
+    let beforeTabs = await E.graderTabs(env);
+    await E.reloadPanel(page);
+    await E.sleep(3000);
+    assert.equal((await newGraderTabsSince(beforeTabs)).length, 0, 'no re-run after reload');
+    assert.equal(await page.evaluate(() => document.body.dataset.state), 'idle');
+
+    await E.closeGraderTabs(env);
+    beforeTabs = await E.graderTabs(env);
+    const mark = await E.logMark(page);
+    await E.writeJob(env, { windowId: galleryTab.windowId, tabId: galleryTab.id, srcUrl: `${servers.A}/cgc-card-13digit.png`, pageUrl: galleryTab.url });
+    await page.waitForFunction((m) => window.__cs.log.slice(m).some((e) => e.state === 'scanning'), mark, { polling: 10, timeout: 15000 });
+    assert.equal(await E.sessionGet(env, `scanJob:${galleryTab.windowId}`), null, 'job removed as soon as it is taken');
+    await E.reloadPanel(page);
+    await E.sleep(5000);
+    assert.equal((await newGraderTabsSince(beforeTabs)).length, 0, 'mid-scan reload: no re-run, nothing opened');
+    assert.equal(await page.evaluate(() => document.body.dataset.state), 'idle');
+  });
+
+  test('job contract: stale, wrong-window, wrong-version and malformed jobs are ignored and cleared; other windows untouched', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    const key = `scanJob:${galleryTab.windowId}`;
+    const base = { windowId: galleryTab.windowId, tabId: galleryTab.id, srcUrl: `${servers.A}/psa-8digit-leading-zero.png`, pageUrl: galleryTab.url };
+    const mark = await E.logMark(page);
+    const beforeTabs = await E.graderTabs(env);
+    for (const variant of [
+      { ...base, ageMs: 10 * 60_000 },
+      { ...base, overrides: { windowId: galleryTab.windowId + 1 } },
+      { ...base, overrides: { v: 2 } },
+      { ...base, overrides: { srcUrl: 'javascript:alert(1)' } },
+      { ...base, overrides: { tabId: -1 } },
+    ]) {
+      await E.writeJob(env, variant);
+      await E.poll(async () => (await E.sessionGet(env, key)) === null, { message: 'invalid job cleared', timeout: 5000 });
+    }
+    await env.sw.evaluate((k) => chrome.storage.session.set({ [k]: 'garbage' }), key);
+    await E.poll(async () => (await E.sessionGet(env, key)) === null, { message: 'garbage cleared', timeout: 5000 });
+    await E.sleep(1000);
+    assert.ok(!(await E.stateLog(page, mark)).includes('scanning'), 'no scan started for invalid jobs');
+    assert.equal((await newGraderTabsSince(beforeTabs)).length, 0);
+
+    // A job for another window is not consumed by this panel; windows.onRemoved clears it.
+    const other = await env.sw.evaluate(async () => (await chrome.windows.create({ url: 'about:blank', focused: false })).id);
+    await E.writeJob(env, { ...base, windowId: other });
+    await E.sleep(1500);
+    assert.ok(await E.sessionGet(env, `scanJob:${other}`), 'other window job left alone');
+    assert.ok(!(await E.stateLog(page, mark)).includes('scanning'));
+    await env.sw.evaluate((w) => chrome.windows.remove(w), other);
+    await E.poll(async () => (await E.sessionGet(env, `scanJob:${other}`)) === null, { message: 'onRemoved cleanup', timeout: 5000 });
+  });
+
+  test('settings and history persist across panel reload; "always ask" (autoOpen off) never auto-opens; background open', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    const historyCount = () => page.locator(`${tid('history-list')} > *`).count();
+    assert.ok((await historyCount()) >= 1, 'history list shows earlier opens');
+    const before = await historyCount();
+    await setSetting(page, 'autoOpen', false);
+    const stored = await env.sw.evaluate(async () => (await chrome.storage.sync.get('settings')).settings);
+    assert.equal(stored?.autoOpen, false, 'settings saved to storage.sync');
+    await E.reloadPanel(page);
+    assert.equal(await page.locator(tid('setting-autoOpen')).isChecked(), false, 'autoOpen off survives reload');
+    assert.equal(await historyCount(), before, 'history survives reload');
+    const a = await upload(FIX('psa-8digit-leading-zero.png'));
+    assert.equal(a.result.state, 'confirm', 'always ask → confirm');
+    assert.equal(a.opened.length, 0, 'no automatic tab');
+
+    await setSetting(page, 'autoOpen', true);
+    await setSetting(page, 'openInBackground', true);
+    const b = await upload(FIX('psa-8digit-leading-zero.png'));
+    assert.equal(b.result.state, 'auto-open');
+    assert.equal(b.opened.length, 1);
+    assert.equal(b.opened[0].active, false, 'opened in the background');
+    await setSetting(page, 'openInBackground', false);
+    await E.reloadPanel(page);
+    assert.equal(await page.locator(tid('setting-autoOpen')).isChecked(), true);
+    assert.equal(await page.locator(tid('setting-openInBackground')).isChecked(), false);
+  });
+
+  test('service worker stopped: restarts on the next event, menu intact, job hand-off works', T, async () => {
+    await E.closeGraderTabs(env);
+    const cdp = await env.context.newCDPSession(galleryPage);
+    const oldSw = env.sw;
+    const closed = new Promise((r) => oldSw.once('close', r));
+    await cdp.send('ServiceWorker.enable');
+    await cdp.send('ServiceWorker.stopAllWorkers');
+    await Promise.race([closed, E.sleep(10000).then(() => { throw new Error('service worker did not stop'); })]);
+    // Wake it with an event it listens for (windows.onRemoved), fired from the panel.
+    await panel.page.evaluate(async () => { const w = await chrome.windows.create({ url: 'about:blank', focused: false }); await chrome.windows.remove(w.id); });
+    await env.refreshServiceWorker();
+    assert.notEqual(env.sw, oldSw, 'a new service worker instance');
+    const menu = await env.sw.evaluate(async () => { try { await chrome.contextMenus.update('certscanner-scan', {}); return true; } catch { return false; } });
+    assert.ok(menu, 'context menu still registered');
+    const { result, opened } = await runJob({ srcUrl: `${servers.A}/cgc-comic-10digit.png` });
+    assert.equal(result.state, 'auto-open');
+    assert.deepEqual(opened.map((t) => t.url), ['https://www.cgccomics.com/certlookup/4012345001/']);
+    await cdp.detach();
+  });
+
+  test('history: turning saveHistory off asks first, then deletes; Clear history works', T, async () => {
+    const page = panel.page;
+    const count = () => page.locator(`${tid('history-list')} > *`).count();
+    assert.ok((await count()) >= 1);
+    await page.locator(tid('history-clear')).evaluate((el) => el.click());
+    await E.poll(async () => (await count()) === 0, { message: 'history cleared' });
+    const stored = await env.sw.evaluate(async () => (await chrome.storage.local.get('history')).history);
+    assert.equal(stored?.entries?.length ?? 0, 0, 'storage.local history empty');
+    await E.reloadPanel(page);
+    assert.equal(await count(), 0);
+  });
+
+  test('hard check: every auto-open in this run opened exactly the expected official URL', () => {
+    for (const a of autoOpens) {
+      assert.equal(a.urls.length, 1, `one tab per auto-open (${a.srcUrl ?? a.file})`);
+      assert.ok(E.isGraderUrl(a.urls[0]), `auto-open went to a grader host: ${a.urls[0]}`);
+    }
+    assert.ok(!env.net.some((n) => E.hostOf(n.url) === foreignHost), 'foreign QR host never requested');
+    assert.deepEqual(panel.errors.filter((e) => e.startsWith('pageerror')), [], 'no uncaught panel errors during the run');
+  });
+});
+
+describe('J7b "Sharper scans" offer (variant build: http host access only, no https grant)', { concurrency: false }, () => {
+  let servers;
+  let env;
+  let variant;
+  before(async () => {
+    E.assertBuilt();
+    servers = await E.startServers();
+    variant = await E.makeVariant((m) => { m.host_permissions = ['http://*/*']; });
+    env = await E.launchExtension({ extensionPath: variant.dir });
+  });
+  after(async () => {
+    await env?.close();
+    await servers?.close();
+    await variant?.cleanup();
+  });
+
+  test('https image that cannot be fetched or captured → error with "Sharper scans on <host>"; declining keeps manual entry working', T, async () => {
+    const httpsImg = 'https://127.0.0.1:9/slab.png'; // closed port: never loads; origin is https and not granted
+    const page0 = env.context.pages()[0];
+    await page0.goto(`${servers.A}/__e2e/page.html?img=${encodeURIComponent(httpsImg)}&w=300&id=img-https`);
+    const tab = await E.findTab(env, `${servers.A}/__e2e/page.html`);
+    const p = await E.openPanel(env, tab.windowId);
+    const mark = await E.logMark(p.page);
+    await E.writeJob(env, { windowId: tab.windowId, tabId: tab.id, srcUrl: httpsImg, pageUrl: tab.url });
+    const r = await E.waitForScanEnd(p.page, mark);
+    assert.equal(r.state, 'error');
+    assert.equal(r.sharperVisible, true, 'sharper-button offered');
+    assert.ok(r.sharperText.includes('127.0.0.1'), `offer names only the image host: "${r.sharperText}"`);
+    const granted = await env.sw.evaluate(() => chrome.permissions.contains({ origins: ['https://127.0.0.1/*'] }));
+    assert.equal(granted, false);
+    // Clicking calls permissions.request; headless Chromium cannot show the prompt, so the request is
+    // declined/dismissed. Whatever the outcome, manual entry must keep working.
+    await p.page.locator(tid('sharper-button')).click();
+    await E.sleep(1500);
+    assert.equal(await env.sw.evaluate(() => chrome.permissions.contains({ origins: ['https://127.0.0.1/*'] })), false, 'no grant without the user');
+    await p.page.locator(tid('manual-input')).fill('PSA 01234567');
+    await p.page.locator(tid('manual-submit')).click();
+    await E.poll(async () => (await E.graderTabs(env)).some((t) => t.url === 'https://www.psacard.com/cert/01234567'), { message: 'manual entry after decline' });
+    assert.deepEqual(p.errors.filter((e) => e.startsWith('pageerror')), []);
+  });
+});

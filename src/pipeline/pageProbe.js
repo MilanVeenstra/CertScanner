@@ -56,7 +56,13 @@ export async function pageProbe(srcUrl, mode, maxBytes) {
     return width > 0 && height > 0 ? (ix * iy) / (width * height) : 0;
   };
 
-  const twoFrames = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // rAF is paused in hidden/background pages: never wait more than ~300 ms (SEC-03).
+  const twoFrames = () => new Promise((r) => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; r(); } };
+    requestAnimationFrame(() => requestAnimationFrame(finish));
+    setTimeout(finish, 300);
+  });
   let m = measure();
   if (mode === 'capture' && visibleFraction(m) < 0.98) {
     img.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });

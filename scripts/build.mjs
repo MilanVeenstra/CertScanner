@@ -230,6 +230,7 @@ async function check(info) {
     for (const u of text.match(/https?:\/\/[^\s'"`)<>\\]+/g) ?? []) {
       if (/^https?:\/\/\$\{/.test(u)) continue; // host built at runtime from validated data (permission patterns)
       if (f.endsWith('manifest.json') && u === 'https://*/*') continue; // optional_host_permissions match pattern
+      if (/^https?:\/\/\*\/\*$/.test(u)) continue; // permission match patterns (host "*"), not endpoints (SEC-11 wildcard detection)
       let host = null;
       try { host = new URL(u.replace(/\$\{.*$/, '')).hostname; } catch { host = null; }
       if (!host || !ALLOWED_URL_HOSTS.has(host)) { fail(`${rel(f)}: URL not allowed: ${u}`); srcOk = false; }

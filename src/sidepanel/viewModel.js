@@ -215,3 +215,10 @@ export function relativeTime(at, now, locale) {
   if (abs < 26 * 86400) return rtf.format(Math.round(diff / 86400), 'day');
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(at));
 }
+
+// ---------------------------------------------------------------- auto-open de-dup (SEC-06)
+
+/** At most one auto-open per context-menu job (a Sharper-scans re-run reuses the job); per scan for blobs. */
+export function autoOpenKey(input, scanId) {
+  return input?.kind === 'job' && input.job?.id ? `job:${input.job.id}` : `scan:${scanId}`;
+}

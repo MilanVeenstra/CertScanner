@@ -1156,6 +1156,85 @@ function galleryHtml(entries, lowresJpeg, sizes) {
 `;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Security fixtures (docs/quality/security-review.md)
+// ---------------------------------------------------------------------------------------------
+/** SEC-03: hostile page that blocks its own main thread after the image has rendered. */
+function busyHtml() {
+  return `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Hostile page: busy main thread (synthetic)</title>
+<style>body{margin:0;padding:16px;font-family:"Liberation Sans",Arial,sans-serif;background:#fff}img{display:block}</style></head>
+<body>
+<h1 style="font-size:16px;margin:0 0 8px">Hostile test page: blocks its main thread (SEC-03)</h1>
+<img id="img-busy" data-fixture="psa-8digit-leading-zero.png" width="400" alt="Synthetic PSA-style slab on a hostile page">
+<script>
+(() => {
+  // ?img=<http(s) URL> (default ../psa-8digit-leading-zero.png), ?delay=<ms after decode, default 500>,
+  // ?ms=<blocking duration, default 30000, max 120000>. <html data-ready="1"> after decode, data-busy="1" while blocked.
+  const q = new URLSearchParams(location.search);
+  const img = document.getElementById('img-busy');
+  const src = q.get('img');
+  img.src = src && /^https?:\\/\\//.test(src) ? src : '../psa-8digit-leading-zero.png';
+  const delay = Math.min(Math.max(Number(q.get('delay') ?? 500) || 0, 0), 10000);
+  const ms = Math.min(Math.max(Number(q.get('ms') ?? 30000) || 0, 0), 120000);
+  img.decode().catch(() => {}).finally(() => {
+    document.documentElement.dataset.ready = '1';
+    setTimeout(() => {
+      document.documentElement.dataset.busy = '1';
+      const end = Date.now() + ms;
+      while (Date.now() < end) { /* hostile: never yields to the event loop */ }
+      document.documentElement.dataset.busy = 'done';
+    }, delay);
+  });
+})();
+</script>
+</body>
+</html>
+`;
+}
+
+/**
+ * SEC-04: decompression bomb. A 1,080-byte BI_RLE8 BMP whose header declares 16000x16000 px (256 MP,
+ * ~1 GB RGBA once decoded); the pixel data is just the RLE "end of bitmap" escape.
+ */
+function rle8BombBmp(width = 16000, height = 16000) {
+  const paletteBytes = 256 * 4;
+  const data = Buffer.from([0x00, 0x01]); // RLE8 escape: end of bitmap
+  const offset = 14 + 40 + paletteBytes;
+  const buf = Buffer.alloc(offset + data.length);
+  buf.write('BM', 0, 'ascii');
+  buf.writeUInt32LE(buf.length, 2);
+  buf.writeUInt32LE(0, 6);
+  buf.writeUInt32LE(offset, 10);
+  buf.writeUInt32LE(40, 14);          // BITMAPINFOHEADER
+  buf.writeInt32LE(width, 18);
+  buf.writeInt32LE(height, 22);
+  buf.writeUInt16LE(1, 26);           // planes
+  buf.writeUInt16LE(8, 28);           // bits per pixel
+  buf.writeUInt32LE(1, 30);           // BI_RLE8
+  buf.writeUInt32LE(data.length, 34);
+  buf.writeInt32LE(2835, 38);
+  buf.writeInt32LE(2835, 42);
+  buf.writeUInt32LE(256, 46);
+  buf.writeUInt32LE(0, 50);
+  for (let i = 0; i < 256; i++) buf.writeUInt32LE((i << 16) | (i << 8) | i, 54 + i * 4); // grey palette
+  data.copy(buf, offset);
+  return buf;
+}
+
+const SECURITY_FIXTURES = [
+  {
+    file: 'security/decode-bomb-rle8.bmp',
+    make: () => rle8BombBmp(),
+    finding: 'SEC-04',
+    description: 'BI_RLE8 BMP of 1,080 bytes declaring 16000x16000 px (256 MP); pixel data is only the end-of-bitmap escape.',
+    declared: { width: 16000, height: 16000 },
+    expected: { status: 'error', error: 'too-large', maxSettleMs: 2000 },
+    mimeType: 'image/bmp',
+  },
+];
+
 function frameHtml(entry) {
   return `<!doctype html>
 <html lang="en">
@@ -1205,6 +1284,16 @@ async function generate(outDir, browser) {
   const gallery = galleryHtml(entries, buffers['psa-lowres.jpg'], sizes);
   await writeFile(path.join(outDir, 'pages', 'gallery.html'), gallery);
   await writeFile(path.join(outDir, 'pages', 'frame.html'), frameHtml(entries.find((e) => e.elementId === 'img-in-frame')));
+  await writeFile(path.join(outDir, 'pages', 'busy.html'), busyHtml());
+  await mkdir(path.join(outDir, 'security'), { recursive: true });
+  const security = [];
+  for (const f of SECURITY_FIXTURES) {
+    const buf = f.make();
+    await writeFile(path.join(outDir, f.file), buf);
+    const { make, ...rest } = f;
+    security.push({ ...rest, bytes: buf.length, sha256: sha256(buf) });
+  }
+  console.log('wrote pages/busy.html, security/*');
   console.log('wrote pages/gallery.html, pages/frame.html');
 
   const pkg = (name) => JSON.parse(readFileSync(path.join(ROOT, 'node_modules', name, 'package.json'), 'utf8')).version;
@@ -1257,6 +1346,14 @@ async function generate(outDir, browser) {
     pagesNotes: 'Serve tests/fixtures (or the repository root) over http; pages use relative URLs (../<fixture>). Element ids are stable. gallery.html sets <html data-ready="1"> after the blob: image loads. Append ?frameOrigin=http://localhost:<port> when the gallery is served from 127.0.0.1 to add a cross-origin iframe (#frame-cross-origin) containing #img-in-frame.',
   };
   for (const p of manifest.pages) delete p.framePage;
+  manifest.pages.push({
+    page: 'pages/busy.html', elementId: 'img-busy', kind: 'hostile-busy-loop', finding: 'SEC-03', fixture: 'psa-8digit-leading-zero.png',
+    contextMenu: 'image', display: { width: 400, height: Math.round((sizes['psa-8digit-leading-zero.png'].height * 400) / sizes['psa-8digit-leading-zero.png'].width) },
+    params: { img: 'http(s) image URL (default ../psa-8digit-leading-zero.png)', delay: 'ms after decode before blocking (default 500)', ms: 'blocking duration (default 30000, max 120000)' },
+    expected: { status: 'error', error: 'timeout', maxSettleMs: 12500, cancelSettleMs: 1000 },
+    notes: 'Blocks its main thread with a busy loop after the image renders (html[data-ready="1"], then data-busy="1"). Serve it on a different site than other test pages (e.g. localhost vs 127.0.0.1) so the hang stays in its own renderer. The image must not be fetchable by the extension (e.g. a hotlink-protected URL) so acquisition has to inject the page probe.',
+  });
+  manifest.securityFixtures = security;
   await writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   console.log('wrote manifest.json');
   return manifest.environment;
@@ -1302,6 +1399,11 @@ async function verify(outDir, browser) {
   console.log(`\nVerify ${outDir}`);
   console.log(`  browser: Chromium ${browser.version()}  (manifest generated with ${manifest.environment.chromium})`);
 
+  for (const f of manifest.securityFixtures ?? []) {
+    const buf = await readFile(path.join(outDir, f.file));
+    if (sha256(buf) !== f.sha256 || buf.length !== f.bytes) fail(`${f.file}: bytes/sha256 differ from manifest`);
+    if (f.file.endsWith('.bmp') && (buf.toString('ascii', 0, 2) !== 'BM' || buf.readInt32LE(18) !== f.declared.width || buf.readInt32LE(22) !== f.declared.height)) fail(`${f.file}: BMP header mismatch`);
+  }
   // 1. Static: size budget, hash and header dimensions match the manifest.
   for (const f of manifest.fixtures) {
     const buf = await readFile(path.join(outDir, f.file));

@@ -463,23 +463,27 @@ export function createUi(doc, actions) {
     $('history-empty-hint').hidden = !empty;
   }
 
-  function renderSites(hosts, onRemove) {
+  /** Sharper-scans sites; an "All sites" row first when a wildcard grant exists (SEC-11). */
+  function renderSites({ hosts, allSites }, { onRemove, onRemoveAll }) {
     const list = $('sites-list');
     while (list.firstChild) list.firstChild.remove();
-    hosts.forEach((host, i) => {
+    const rows = [...(allSites.length ? [{ all: true, label: t('settings_sites_all') }] : []), ...hosts.map((h) => ({ all: false, label: h }))];
+    rows.forEach((row, i) => {
       const frag = clone('tpl-site-row');
       const h = ref(frag, 'host');
       const btn = ref(frag, 'remove');
       const label = ref(frag, 'remove-label');
       h.id = `site-${i}-host`;
       label.id = `site-${i}-remove`;
-      h.textContent = host;
+      h.textContent = row.label;
+      if (row.all) h.title = allSites.join(', ');
       btn.setAttribute('aria-labelledby', `${label.id} ${h.id}`);
-      btn.dataset.host = host;
-      btn.addEventListener('click', () => onRemove(host, i));
+      btn.dataset.host = row.all ? '*' : row.label;
+      const hostIndex = allSites.length ? i - 1 : i;
+      btn.addEventListener('click', () => (row.all ? onRemoveAll() : onRemove(row.label, hostIndex)));
       list.appendChild(frag);
     });
-    $('sites-empty').hidden = hosts.length > 0;
+    $('sites-empty').hidden = rows.length > 0;
   }
 
   return {

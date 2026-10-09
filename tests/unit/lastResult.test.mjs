@@ -1,0 +1,54 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { lastResultKey, makeLastResult, parseLastResult, LAST_RESULT_TTL_MS } from '../../src/shared/lastResult.js';
+
+const NOW = 1_760_000_000_000;
+const scan = {
+  jobId: 'abc', status: 'confirm',
+  candidates: [{ grader: null, graderOptions: ['cgc-comics', 'cgc-cards', 'psa'], number: '5012345678', confidence: 0.44, source: 'ocr', evidence: ['len:10', 'pass:text'] }],
+  imageInfo: { method: 'extension-fetch', resolution: 'full', width: 544, height: 850, origin: 'https://img.example.com', canRequestSharper: false },
+  warnings: [{ code: 'qr-untrusted-host', detail: 'evil.example' }], timings: { totalMs: 900 },
+};
+
+test('key', () => assert.equal(lastResultKey(7), 'lastResult:7'));
+
+test('makeLastResult keeps only what the task card needs (no image data, no page URL)', () => {
+  const v = makeLastResult({ task: 'confirm', body: 'confirm', result: scan, opened: null, imageHost: 'img.example.com' }, NOW);
+  assert.deepEqual(v, {
+    v: 1, savedAt: NOW, task: 'confirm', body: 'confirm', imageHost: 'img.example.com',
+    candidates: [{ grader: null, graderOptions: ['cgc-comics', 'cgc-cards', 'psa'], number: '5012345678', confidence: 0.44, source: 'ocr' }],
+    warnings: [{ code: 'qr-untrusted-host', detail: 'evil.example' }],
+    resolution: 'full', error: null, opened: null,
+  });
+  assert.deepEqual(parseLastResult(v, { now: NOW + 1000 }), { ok: true, value: v });
+});
+
+test('opened results round-trip', () => {
+  const v = makeLastResult({ task: 'result', body: 'auto-open', result: { ...scan, status: 'auto-open', warnings: [] }, opened: { grader: 'psa', number: '01234567', method: 'ocr', url: 'https://www.psacard.com/cert/01234567', background: false }, imageHost: null }, NOW);
+  const p = parseLastResult(v, { now: NOW });
+  assert.equal(p.ok, true);
+  assert.deepEqual(p.value.opened, { grader: 'psa', number: '01234567', method: 'ocr', background: false });
+});
+
+test('errors round-trip with their code only', () => {
+  const v = makeLastResult({ task: 'error', body: 'error', result: null, error: { code: 'restricted' }, opened: null, imageHost: null }, NOW);
+  assert.deepEqual(parseLastResult(v, { now: NOW }).value.error, { code: 'restricted' });
+});
+
+test('parseLastResult rejects stale, malformed and hostile values', () => {
+  const good = makeLastResult({ task: 'confirm', body: 'confirm', result: scan, opened: null, imageHost: 'img.example.com' }, NOW);
+  const bad = (patch) => assert.equal(parseLastResult({ ...good, ...patch }, { now: NOW }).ok, false, JSON.stringify(patch));
+  for (const raw of [null, undefined, 'x', [], 5]) assert.equal(parseLastResult(raw, { now: NOW }).ok, false);
+  assert.equal(parseLastResult(good, { now: NOW + LAST_RESULT_TTL_MS + 1 }).ok, false);
+  bad({ v: 2 });
+  bad({ task: 'scanning' });
+  bad({ body: 'hacked' });
+  bad({ candidates: [{ grader: 'psa', number: '<img>', confidence: 1, source: 'ocr', graderOptions: ['psa'] }] });
+  bad({ candidates: [{ grader: 'psa', number: '1401036622258', confidence: 1, source: 'ocr', graderOptions: ['psa'] }] });
+  bad({ candidates: 'x' });
+  bad({ imageHost: 'a b' });
+  bad({ warnings: [{ code: 'x' }] });
+  bad({ error: { code: 'pwned' } });
+  bad({ opened: { grader: 'psa', number: '12', method: 'ocr', background: false } });
+  bad({ savedAt: 'yesterday' });
+});

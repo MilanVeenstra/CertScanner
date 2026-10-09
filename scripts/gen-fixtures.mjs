@@ -11,10 +11,16 @@
  * logos, trademark artwork or real card/comic images. All values are fixed, so the output is
  * byte-stable for a given Chromium build + installed fonts (see manifest.environment).
  *
+ * It also writes the OCR benchmark set (ADR-001 §14, D3 gate) to tests/fixtures/bench/ with its own
+ * bench-manifest.json: clean renders with varied cert numbers plus deterministic degradations
+ * (JPEG q40, 0.5x scale, 1-2 px blur, glare, rotation, dark/low contrast, busy art with other digits).
+ * Degradations use only canvas operations and a seeded PRNG, so they are byte-stable too.
+ *
  * Usage:
- *   node scripts/gen-fixtures.mjs                 generate into tests/fixtures, then verify
+ *   node scripts/gen-fixtures.mjs                 generate into tests/fixtures (+ bench/), then verify
  *   node scripts/gen-fixtures.mjs --verify-only   verify the existing fixtures only
  *   node scripts/gen-fixtures.mjs --no-verify     generate without verifying
+ *   node scripts/gen-fixtures.mjs --no-bench      skip the benchmark set (generate and verify)
  *   node scripts/gen-fixtures.mjs --out <dir>     write somewhere else (e.g. byte-stability check)
  *
  * Env: CERTSCANNER_CHROMIUM=<path to chrome>  (default: /opt/pw-browsers/chromium-1194/chrome-linux/chrome
@@ -22,7 +28,7 @@
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,20 +43,24 @@ const BACKDROP = '#e6e3dc';
 const LABEL_FONT = '"Liberation Sans", Arial, Helvetica, sans-serif';
 const ZXING_IIFE = path.join(ROOT, 'node_modules', 'zxing-wasm', 'dist', 'iife', 'reader', 'index.js');
 const ZXING_WASM = path.join(ROOT, 'node_modules', 'zxing-wasm', 'dist', 'reader', 'zxing_reader.wasm');
+const BENCH_SUBDIR = 'bench';
+const BENCH_MAX_TOTAL = 8 * 1024 * 1024;
+const EVALUATION_RULE = 'A run passes a fixture when the observed status is in (accept ?? [expected.status]); when expected.number is non-null the top candidate must equal it exactly (string compare, leading zeros kept); when expected.grader is non-null the routed grader must equal it (a confirm result with an unresolved grader is reported separately, an auto-open with a different grader is a wrong auto-open); when graderUnresolved is true no grader may be pre-selected; mustNotAutoOpen fixtures must never auto-open; mustNotOpen URLs/hosts must never be navigated to or requested.';
 
 // ---------------------------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------------------------
 function parseArgs(argv) {
-  const opts = { out: DEFAULT_OUT, generate: true, verify: true };
+  const opts = { out: DEFAULT_OUT, generate: true, verify: true, bench: true };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--verify-only') opts.generate = false;
     else if (a === '--no-verify') opts.verify = false;
+    else if (a === '--no-bench') opts.bench = false;
     else if (a === '--out') opts.out = path.resolve(argv[++i] ?? '');
     else if (a.startsWith('--out=')) opts.out = path.resolve(a.slice(6));
     else if (a === '-h' || a === '--help') {
-      console.log('usage: node scripts/gen-fixtures.mjs [--out <dir>] [--verify-only | --no-verify]');
+      console.log('usage: node scripts/gen-fixtures.mjs [--out <dir>] [--verify-only | --no-verify] [--no-bench]');
       process.exit(0);
     } else throw new Error(`Unknown argument: ${a}`);
   }
@@ -385,10 +395,13 @@ function fixtureSpecs(codes) {
       file: 'qr-foreign-host.png',
       html: page(cardSlab(foreignQrLabel(codes.foreignQr), cardFront({ frame: '#8e7cc3', art1: '#d5a6ff', art2: '#4b2a8a', panel: '#e6dcf7' }))),
       description: `Label-like slab whose only number is inside a QR encoding ${FOREIGN_QR_URL} (host not on the grader allow-list); no printed number, no grader words.`,
-      expected: { status: 'none', grader: null, number: null },
+      expected: { status: 'confirm', grader: null, number: null },
+      accept: ['confirm', 'none'],
+      mustNotAutoOpen: true,
       mustNotOpen: [FOREIGN_QR_URL],
       mustNotOpenHosts: ['evil.example'],
-      notes: 'Security negative: the decoded URL must never be opened and its embedded number must not become an auto-open candidate. A warning about an unrecognised QR is expected.',
+      notes: 'Security negative (orchestrator decision 2026-10-09): confirm or none are both acceptable. In confirm the QR digits may appear only as a capped candidate (confidence <= 0.50) with the qr-untrusted-host warning, so the user decides. Hard checks: never auto-open; the decoded URL/host is never navigated or requested; any page opened from confirm uses a URL rebuilt from grader + digits.',
+      expectWarning: 'qr-untrusted-host',
       tags: ['qr', 'negative', 'security', 'foreign-host'],
       labelText: ['SCAN TO VERIFY'],
       barcode: { format: 'QRCode', text: FOREIGN_QR_URL, modulePx: 4, quietZonePx: 16 },
@@ -398,6 +411,8 @@ function fixtureSpecs(codes) {
       html: page(cardSlab(plainLabel('5012345678'), cardFront({ frame: '#9fb8ad', art1: '#d9ead3', art2: '#5f8575', panel: '#e3ece7' }))),
       description: 'Plain white label containing only the 10-digit number 5012345678; no grader words, so the grader cannot be decided.',
       expected: { status: 'confirm', grader: null, number: '5012345678' },
+      graderUnresolved: true,
+      mustNotAutoOpen: true,
       notes: 'Must not auto-open. Show 5012345678 as the candidate with a grader selector.',
       tags: ['ocr', 'ambiguous'],
       labelText: ['5012345678'],
@@ -408,6 +423,7 @@ function fixtureSpecs(codes) {
       html: NON_SLAB_HTML,
       description: 'Photo-like landscape gradient (sky, sun, hills) with no digits or text.',
       expected: { status: 'none', grader: null, number: null },
+      mustNotAutoOpen: true,
       tags: ['negative'],
       labelText: [],
       barcode: null,
@@ -437,6 +453,282 @@ function fixtureSpecs(codes) {
       barcode: null,
     },
   ];
+}
+
+// ---------------------------------------------------------------------------------------------
+// OCR benchmark set (tests/fixtures/bench/, ADR-001 §14 D3 gate)
+// Clean renders vary grader, cert length and leading zeros; derived files apply one or more
+// deterministic degradations. Card/comic art is abstract; "busy" variants add printed digits
+// (set numbers, years, HP, copyright ranges, a seller lot sticker) that compete with the cert.
+// ---------------------------------------------------------------------------------------------
+const BENCH_CSS = `
+.card-name .nm{font-weight:700;font-size:18px;color:#1d1d1d;white-space:nowrap}
+.art-text{position:absolute;font-weight:700;white-space:nowrap;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.card-text .txt{font-size:15px;font-weight:700;color:#1d1d1d;white-space:nowrap;display:flex;justify-content:space-between;gap:12px}
+.card-text .txt.small{font-size:11px;font-weight:400}
+.cover-text{position:absolute;font-weight:700;white-space:nowrap;line-height:1}
+.cgc-label.ss{background:#e2b007;color:#111}
+.cgc-label.ss .cgc-universal{color:#6b4e00}
+.sticker{position:absolute;background:#fffbe6;border:2px solid #b08900;border-radius:4px;padding:4px 8px;font-weight:700;
+  font-size:16px;color:#222;letter-spacing:1px;white-space:nowrap}
+`;
+const benchPage = (body) =>
+  `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>${BASE_CSS}${BENCH_CSS}</style></head><body>${body}</body></html>`;
+
+const BENCH_QR_URL = 'https://www.cgccomics.com/certlookup/4155667002/';
+const BENCH_BARCODE_CERT = '61834502';
+
+async function makeBenchBarcodes() {
+  const code128 = await bwipjs.toBuffer({ bcid: 'code128', text: BENCH_BARCODE_CERT, scale: 3, height: 12, includetext: false });
+  const qr = await bwipjs.toBuffer({ bcid: 'qrcode', text: BENCH_QR_URL, scale: 2, eclevel: 'M' });
+  return { code128, qr };
+}
+
+/** Card front with printed text instead of grey bars (busy art). */
+function busyCardFront({ frame, art1, art2, panel, name, hp, artText = [], lines = [], sticker = null }) {
+  const art = artText.map((a) => `<div class="art-text" style="left:${a.x}px;top:${a.y}px;font-size:${a.size}px${a.color ? `;color:${a.color}` : ''}">${esc(a.text)}</div>`).join('');
+  const txt = lines.map(([l, r, small]) => `<div class="txt${small ? ' small' : ''}"><span>${esc(l)}</span><span>${esc(r ?? '')}</span></div>`).join('');
+  return `<div class="card" style="--frame:${frame};--art1:${art1};--art2:${art2};--panel:${panel}">
+  <div class="card-name"><span class="nm">${esc(name)}</span><span class="nm">${esc(hp)}</span></div>
+  <div class="card-art">
+    <div class="blob" style="width:200px;height:200px;left:150px;top:46px;background:radial-gradient(circle at 40% 40%,rgba(255,255,255,.75),rgba(255,255,255,0) 70%)"></div>
+    <div class="blob" style="width:120px;height:120px;left:40px;top:150px;background:rgba(0,0,0,.18)"></div>
+    ${art}
+    ${sticker ? `<div class="sticker" style="left:${sticker.x}px;top:${sticker.y}px">${esc(sticker.text)}</div>` : ''}
+  </div>
+  <div class="card-text">${txt}</div>
+</div>`;
+}
+
+/** Card front identical to cardFront() plus an optional seller sticker on the art. */
+function stickerCardFront({ frame, art1, art2, panel, sticker }) {
+  return cardFront({ frame, art1, art2, panel }).replace('<div class="card-text">',
+    `<div class="sticker" style="position:relative;align-self:flex-start;margin:-52px 0 0 180px">${esc(sticker)}</div><div class="card-text">`);
+}
+
+/** Comic cover with printed masthead, issue number, price and date (busy art). */
+function busyComicCover({ title, issue, price, month, year, blurb }) {
+  return `<div class="comic" style="--bg:#f2c230;--mast:#c62828">
+  <div class="masthead"></div>
+  <div class="cover-text" style="left:24px;top:30px;font-size:46px;color:#fff;letter-spacing:2px">${esc(title)}</div>
+  <div class="corner"></div>
+  <div class="cover-text" style="left:28px;top:138px;font-size:26px;color:#111">${esc(price)}</div>
+  <div class="cover-text" style="left:28px;top:172px;font-size:16px;color:#111">${esc(month)}</div>
+  <div class="cover-text" style="left:28px;top:196px;font-size:22px;color:#111">${esc(year)}</div>
+  <div class="cover-text" style="left:330px;top:128px;font-size:28px;color:#111">${esc(issue)}</div>
+  <div class="burst" style="width:330px;height:330px;left:120px;top:190px;background:radial-gradient(circle,#ffffff 0%,#ffe08a 40%,rgba(255,224,138,0) 70%)"></div>
+  <div class="burst" style="width:200px;height:260px;left:150px;top:260px;background:#1b1b1b;border-radius:45% 45% 30% 30%"></div>
+  <div class="burst" style="width:150px;height:150px;left:-30px;top:420px;background:#2a5bd7"></div>
+  <div class="panel-strip"><div class="cover-text" style="position:static;font-size:24px;color:#111">${esc(blurb)}</div></div>
+</div>`;
+}
+
+/** cgcComicLabel() with a selectable grade band (universal / signature series) and page-quality lines. */
+function cgcComicLabelV({ grade, title, pub, certText, qr = null, band = 'universal', pages = ['WHITE', 'PAGES'] }) {
+  const word = band === 'signature' ? 'SIGNATURE SERIES' : 'UNIVERSAL GRADE';
+  const certRow = qr
+    ? `<div class="cgc-universal">${word}</div>`
+    : `<div class="row"><span class="cgc-universal">${word}</span><span class="cgc-cert">${esc(certText)}</span></div>`;
+  const certBelow = qr ? `<div class="cgc-cert below">${esc(certText)}</div>` : '';
+  return `<div class="label cgc-label${band === 'signature' ? ' ss' : ''}">
+  <div class="cgc-left"><div class="cgc-brand">CGC</div><div class="cgc-gradebox"><div class="cgc-grade">${esc(grade)}</div></div><div class="cgc-pages">${pages.map(esc).join('<br>')}</div></div>
+  <div class="cgc-info">${certRow}<div class="cgc-title">${esc(title)}</div><div class="cgc-pub">${esc(pub)}</div>${certBelow}<span class="bar w60" style="margin-top:auto;background:rgba(0,0,0,.25)"></span></div>
+  ${qr ? `<div class="qr-panel"><img class="code" src="${dataUrl(qr)}" alt=""></div>` : ''}
+</div>`;
+}
+
+const ART = {
+  gold: { frame: '#e9c74b', art1: '#ff9a4a', art2: '#b3261e', panel: '#f6e7b0' },
+  white: { frame: '#f7f7f2', art1: '#4f7fe0', art2: '#0f2a66', panel: '#d7263d' },
+  green: { frame: '#9fd18b', art1: '#d9f2c4', art2: '#2e7d32', panel: '#eef7e6' },
+  blue: { frame: '#8fb3e8', art1: '#cfe3ff', art2: '#1e4f9c', panel: '#e3edfb' },
+  yellow: { frame: '#f1d34a', art1: '#fff07a', art2: '#e0a106', panel: '#f7efc8' },
+  red: { frame: '#e57373', art1: '#ffd0c4', art2: '#a62020', panel: '#fbe3df' },
+  purple: { frame: '#b39ddb', art1: '#efe2ff', art2: '#5e35b1', panel: '#ede7f6' },
+};
+
+const AUTO_OR_CONFIRM = ['auto-open', 'confirm'];
+
+function benchSpecs(codes) {
+  const psa = (id, { lines, grade, cert, art, desc }) => ({
+    id, file: `${id}.png`, html: benchPage(cardSlab(psaFrontLabel({ lines, grade, cert }), cardFront(ART[art]))),
+    category: 'clean', degradations: [], description: `PSA-style front label, ${cert.length}-digit cert ${cert}${/^0/.test(cert) ? ' (leading zero)' : ''}, grade "${grade}". ${desc ?? ''}`.trim(),
+    expected: { status: 'auto-open', grader: 'psa', number: cert }, accept: AUTO_OR_CONFIRM,
+    tags: ['psa', `len:${cert.length}`, ...(/^0/.test(cert) ? ['leading-zero'] : [])], labelText: [...lines, grade, 'PSA', cert], barcode: null,
+  });
+  const comic = (id, { grade, title, pub, cert, certText = cert, band, pages, qr = null, desc }) => ({
+    id, file: `${id}.png`, html: benchPage(comicSlab(cgcComicLabelV({ grade, title, pub, certText, qr, band, pages }), comicCover())),
+    category: 'clean', degradations: [], description: `CGC-style comic label (${band === 'signature' ? 'signature series band' : 'universal band'}), cert printed "${certText}", grade ${grade}. ${desc ?? ''}`.trim(),
+    expected: { status: 'auto-open', grader: 'cgc-comics', number: cert }, accept: AUTO_OR_CONFIRM,
+    tags: ['cgc', 'comic', `len:${cert.length}`, ...(certText !== cert ? ['separator'] : []), ...(qr ? ['qr'] : [])],
+    labelText: ['CGC', grade, (pages ?? ['WHITE', 'PAGES']).join(' '), band === 'signature' ? 'SIGNATURE SERIES' : 'UNIVERSAL GRADE', certText, title, pub],
+    barcode: qr ? { format: 'QRCode', text: BENCH_QR_URL, modulePx: 4, quietZonePx: 16 } : null,
+  });
+  const card = (id, { lines, gradeWord, gradeNum, cert, art, desc }) => ({
+    id, file: `${id}.png`, html: benchPage(cardSlab(cgcCardLabel({ lines, gradeWord, gradeNum, cert }), cardFront(ART[art]))),
+    category: 'clean', degradations: [], description: `CGC-style card label, ${cert.length}-digit cert ${cert}, "${gradeWord} ${gradeNum}". ${desc ?? ''}`.trim(),
+    expected: { status: 'auto-open', grader: 'cgc-cards', number: cert }, accept: AUTO_OR_CONFIRM,
+    tags: ['cgc', 'card', `len:${cert.length}`, ...(cert.length === 10 ? ['card-wording-10'] : [])],
+    labelText: ['CGC', ...lines, gradeWord, gradeNum, cert], barcode: null,
+  });
+
+  const clean = [
+    psa('psa-c01', { lines: ['2021 CHROME SERIES', 'ROOKIE SLUGGER', '#27'], grade: 'GEM MT 10', cert: '04718263', art: 'gold' }),
+    psa('psa-c02', { lines: ['1999 BASE SET', 'WATER TURTLE-HOLO', '#2'], grade: 'NM-MT 8', cert: '72910483', art: 'blue' }),
+    psa('psa-c03', { lines: ['2018 PRIZM', 'POINT GUARD', '#280'], grade: 'MINT 9', cert: '109876543', art: 'white' }),
+    psa('psa-c04', { lines: ['1993 FINEST', 'REFRACTOR', '#88'], grade: 'GEM MT 10', cert: '00573921', art: 'green' }),
+    psa('psa-c05', { lines: ['2000 NEO GENESIS', 'LIGHTNING MOUSE', '#70'], grade: 'NM-MT 8', cert: '056734128', art: 'yellow' }),
+    psa('psa-c06', { lines: ['1989 UPPER TIER', 'STAR ROOKIE', '#1'], grade: 'EX-MT 6', cert: '30561247', art: 'red' }),
+    psa('psa-c07', { lines: ['1986 BASKETBALL', 'HIGH FLYER', '#57'], grade: 'VG-EX 4', cert: '5123478', art: 'purple', desc: 'Older 7-digit format.' }),
+    {
+      id: 'psa-c08', file: 'psa-c08.png',
+      html: benchPage(cardSlab(psaBackLabel({ barcode: codes.code128, cert: BENCH_BARCODE_CERT }), cardBack())),
+      category: 'clean', degradations: [],
+      description: `PSA-style back label: Code128 (3 px modules) encoding ${BENCH_BARCODE_CERT}, number printed underneath.`,
+      expected: { status: 'auto-open', grader: 'psa', number: BENCH_BARCODE_CERT }, accept: AUTO_OR_CONFIRM,
+      tags: ['psa', 'barcode', 'code128', 'len:8'], labelText: ['PSA', BENCH_BARCODE_CERT],
+      barcode: { format: 'Code128', text: BENCH_BARCODE_CERT, modulePx: 3, quietZonePx: 36 },
+    },
+    comic('cgcc-c09', { grade: '9.8', title: 'Cosmic Tales #1', pub: 'Atlas Press, 3/63', cert: '3984561002' }),
+    comic('cgcc-c10', { grade: '9.6', title: 'Night Avenger #423', pub: 'Gotham Ink, 9/88', cert: '4087123006', pages: ['OFF-WHITE', 'PAGES'] }),
+    comic('cgcc-c11', { grade: '9.4', title: 'Star Rangers #12', pub: 'Nova Comics, 6/77', cert: '4102938015', certText: '4102938-015' }),
+    comic('cgcc-c12', { grade: '9.8', title: 'Mutant Squad #1', pub: 'Apex Comics, 8/91', cert: '3765432011', band: 'signature', desc: 'Yellow band, dark text.' }),
+    comic('cgcc-c13', { grade: '9.2', title: 'Deep Sea Saga #5', pub: 'Tidal Press, 2/71', cert: '4155667002', qr: codes.qr, desc: `QR encodes ${BENCH_QR_URL}.` }),
+    card('cgcd-c14', { lines: ['2022 Sword Set', 'Electric Mouse - Holo'], gradeWord: 'GEM MINT', gradeNum: '10', cert: '1402345678901', art: 'yellow' }),
+    card('cgcd-c15', { lines: ['2023 Scarlet Set', 'Fire Lizard ex'], gradeWord: 'PRISTINE', gradeNum: '10', cert: '1403987650123', art: 'red' }),
+    card('cgcd-c16', { lines: ['2021 Celebrations', 'Sea Dragon - Holo'], gradeWord: 'GEM MINT', gradeNum: '10', cert: '3901234567', art: 'blue', desc: '10-digit cert with card wording.' }),
+    card('cgcd-c17', { lines: ['1999 Base Set', 'Water Turtle - Holo'], gradeWord: 'NM/MINT+', gradeNum: '8.5', cert: '2938475610', art: 'green', desc: '10-digit cert with card wording.' }),
+    card('cgcd-c18', { lines: ['2020 Vivid Set', 'Thunder Bird V'], gradeWord: 'MINT+', gradeNum: '9.5', cert: '1405551234567', art: 'purple' }),
+    {
+      id: 'neg-c19', file: 'neg-c19.png', html: benchPage(cardSlab(plainLabel('6012349870'), cardFront(ART.green))),
+      category: 'negative', degradations: [],
+      description: 'Plain label with only the 10-digit number 6012349870 and no grader words: grader cannot be decided.',
+      expected: { status: 'confirm', grader: null, number: '6012349870' }, accept: ['confirm'], graderUnresolved: true, mustNotAutoOpen: true,
+      tags: ['ambiguous', 'len:10'], labelText: ['6012349870'], barcode: null,
+    },
+    {
+      id: 'neg-c20', file: 'neg-c20.png',
+      html: benchPage(shot(busyCardFront({
+        ...ART.blue, name: 'SEA DRAGON', hp: 'HP 120',
+        artText: [{ text: '2023', x: 18, y: 12, size: 30 }, { text: '#199', x: 290, y: 252, size: 24 }],
+        lines: [['Tidal Wave', '120'], ['Weakness x2', 'Retreat 3'], ['Illus. Studio 7', '012/165', true], ['©1995-2023 Fictional Games', '', true]],
+      }))),
+      category: 'negative', degradations: [],
+      description: 'Raw (ungraded) card photo, no slab or label; printed digits: 2023, #199, HP 120, 012/165, ©1995-2023.',
+      expected: { status: 'none', grader: null, number: null }, accept: ['none', 'confirm'], mustNotAutoOpen: true,
+      tags: ['negative', 'no-slab', 'busy-art'], labelText: [], barcode: null,
+    },
+  ];
+  const byId = Object.fromEntries(clean.map((s) => [s.id, s]));
+
+  const busy = [
+    {
+      id: 'psa-b01', file: 'psa-b01.png',
+      html: benchPage(cardSlab(psaFrontLabel({ lines: ['2023 SV 151', 'FIRE LIZARD ex', '#199'], grade: 'GEM MT 10', cert: '07294618' }),
+        busyCardFront({
+          ...ART.gold, name: 'FIRE LIZARD ex', hp: 'HP 330',
+          artText: [{ text: '151', x: 18, y: 12, size: 32 }, { text: '#199', x: 290, y: 252, size: 24 }],
+          lines: [['Fire Spin', '180'], ['Weakness x2', 'Retreat 3'], ['Illus. Studio 1999', '199/165', true], ['©1995-2023 Fictional Games', '', true]],
+        }))),
+      description: 'PSA-style label (8-digit cert 07294618, leading zero) over busy card art with printed digits: 151, #199, HP 330, 180, 199/165, ©1995-2023.',
+      expected: { status: 'auto-open', grader: 'psa', number: '07294618' }, labelText: ['2023 SV 151', 'FIRE LIZARD ex', '#199', 'GEM MT 10', 'PSA', '07294618'],
+      tags: ['psa', 'len:8', 'leading-zero'], barcode: null,
+    },
+    {
+      id: 'cgcc-b02', file: 'cgcc-b02.png',
+      html: benchPage(comicSlab(cgcComicLabelV({ grade: '9.8', title: 'Cosmic Tales #300', pub: 'Atlas Press, 5/88', certText: '4011223004' }),
+        busyComicCover({ title: 'COSMIC TALES', issue: 'No. 300', price: '75¢', month: 'MAY', year: '1988', blurb: 'THE 1988 SAGA BEGINS!' }))),
+      description: 'CGC-style comic label (cert 4011223004) over a cover with printed title, "No. 300", "75¢", "MAY 1988" and a blurb with a year.',
+      expected: { status: 'auto-open', grader: 'cgc-comics', number: '4011223004' }, labelText: ['CGC', '9.8', 'WHITE PAGES', 'UNIVERSAL GRADE', '4011223004', 'Cosmic Tales #300', 'Atlas Press, 5/88'],
+      tags: ['cgc', 'comic', 'len:10'], barcode: null,
+    },
+    {
+      id: 'cgcd-b03', file: 'cgcd-b03.png',
+      html: benchPage(cardSlab(cgcCardLabel({ lines: ['1999 Base Set', 'Electric Mouse #58'], gradeWord: 'GEM MINT', gradeNum: '10', cert: '1404440987654' }),
+        busyCardFront({
+          ...ART.yellow, name: 'ELECTRIC MOUSE', hp: 'HP 60',
+          artText: [{ text: '1999', x: 18, y: 12, size: 28 }, { text: '58/102', x: 270, y: 254, size: 24 }],
+          lines: [['Thunder Jolt', '30'], ['Weakness x2', 'Retreat 1'], ['©1995-1999 Fictional Games', '58/102', true]],
+        }))),
+      description: 'CGC-style card label (13-digit cert 1404440987654) over busy card art with printed digits: 1999, 58/102, HP 60, ©1995-1999.',
+      expected: { status: 'auto-open', grader: 'cgc-cards', number: '1404440987654' }, labelText: ['CGC', '1999 Base Set', 'Electric Mouse #58', 'GEM MINT', '10', '1404440987654'],
+      tags: ['cgc', 'card', 'len:13'], barcode: null,
+    },
+    {
+      id: 'psa-b04', file: 'psa-b04.png',
+      html: benchPage(cardSlab(psaFrontLabel({ lines: ['2020 BASE SERIES', 'STAR ROOKIE', '#5'], grade: 'GEM MT 10', cert: '81726354' }),
+        stickerCardFront({ ...ART.white, sticker: 'LOT 20230417' }))),
+      description: 'PSA-style label (cert 81726354) plus a seller inventory sticker "LOT 20230417" on the card: a second 8-digit, PSA-length number competes.',
+      expected: { status: 'confirm', grader: 'psa', number: '81726354' }, labelText: ['2020 BASE SERIES', 'STAR ROOKIE', '#5', 'GEM MT 10', 'PSA', '81726354', 'LOT 20230417'],
+      tags: ['psa', 'len:8', 'competitor'], barcode: null,
+      notes: 'Two valid PSA-length numbers: auto-open is allowed only if the sticker number was not read as a competitor (>= 0.50); the lot number must never be auto-opened.',
+    },
+  ].map((s) => ({ category: 'degraded', degradations: ['busy-art'], accept: AUTO_OR_CONFIRM, ...s, tags: [...s.tags, 'busy-art'] }));
+  for (const s of busy) byId[s.id] = s;
+
+  const JPEG40 = { format: 'image/jpeg', quality: 0.4 };
+  const JPEG88 = { format: 'image/jpeg', quality: 0.88 };
+  const PNG = { format: 'image/png' };
+  const GLARE_CARD = { op: 'glare', cx: 0.3, cy: 0.12, r: 0.42, alpha: 0.78 };
+  const GLARE_COMIC = { op: 'glare', cx: 0.22, cy: 0.13, r: 0.38, alpha: 0.78 };
+  const DARK = [{ op: 'tone', brightness: 0.5, contrast: 0.55 }, { op: 'noise', amount: 10, seed: 0 }];
+  const rot = (deg) => ({ op: 'rotate', degrees: deg, background: BACKDROP, margin: 8 });
+  const TEXT = {
+    'jpeg-q40': 'JPEG quality 0.40', 'scale-0.5': '0.5x downscale (high-quality resample)', 'blur-1px': 'Gaussian blur 1 px',
+    'blur-2px': 'Gaussian blur 2 px', glare: 'white radial glare over the left part of the label', 'dark-low-contrast': 'brightness 0.5, contrast 0.55 and seeded noise',
+  };
+  const derive = (baseId, suffix, degradations, ops, encode, extra = {}) => {
+    const base = byId[baseId];
+    const ext = encode.format === 'image/jpeg' ? 'jpg' : 'png';
+    const parts = degradations.map((d) => TEXT[d] ?? (d.startsWith('rotate') ? `rotated ${d.slice(7)} degrees` : d));
+    return {
+      id: `${baseId}-${suffix}`, file: `${baseId}-${suffix}.${ext}`, from: baseId, ops, encode,
+      category: base.category === 'negative' ? 'negative' : 'degraded',
+      degradations: [...base.degradations, ...degradations],
+      description: `${baseId} (${base.description.split('.')[0]}) with ${parts.join(' + ')}${encode.format === 'image/jpeg' && !degradations.includes('jpeg-q40') ? `, saved as JPEG q${Math.round(encode.quality * 100)}` : ''}.`,
+      expected: base.expected, accept: base.accept,
+      ...(base.graderUnresolved ? { graderUnresolved: true } : {}), ...(base.mustNotAutoOpen ? { mustNotAutoOpen: true } : {}),
+      tags: [...base.tags, 'derived', ...degradations], labelText: base.labelText, barcode: base.barcode,
+      ...extra,
+    };
+  };
+
+  const degraded = [
+    derive('psa-c01', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('psa-c03', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('cgcc-c09', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('cgcd-c14', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('cgcd-c16', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('psa-c08', 'jpeg40', ['jpeg-q40'], [], JPEG40, { notes: 'Barcode may or may not survive JPEG; the printed number is also readable.' }),
+    derive('cgcc-c13', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('psa-c02', 'half', ['scale-0.5'], [{ op: 'scale', factor: 0.5 }], PNG),
+    derive('psa-c04', 'half', ['scale-0.5'], [{ op: 'scale', factor: 0.5 }], PNG),
+    derive('cgcc-c10', 'half', ['scale-0.5'], [{ op: 'scale', factor: 0.5 }], PNG),
+    derive('cgcd-c15', 'half', ['scale-0.5'], [{ op: 'scale', factor: 0.5 }], PNG),
+    derive('psa-c08', 'half', ['scale-0.5'], [{ op: 'scale', factor: 0.5 }], PNG, { notes: '1.5 px barcode modules: barcode decode may fail; OCR of the printed number is the fallback.' }),
+    derive('psa-c01', 'blur1', ['blur-1px'], [{ op: 'blur', px: 1 }], JPEG88),
+    derive('cgcc-c11', 'blur1', ['blur-1px'], [{ op: 'blur', px: 1 }], JPEG88),
+    derive('cgcd-c14', 'blur1', ['blur-1px'], [{ op: 'blur', px: 1 }], JPEG88),
+    derive('psa-c03', 'blur2', ['blur-2px'], [{ op: 'blur', px: 2 }], JPEG88),
+    derive('cgcc-c09', 'blur2', ['blur-2px'], [{ op: 'blur', px: 2 }], JPEG88),
+    derive('cgcd-c17', 'blur2', ['blur-2px'], [{ op: 'blur', px: 2 }], JPEG88),
+    derive('psa-c02', 'glare', ['glare'], [GLARE_CARD], JPEG88),
+    derive('psa-c06', 'glare', ['glare'], [GLARE_CARD], JPEG88),
+    derive('cgcc-c10', 'glare', ['glare'], [GLARE_COMIC], JPEG88),
+    derive('cgcd-c14', 'glare', ['glare'], [GLARE_CARD], JPEG88),
+    derive('psa-c03', 'rot-3', ['rotate:-3'], [rot(-3)], JPEG88),
+    derive('cgcc-c09', 'rot5', ['rotate:5'], [rot(5)], JPEG88),
+    derive('cgcd-c16', 'rot-6', ['rotate:-6'], [rot(-6)], JPEG88),
+    derive('psa-c07', 'rot2', ['rotate:2'], [rot(2)], JPEG88),
+    derive('psa-c04', 'dark', ['dark-low-contrast'], DARK, JPEG88),
+    derive('cgcc-c12', 'dark', ['dark-low-contrast'], DARK, JPEG88),
+    derive('cgcd-c18', 'dark', ['dark-low-contrast'], DARK, JPEG88),
+    derive('psa-c05', 'dark', ['dark-low-contrast'], DARK, JPEG88),
+    derive('psa-b01', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('cgcd-c14', 'rot-4-jpeg60', ['rotate:-4', 'jpeg-q60'], [rot(-4)], { format: 'image/jpeg', quality: 0.6 }),
+    derive('neg-c20', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+  ];
+  return [...clean, ...busy, ...degraded];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -511,6 +803,243 @@ async function deriveImage(pg, srcBuf, t) {
     return canvas.toDataURL(t.format, t.quality);
   }, { b64: srcBuf.toString('base64'), t });
   return Buffer.from(url.slice(url.indexOf(',') + 1), 'base64');
+}
+
+/** Apply benchmark degradations (canvas only; seeded PRNG for noise) and encode. */
+async function deriveBench(pg, srcBuf, ops, encode) {
+  await pg.setContent(page(''), { waitUntil: 'load' });
+  const url = await pg.evaluate(async ({ b64, ops, encode }) => {
+    const bytes = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+    const src = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+    const fresh = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+    let canvas = fresh(src.width, src.height);
+    canvas.getContext('2d').drawImage(src, 0, 0);
+    const mulberry32 = (a) => () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    for (const o of ops) {
+      const W = canvas.width;
+      const H = canvas.height;
+      if (o.op === 'scale') {
+        const w = Math.round(W * o.factor);
+        const h = Math.round(H * o.factor);
+        const bmp = await createImageBitmap(canvas, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high' });
+        const c = fresh(w, h);
+        c.getContext('2d').drawImage(bmp, 0, 0);
+        canvas = c;
+      } else if (o.op === 'blur' || o.op === 'tone') {
+        const c = fresh(W, H);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#e6e3dc';
+        ctx.fillRect(0, 0, W, H);
+        ctx.filter = o.op === 'blur' ? `blur(${o.px}px)` : `brightness(${o.brightness}) contrast(${o.contrast})`;
+        ctx.drawImage(canvas, 0, 0);
+        canvas = c;
+      } else if (o.op === 'glare') {
+        const ctx = canvas.getContext('2d');
+        const x = o.cx * W;
+        const y = o.cy * H;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, o.r * W);
+        g.addColorStop(0, `rgba(255,255,255,${o.alpha})`);
+        g.addColorStop(0.45, `rgba(255,255,255,${(o.alpha * 0.6).toFixed(3)})`);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+        // Soft diagonal streak, as from a ceiling light on the plastic case.
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(-Math.PI / 5);
+        const band = o.r * W * 0.35;
+        const lg = ctx.createLinearGradient(0, -band, 0, band);
+        lg.addColorStop(0, 'rgba(255,255,255,0)');
+        lg.addColorStop(0.5, `rgba(255,255,255,${(o.alpha * 0.5).toFixed(3)})`);
+        lg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = lg;
+        ctx.fillRect(-W, -band, 2 * W, 2 * band);
+        ctx.restore();
+      } else if (o.op === 'noise') {
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const img = ctx.getImageData(0, 0, W, H);
+        const rnd = mulberry32(o.seed);
+        for (let i = 0; i < img.data.length; i += 4) {
+          const n = Math.round((rnd() * 2 - 1) * o.amount);
+          img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n;
+        }
+        ctx.putImageData(img, 0, 0);
+      } else if (o.op === 'rotate') {
+        const rad = (o.degrees * Math.PI) / 180;
+        const cos = Math.abs(Math.cos(rad));
+        const sin = Math.abs(Math.sin(rad));
+        const c = fresh(Math.ceil(W * cos + H * sin) + 2 * o.margin, Math.ceil(W * sin + H * cos) + 2 * o.margin);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = o.background;
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.translate(c.width / 2, c.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(canvas, -W / 2, -H / 2);
+        canvas = c;
+      } else {
+        throw new Error(`unknown op ${o.op}`);
+      }
+    }
+    return canvas.toDataURL(encode.format, encode.quality);
+  }, { b64: srcBuf.toString('base64'), ops, encode });
+  return Buffer.from(url.slice(url.indexOf(',') + 1), 'base64');
+}
+
+/** Label box after ops: scaled with 'scale', unchanged by filters, null after rotation. */
+function benchBox(box, ops) {
+  let b = box;
+  for (const o of ops) {
+    if (!b) return null;
+    if (o.op === 'rotate') return null;
+    if (o.op === 'scale') b = Object.fromEntries(Object.entries(b).map(([k, v]) => [k, Math.round(v * o.factor)]));
+  }
+  return b;
+}
+
+async function generateBench(outDir, browser, env) {
+  const dir = path.join(outDir, BENCH_SUBDIR);
+  await mkdir(dir, { recursive: true });
+  const specs = benchSpecs(await makeBenchBarcodes());
+  const ids = new Set();
+  for (const s of specs) { if (ids.has(s.id)) throw new Error(`duplicate bench id ${s.id}`); ids.add(s.id); }
+  // Remove files left over from an older spec list.
+  const keep = new Set([...specs.map((s) => s.file), 'bench-manifest.json']);
+  for (const f of await readdir(dir)) if (!keep.has(f) && /\.(png|jpe?g)$/i.test(f)) await rm(path.join(dir, f));
+
+  const ctx = await newContext(browser);
+  const pg = await ctx.newPage();
+  const buffers = {};
+  const boxes = {};
+  for (const s of specs) {
+    let buf;
+    if (s.html) {
+      const r = await renderSlab(pg, s.html);
+      buf = r.png;
+      boxes[s.id] = r.labelBox;
+    } else {
+      buf = await deriveBench(pg, buffers[s.from], s.ops, s.encode);
+      boxes[s.id] = benchBox(boxes[s.from], s.ops);
+    }
+    buffers[s.id] = buf;
+    await writeFile(path.join(dir, s.file), buf);
+  }
+  await ctx.close();
+  console.log(`wrote ${specs.length} benchmark fixtures to ${BENCH_SUBDIR}/`);
+
+  const counts = specs.reduce((m, s) => ({ ...m, [s.category]: (m[s.category] ?? 0) + 1 }), {});
+  const manifest = {
+    schemaVersion: 1,
+    generator: 'scripts/gen-fixtures.mjs',
+    synthetic: true,
+    notice: 'Synthetic HTML/CSS renders for the OCR benchmark (ADR-001 §14, D3). Grader names are plain printed text; card/comic art is abstract; names, titles and publishers are fictional. Cert numbers are test values. Never load live grader pages from tests.',
+    environment: env,
+    gate: { top1CleanMin: 0.9, top1DegradedMin: 0.7, wrongAutoOpensMax: 0 },
+    metrics: {
+      top1: 'For fixtures with expected.number: the panel\'s top (selected) candidate equals expected.number exactly (leading zeros kept). Reported separately for category clean and degraded; negatives are excluded.',
+      wrongAutoOpen: 'An automatically opened tab whose URL differs from the official URL built from expected.grader + expected.number, or any auto-open on a mustNotAutoOpen fixture. Hard blocker.',
+      autoOpenPrecision: 'correct auto-opens / all auto-opens.',
+    },
+    evaluation: EVALUATION_RULE,
+    counts: { total: specs.length, ...counts },
+    totalBytes: Object.values(buffers).reduce((n, b) => n + b.length, 0),
+    fixtures: specs.map((s) => {
+      const b = buffers[s.id];
+      const { width, height, type } = imageSize(b);
+      return {
+        id: s.id,
+        file: s.file,
+        category: s.category,
+        degradations: s.degradations,
+        description: s.description,
+        expected: s.expected,
+        accept: s.accept,
+        ...(s.graderUnresolved ? { graderUnresolved: true } : {}),
+        ...(s.mustNotAutoOpen ? { mustNotAutoOpen: true } : {}),
+        tags: s.tags,
+        ...(s.notes ? { notes: s.notes } : {}),
+        labelText: s.labelText,
+        labelBox: boxes[s.id],
+        barcode: s.barcode,
+        ...(s.from ? { derivedFrom: s.from, ops: s.ops, encode: s.encode } : {}),
+        mimeType: type,
+        width,
+        height,
+        bytes: b.length,
+        sha256: sha256(b),
+      };
+    }),
+  };
+  await writeFile(path.join(dir, 'bench-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  console.log(`wrote ${BENCH_SUBDIR}/bench-manifest.json (${specs.length} fixtures, ${(manifest.totalBytes / 1024 / 1024).toFixed(2)} MiB)`);
+}
+
+async function verifyBench(outDir, browser) {
+  const failures = [];
+  const fail = (msg) => { failures.push(msg); console.log(`  FAIL ${msg}`); };
+  const dir = path.join(outDir, BENCH_SUBDIR);
+  const manifest = JSON.parse(await readFile(path.join(dir, 'bench-manifest.json'), 'utf8'));
+  console.log(`\nVerify ${dir}`);
+  let total = 0;
+  for (const f of manifest.fixtures) {
+    const buf = await readFile(path.join(dir, f.file));
+    total += buf.length;
+    const dim = imageSize(buf);
+    if (buf.length >= MAX_BYTES) fail(`bench/${f.file}: ${buf.length} bytes >= ${MAX_BYTES}`);
+    if (sha256(buf) !== f.sha256) fail(`bench/${f.file}: sha256 differs from manifest`);
+    if (dim.width !== f.width || dim.height !== f.height) fail(`bench/${f.file}: header ${dim.width}x${dim.height} != manifest`);
+    if (dim.type !== f.mimeType) fail(`bench/${f.file}: type ${dim.type} != ${f.mimeType}`);
+    if (f.expected.number !== null && !/^\d{7,13}$/.test(f.expected.number)) fail(`bench/${f.file}: bad expected number`);
+  }
+  const extra = (await readdir(dir)).filter((x) => /\.(png|jpe?g)$/i.test(x) && !manifest.fixtures.some((f) => f.file === x));
+  if (extra.length) fail(`bench: files not in manifest: ${extra.join(', ')}`);
+  if (total >= BENCH_MAX_TOTAL) fail(`bench: total ${total} bytes >= ${BENCH_MAX_TOTAL}`);
+  if (manifest.fixtures.length < 40) fail(`bench: only ${manifest.fixtures.length} fixtures (< 40)`);
+  console.log(`  ${manifest.fixtures.length} fixtures, ${(total / 1024 / 1024).toFixed(2)} MiB (budget ${BENCH_MAX_TOTAL / 1024 / 1024} MiB); categories ${JSON.stringify(manifest.counts)}`);
+
+  const server = await startServer(dir);
+  const port = server.address().port;
+  const ctx = await newContext(browser, { width: 1280, height: 800 });
+  try {
+    const pg = await ctx.newPage();
+    await pg.goto(`http://127.0.0.1:${port}/__verify.html`);
+    await pg.evaluate(async () => {
+      await ZXingWASM.prepareZXingModule({
+        overrides: { locateFile: (p, prefix) => (p.endsWith('.wasm') ? `/__zxing/${p}` : prefix + p) },
+        fireImmediately: true,
+      });
+    });
+    for (const f of manifest.fixtures) {
+      const r = await pg.evaluate(async (file) => {
+        const url = `/fixtures/${file}`;
+        const img = new Image();
+        img.src = url;
+        await img.decode();
+        const blob = await (await fetch(url)).blob();
+        const rs = (await ZXingWASM.readBarcodes(blob, { maxNumberOfSymbols: 8 })).filter((x) => x.isValid).map((x) => ({ format: x.format, text: x.text }));
+        return { w: img.naturalWidth, h: img.naturalHeight, rs };
+      }, f.file);
+      if (r.w !== f.width || r.h !== f.height) fail(`bench/${f.file}: browser decoded ${r.w}x${r.h}`);
+      const decoded = r.rs.map((x) => `${x.format}:"${x.text}"`).join(', ') || '-';
+      if (f.barcode && !f.derivedFrom) {
+        if (r.rs.length !== 1 || r.rs[0].format !== f.barcode.format || r.rs[0].text !== f.barcode.text) fail(`bench/${f.file}: expected ${f.barcode.format} "${f.barcode.text}", got ${decoded}`);
+      } else if (!f.barcode && r.rs.length) {
+        fail(`bench/${f.file}: unexpected symbol(s) ${decoded}`);
+      }
+      if (f.barcode && f.derivedFrom) console.log(`  ${f.file.padEnd(28)} barcode after degradation: ${decoded}`);
+    }
+  } finally {
+    await ctx.close();
+    server.close();
+  }
+  console.log(failures.length ? `\nBENCH VERIFY FAILED (${failures.length})` : '\nBENCH VERIFY OK');
+  return failures.length === 0;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -692,7 +1221,7 @@ async function generate(outDir, browser) {
       labelFontInstalled: fontOk,
       deviceScaleFactor: 1,
     },
-    evaluation: 'A run passes a fixture when the observed status is in (accept ?? [expected.status]); when expected.number is non-null the top candidate must equal it exactly (string compare, leading zeros kept); when expected.grader is non-null the routed grader must equal it, when null no grader may be auto-selected; mustNotOpen URLs/hosts must never be navigated to.',
+    evaluation: EVALUATION_RULE,
     statusLegend: {
       'auto-open': 'single high-confidence candidate with a known grader; official page opens automatically (when the setting allows)',
       confirm: 'candidate(s) shown, user must confirm/choose grader; no automatic tab',
@@ -708,7 +1237,10 @@ async function generate(outDir, browser) {
         ...(s.accept ? { accept: s.accept } : {}),
         tags: s.tags,
         ...(s.notes ? { notes: s.notes } : {}),
+        ...(s.graderUnresolved ? { graderUnresolved: true } : {}),
+        ...(s.mustNotAutoOpen ? { mustNotAutoOpen: true } : {}),
         ...(s.mustNotOpen ? { mustNotOpen: s.mustNotOpen, mustNotOpenHosts: s.mustNotOpenHosts } : {}),
+        ...(s.expectWarning ? { expectWarning: s.expectWarning } : {}),
         labelText: s.labelText,
         labelBox: labelBoxes[s.file],
         barcode: s.barcode,
@@ -727,6 +1259,7 @@ async function generate(outDir, browser) {
   for (const p of manifest.pages) delete p.framePage;
   await writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   console.log('wrote manifest.json');
+  return manifest.environment;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -913,8 +1446,14 @@ async function main() {
   const browser = await launchBrowser();
   let ok = true;
   try {
-    if (opts.generate) await generate(opts.out, browser);
-    if (opts.verify) ok = await verify(opts.out, browser);
+    if (opts.generate) {
+      const env = await generate(opts.out, browser);
+      if (opts.bench) await generateBench(opts.out, browser, env);
+    }
+    if (opts.verify) {
+      ok = await verify(opts.out, browser);
+      if (opts.bench) ok = (await verifyBench(opts.out, browser)) && ok;
+    }
   } finally {
     await browser.close();
   }

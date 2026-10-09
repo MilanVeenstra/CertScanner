@@ -46,8 +46,10 @@
 /** @typedef {{stage:'acquire'|'decode'|'barcode'|'ocr-init'|'ocr'|'parse', fraction?:number}} ScanProgress */
 
 /**
+ * srcIssue (optional, additive in S6): why srcUrl is null - 'too-long' (oversized data: URL) or 'unsupported' scheme.
  * @typedef {{v:1, id:string, createdAt:number, source:'contextMenu', srcUrl:string|null, pageUrl:string,
- *   frameUrl:string|null, frameId:number, tabId:number, windowId:number, mediaType:'image'}} ScanJob
+ *   frameUrl:string|null, frameId:number, tabId:number, windowId:number, mediaType:'image',
+ *   srcIssue?:'too-long'|'unsupported'}} ScanJob
  */
 
 /** @typedef {{v:number, autoOpen:boolean, openInBackground:boolean, saveHistory:boolean}} Settings */

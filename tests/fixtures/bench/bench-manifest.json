@@ -1,0 +1,2858 @@
+{
+  "schemaVersion": 1,
+  "generator": "scripts/gen-fixtures.mjs",
+  "synthetic": true,
+  "notice": "Synthetic HTML/CSS renders for the OCR benchmark (ADR-001 §14, D3). Grader names are plain printed text; card/comic art is abstract; names, titles and publishers are fictional. Cert numbers are test values. Never load live grader pages from tests.",
+  "environment": {
+    "chromium": "141.0.7390.37",
+    "playwright": "1.56.1",
+    "bwipJs": "4.8.0",
+    "labelFont": "\"Liberation Sans\", Arial, Helvetica, sans-serif",
+    "labelFontInstalled": true,
+    "deviceScaleFactor": 1
+  },
+  "gate": {
+    "top1CleanMin": 0.9,
+    "top1DegradedMin": 0.7,
+    "wrongAutoOpensMax": 0
+  },
+  "metrics": {
+    "top1": "For fixtures with expected.number: the panel's top (selected) candidate equals expected.number exactly (leading zeros kept). Reported separately for category clean and degraded; negatives are excluded.",
+    "wrongAutoOpen": "An automatically opened tab whose URL differs from the official URL built from expected.grader + expected.number, or any auto-open on a mustNotAutoOpen fixture. Hard blocker.",
+    "autoOpenPrecision": "correct auto-opens / all auto-opens."
+  },
+  "evaluation": "A run passes a fixture when the observed status is in (accept ?? [expected.status]); when expected.number is non-null the top candidate must equal it exactly (string compare, leading zeros kept); when expected.grader is non-null the routed grader must equal it (a confirm result with an unresolved grader is reported separately, an auto-open with a different grader is a wrong auto-open); when graderUnresolved is true no grader may be pre-selected; mustNotAutoOpen fixtures must never auto-open; mustNotOpen URLs/hosts must never be navigated to or requested.",
+  "counts": {
+    "total": 57,
+    "clean": 18,
+    "negative": 3,
+    "degraded": 36
+  },
+  "totalBytes": 4141607,
+  "fixtures": [
+    {
+      "id": "psa-c01",
+      "file": "psa-c01.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style front label, 8-digit cert 04718263 (leading zero), grade \"GEM MT 10\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "04718263"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero"
+      ],
+      "labelText": [
+        "2021 CHROME SERIES",
+        "ROOKIE SLUGGER",
+        "#27",
+        "GEM MT 10",
+        "PSA",
+        "04718263"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 112520,
+      "sha256": "d0798292904294807ac1f27e2cdbc0c3aa2dcf1a988f2017b8a2d7cf0a8c7b1c"
+    },
+    {
+      "id": "psa-c02",
+      "file": "psa-c02.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style front label, 8-digit cert 72910483, grade \"NM-MT 8\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "72910483"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8"
+      ],
+      "labelText": [
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO",
+        "#2",
+        "NM-MT 8",
+        "PSA",
+        "72910483"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 108914,
+      "sha256": "0ca50636f546db6d9260e726909694d6c6d4461224362418b4b56b483bb18b5a"
+    },
+    {
+      "id": "psa-c03",
+      "file": "psa-c03.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style front label, 9-digit cert 109876543, grade \"MINT 9\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "109876543"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:9"
+      ],
+      "labelText": [
+        "2018 PRIZM",
+        "POINT GUARD",
+        "#280",
+        "MINT 9",
+        "PSA",
+        "109876543"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 110951,
+      "sha256": "5eb8a582df0360d1a4b4e48b99ba65d4edfabe9ef686e9a60b31b9622f892cee"
+    },
+    {
+      "id": "psa-c04",
+      "file": "psa-c04.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style front label, 8-digit cert 00573921 (leading zero), grade \"GEM MT 10\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "00573921"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero"
+      ],
+      "labelText": [
+        "1993 FINEST",
+        "REFRACTOR",
+        "#88",
+        "GEM MT 10",
+        "PSA",
+        "00573921"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 107748,
+      "sha256": "30bde52d51b3c526daef8b028a7528b564540294d130c7922c72a75e89d2325b"
+    },
+    {
+      "id": "psa-c05",
+      "file": "psa-c05.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style front label, 9-digit cert 056734128 (leading zero), grade \"NM-MT 8\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "056734128"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:9",
+        "leading-zero"
+      ],
+      "labelText": [
+        "2000 NEO GENESIS",
+        "LIGHTNING MOUSE",
+        "#70",
+        "NM-MT 8",
+        "PSA",
+        "056734128"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 111721,
+      "sha256": "d40749389268b8ce04018e0eeed6c4d3a88e16747d4b23839d0b28743e6e0a43"
+    },
+    {
+      "id": "psa-c06",
+      "file": "psa-c06.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style front label, 8-digit cert 30561247, grade \"EX-MT 6\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "30561247"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8"
+      ],
+      "labelText": [
+        "1989 UPPER TIER",
+        "STAR ROOKIE",
+        "#1",
+        "EX-MT 6",
+        "PSA",
+        "30561247"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 108548,
+      "sha256": "e654a8461372a48a46229a838c06a6038a07f186229d637d9eb19b5b2d8e5194"
+    },
+    {
+      "id": "psa-c07",
+      "file": "psa-c07.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style front label, 7-digit cert 5123478, grade \"VG-EX 4\". Older 7-digit format.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "5123478"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:7"
+      ],
+      "labelText": [
+        "1986 BASKETBALL",
+        "HIGH FLYER",
+        "#57",
+        "VG-EX 4",
+        "PSA",
+        "5123478"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 107633,
+      "sha256": "0d8b8f22134125c9d4d342bdb298615ccf2d0704dc4a6f22483a91b08df2d879"
+    },
+    {
+      "id": "psa-c08",
+      "file": "psa-c08.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "PSA-style back label: Code128 (3 px modules) encoding 61834502, number printed underneath.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "61834502"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "barcode",
+        "code128",
+        "len:8"
+      ],
+      "labelText": [
+        "PSA",
+        "61834502"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 196
+      },
+      "barcode": {
+        "format": "Code128",
+        "text": "61834502",
+        "modulePx": 3,
+        "quietZonePx": 36
+      },
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 910,
+      "bytes": 65949,
+      "sha256": "3171f471f8cb58e0aa29bb9452da7b9440a33650a1ebf6ce76341b2a0f30c3d9"
+    },
+    {
+      "id": "cgcc-c09",
+      "file": "cgcc-c09.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style comic label (universal band), cert printed \"3984561002\", grade 9.8.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3984561002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 82785,
+      "sha256": "9d616211fb23bca29a9d54dfcf271436808a94428b183513ac76b06bec7c21b5"
+    },
+    {
+      "id": "cgcc-c10",
+      "file": "cgcc-c10.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style comic label (universal band), cert printed \"4087123006\", grade 9.6.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4087123006"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10"
+      ],
+      "labelText": [
+        "CGC",
+        "9.6",
+        "OFF-WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4087123006",
+        "Night Avenger #423",
+        "Gotham Ink, 9/88"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 83391,
+      "sha256": "7f324fd159a52872cefb13766d648feeb015812826aae3af29f42f7b6d89c4bb"
+    },
+    {
+      "id": "cgcc-c11",
+      "file": "cgcc-c11.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style comic label (universal band), cert printed \"4102938-015\", grade 9.4.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4102938015"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "separator"
+      ],
+      "labelText": [
+        "CGC",
+        "9.4",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4102938-015",
+        "Star Rangers #12",
+        "Nova Comics, 6/77"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 82430,
+      "sha256": "4ec5e92cf163de87afa749e50968ebb99a2b5b944ad1bbebf82e423e334d03ef"
+    },
+    {
+      "id": "cgcc-c12",
+      "file": "cgcc-c12.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style comic label (signature series band), cert printed \"3765432011\", grade 9.8. Yellow band, dark text.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3765432011"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "SIGNATURE SERIES",
+        "3765432011",
+        "Mutant Squad #1",
+        "Apex Comics, 8/91"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 82359,
+      "sha256": "3463773f5216bf6e1797fa892a7fd66ce7c9c582404a7ef146b438faef0d8473"
+    },
+    {
+      "id": "cgcc-c13",
+      "file": "cgcc-c13.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style comic label (universal band), cert printed \"4155667002\", grade 9.2. QR encodes https://www.cgccomics.com/certlookup/4155667002/.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4155667002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "qr"
+      ],
+      "labelText": [
+        "CGC",
+        "9.2",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4155667002",
+        "Deep Sea Saga #5",
+        "Tidal Press, 2/71"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": {
+        "format": "QRCode",
+        "text": "https://www.cgccomics.com/certlookup/4155667002/",
+        "modulePx": 4,
+        "quietZonePx": 16
+      },
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 83236,
+      "sha256": "1ba47f3978d0073de88b4719a9465761dd119c23d48dedc8ae9df0877a69dba5"
+    },
+    {
+      "id": "cgcd-c14",
+      "file": "cgcd-c14.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style card label, 13-digit cert 1402345678901, \"GEM MINT 10\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1402345678901"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13"
+      ],
+      "labelText": [
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 111382,
+      "sha256": "12c209bda05f7772a3612d1ff25b01f88a7945aa248107ec861f55528013e4a7"
+    },
+    {
+      "id": "cgcd-c15",
+      "file": "cgcd-c15.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style card label, 13-digit cert 1403987650123, \"PRISTINE 10\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1403987650123"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13"
+      ],
+      "labelText": [
+        "CGC",
+        "2023 Scarlet Set",
+        "Fire Lizard ex",
+        "PRISTINE",
+        "10",
+        "1403987650123"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 109715,
+      "sha256": "c0d23b2576c3279bc9a94dcbdba8c57eaf760c37945610ef570d456c4d9bdb42"
+    },
+    {
+      "id": "cgcd-c16",
+      "file": "cgcd-c16.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style card label, 10-digit cert 3901234567, \"GEM MINT 10\". 10-digit cert with card wording.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "3901234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:10",
+        "card-wording-10"
+      ],
+      "labelText": [
+        "CGC",
+        "2021 Celebrations",
+        "Sea Dragon - Holo",
+        "GEM MINT",
+        "10",
+        "3901234567"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 109436,
+      "sha256": "817a90263ed82fef366032c3953348788bfecc2dc61d54aeeec13d28eb21fc14"
+    },
+    {
+      "id": "cgcd-c17",
+      "file": "cgcd-c17.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style card label, 10-digit cert 2938475610, \"NM/MINT+ 8.5\". 10-digit cert with card wording.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "2938475610"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:10",
+        "card-wording-10"
+      ],
+      "labelText": [
+        "CGC",
+        "1999 Base Set",
+        "Water Turtle - Holo",
+        "NM/MINT+",
+        "8.5",
+        "2938475610"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 109410,
+      "sha256": "e9e2fccdc532271caa253ebfd5cd0f7f85d1adcda0ca632754629d2ea7e5ebda"
+    },
+    {
+      "id": "cgcd-c18",
+      "file": "cgcd-c18.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "CGC-style card label, 13-digit cert 1405551234567, \"MINT+ 9.5\".",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1405551234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13"
+      ],
+      "labelText": [
+        "CGC",
+        "2020 Vivid Set",
+        "Thunder Bird V",
+        "MINT+",
+        "9.5",
+        "1405551234567"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 108836,
+      "sha256": "616c0b4e7e12f7a340b0de7c2c9c34ca13d0ad2c433b7603732e75c18ae28e36"
+    },
+    {
+      "id": "neg-c19",
+      "file": "neg-c19.png",
+      "category": "negative",
+      "degradations": [],
+      "description": "Plain label with only the 10-digit number 6012349870 and no grader words: grader cannot be decided.",
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": "6012349870"
+      },
+      "accept": [
+        "confirm"
+      ],
+      "graderUnresolved": true,
+      "mustNotAutoOpen": true,
+      "tags": [
+        "ambiguous",
+        "len:10"
+      ],
+      "labelText": [
+        "6012349870"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 102125,
+      "sha256": "8f84630a82445d4a173b39de63459ef3de1fd670fbdf5e8aeb111a507800ac69"
+    },
+    {
+      "id": "neg-c20",
+      "file": "neg-c20.png",
+      "category": "negative",
+      "degradations": [],
+      "description": "Raw (ungraded) card photo, no slab or label; printed digits: 2023, #199, HP 120, 012/165, ©1995-2023.",
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "accept": [
+        "none",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "negative",
+        "no-slab",
+        "busy-art"
+      ],
+      "labelText": [],
+      "labelBox": null,
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 460,
+      "height": 626,
+      "bytes": 88436,
+      "sha256": "8f62cb72a6a8681890874b35991193b554b0b4934edcfd134eef2240c29794a6"
+    },
+    {
+      "id": "psa-b01",
+      "file": "psa-b01.png",
+      "category": "degraded",
+      "degradations": [
+        "busy-art"
+      ],
+      "description": "PSA-style label (8-digit cert 07294618, leading zero) over busy card art with printed digits: 151, #199, HP 330, 180, 199/165, ©1995-2023.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "07294618"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero",
+        "busy-art"
+      ],
+      "labelText": [
+        "2023 SV 151",
+        "FIRE LIZARD ex",
+        "#199",
+        "GEM MT 10",
+        "PSA",
+        "07294618"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 125557,
+      "sha256": "507351ec9dd8c1d29783c8b7145d475e4576dd135932bc404659d52eb4bc3518"
+    },
+    {
+      "id": "cgcc-b02",
+      "file": "cgcc-b02.png",
+      "category": "degraded",
+      "degradations": [
+        "busy-art"
+      ],
+      "description": "CGC-style comic label (cert 4011223004) over a cover with printed title, \"No. 300\", \"75¢\", \"MAY 1988\" and a blurb with a year.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4011223004"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "busy-art"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4011223004",
+        "Cosmic Tales #300",
+        "Atlas Press, 5/88"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 680,
+      "height": 1044,
+      "bytes": 100405,
+      "sha256": "20e079af7ee79d60ad72995a06c31f50c59c411a4463bc80cad33f3ca22d6d03"
+    },
+    {
+      "id": "cgcd-b03",
+      "file": "cgcd-b03.png",
+      "category": "degraded",
+      "degradations": [
+        "busy-art"
+      ],
+      "description": "CGC-style card label (13-digit cert 1404440987654) over busy card art with printed digits: 1999, 58/102, HP 60, ©1995-1999.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1404440987654"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13",
+        "busy-art"
+      ],
+      "labelText": [
+        "CGC",
+        "1999 Base Set",
+        "Electric Mouse #58",
+        "GEM MINT",
+        "10",
+        "1404440987654"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 126363,
+      "sha256": "965f7710fd0e58b52cc7374d30b60a4f36c667f55977aefb11eb959443b884f8"
+    },
+    {
+      "id": "psa-b04",
+      "file": "psa-b04.png",
+      "category": "degraded",
+      "degradations": [
+        "busy-art"
+      ],
+      "description": "PSA-style label (cert 81726354) plus a seller inventory sticker \"LOT 20230417\" on the card: a second 8-digit, PSA-length number competes.",
+      "expected": {
+        "status": "confirm",
+        "grader": "psa",
+        "number": "81726354"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "competitor",
+        "busy-art"
+      ],
+      "notes": "Two valid PSA-length numbers: auto-open is allowed only if the sticker number was not read as a competitor (>= 0.50); the lot number must never be auto-opened.",
+      "labelText": [
+        "2020 BASE SERIES",
+        "STAR ROOKIE",
+        "#5",
+        "GEM MT 10",
+        "PSA",
+        "81726354",
+        "LOT 20230417"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 850,
+      "bytes": 112977,
+      "sha256": "96b5dfd7af889c1bf0502a6bb5ba3df1b3d81383ed72010b4cadd67b340f0c21"
+    },
+    {
+      "id": "psa-c01-jpeg40",
+      "file": "psa-c01-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "psa-c01 (PSA-style front label, 8-digit cert 04718263 (leading zero), grade \"GEM MT 10\") with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "04718263"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "2021 CHROME SERIES",
+        "ROOKIE SLUGGER",
+        "#27",
+        "GEM MT 10",
+        "PSA",
+        "04718263"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c01",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 26193,
+      "sha256": "2b4004751b880e64554349ce2813914a9c2a72f876e609eb0fd85a2b0426ef48"
+    },
+    {
+      "id": "psa-c03-jpeg40",
+      "file": "psa-c03-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "psa-c03 (PSA-style front label, 9-digit cert 109876543, grade \"MINT 9\") with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "109876543"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:9",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "2018 PRIZM",
+        "POINT GUARD",
+        "#280",
+        "MINT 9",
+        "PSA",
+        "109876543"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c03",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 24669,
+      "sha256": "40e1376e1a8f1d4fac9b2df5ea11ae2f902820d918e948eb846e504c5bf5aeaf"
+    },
+    {
+      "id": "cgcc-c09-jpeg40",
+      "file": "cgcc-c09-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "cgcc-c09 (CGC-style comic label (universal band), cert printed \"3984561002\", grade 9) with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3984561002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "derivedFrom": "cgcc-c09",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 680,
+      "height": 1044,
+      "bytes": 34754,
+      "sha256": "744a5287699dd5b4bc62b272dd4b9c1c608ce904e92d8608e025ee7b386510db"
+    },
+    {
+      "id": "cgcd-c14-jpeg40",
+      "file": "cgcd-c14-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "cgcd-c14 (CGC-style card label, 13-digit cert 1402345678901, \"GEM MINT 10\") with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1402345678901"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "cgcd-c14",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 24206,
+      "sha256": "8e8b35c0ad9c630e59bf22e3c6f9c5402901db2ef828049490bc06eb2ca499af"
+    },
+    {
+      "id": "cgcd-c16-jpeg40",
+      "file": "cgcd-c16-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "cgcd-c16 (CGC-style card label, 10-digit cert 3901234567, \"GEM MINT 10\") with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "3901234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:10",
+        "card-wording-10",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "CGC",
+        "2021 Celebrations",
+        "Sea Dragon - Holo",
+        "GEM MINT",
+        "10",
+        "3901234567"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "cgcd-c16",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 24608,
+      "sha256": "37dc73516847f7e53fd30637d9c19c70ab16b62496e271643d25ab2fe0471090"
+    },
+    {
+      "id": "psa-c08-jpeg40",
+      "file": "psa-c08-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "psa-c08 (PSA-style back label: Code128 (3 px modules) encoding 61834502, number printed underneath) with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "61834502"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "barcode",
+        "code128",
+        "len:8",
+        "derived",
+        "jpeg-q40"
+      ],
+      "notes": "Barcode may or may not survive JPEG; the printed number is also readable.",
+      "labelText": [
+        "PSA",
+        "61834502"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 196
+      },
+      "barcode": {
+        "format": "Code128",
+        "text": "61834502",
+        "modulePx": 3,
+        "quietZonePx": 36
+      },
+      "derivedFrom": "psa-c08",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 910,
+      "bytes": 29801,
+      "sha256": "a478fbb035e7059ac2ff9f2da1ccb7f8158a362faf239a859a1a6753d456ad04"
+    },
+    {
+      "id": "cgcc-c13-jpeg40",
+      "file": "cgcc-c13-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "cgcc-c13 (CGC-style comic label (universal band), cert printed \"4155667002\", grade 9) with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4155667002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "qr",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "CGC",
+        "9.2",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4155667002",
+        "Deep Sea Saga #5",
+        "Tidal Press, 2/71"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": {
+        "format": "QRCode",
+        "text": "https://www.cgccomics.com/certlookup/4155667002/",
+        "modulePx": 4,
+        "quietZonePx": 16
+      },
+      "derivedFrom": "cgcc-c13",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 680,
+      "height": 1044,
+      "bytes": 38675,
+      "sha256": "86e619fa1fc8efa01bcc44c7b416a3d6189dbb13131f52c1fe24d12a2ca35024"
+    },
+    {
+      "id": "psa-c02-half",
+      "file": "psa-c02-half.png",
+      "category": "degraded",
+      "degradations": [
+        "scale-0.5"
+      ],
+      "description": "psa-c02 (PSA-style front label, 8-digit cert 72910483, grade \"NM-MT 8\") with 0.5x downscale (high-quality resample).",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "72910483"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "derived",
+        "scale-0.5"
+      ],
+      "labelText": [
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO",
+        "#2",
+        "NM-MT 8",
+        "PSA",
+        "72910483"
+      ],
+      "labelBox": {
+        "x": 22,
+        "y": 21,
+        "width": 228,
+        "height": 68
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c02",
+      "ops": [
+        {
+          "op": "scale",
+          "factor": 0.5
+        }
+      ],
+      "encode": {
+        "format": "image/png"
+      },
+      "mimeType": "image/png",
+      "width": 272,
+      "height": 425,
+      "bytes": 52769,
+      "sha256": "b61c9c755b6155a0c1bf07ab8decbd3e61224728791f4cdf99e8cc198d297883"
+    },
+    {
+      "id": "psa-c04-half",
+      "file": "psa-c04-half.png",
+      "category": "degraded",
+      "degradations": [
+        "scale-0.5"
+      ],
+      "description": "psa-c04 (PSA-style front label, 8-digit cert 00573921 (leading zero), grade \"GEM MT 10\") with 0.5x downscale (high-quality resample).",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "00573921"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero",
+        "derived",
+        "scale-0.5"
+      ],
+      "labelText": [
+        "1993 FINEST",
+        "REFRACTOR",
+        "#88",
+        "GEM MT 10",
+        "PSA",
+        "00573921"
+      ],
+      "labelBox": {
+        "x": 22,
+        "y": 21,
+        "width": 228,
+        "height": 68
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c04",
+      "ops": [
+        {
+          "op": "scale",
+          "factor": 0.5
+        }
+      ],
+      "encode": {
+        "format": "image/png"
+      },
+      "mimeType": "image/png",
+      "width": 272,
+      "height": 425,
+      "bytes": 51585,
+      "sha256": "167cfc1f52c8b7b549e28d10d774630df9e5c769113e92e7b5f19b5933c4e274"
+    },
+    {
+      "id": "cgcc-c10-half",
+      "file": "cgcc-c10-half.png",
+      "category": "degraded",
+      "degradations": [
+        "scale-0.5"
+      ],
+      "description": "cgcc-c10 (CGC-style comic label (universal band), cert printed \"4087123006\", grade 9) with 0.5x downscale (high-quality resample).",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4087123006"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "derived",
+        "scale-0.5"
+      ],
+      "labelText": [
+        "CGC",
+        "9.6",
+        "OFF-WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4087123006",
+        "Night Avenger #423",
+        "Gotham Ink, 9/88"
+      ],
+      "labelBox": {
+        "x": 22,
+        "y": 21,
+        "width": 296,
+        "height": 92
+      },
+      "barcode": null,
+      "derivedFrom": "cgcc-c10",
+      "ops": [
+        {
+          "op": "scale",
+          "factor": 0.5
+        }
+      ],
+      "encode": {
+        "format": "image/png"
+      },
+      "mimeType": "image/png",
+      "width": 340,
+      "height": 522,
+      "bytes": 41739,
+      "sha256": "b4c01b6d81a28b8516ef067be4847cfdf45aaed916ebd908bcbca95ad5950b8c"
+    },
+    {
+      "id": "cgcd-c15-half",
+      "file": "cgcd-c15-half.png",
+      "category": "degraded",
+      "degradations": [
+        "scale-0.5"
+      ],
+      "description": "cgcd-c15 (CGC-style card label, 13-digit cert 1403987650123, \"PRISTINE 10\") with 0.5x downscale (high-quality resample).",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1403987650123"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13",
+        "derived",
+        "scale-0.5"
+      ],
+      "labelText": [
+        "CGC",
+        "2023 Scarlet Set",
+        "Fire Lizard ex",
+        "PRISTINE",
+        "10",
+        "1403987650123"
+      ],
+      "labelBox": {
+        "x": 22,
+        "y": 21,
+        "width": 228,
+        "height": 68
+      },
+      "barcode": null,
+      "derivedFrom": "cgcd-c15",
+      "ops": [
+        {
+          "op": "scale",
+          "factor": 0.5
+        }
+      ],
+      "encode": {
+        "format": "image/png"
+      },
+      "mimeType": "image/png",
+      "width": 272,
+      "height": 425,
+      "bytes": 52189,
+      "sha256": "cdcb2f068b7aea04995b0afb8860f5684a8c3dd6795105b34dbff91b90be5b20"
+    },
+    {
+      "id": "psa-c08-half",
+      "file": "psa-c08-half.png",
+      "category": "degraded",
+      "degradations": [
+        "scale-0.5"
+      ],
+      "description": "psa-c08 (PSA-style back label: Code128 (3 px modules) encoding 61834502, number printed underneath) with 0.5x downscale (high-quality resample).",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "61834502"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "barcode",
+        "code128",
+        "len:8",
+        "derived",
+        "scale-0.5"
+      ],
+      "notes": "1.5 px barcode modules: barcode decode may fail; OCR of the printed number is the fallback.",
+      "labelText": [
+        "PSA",
+        "61834502"
+      ],
+      "labelBox": {
+        "x": 22,
+        "y": 21,
+        "width": 228,
+        "height": 98
+      },
+      "barcode": {
+        "format": "Code128",
+        "text": "61834502",
+        "modulePx": 3,
+        "quietZonePx": 36
+      },
+      "derivedFrom": "psa-c08",
+      "ops": [
+        {
+          "op": "scale",
+          "factor": 0.5
+        }
+      ],
+      "encode": {
+        "format": "image/png"
+      },
+      "mimeType": "image/png",
+      "width": 272,
+      "height": 455,
+      "bytes": 35023,
+      "sha256": "3dc7045ac974b6a9a7738a34aef25b060da8fa2450919f4b5fca198ec138714c"
+    },
+    {
+      "id": "psa-c01-blur1",
+      "file": "psa-c01-blur1.jpg",
+      "category": "degraded",
+      "degradations": [
+        "blur-1px"
+      ],
+      "description": "psa-c01 (PSA-style front label, 8-digit cert 04718263 (leading zero), grade \"GEM MT 10\") with Gaussian blur 1 px, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "04718263"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero",
+        "derived",
+        "blur-1px"
+      ],
+      "labelText": [
+        "2021 CHROME SERIES",
+        "ROOKIE SLUGGER",
+        "#27",
+        "GEM MT 10",
+        "PSA",
+        "04718263"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c01",
+      "ops": [
+        {
+          "op": "blur",
+          "px": 1
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 38498,
+      "sha256": "fa843db408d394b706d74de6f49b8038a57ff84406865c9795d84f6c33755fbb"
+    },
+    {
+      "id": "cgcc-c11-blur1",
+      "file": "cgcc-c11-blur1.jpg",
+      "category": "degraded",
+      "degradations": [
+        "blur-1px"
+      ],
+      "description": "cgcc-c11 (CGC-style comic label (universal band), cert printed \"4102938-015\", grade 9) with Gaussian blur 1 px, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4102938015"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "separator",
+        "derived",
+        "blur-1px"
+      ],
+      "labelText": [
+        "CGC",
+        "9.4",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4102938-015",
+        "Star Rangers #12",
+        "Nova Comics, 6/77"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "derivedFrom": "cgcc-c11",
+      "ops": [
+        {
+          "op": "blur",
+          "px": 1
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 680,
+      "height": 1044,
+      "bytes": 48204,
+      "sha256": "45669649f8910321d6550e049956faeb0c318ddd322278eb0187465a5b22fd8b"
+    },
+    {
+      "id": "cgcd-c14-blur1",
+      "file": "cgcd-c14-blur1.jpg",
+      "category": "degraded",
+      "degradations": [
+        "blur-1px"
+      ],
+      "description": "cgcd-c14 (CGC-style card label, 13-digit cert 1402345678901, \"GEM MINT 10\") with Gaussian blur 1 px, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1402345678901"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13",
+        "derived",
+        "blur-1px"
+      ],
+      "labelText": [
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "cgcd-c14",
+      "ops": [
+        {
+          "op": "blur",
+          "px": 1
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 36370,
+      "sha256": "2213c8061ed242201445db3091649361c402b464cd934f7a375a631a023d3de4"
+    },
+    {
+      "id": "psa-c03-blur2",
+      "file": "psa-c03-blur2.jpg",
+      "category": "degraded",
+      "degradations": [
+        "blur-2px"
+      ],
+      "description": "psa-c03 (PSA-style front label, 9-digit cert 109876543, grade \"MINT 9\") with Gaussian blur 2 px, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "109876543"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:9",
+        "derived",
+        "blur-2px"
+      ],
+      "labelText": [
+        "2018 PRIZM",
+        "POINT GUARD",
+        "#280",
+        "MINT 9",
+        "PSA",
+        "109876543"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c03",
+      "ops": [
+        {
+          "op": "blur",
+          "px": 2
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 35630,
+      "sha256": "6b83adebb3b9e70a973cc477b1487173c695588ea3be4fc726ddc5fb105a9f7f"
+    },
+    {
+      "id": "cgcc-c09-blur2",
+      "file": "cgcc-c09-blur2.jpg",
+      "category": "degraded",
+      "degradations": [
+        "blur-2px"
+      ],
+      "description": "cgcc-c09 (CGC-style comic label (universal band), cert printed \"3984561002\", grade 9) with Gaussian blur 2 px, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3984561002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "derived",
+        "blur-2px"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "derivedFrom": "cgcc-c09",
+      "ops": [
+        {
+          "op": "blur",
+          "px": 2
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 680,
+      "height": 1044,
+      "bytes": 47358,
+      "sha256": "334a6f746b2af3f7112dedd8e7ce59397087c72ffcafc9fbefd355fb799a7ae3"
+    },
+    {
+      "id": "cgcd-c17-blur2",
+      "file": "cgcd-c17-blur2.jpg",
+      "category": "degraded",
+      "degradations": [
+        "blur-2px"
+      ],
+      "description": "cgcd-c17 (CGC-style card label, 10-digit cert 2938475610, \"NM/MINT+ 8) with Gaussian blur 2 px, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "2938475610"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:10",
+        "card-wording-10",
+        "derived",
+        "blur-2px"
+      ],
+      "labelText": [
+        "CGC",
+        "1999 Base Set",
+        "Water Turtle - Holo",
+        "NM/MINT+",
+        "8.5",
+        "2938475610"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "cgcd-c17",
+      "ops": [
+        {
+          "op": "blur",
+          "px": 2
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 34185,
+      "sha256": "bc4a60ec57d4f7fed4619213765844ea1f14d339d609f47e2ad8eef0f205e4a5"
+    },
+    {
+      "id": "psa-c02-glare",
+      "file": "psa-c02-glare.jpg",
+      "category": "degraded",
+      "degradations": [
+        "glare"
+      ],
+      "description": "psa-c02 (PSA-style front label, 8-digit cert 72910483, grade \"NM-MT 8\") with white radial glare over the left part of the label, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "72910483"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "derived",
+        "glare"
+      ],
+      "labelText": [
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO",
+        "#2",
+        "NM-MT 8",
+        "PSA",
+        "72910483"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c02",
+      "ops": [
+        {
+          "op": "glare",
+          "cx": 0.3,
+          "cy": 0.12,
+          "r": 0.42,
+          "alpha": 0.78
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 44921,
+      "sha256": "bcbf245bdc4628a6381846ce5c0b13ab361123bfea192cbd854574f6664a035e"
+    },
+    {
+      "id": "psa-c06-glare",
+      "file": "psa-c06-glare.jpg",
+      "category": "degraded",
+      "degradations": [
+        "glare"
+      ],
+      "description": "psa-c06 (PSA-style front label, 8-digit cert 30561247, grade \"EX-MT 6\") with white radial glare over the left part of the label, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "30561247"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "derived",
+        "glare"
+      ],
+      "labelText": [
+        "1989 UPPER TIER",
+        "STAR ROOKIE",
+        "#1",
+        "EX-MT 6",
+        "PSA",
+        "30561247"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c06",
+      "ops": [
+        {
+          "op": "glare",
+          "cx": 0.3,
+          "cy": 0.12,
+          "r": 0.42,
+          "alpha": 0.78
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 45113,
+      "sha256": "dd56e5bcc7d6c033028c5188363221373af54b5c52df9a1a512f62364aeeaadd"
+    },
+    {
+      "id": "cgcc-c10-glare",
+      "file": "cgcc-c10-glare.jpg",
+      "category": "degraded",
+      "degradations": [
+        "glare"
+      ],
+      "description": "cgcc-c10 (CGC-style comic label (universal band), cert printed \"4087123006\", grade 9) with white radial glare over the left part of the label, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4087123006"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "derived",
+        "glare"
+      ],
+      "labelText": [
+        "CGC",
+        "9.6",
+        "OFF-WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4087123006",
+        "Night Avenger #423",
+        "Gotham Ink, 9/88"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "derivedFrom": "cgcc-c10",
+      "ops": [
+        {
+          "op": "glare",
+          "cx": 0.22,
+          "cy": 0.13,
+          "r": 0.38,
+          "alpha": 0.78
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 680,
+      "height": 1044,
+      "bytes": 59407,
+      "sha256": "db960325d6fa39c4d4fa8ba4e3301c090c2ff212218354408012aec7cd568187"
+    },
+    {
+      "id": "cgcd-c14-glare",
+      "file": "cgcd-c14-glare.jpg",
+      "category": "degraded",
+      "degradations": [
+        "glare"
+      ],
+      "description": "cgcd-c14 (CGC-style card label, 13-digit cert 1402345678901, \"GEM MINT 10\") with white radial glare over the left part of the label, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1402345678901"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13",
+        "derived",
+        "glare"
+      ],
+      "labelText": [
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "cgcd-c14",
+      "ops": [
+        {
+          "op": "glare",
+          "cx": 0.3,
+          "cy": 0.12,
+          "r": 0.42,
+          "alpha": 0.78
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 42756,
+      "sha256": "bff558499d6b08984c29d3d5327018793d13e9bdf954f3150346a9c06a984c57"
+    },
+    {
+      "id": "psa-c03-rot-3",
+      "file": "psa-c03-rot-3.jpg",
+      "category": "degraded",
+      "degradations": [
+        "rotate:-3"
+      ],
+      "description": "psa-c03 (PSA-style front label, 9-digit cert 109876543, grade \"MINT 9\") with rotated -3 degrees, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "109876543"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:9",
+        "derived",
+        "rotate:-3"
+      ],
+      "labelText": [
+        "2018 PRIZM",
+        "POINT GUARD",
+        "#280",
+        "MINT 9",
+        "PSA",
+        "109876543"
+      ],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "psa-c03",
+      "ops": [
+        {
+          "op": "rotate",
+          "degrees": -3,
+          "background": "#e6e3dc",
+          "margin": 8
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 604,
+      "height": 894,
+      "bytes": 54352,
+      "sha256": "c0041643905074ff3f5e3c5a4aebb2bd38f09180c8a46836b86bf7278d78965c"
+    },
+    {
+      "id": "cgcc-c09-rot5",
+      "file": "cgcc-c09-rot5.jpg",
+      "category": "degraded",
+      "degradations": [
+        "rotate:5"
+      ],
+      "description": "cgcc-c09 (CGC-style comic label (universal band), cert printed \"3984561002\", grade 9) with rotated 5 degrees, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3984561002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "derived",
+        "rotate:5"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63"
+      ],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "cgcc-c09",
+      "ops": [
+        {
+          "op": "rotate",
+          "degrees": 5,
+          "background": "#e6e3dc",
+          "margin": 8
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 785,
+      "height": 1116,
+      "bytes": 81084,
+      "sha256": "0551431bb47790e1f7da677fa185b1b40a5fc9da27041e5b3c92d8d10274309e"
+    },
+    {
+      "id": "cgcd-c16-rot-6",
+      "file": "cgcd-c16-rot-6.jpg",
+      "category": "degraded",
+      "degradations": [
+        "rotate:-6"
+      ],
+      "description": "cgcd-c16 (CGC-style card label, 10-digit cert 3901234567, \"GEM MINT 10\") with rotated -6 degrees, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "3901234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:10",
+        "card-wording-10",
+        "derived",
+        "rotate:-6"
+      ],
+      "labelText": [
+        "CGC",
+        "2021 Celebrations",
+        "Sea Dragon - Holo",
+        "GEM MINT",
+        "10",
+        "3901234567"
+      ],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "cgcd-c16",
+      "ops": [
+        {
+          "op": "rotate",
+          "degrees": -6,
+          "background": "#e6e3dc",
+          "margin": 8
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 646,
+      "height": 919,
+      "bytes": 59055,
+      "sha256": "0bc3eb85d6c246a0c2fccbc3d66eb5169dd7f80862adde11ac49badbfba38229"
+    },
+    {
+      "id": "psa-c07-rot2",
+      "file": "psa-c07-rot2.jpg",
+      "category": "degraded",
+      "degradations": [
+        "rotate:2"
+      ],
+      "description": "psa-c07 (PSA-style front label, 7-digit cert 5123478, grade \"VG-EX 4\") with rotated 2 degrees, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "5123478"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:7",
+        "derived",
+        "rotate:2"
+      ],
+      "labelText": [
+        "1986 BASKETBALL",
+        "HIGH FLYER",
+        "#57",
+        "VG-EX 4",
+        "PSA",
+        "5123478"
+      ],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "psa-c07",
+      "ops": [
+        {
+          "op": "rotate",
+          "degrees": 2,
+          "background": "#e6e3dc",
+          "margin": 8
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 590,
+      "height": 885,
+      "bytes": 50225,
+      "sha256": "b0092021f452935c1ae7a2c8fb7c62faf65e913326bf126fa4f80133fe3d1003"
+    },
+    {
+      "id": "psa-c04-dark",
+      "file": "psa-c04-dark.jpg",
+      "category": "degraded",
+      "degradations": [
+        "dark-low-contrast"
+      ],
+      "description": "psa-c04 (PSA-style front label, 8-digit cert 00573921 (leading zero), grade \"GEM MT 10\") with brightness 0.5, contrast 0.55 and seeded noise, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "00573921"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero",
+        "derived",
+        "dark-low-contrast"
+      ],
+      "labelText": [
+        "1993 FINEST",
+        "REFRACTOR",
+        "#88",
+        "GEM MT 10",
+        "PSA",
+        "00573921"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c04",
+      "ops": [
+        {
+          "op": "tone",
+          "brightness": 0.5,
+          "contrast": 0.55
+        },
+        {
+          "op": "noise",
+          "amount": 10,
+          "seed": 0
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 110414,
+      "sha256": "4c92998b1e1af91fa5d6082db318c8c19533769a4f2f2e606a2561f9b8a01836"
+    },
+    {
+      "id": "cgcc-c12-dark",
+      "file": "cgcc-c12-dark.jpg",
+      "category": "degraded",
+      "degradations": [
+        "dark-low-contrast"
+      ],
+      "description": "cgcc-c12 (CGC-style comic label (signature series band), cert printed \"3765432011\", grade 9) with brightness 0.5, contrast 0.55 and seeded noise, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3765432011"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "comic",
+        "len:10",
+        "derived",
+        "dark-low-contrast"
+      ],
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "SIGNATURE SERIES",
+        "3765432011",
+        "Mutant Squad #1",
+        "Apex Comics, 8/91"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 592,
+        "height": 184
+      },
+      "barcode": null,
+      "derivedFrom": "cgcc-c12",
+      "ops": [
+        {
+          "op": "tone",
+          "brightness": 0.5,
+          "contrast": 0.55
+        },
+        {
+          "op": "noise",
+          "amount": 10,
+          "seed": 0
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 680,
+      "height": 1044,
+      "bytes": 169848,
+      "sha256": "7ebb8bf3588b26151710e3dae60a6c4845f184e2a598bf44d2831a45f007a108"
+    },
+    {
+      "id": "cgcd-c18-dark",
+      "file": "cgcd-c18-dark.jpg",
+      "category": "degraded",
+      "degradations": [
+        "dark-low-contrast"
+      ],
+      "description": "cgcd-c18 (CGC-style card label, 13-digit cert 1405551234567, \"MINT+ 9) with brightness 0.5, contrast 0.55 and seeded noise, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1405551234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13",
+        "derived",
+        "dark-low-contrast"
+      ],
+      "labelText": [
+        "CGC",
+        "2020 Vivid Set",
+        "Thunder Bird V",
+        "MINT+",
+        "9.5",
+        "1405551234567"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "cgcd-c18",
+      "ops": [
+        {
+          "op": "tone",
+          "brightness": 0.5,
+          "contrast": 0.55
+        },
+        {
+          "op": "noise",
+          "amount": 10,
+          "seed": 0
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 109814,
+      "sha256": "bbd940384df1e4b20ed40b38f46e4689ed0cf778b293fb511b4b25bbf05954a0"
+    },
+    {
+      "id": "psa-c05-dark",
+      "file": "psa-c05-dark.jpg",
+      "category": "degraded",
+      "degradations": [
+        "dark-low-contrast"
+      ],
+      "description": "psa-c05 (PSA-style front label, 9-digit cert 056734128 (leading zero), grade \"NM-MT 8\") with brightness 0.5, contrast 0.55 and seeded noise, saved as JPEG q88.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "056734128"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:9",
+        "leading-zero",
+        "derived",
+        "dark-low-contrast"
+      ],
+      "labelText": [
+        "2000 NEO GENESIS",
+        "LIGHTNING MOUSE",
+        "#70",
+        "NM-MT 8",
+        "PSA",
+        "056734128"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-c05",
+      "ops": [
+        {
+          "op": "tone",
+          "brightness": 0.5,
+          "contrast": 0.55
+        },
+        {
+          "op": "noise",
+          "amount": 10,
+          "seed": 0
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 111605,
+      "sha256": "132f5dca95974718a967f88845ce4844433d047419ea1ce363c621bcb02b6172"
+    },
+    {
+      "id": "psa-b01-jpeg40",
+      "file": "psa-b01-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "busy-art",
+        "jpeg-q40"
+      ],
+      "description": "psa-b01 (PSA-style label (8-digit cert 07294618, leading zero) over busy card art with printed digits: 151, #199, HP 330, 180, 199/165, ©1995-2023) with JPEG quality 0.40.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "07294618"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "psa",
+        "len:8",
+        "leading-zero",
+        "busy-art",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "2023 SV 151",
+        "FIRE LIZARD ex",
+        "#199",
+        "GEM MT 10",
+        "PSA",
+        "07294618"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 136
+      },
+      "barcode": null,
+      "derivedFrom": "psa-b01",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 850,
+      "bytes": 27809,
+      "sha256": "55c3f05efbf89d5b8743298dfb27763c388273b4053896d404fb29722b9a6774"
+    },
+    {
+      "id": "cgcd-c14-rot-4-jpeg60",
+      "file": "cgcd-c14-rot-4-jpeg60.jpg",
+      "category": "degraded",
+      "degradations": [
+        "rotate:-4",
+        "jpeg-q60"
+      ],
+      "description": "cgcd-c14 (CGC-style card label, 13-digit cert 1402345678901, \"GEM MINT 10\") with rotated -4 degrees + jpeg-q60, saved as JPEG q60.",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1402345678901"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "tags": [
+        "cgc",
+        "card",
+        "len:13",
+        "derived",
+        "rotate:-4",
+        "jpeg-q60"
+      ],
+      "labelText": [
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "cgcd-c14",
+      "ops": [
+        {
+          "op": "rotate",
+          "degrees": -4,
+          "background": "#e6e3dc",
+          "margin": 8
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.6
+      },
+      "mimeType": "image/jpeg",
+      "width": 618,
+      "height": 902,
+      "bytes": 32068,
+      "sha256": "4dc14819db57a9a67fe1508322a4e972b2769eea7b9a459185570fe4fa4f3970"
+    },
+    {
+      "id": "neg-c20-jpeg40",
+      "file": "neg-c20-jpeg40.jpg",
+      "category": "negative",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "neg-c20 (Raw (ungraded) card photo, no slab or label; printed digits: 2023, #199, HP 120, 012/165, ©1995-2023) with JPEG quality 0.40.",
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "accept": [
+        "none",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "negative",
+        "no-slab",
+        "busy-art",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "neg-c20",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 460,
+      "height": 626,
+      "bytes": 13853,
+      "sha256": "29e0011e96983e6d9a817dcd257113bf18b340c10eef1fee586e6502aa717f4a"
+    }
+  ]
+}

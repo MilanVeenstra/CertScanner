@@ -11,7 +11,7 @@
     "labelFontInstalled": true,
     "deviceScaleFactor": 1
   },
-  "evaluation": "A run passes a fixture when the observed status is in (accept ?? [expected.status]); when expected.number is non-null the top candidate must equal it exactly (string compare, leading zeros kept); when expected.grader is non-null the routed grader must equal it, when null no grader may be auto-selected; mustNotOpen URLs/hosts must never be navigated to.",
+  "evaluation": "A run passes a fixture when the observed status is in (accept ?? [expected.status]); when expected.number is non-null the top candidate must equal it exactly (string compare, leading zeros kept); when expected.grader is non-null the routed grader must equal it (a confirm result with an unresolved grader is reported separately, an auto-open with a different grader is a wrong auto-open); when graderUnresolved is true no grader may be pre-selected; mustNotAutoOpen fixtures must never auto-open; mustNotOpen URLs/hosts must never be navigated to or requested.",
   "statusLegend": {
     "auto-open": "single high-confidence candidate with a known grader; official page opens automatically (when the setting allows)",
     "confirm": "candidate(s) shown, user must confirm/choose grader; no automatic tab",
@@ -280,23 +280,29 @@
       "file": "qr-foreign-host.png",
       "description": "Label-like slab whose only number is inside a QR encoding https://evil.example/cert/12345678 (host not on the grader allow-list); no printed number, no grader words.",
       "expected": {
-        "status": "none",
+        "status": "confirm",
         "grader": null,
         "number": null
       },
+      "accept": [
+        "confirm",
+        "none"
+      ],
       "tags": [
         "qr",
         "negative",
         "security",
         "foreign-host"
       ],
-      "notes": "Security negative: the decoded URL must never be opened and its embedded number must not become an auto-open candidate. A warning about an unrecognised QR is expected.",
+      "notes": "Security negative (orchestrator decision 2026-10-09): confirm or none are both acceptable. In confirm the QR digits may appear only as a capped candidate (confidence <= 0.50) with the qr-untrusted-host warning, so the user decides. Hard checks: never auto-open; the decoded URL/host is never navigated or requested; any page opened from confirm uses a URL rebuilt from grader + digits.",
+      "mustNotAutoOpen": true,
       "mustNotOpen": [
         "https://evil.example/cert/12345678"
       ],
       "mustNotOpenHosts": [
         "evil.example"
       ],
+      "expectWarning": "qr-untrusted-host",
       "labelText": [
         "SCAN TO VERIFY"
       ],
@@ -331,6 +337,8 @@
         "ambiguous"
       ],
       "notes": "Must not auto-open. Show 5012345678 as the candidate with a grader selector.",
+      "graderUnresolved": true,
+      "mustNotAutoOpen": true,
       "labelText": [
         "5012345678"
       ],
@@ -358,6 +366,7 @@
       "tags": [
         "negative"
       ],
+      "mustNotAutoOpen": true,
       "labelText": [],
       "labelBox": null,
       "barcode": null,

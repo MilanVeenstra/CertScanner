@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sniffDimensions, imageOriginOf } from '../../src/pipeline/acquire.js';
+import { sniffDimensions, imageOriginOf, acquireFromJob } from '../../src/pipeline/acquire.js';
 import { digitBoxes } from '../../src/pipeline/scanner.js';
 import { toOcrPage } from '../../src/pipeline/ocr.js';
 import { ocrScale, otsuThreshold, stretchContrast } from '../../src/pipeline/preprocess.js';
@@ -101,4 +101,13 @@ test('pageProbe runs from its serialized source and reports found:false when the
   } finally {
     globalThis.document = saved;
   }
+});
+
+test('acquireFromJob: missing srcUrl reports why (too-large vs invalid-image), restricted first', async () => {
+  const job = { v: 1, id: 'x', createdAt: 0, source: 'contextMenu', srcUrl: null, pageUrl: 'https://shop.example.com/', frameUrl: null, frameId: 0, tabId: 1, windowId: 1, mediaType: 'image' };
+  const chromeApi = { permissions: { contains: async () => false } };
+  assert.equal((await acquireFromJob({ ...job, srcIssue: 'too-long' }, { chromeApi })).reason, 'too-large');
+  assert.equal((await acquireFromJob(job, { chromeApi })).reason, 'too-large'); // older jobs: ADR default
+  assert.equal((await acquireFromJob({ ...job, srcIssue: 'unsupported' }, { chromeApi })).reason, 'invalid-image');
+  assert.equal((await acquireFromJob({ ...job, srcIssue: 'unsupported', pageUrl: 'chrome://version/' }, { chromeApi })).reason, 'restricted');
 });

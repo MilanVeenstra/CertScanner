@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title data-i18n="extName">CertScanner</title>
+<title>CertScanner</title>
 <link rel="stylesheet" href="sidepanel.css">
 <!-- Packaged vendor IIFEs (classic scripts): global Tesseract and ZXingWASM. Paths are overridden in code. -->
 <script src="../vendor/tesseract/tesseract.min.js"></script>
@@ -12,112 +12,315 @@
 <script type="module" src="main.js"></script>
 </head>
 <body data-state="idle">
+<!-- In-panel icon set (UX spec §8): 16 px, 1.5 px stroke, currentColor; always aria-hidden where used. -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.75v1.5M8 12.75v1.5M1.75 8h1.5M12.75 8h1.5M3.6 3.6l1.05 1.05M11.35 11.35l1.05 1.05M3.6 12.4l1.05-1.05M11.35 4.65l1.05-1.05"/><circle cx="8" cy="8" r="4.75"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13 8H3M7 4 3 8l4 4"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 16 16"><path d="M8 10.5V2.5M4.75 5.75 8 2.5l3.25 3.25M2.5 10.5v3h11v-3"/></symbol>
+  <symbol id="i-image" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1.25"/><path d="m2.5 12 3.5-3.5 2.5 2.5 2-2 3 3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></symbol>
+  <symbol id="i-external" viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M13.5 2.5l-6 6M12 9.5v3a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 16 16"><path d="m10.5 2.5 3 3-8 8h-3v-3zM9 4l3 3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="m3 8.5 3 3 7-7"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m5.5 8.25 1.75 1.75 3.25-3.5"/></symbol>
+  <symbol id="i-circle-i" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.25v3.75M8 4.9v.1"/></symbol>
+  <symbol id="i-triangle" viewBox="0 0 16 16"><path d="M8 2.25 14.25 13H1.75z"/><path d="M8 6.5v3M8 11.15v.1"/></symbol>
+  <symbol id="i-circle-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m6 6 4 4M10 6l-4 4"/></symbol>
+  <symbol id="i-spinner" viewBox="0 0 16 16"><path d="M8 2a6 6 0 1 1-6 6"/></symbol>
+  <symbol id="i-half" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/></symbol>
+  <symbol id="i-circle-dash" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" stroke-dasharray="2.6 1.7"/><path d="M5.5 8h5"/></symbol>
+  <symbol id="i-step-done" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="currentColor" stroke="none"/><path d="m5.25 8.25 1.75 1.75 3.75-4" stroke="var(--cs-bg)"/></symbol>
+  <symbol id="i-wifi-off" viewBox="0 0 16 16"><path d="m2 2 12 12M5.75 10.75a3.25 3.25 0 0 1 4.5 0M3 8.25a7 7 0 0 1 3.25-1.9M13 8.25a7 7 0 0 0-2.6-1.7M8 13.25v.1"/></symbol>
+  <symbol id="i-tab" viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9.5" rx="1.5"/><path d="M2 6.5h5v-3"/></symbol>
+  <symbol id="i-logo" viewBox="0 0 16 16"><rect x="2.5" y="1.5" width="8" height="13" rx="1.5" fill="#FFFFFF" stroke="#0F6E66"/><path d="M2 3a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v2H2z" fill="#0F6E66" stroke="none"/><circle cx="10.5" cy="10.5" r="3" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3"/><path d="m12.6 12.6 1.8 1.8" stroke="#FFFFFF" stroke-width="3.5"/><circle cx="10.5" cy="10.5" r="3" fill="#FFFFFF" stroke="#1A1D21" stroke-width="1.5"/><path d="m12.6 12.6 1.8 1.8" stroke="#1A1D21" stroke-width="2"/></symbol>
+</svg>
+
 <header class="app-header">
-  <h1 data-i18n="extName">CertScanner</h1>
+  <svg class="logo" aria-hidden="true" focusable="false"><use href="#i-logo"/></svg>
+  <h1 data-i18n="ext_name">CertScanner</h1>
+  <button type="button" class="btn btn-secondary btn-header" id="settings-button" data-testid="settings-button">
+    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-gear"/></svg><span data-i18n="nav_settings">Settings</span>
+  </button>
 </header>
 
-<main>
-  <section class="card status-card" aria-labelledby="status-heading">
-    <h2 id="status-heading" class="visually-hidden" data-i18n="a11yStatusHeading">Scan status</h2>
-    <p data-testid="status-live" id="status-live" role="status" aria-live="polite" aria-atomic="true"></p>
-    <progress data-testid="progress" id="progress" max="1" value="0" hidden data-i18n-attr="aria-label:a11yProgress"></progress>
-    <button type="button" class="btn btn-secondary" data-testid="cancel-button" id="cancel-button" hidden data-i18n="actionCancel">Cancel scan</button>
-    <div id="error-box" class="error-box" hidden>
-      <p data-testid="error-message" id="error-message" tabindex="-1"></p>
-      <button type="button" class="btn btn-secondary" data-testid="sharper-button" id="sharper-button" hidden></button>
+<p id="status" data-testid="status-live" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+
+<main id="home">
+  <section id="task" class="task-card" data-state="idle" aria-labelledby="task-heading">
+    <h2 id="task-heading" class="task-heading" tabindex="-1"><svg class="icon state-icon" aria-hidden="true" focusable="false" hidden><use href="#i-circle-check"/></svg><span id="task-heading-text" data-i18n="idle_heading">Scan a slab</span></h2>
+    <div id="task-body"></div>
+  </section>
+
+  <section id="image-input" class="section" aria-labelledby="input-heading">
+    <h2 id="input-heading" data-i18n="input_heading">Scan an image</h2>
+    <div id="drop-zone" class="drop-zone">
+      <svg class="icon drop-icon" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>
+      <p class="drop-title" id="drop-title" data-i18n="drop_title">Drop a slab photo here</p>
+      <p class="drop-hint" id="paste-hint"></p>
+      <button type="button" class="btn btn-secondary" id="choose-image" data-action="choose">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button">Choose image</span>
+      </button>
+      <input type="file" id="file-input" data-testid="upload-input" class="visually-hidden" tabindex="-1" aria-hidden="true" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/bmp">
+      <p class="hint" id="drop-formats"></p>
     </div>
   </section>
 
-  <section class="card result-card" id="result" hidden aria-labelledby="result-heading">
-    <h2 id="result-heading" tabindex="-1" data-i18n="stateResultHeading">Result</h2>
-    <img data-testid="preview" id="preview" class="preview" alt="" data-i18n-attr="alt:labelPreview" hidden>
-    <div id="candidates-block">
-      <p class="result-summary">
-        <span data-testid="result-grader" id="result-grader" class="result-grader"></span>
-        <span data-testid="result-number" id="result-number" class="result-number"></span>
-      </p>
-      <p id="result-meta" class="result-meta"></p>
-      <div class="warnings" hidden>
-        <h3 class="visually-hidden" data-i18n="labelWarnings">Notes</h3>
-        <ul id="warnings"></ul>
-      </div>
-      <p id="candidates-label" class="label" data-i18n="stateCandidates">Numbers found</p>
-      <ul data-testid="candidate-list" id="candidate-list" class="candidate-list" aria-labelledby="candidates-label"></ul>
-      <form id="confirm-form" class="confirm-form" novalidate>
-        <div class="field">
-          <label for="grader-select" data-i18n="labelGrader">Grader</label>
-          <select data-testid="grader-select" id="grader-select">
-            <option value="" data-i18n="graderChoose">Choose grader…</option>
-            <option value="psa" data-i18n="graderPsa">PSA</option>
-            <option value="cgc-comics" data-i18n="graderCgcComics">CGC Comics</option>
-            <option value="cgc-cards" data-i18n="graderCgcCards">CGC Cards</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="number-input" data-i18n="labelNumber">Cert number</label>
-          <input type="text" data-testid="number-input" id="number-input" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="16" aria-describedby="confirm-error">
-        </div>
-        <p id="confirm-error" class="field-error" aria-live="polite"></p>
-        <div class="actions">
-          <button type="submit" class="btn btn-primary" data-testid="open-button" id="open-button" data-i18n="actionOpen">Open cert page</button>
-          <button type="button" class="btn btn-secondary" data-testid="copy-button" id="copy-button" data-i18n="actionCopy">Copy number</button>
-        </div>
-      </form>
-      <p class="note" data-i18n="stateNotAuthenticity"></p>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="inputs-heading">
-    <h2 id="inputs-heading" data-i18n="labelScanImage">Scan an image</h2>
-    <div id="drop-zone" class="drop-zone" role="group" data-i18n-attr="aria-label:a11yDropZone">
-      <p data-i18n="labelDropHint"></p>
-      <label class="btn btn-secondary file-label">
-        <span data-i18n="actionUpload">Choose image…</span>
-        <input type="file" accept="image/*" data-testid="upload-input" id="upload-input" class="file-input">
-      </label>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="manual-heading">
-    <h2 id="manual-heading" data-i18n="labelManual">Type a cert number</h2>
+  <section id="manual" class="section" aria-labelledby="manual-heading">
+    <h2 id="manual-heading" data-i18n="manual_heading">Type a cert number</h2>
     <form id="manual-form" novalidate>
       <div class="field">
-        <label for="manual-input" data-i18n="labelManualInput">Cert number or official cert link</label>
-        <input type="text" data-testid="manual-input" id="manual-input" autocomplete="off" spellcheck="false" maxlength="2048" aria-describedby="manual-hint manual-error">
+        <label for="cert-input" data-i18n="field_cert_label">Cert number</label>
+        <input type="text" id="cert-input" data-testid="manual-input" class="cert-field" autocomplete="off" spellcheck="false" maxlength="64" dir="ltr" aria-describedby="cert-hint cert-error">
+        <p class="hint" id="cert-hint" data-i18n="field_cert_hint"></p>
+        <p class="field-error" id="cert-error" data-testid="manual-error" aria-live="polite"></p>
       </div>
-      <p id="manual-hint" class="hint" data-i18n="labelManualHint"></p>
-      <p data-testid="manual-error" id="manual-error" class="field-error" aria-live="polite"></p>
-      <button type="submit" class="btn btn-primary" data-testid="manual-submit" id="manual-submit" data-i18n="actionManualSubmit">Open</button>
+      <fieldset class="segmented" id="grader-group" data-testid="manual-grader" data-value="">
+        <legend data-i18n="grader_legend">Grader</legend>
+        <div class="segments">
+          <label class="segment"><input type="radio" name="manual-grader" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa">PSA</span></label>
+          <label class="segment"><input type="radio" name="manual-grader" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics">CGC Comics</span></label>
+          <label class="segment"><input type="radio" name="manual-grader" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards">CGC Cards</span></label>
+        </div>
+        <p class="hint grader-hint" id="manual-grader-hint"></p>
+      </fieldset>
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="manual-submit" data-testid="manual-submit">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_button">Open cert page</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span>
+        </button>
+      </div>
+      <p class="hint url-preview" id="url-preview" dir="auto"></p>
     </form>
   </section>
 
-  <section class="card" aria-labelledby="history-heading">
-    <h2 id="history-heading" data-i18n="labelHistory">Recent scans</h2>
-    <p id="history-empty" class="hint" data-i18n="stateHistoryEmpty">No recent scans.</p>
-    <ol data-testid="history-list" id="history-list" class="history-list"></ol>
-    <button type="button" class="btn btn-secondary" data-testid="history-clear" id="history-clear" data-i18n="actionClearHistory">Clear recent scans</button>
+  <section id="recent" class="section" aria-labelledby="recent-heading">
+    <h2 id="recent-heading" data-i18n="recent_heading">Recent scans</h2>
+    <p class="hint" id="recent-empty" data-i18n="recent_empty">No scans yet.</p>
+    <ul id="recent-list" data-testid="history-list" class="recent-list"></ul>
+    <button type="button" class="link" id="recent-toggle" aria-expanded="false" aria-controls="recent-list" hidden></button>
+  </section>
+</main>
+
+<main id="settings" hidden aria-labelledby="settings-heading">
+  <div class="settings-top">
+    <button type="button" class="btn btn-secondary" id="back-button" data-testid="back-button">
+      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="nav_back">Back</span>
+    </button>
+    <h2 id="settings-heading" tabindex="-1" data-i18n="nav_settings">Settings</h2>
+  </div>
+
+  <section class="section" aria-labelledby="opening-heading">
+    <h3 id="opening-heading" data-i18n="settings_opening_heading">Opening cert pages</h3>
+    <label class="switch-row" for="setting-always-ask">
+      <span class="switch-text" data-i18n="setting_always_ask">Always ask before opening</span>
+      <input type="checkbox" role="switch" id="setting-always-ask" data-testid="setting-autoOpen" data-setting="autoOpen" data-inverted="true" aria-describedby="hint-always-ask">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+    </label>
+    <p class="hint switch-hint" id="hint-always-ask" data-i18n="setting_always_ask_hint"></p>
+    <label class="switch-row" for="setting-background">
+      <span class="switch-text" data-i18n="setting_background">Open in a background tab</span>
+      <input type="checkbox" role="switch" id="setting-background" data-testid="setting-openInBackground" data-setting="openInBackground" aria-describedby="hint-background">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+    </label>
+    <p class="hint switch-hint" id="hint-background" data-i18n="setting_background_hint"></p>
   </section>
 
-  <section class="card" aria-labelledby="settings-heading">
-    <h2 id="settings-heading" data-i18n="settingsHeading">Settings</h2>
-    <label class="check"><input type="checkbox" data-testid="setting-autoOpen" id="setting-autoOpen"> <span data-i18n="settingsAutoOpen"></span></label>
-    <label class="check"><input type="checkbox" data-testid="setting-openInBackground" id="setting-openInBackground"> <span data-i18n="settingsOpenInBackground"></span></label>
-    <label class="check"><input type="checkbox" data-testid="setting-saveHistory" id="setting-saveHistory"> <span data-i18n="settingsSaveHistory"></span></label>
-    <div id="history-off-confirm" class="inline-confirm" role="group" aria-labelledby="history-off-text" hidden>
-      <p id="history-off-text" data-i18n="settingsHistoryOffConfirm"></p>
-      <button type="button" class="btn btn-danger" id="history-off-yes" data-i18n="actionDeleteHistory">Turn off and delete</button>
-      <button type="button" class="btn btn-secondary" id="history-off-no" data-i18n="actionKeepHistory">Keep recent scans</button>
-    </div>
-    <p id="settings-status" class="hint" role="status" aria-live="polite"></p>
-    <h3 data-i18n="settingsSitesHeading">Sites with sharper scans</h3>
-    <p id="sites-empty" class="hint" data-i18n="settingsSitesEmpty"></p>
-    <ul id="sites-list" class="sites-list"></ul>
+  <section class="section" aria-labelledby="history-heading">
+    <h3 id="history-heading" data-i18n="settings_history_heading">Scan history</h3>
+    <label class="switch-row" for="setting-history">
+      <span class="switch-text" data-i18n="setting_history">Keep scan history</span>
+      <input type="checkbox" role="switch" id="setting-history" data-testid="setting-saveHistory" data-setting="saveHistory" aria-describedby="hint-history">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+    </label>
+    <p class="hint switch-hint" id="hint-history"></p>
+    <button type="button" class="btn btn-secondary" id="clear-history" data-testid="history-clear" aria-describedby="history-empty-hint" data-i18n="clear_history">Clear history</button>
+    <p class="hint" id="history-empty-hint" data-i18n="history_empty" hidden>No saved scans.</p>
+  </section>
+
+  <section class="section" aria-labelledby="sites-heading">
+    <h3 id="sites-heading" tabindex="-1" data-i18n="settings_sites_heading">Sharper scans</h3>
+    <p class="hint" id="sites-body" data-i18n="settings_sites_body"></p>
+    <ul id="sites-list" class="sites-list" aria-labelledby="sites-heading"></ul>
+    <p class="hint" id="sites-empty" data-i18n="settings_sites_empty"></p>
+  </section>
+
+  <section class="section about" aria-labelledby="about-heading">
+    <h3 id="about-heading" data-i18n="settings_about_heading">About</h3>
+    <p data-i18n="about_privacy"></p>
+    <p data-i18n="about_lookup"></p>
+    <p data-i18n="about_disclaimer"></p>
+    <p data-i18n="about_trademarks"></p>
+    <p data-i18n="about_language"></p>
+    <p data-i18n="about_uninstall"></p>
+    <p class="hint" id="about-version"></p>
   </section>
 </main>
 
 <footer class="app-footer">
-  <p data-i18n="footerDisclaimer">Not affiliated with PSA or CGC.</p>
-  <p data-i18n="footerPrivacy"></p>
+  <p><span data-i18n="about_disclaimer">Not affiliated with PSA or CGC.</span> · <span data-i18n="footer_local">Images stay on this device</span></p>
 </footer>
+
+<!-- ============================ task-card templates (UX spec §3) ============================ -->
+<template id="tpl-idle">
+  <p data-ref="idle-body"></p>
+  <p class="muted" data-i18n="idle_body_alt"></p>
+</template>
+
+<template id="tpl-scanning">
+  <div class="media-row">
+    <div class="thumb" data-ref="thumb-box"><svg class="icon thumb-placeholder" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><img data-testid="preview" data-ref="thumb" alt="" hidden></div>
+    <ol class="steps" data-testid="progress" data-ref="steps">
+      <li data-step="load"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_load"></span><span class="step-state visually-hidden"></span></li>
+      <li data-step="barcode"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_barcode"></span><span class="step-state visually-hidden"></span></li>
+      <li data-step="text"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_text"></span><span class="step-state visually-hidden"></span><span class="step-sub muted" data-i18n="step_text_starting" hidden></span></li>
+      <li data-step="match"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_match"></span><span class="step-state visually-hidden"></span></li>
+    </ol>
+  </div>
+  <p class="caption muted" data-ref="caption"></p>
+  <p class="muted" data-ref="slow" data-i18n="scan_slow" hidden></p>
+  <div class="actions"><button type="button" class="btn btn-secondary" data-testid="cancel-button" data-action="cancel" data-i18n="cancel_button">Cancel</button></div>
+</template>
+
+<template id="tpl-result">
+  <div class="media-row">
+    <div class="thumb" data-ref="thumb-box" hidden><img data-testid="preview" data-ref="thumb" alt=""></div>
+    <div class="read">
+      <span class="chip" data-testid="result-grader" data-ref="chip"></span>
+      <p class="cert" dir="ltr" data-testid="result-number" data-ref="number"></p>
+      <p class="muted" data-ref="method"></p>
+      <p class="muted path" dir="ltr" data-testid="result-url" data-ref="path"></p>
+    </div>
+  </div>
+  <div class="note" data-ref="bg-note" hidden>
+    <p class="muted" data-i18n="result_bg_note"></p>
+    <button type="button" class="btn btn-secondary" data-action="go-to-tab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tab"/></svg><span data-i18n="go_to_tab"></span></button>
+  </div>
+  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+  <div class="actions">
+    <button type="button" class="btn btn-secondary" data-testid="copy-button" data-action="copy"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span data-ref="copy-label" data-i18n="copy_button"></span></button>
+    <button type="button" class="btn btn-secondary" data-testid="open-again-button" data-action="open-again"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_again"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+  </div>
+  <p class="field-error" data-ref="copy-error" aria-live="polite"></p>
+  <button type="button" class="link" data-testid="edit-button" data-action="edit"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="edit_link"></span></button>
+  <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
+  <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
+</template>
+
+<template id="tpl-cert-form">
+  <form class="cert-form" data-ref="form" novalidate>
+    <div class="field">
+      <label data-ref="field-label" data-i18n="field_cert_label"></label>
+      <input type="text" class="cert-field" data-testid="number-input" data-ref="input" autocomplete="off" spellcheck="false" maxlength="64" dir="ltr">
+      <p class="field-error" data-ref="error" aria-live="polite"></p>
+    </div>
+    <fieldset class="segmented" data-testid="grader-select" data-ref="graders" data-value="">
+      <legend data-i18n="grader_legend"></legend>
+      <div class="segments">
+        <label class="segment"><input type="radio" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa"></span></label>
+        <label class="segment"><input type="radio" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics"></span></label>
+        <label class="segment"><input type="radio" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards"></span></label>
+      </div>
+      <p class="hint grader-hint" data-ref="grader-hint"></p>
+    </fieldset>
+    <div class="actions" data-ref="form-actions">
+      <button type="submit" class="btn btn-primary" data-testid="open-button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_button"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="btn btn-secondary" data-action="copy" data-testid="copy-button" data-ref="form-copy" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span data-ref="copy-label" data-i18n="copy_button"></span></button>
+      <button type="button" class="btn btn-secondary" data-action="edit-cancel" data-testid="edit-cancel" data-ref="form-cancel" hidden><span data-i18n="cancel_button"></span></button>
+    </div>
+    <p class="field-error" data-ref="copy-error" aria-live="polite"></p>
+    <p class="hint url-preview" data-ref="preview-line" dir="auto"></p>
+  </form>
+</template>
+
+<template id="tpl-edit">
+  <div data-ref="form-slot"></div>
+  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+  <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
+</template>
+
+<template id="tpl-confirm">
+  <div data-ref="qr-slot"></div>
+  <div class="alert alert-info" data-ref="reasons" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><div data-ref="reason-list"></div></div>
+  <div class="media-row">
+    <div class="thumb" data-ref="thumb-box" hidden><img data-testid="preview" data-ref="thumb" alt=""></div>
+    <div class="read">
+      <span class="chip" data-testid="result-grader" data-ref="chip"></span>
+      <p class="cert cert-sm" dir="ltr" data-testid="result-number" data-ref="number"></p>
+      <p class="muted" data-ref="method"></p>
+      <button type="button" class="link" data-ref="larger" data-action="larger" aria-expanded="false" hidden></button>
+      <p class="caption muted" data-ref="caption"></p>
+    </div>
+  </div>
+  <fieldset class="candidates" data-testid="candidate-list" data-ref="candidates" hidden>
+    <legend data-i18n="candidates_legend"></legend>
+    <div data-ref="candidate-items"></div>
+  </fieldset>
+  <div data-ref="form-slot"></div>
+  <div data-ref="lowres-slot"></div>
+  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+  <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
+</template>
+
+<template id="tpl-candidate">
+  <label class="candidate"><input type="radio" name="candidate"><span class="cand-body"><span class="cand-top"><span class="cert cert-sm" dir="ltr" data-ref="number"></span><span class="chip" data-ref="best" data-i18n="candidate_best" hidden></span></span><span class="muted cand-meta" data-ref="meta"></span></span></label>
+</template>
+
+<template id="tpl-none">
+  <div class="media-row">
+    <div class="thumb" data-ref="thumb-box" hidden><img data-testid="preview" data-ref="thumb" alt=""></div>
+    <p data-i18n="none_body"></p>
+  </div>
+  <div data-ref="qr-slot"></div>
+  <p class="muted" data-ref="ocr-note" data-i18n="ocr_unavailable_note" hidden></p>
+  <div class="actions" data-ref="none-actions">
+    <button type="button" class="btn btn-secondary" data-action="type"><span data-i18n="type_number_button"></span></button>
+    <button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
+  </div>
+  <div data-ref="lowres-slot"></div>
+</template>
+
+<template id="tpl-error">
+  <p data-testid="error-message" data-ref="body" tabindex="-1"></p>
+  <div class="actions" data-ref="error-actions">
+    <button type="button" class="btn btn-primary" data-testid="retry-button" data-action="retry" hidden><span data-i18n="retry_button"></span></button>
+    <button type="button" class="btn btn-primary" data-action="reload" hidden><span data-i18n="reload_button"></span></button>
+    <button type="button" class="btn btn-secondary" data-action="choose" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
+    <button type="button" class="btn btn-secondary" data-action="type" hidden><span data-i18n="type_number_button"></span></button>
+  </div>
+</template>
+
+<template id="tpl-qr-warning">
+  <div class="alert alert-warning"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-triangle"/></svg><div><p class="alert-title" data-i18n="qr_offsite_title"></p><p data-ref="qr-body"></p><p data-ref="qr-number" data-i18n="qr_offsite_number" hidden></p></div></div>
+</template>
+
+<template id="tpl-lowres">
+  <div class="alert alert-info" data-ref="lowres-box" tabindex="-1">
+    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i" data-ref="lowres-icon"/></svg>
+    <div>
+      <p class="alert-title" data-ref="lowres-title"></p>
+      <p data-ref="lowres-body"></p>
+      <div class="actions" data-ref="lowres-actions">
+        <button type="button" class="btn btn-secondary host-btn" data-testid="sharper-button" data-action="sharper"></button>
+      </div>
+      <p class="hint" data-ref="lowres-fine"></p>
+      <button type="button" class="link" data-action="not-now" data-i18n="lowres_dismiss"></button>
+      <div class="actions" data-ref="rescan-row" hidden><button type="button" class="btn btn-secondary" data-testid="rescan-button" data-action="rescan"><span data-i18n="rescan_button"></span></button></div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-recent-row">
+  <li class="recent-row">
+    <div class="recent-main"><span class="chip" data-ref="chip"></span> <span class="cert cert-row" dir="ltr" data-ref="number"></span><span class="muted recent-time" data-ref="time"></span></div>
+    <div class="recent-actions">
+      <button type="button" class="btn btn-secondary btn-sm" data-ref="open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-label" data-i18n="recent_open"></span></button>
+      <button type="button" class="icon-btn" data-ref="copy"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span class="visually-hidden" data-ref="copy-label" data-i18n="recent_copy"></span></button>
+    </div>
+  </li>
+</template>
+
+<template id="tpl-site-row">
+  <li class="site-row"><span class="site-host" dir="ltr" data-ref="host"></span><button type="button" class="btn btn-secondary btn-sm" data-ref="remove"><span data-ref="remove-label" data-i18n="remove_button"></span></button></li>
+</template>
 </body>
 </html>

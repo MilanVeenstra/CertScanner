@@ -6,7 +6,7 @@ function registerMenus() {
   chrome.contextMenus.removeAll(() => {
     void chrome.runtime.lastError;
     chrome.contextMenus.create(
-      { id: MENU_ID, title: chrome.i18n.getMessage('menuScan') || 'Scan slab cert number', contexts: ['image'] },
+      { id: MENU_ID, title: chrome.i18n.getMessage('context_menu_scan') || 'Scan slab cert number', contexts: ['image'] },
       () => void chrome.runtime.lastError,
     );
   });

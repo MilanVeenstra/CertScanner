@@ -149,7 +149,7 @@ export async function acquireFromJob(job, { signal, strategies, chromeApi = glob
 
   try {
     if (restricted && !isData) return await fail('restricted');
-    if (!srcUrl) return await fail('too-large');
+    if (!srcUrl) return await fail(job?.srcIssue === 'unsupported' ? 'invalid-image' : 'too-large');
 
     let probe = null;
     const runProbe = async (mode) => {

@@ -10,6 +10,8 @@ export const MAX_FUTURE_SKEW_MS = 5000;
 export const jobKey = (windowId) => `scanJob:${windowId}`;
 
 const SRC_SCHEME_RE = /^(https?|data|blob):/i;
+/** Optional ScanJob.srcIssue values (why srcUrl is null): 'too-long' -> too-large, 'unsupported' -> invalid-image. */
+export const SRC_ISSUES = new Set(['too-long', 'unsupported']);
 const isNonNegInt = (v) => Number.isInteger(v) && v >= 0;
 
 function shortenUrl(url) {
@@ -28,10 +30,14 @@ function shortenUrl(url) {
  * @returns {import('../core/types.js').ScanJob}
  */
 export function createScanJob(info, tab, now, id) {
-  const src = typeof info?.srcUrl === 'string' && info.srcUrl.length <= MAX_SRC_URL_CHARS && SRC_SCHEME_RE.test(info.srcUrl)
-    ? info.srcUrl : null;
+  const raw = typeof info?.srcUrl === 'string' ? info.srcUrl : null;
+  let src = null;
+  let srcIssue;
+  if (raw !== null && raw.length > MAX_SRC_URL_CHARS) srcIssue = 'too-long';
+  else if (raw !== null && !SRC_SCHEME_RE.test(raw)) srcIssue = 'unsupported';
+  else src = raw;
   const frameUrl = typeof info?.frameUrl === 'string' && info.frameUrl.length <= MAX_PAGE_URL_CHARS ? info.frameUrl : null;
-  return {
+  const job = {
     v: SCAN_JOB_VERSION,
     id,
     createdAt: now,
@@ -44,6 +50,9 @@ export function createScanJob(info, tab, now, id) {
     windowId: tab.windowId,
     mediaType: 'image',
   };
+  // Additive optional field (S6): why srcUrl is null, so the panel shows the right error.
+  if (srcIssue) job.srcIssue = srcIssue;
+  return job;
 }
 
 /**
@@ -69,12 +78,11 @@ export function parseScanJob(raw, { now, windowId }) {
     && Number.isInteger(raw.windowId)
     && raw.mediaType === 'image';
   if (!ok) return { ok: false, reason: 'shape' };
-  return {
-    ok: true,
-    job: {
-      v: SCAN_JOB_VERSION, id: raw.id, createdAt: raw.createdAt, source: 'contextMenu', srcUrl: raw.srcUrl,
-      pageUrl: raw.pageUrl, frameUrl: raw.frameUrl ?? null, frameId: raw.frameId, tabId: raw.tabId,
-      windowId: raw.windowId, mediaType: 'image',
-    },
+  const job = {
+    v: SCAN_JOB_VERSION, id: raw.id, createdAt: raw.createdAt, source: 'contextMenu', srcUrl: raw.srcUrl,
+    pageUrl: raw.pageUrl, frameUrl: raw.frameUrl ?? null, frameId: raw.frameId, tabId: raw.tabId,
+    windowId: raw.windowId, mediaType: 'image',
   };
+  if (raw.srcUrl === null && SRC_ISSUES.has(raw.srcIssue)) job.srcIssue = raw.srcIssue;
+  return { ok: true, job };
 }

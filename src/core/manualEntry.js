@@ -24,7 +24,7 @@ export function parseManualEntry(input, rules = DEFAULT_RULES) {
   const text = input.trim();
 
   // URLs: only official ones are accepted; the URL is rebuilt later by buildCertUrl().
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(text) || /^[a-z0-9-]+(\.[a-z0-9-]+)+\//i.test(text)) {
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(text) || /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}\//i.test(text)) {
     const qr = parseQrPayload(text);
     if (qr.kind === 'official') return { ok: true, grader: qr.grader, graderOptions: [qr.grader], number: qr.number };
     return { ok: false, error: 'untrusted-url' };

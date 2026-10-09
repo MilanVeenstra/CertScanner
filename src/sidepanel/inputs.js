@@ -1,65 +1,111 @@
-// Paste / drop / upload -> Blob (ADR-001 §6 inputs). Validation of size and decodability happens in
-// acquireFromBlob(); here we only pick the first image-like file.
+// Image input (UX spec §5): drop anywhere in Home, paste (image -> scan, text -> cert field), Choose image.
+// Size/decode validation happens in acquireFromBlob(); here we only route files and classify bad drops.
 
-const IMAGE_TYPE_RE = /^image\//i;
+export const ACCEPTED_TYPES = Object.freeze(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'image/bmp']);
 
-function firstImageFile(list) {
-  for (const f of list ?? []) {
-    const file = typeof f.getAsFile === 'function' ? (f.kind === 'file' ? f.getAsFile() : null) : f;
-    if (file && (IMAGE_TYPE_RE.test(file.type) || file.type === '')) return file;
-  }
-  return null;
+/** 'image' | 'other' for a File (an empty type is tried as an image; decoding decides). */
+export function classifyFile(file) {
+  if (!file) return 'other';
+  if (file.type === '' || /^image\//i.test(file.type)) return 'image';
+  return 'other';
 }
 
+const isTextField = (el) => Boolean(el && (el.matches?.('input[type="text"], input:not([type]), textarea') || el.isContentEditable));
+
 /**
- * @param {{dropZone:HTMLElement, uploadInput:HTMLInputElement, onBlob:(blob:Blob, method:'upload'|'paste'|'drop')=>void, doc?:Document}} opts
- * @returns {() => void} cleanup
+ * @param {{doc:Document, home:HTMLElement, fileInput:HTMLInputElement, certInput:HTMLInputElement, dropTitle:HTMLElement,
+ *   texts:{idle:string, active:string}, isHomeActive:()=>boolean,
+ *   onFile:(file:File, method:'upload'|'paste'|'drop')=>void, onError:(code:'file-type'|'dropped-link')=>void}} o
+ * @returns {{clearDrag:()=>void, dispose:()=>void}}
  */
-export function wireInputs({ dropZone, uploadInput, onBlob, doc = document }) {
+export function wireInputs({ doc, home, fileInput, certInput, dropTitle, texts, isHomeActive, onFile, onError }) {
+  const route = (file, method) => {
+    if (classifyFile(file) === 'image') onFile(file, method);
+    else onError('file-type');
+  };
+
   const onUpload = () => {
-    const file = firstImageFile(uploadInput.files);
-    uploadInput.value = ''; // allow choosing the same file again
-    if (file) onBlob(file, 'upload');
+    const file = fileInput.files?.[0] ?? null;
+    fileInput.value = ''; // allow choosing the same file again
+    if (file) route(file, 'upload');
   };
 
   const onPaste = (e) => {
-    const file = firstImageFile(e.clipboardData?.items) ?? firstImageFile(e.clipboardData?.files);
-    if (!file) return; // plain text paste keeps working in inputs
+    if (!isHomeActive()) return;
+    const items = [...(e.clipboardData?.items ?? [])];
+    const fileItem = items.find((i) => i.kind === 'file');
+    if (fileItem) {
+      const file = fileItem.getAsFile();
+      e.preventDefault(); // an image wins even when focus is in the cert field
+      route(file, 'paste');
+      return;
+    }
+    if (isTextField(doc.activeElement)) return; // normal text paste
+    const text = e.clipboardData?.getData('text/plain') ?? '';
+    if (!text.trim()) return;
     e.preventDefault();
-    onBlob(file, 'paste');
+    certInput.value = text.trim().slice(0, 64);
+    certInput.focus();
+    certInput.dispatchEvent(new Event('input', { bubbles: true }));
   };
 
-  const hasFiles = (e) => [...(e.dataTransfer?.types ?? [])].includes('Files');
+  let dragging = false;
+  const setDrag = (on) => {
+    dragging = on;
+    doc.body.classList.toggle('is-dragover', on);
+    dropTitle.textContent = on ? texts.active : texts.idle;
+  };
+  const isDrag = (e) => [...(e.dataTransfer?.types ?? [])].some((t) => t === 'Files' || t === 'text/uri-list' || t === 'text/html');
+  const onDragEnter = (e) => {
+    if (!isHomeActive() || !isDrag(e)) return;
+    e.preventDefault();
+    setDrag(true);
+  };
   const onDragOver = (e) => {
-    if (!hasFiles(e)) return;
+    if (!isHomeActive() || !isDrag(e)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
-    dropZone.classList.add('is-dragover');
+    if (!dragging) setDrag(true);
   };
-  const onDragLeave = () => dropZone.classList.remove('is-dragover');
+  const onDragLeave = (e) => {
+    if (!home.contains(e.relatedTarget)) setDrag(false);
+  };
   const onDrop = (e) => {
-    dropZone.classList.remove('is-dragover');
-    if (!hasFiles(e)) return;
+    setDrag(false);
+    if (!isHomeActive()) return;
     e.preventDefault();
-    const file = firstImageFile(e.dataTransfer.files);
-    if (file) onBlob(file, 'drop');
+    const file = e.dataTransfer?.files?.[0];
+    if (file) { route(file, 'drop'); return; }
+    const types = [...(e.dataTransfer?.types ?? [])];
+    if (types.includes('text/uri-list') || types.includes('text/html')) onError('dropped-link');
   };
-  // Never let a dropped file navigate the panel away.
-  const swallow = (e) => { if (hasFiles(e)) e.preventDefault(); };
+  // Never let a drop outside Home (e.g. in Settings) navigate the panel away.
+  const swallow = (e) => { if (isDrag(e)) e.preventDefault(); };
+  const onDragEnd = () => setDrag(false);
 
-  uploadInput.addEventListener('change', onUpload);
+  fileInput.addEventListener('change', onUpload);
   doc.addEventListener('paste', onPaste);
-  dropZone.addEventListener('dragover', onDragOver);
-  dropZone.addEventListener('dragleave', onDragLeave);
+  home.addEventListener('dragenter', onDragEnter);
+  home.addEventListener('dragover', onDragOver);
+  home.addEventListener('dragleave', onDragLeave);
+  home.addEventListener('drop', onDrop);
   doc.addEventListener('dragover', swallow);
-  doc.addEventListener('drop', onDrop);
+  doc.addEventListener('drop', swallow);
+  doc.addEventListener('dragend', onDragEnd);
 
-  return () => {
-    uploadInput.removeEventListener('change', onUpload);
-    doc.removeEventListener('paste', onPaste);
-    dropZone.removeEventListener('dragover', onDragOver);
-    dropZone.removeEventListener('dragleave', onDragLeave);
-    doc.removeEventListener('dragover', swallow);
-    doc.removeEventListener('drop', onDrop);
+  return {
+    clearDrag: () => { if (dragging) setDrag(false); },
+    get dragging() { return dragging; },
+    dispose() {
+      fileInput.removeEventListener('change', onUpload);
+      doc.removeEventListener('paste', onPaste);
+      home.removeEventListener('dragenter', onDragEnter);
+      home.removeEventListener('dragover', onDragOver);
+      home.removeEventListener('dragleave', onDragLeave);
+      home.removeEventListener('drop', onDrop);
+      doc.removeEventListener('dragover', swallow);
+      doc.removeEventListener('drop', swallow);
+      doc.removeEventListener('dragend', onDragEnd);
+    },
   };
 }

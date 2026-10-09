@@ -11,7 +11,7 @@ import { addHistoryEntry, makeEntry } from '../shared/history.js';
  * @param {{windowId?:number, chromeApi?:typeof chrome, now?:number}} [opts]
  * @returns {Promise<{url:string, tabId:number|undefined, historySaved:boolean}>}
  */
-export async function openCert(candidate, job, settings, { windowId, chromeApi = globalThis.chrome, now = Date.now() } = {}) {
+export async function openCert(candidate, job, settings, { windowId, chromeApi = globalThis.chrome, now = Date.now(), replaceLatest = false } = {}) {
   const url = buildCertUrl(candidate.grader, candidate.number); // throws RangeError on bad input
   let src = null;
   if (job && Number.isInteger(job.tabId)) {
@@ -32,15 +32,15 @@ export async function openCert(candidate, job, settings, { windowId, chromeApi =
     // Window gone (e.g. popup fallback outlived it): open in the current window instead.
     tab = await chromeApi.tabs.create({ url, active: props.active });
   }
-  const historySaved = await recordHistory(candidate, job, settings, now);
-  return { url, tabId: tab?.id, historySaved };
+  const historySaved = await recordHistory(candidate, job, settings, now, { replace: replaceLatest });
+  return { url, tabId: tab?.id, active: props.active, historySaved };
 }
 
 /** History is written when a cert is opened or copied, only if saveHistory is on (ADR §9). */
-export async function recordHistory(candidate, job, settings, now = Date.now()) {
+export async function recordHistory(candidate, job, settings, now = Date.now(), { replace = false } = {}) {
   if (!settings?.saveHistory) return false;
   try {
-    await addHistoryEntry(makeEntry(candidate, job?.pageUrl ?? null, now));
+    await addHistoryEntry(makeEntry(candidate, job?.pageUrl ?? null, now), { replace });
     return true;
   } catch {
     return false;

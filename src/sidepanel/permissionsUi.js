@@ -13,11 +13,14 @@ export function originPattern(origin) {
   }
 }
 
-/** Call directly from a click handler. Resolves to true when granted. */
+/**
+ * Call directly from a click handler. Resolves true (granted) / false (denied); rejects when Chrome could not
+ * show the request (UX spec N1 "failed").
+ */
 export function requestSharper(origin, chromeApi = globalThis.chrome) {
   const pattern = originPattern(origin);
   if (!pattern) return Promise.resolve(false);
-  return chromeApi.permissions.request({ origins: [pattern] }).catch(() => false);
+  return chromeApi.permissions.request({ origins: [pattern] });
 }
 
 const SITE_RE = /^https:\/\/([a-z0-9.-]+)\/\*$/i;

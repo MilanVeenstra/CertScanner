@@ -10,7 +10,7 @@ export function t(key, subs) {
 /**
  * - data-i18n="key"                 -> textContent
  * - data-i18n-attr="attr:key;attr2:key2" -> attributes (aria-label, placeholder, title, alt)
- * Also sets <html lang> from the 'localeCode' message.
+ * Also sets <html lang> from the 'locale_code' message and dir from @@bidi_dir.
  */
 const ALLOWED_ATTRS = new Set(['aria-label', 'placeholder', 'title', 'alt', 'aria-description']);
 
@@ -22,6 +22,10 @@ export function applyI18n(root = document) {
       if (attr && key && ALLOWED_ATTRS.has(attr)) el.setAttribute(attr, t(key));
     }
   }
-  const lang = t('localeCode');
-  if (root.documentElement && /^[a-z]{2}(-[A-Z]{2})?$/.test(lang)) root.documentElement.lang = lang;
+  if (root.documentElement) {
+    const lang = t('locale_code');
+    if (/^[a-z]{2}(-[A-Z]{2})?$/.test(lang)) root.documentElement.lang = lang;
+    const dir = t('@@bidi_dir');
+    if (dir === 'ltr' || dir === 'rtl') root.documentElement.dir = dir;
+  }
 }

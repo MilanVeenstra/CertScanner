@@ -31,10 +31,20 @@ test('createScanJob defaults frameId to 0 and frameUrl to null; falls back to ta
   assert.equal(job.pageUrl, 'https://shop.example.com/item/1');
 });
 
-test('createScanJob turns oversize or unsupported srcUrl into null (-> too-large)', () => {
+test('createScanJob turns oversize or unsupported srcUrl into null and says why (srcIssue)', () => {
   const big = 'data:image/png;base64,' + 'A'.repeat(MAX_SRC_URL_CHARS);
-  assert.equal(createScanJob(info({ srcUrl: big }), tab(), NOW, ID).srcUrl, null);
-  assert.equal(createScanJob(info({ srcUrl: 'filesystem:https://x/y' }), tab(), NOW, ID).srcUrl, null);
+  const tooLong = createScanJob(info({ srcUrl: big }), tab(), NOW, ID);
+  assert.equal(tooLong.srcUrl, null);
+  assert.equal(tooLong.srcIssue, 'too-long');
+  const fs = createScanJob(info({ srcUrl: 'filesystem:https://x/y' }), tab(), NOW, ID);
+  assert.equal(fs.srcUrl, null);
+  assert.equal(fs.srcIssue, 'unsupported');
+  assert.equal(parseScanJob(fs, { now: NOW, windowId: 7 }).job.srcIssue, 'unsupported');
+  assert.equal(createScanJob(info(), tab(), NOW, ID).srcIssue, undefined);
+  // Unknown srcIssue values are dropped, older jobs without the field still parse
+  const odd = parseScanJob({ ...fs, srcIssue: 'evil' }, { now: NOW, windowId: 7 });
+  assert.equal(odd.ok, true);
+  assert.equal('srcIssue' in odd.job, false);
   const okData = 'data:image/png;base64,AAAA';
   assert.equal(createScanJob(info({ srcUrl: okData }), tab(), NOW, ID).srcUrl, okData);
   const parsed = parseScanJob(createScanJob(info({ srcUrl: big }), tab(), NOW, ID), { now: NOW, windowId: 7 });

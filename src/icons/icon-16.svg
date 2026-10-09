@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- 16 px hand-tuned variant (UX spec §11), aligned to the pixel grid. -->
+  <rect x="2.5" y="1.5" width="8" height="13" rx="1.5" fill="#FFFFFF" stroke="#0F6E66"/>
+  <path d="M2 3a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v2H2z" fill="#0F6E66"/>
+  <circle cx="10.5" cy="10.5" r="3" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3"/>
+  <path d="M12.6 12.6l1.8 1.8" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="10.5" cy="10.5" r="3" fill="#FFFFFF" stroke="#1A1D21" stroke-width="1.5"/>
+  <path d="M12.6 12.6l1.8 1.8" stroke="#1A1D21" stroke-width="2" stroke-linecap="round"/>
+</svg>

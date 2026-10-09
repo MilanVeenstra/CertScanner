@@ -84,9 +84,27 @@ test('addEntry: newest first, dedupe on grader+number, cap 25', () => {
   assert.throws(() => addEntry(h, entry({ number: 'abc' })), TypeError);
 });
 
-test('makeEntry builds a minimal entry (no URLs, no image data)', () => {
+test('makeEntry builds a minimal entry (no URLs, no host, no image data)', () => {
   const e = makeEntry({ grader: 'psa', number: '01234567', source: 'ocr' }, 'https://www.ebay.com/itm/1?x=y', 1_760_000_000_000);
-  assert.deepEqual(e, { grader: 'psa', number: '01234567', at: 1_760_000_000_000, source: 'ocr', pageHost: 'www.ebay.com' });
+  assert.deepEqual(e, { grader: 'psa', number: '01234567', at: 1_760_000_000_000, source: 'ocr', pageHost: null });
   assert.equal(makeEntry({ grader: 'psa', number: '01234567', source: 'manual' }, null, 1).pageHost, null);
-  assert.equal(makeEntry({ grader: 'psa', number: '01234567', source: 'ocr' }, 'chrome://x', 1).pageHost, null);
+});
+
+test('replaceLatest swaps the newest entry for a correction (J12), count unchanged', async () => {
+  const { replaceLatest } = await import('../../src/shared/history.js');
+  let h = { v: 1, entries: [] };
+  h = addEntry(h, entry({ number: '11111111', at: 1 }));
+  h = addEntry(h, entry({ number: '01234547', at: 2 })); // wrong auto-open
+  const fixed = replaceLatest(h, entry({ number: '01234567', at: 3, source: 'manual' }));
+  assert.deepEqual(fixed.entries.map((e) => e.number), ['01234567', '11111111']);
+  // Correction equal to an older entry: deduped, still no growth
+  const dup = replaceLatest(h, entry({ number: '11111111', at: 4 }));
+  assert.deepEqual(dup.entries.map((e) => e.number), ['11111111']);
+  // Empty history: behaves like addEntry
+  assert.equal(replaceLatest({ v: 1, entries: [] }, entry()).entries.length, 1);
+});
+
+test('makeEntry never stores the page host (spec R-09: grader, number, method, time only)', () => {
+  const e = makeEntry({ grader: 'psa', number: '01234567', source: 'ocr' }, 'https://www.ebay.com/itm/1', 5);
+  assert.equal(e.pageHost, null);
 });

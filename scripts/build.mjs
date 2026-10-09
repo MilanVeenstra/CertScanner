@@ -252,7 +252,24 @@ async function check(info) {
   let i18nOk = true;
   for (const k of enKeys) if (!(k in nl)) { fail(`nl locale missing ${k}`); i18nOk = false; }
   for (const k of nlKeys) if (!(k in en)) { fail(`en locale missing ${k}`); i18nOk = false; }
-  for (const k of enKeys) if (!/^[a-z][a-zA-Z0-9]*$/.test(k)) { fail(`locale key not camelCase: ${k}`); i18nOk = false; }
+  for (const k of enKeys) if (!/^[a-z][a-z0-9_]*$/.test(k)) { fail(`locale key not snake_case (ADR A3 / UX spec §6): ${k}`); i18nOk = false; }
+  // Placeholders must match between locales; descriptions stay <= 132 chars (CWS); no authenticity wording outside the negative notes.
+  for (const k of enKeys) {
+    if (!(k in nl)) continue;
+    const pe = Object.keys(en[k].placeholders ?? {}).sort().join();
+    const pn = Object.keys(nl[k].placeholders ?? {}).sort().join();
+    if (pe !== pn) { fail(`placeholder mismatch for ${k}: en[${pe}] nl[${pn}]`); i18nOk = false; }
+    for (const [lang, msgs] of [['en', en], ['nl', nl]]) {
+      const used = [...msgs[k].message.matchAll(/\$([A-Za-z0-9_]+)\$/g)].map((x) => x[1].toLowerCase()).sort();
+      const declared = Object.keys(msgs[k].placeholders ?? {}).map((x) => x.toLowerCase()).sort();
+      if (used.some((u) => !declared.includes(u))) { fail(`${lang}.${k}: undeclared placeholder`); i18nOk = false; }
+      if (/\b(verified|authentic|genuine|echt)\b/i.test(msgs[k].message) && !['verify_note', 'about_lookup'].includes(k)) { fail(`${lang}.${k}: authenticity wording outside the negative notes`); i18nOk = false; }
+    }
+  }
+  for (const [lang, msgs] of [['en', en], ['nl', nl]]) {
+    const d = msgs.ext_description?.message ?? '';
+    if (d.length > 132) { fail(`${lang}.ext_description is ${d.length} > 132 characters`); i18nOk = false; }
+  }
   const used = new Set();
   for (const k of manifestRaw.match(/__MSG_(\w+)__/g) ?? []) used.add(k.slice(6, -2));
   for (const f of srcFiles) {
@@ -261,9 +278,12 @@ async function check(info) {
       for (const mm of text.matchAll(/data-i18n="([^"]+)"/g)) used.add(mm[1]);
       for (const mm of text.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const pair of mm[1].split(';')) used.add(pair.split(':')[1]?.trim());
     }
-    for (const mm of text.matchAll(/\bt\(\s*'([a-zA-Z0-9]+)'/g)) used.add(mm[1]);
-    for (const mm of text.matchAll(/getMessage\(\s*'([a-zA-Z0-9]+)'/g)) used.add(mm[1]);
-    for (const mm of text.matchAll(/:\s*'((?:state|error|warning|grader|source|action|settings|a11y|label|footer|menu)[A-Z][a-zA-Z0-9]*)'/g)) used.add(mm[1]);
+    for (const mm of text.matchAll(/\bt\(\s*'([a-z][a-z0-9_]*)'/g)) used.add(mm[1]);
+    for (const mm of text.matchAll(/getMessage\(\s*'([a-z][a-z0-9_]*)'/g)) used.add(mm[1]);
+    // Keys referenced from data tables, e.g. { k: 'err_restricted' } -> err_restricted_heading/_body, or key: 'method_ocr'
+    const bases = new Set();
+    for (const mm of text.matchAll(/\bk:\s*'([a-z][a-z0-9_]*)'/g)) { bases.add(mm[1]); used.add(`${mm[1]}_heading`); used.add(`${mm[1]}_body`); }
+    for (const mm of text.matchAll(/'((?:method|reason|step|err|warn|grader|status|image|perm|recent|setting|settings|about|lowres|url)_[a-z0-9_]+)'/g)) if (!bases.has(mm[1])) used.add(mm[1]);
   }
   used.delete(undefined);
   for (const k of used) if (!(k in en)) { fail(`locale key used but not defined: ${k}`); i18nOk = false; }

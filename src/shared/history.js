@@ -37,16 +37,18 @@ export function addEntry(history, entry, max = MAX_HISTORY) {
   return { v: HISTORY_VERSION, entries: [e, ...rest].slice(0, max) };
 }
 
-/** Entry from a candidate (grader + number chosen by the user) and the page URL it came from. */
-export function makeEntry({ grader, number, source }, pageUrl, at) {
-  let pageHost = null;
-  if (typeof pageUrl === 'string') {
-    try {
-      const u = new URL(pageUrl);
-      if ((u.protocol === 'https:' || u.protocol === 'http:') && HOST_RE.test(u.hostname)) pageHost = u.hostname;
-    } catch { /* keep null */ }
-  }
-  return { grader, number, at, source: SOURCES.has(source) ? source : 'manual', pageHost };
+/**
+ * Entry from a candidate (grader + number chosen by the user). The page host is never stored
+ * (UX spec R-09: grader, number, method and time only); `pageHost` stays in the schema as null.
+ */
+export function makeEntry({ grader, number, source }, _pageUrl, at) {
+  return { grader, number, at, source: SOURCES.has(source) ? source : 'manual', pageHost: null };
+}
+
+/** Pure reducer for "Wrong number? Edit" (spec J12): the newest entry is replaced, not duplicated. */
+export function replaceLatest(history, entry, max = MAX_HISTORY) {
+  const rest = (history?.entries ?? []).slice(1);
+  return addEntry({ v: HISTORY_VERSION, entries: rest }, entry, max);
 }
 
 const area = () => globalThis.chrome.storage.local;
@@ -58,9 +60,9 @@ export async function loadHistory() {
   return value;
 }
 
-export async function addHistoryEntry(entry) {
+export async function addHistoryEntry(entry, { replace = false } = {}) {
   const current = await loadHistory();
-  const next = addEntry(current, entry);
+  const next = replace ? replaceLatest(current, entry) : addEntry(current, entry);
   await area().set({ [HISTORY_KEY]: next });
   return next;
 }

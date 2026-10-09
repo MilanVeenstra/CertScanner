@@ -31,8 +31,8 @@
     "architecture": {
       "status": "evidenced",
       "evidence": "docs/architecture/architecture.md",
-      "sha256": "52402158bae70d1cf1172e845029febcd7e4b5fd16f68071152296ffe6b07861",
-      "recorded_at": "2026-10-09T21:14:57.437208+00:00"
+      "sha256": "d214f4e6c4dde272c2cd450ab7e31c0098c5a56896aeecf4d5c329edd8159afc",
+      "recorded_at": "2026-10-09T21:33:42.062648+00:00"
     },
     "design": {
       "status": "pending"
@@ -102,6 +102,32 @@
         }
       },
       "recorded_at": "2026-10-09T21:14:57.366482+00:00"
+    },
+    {
+      "action": "invalidate",
+      "stage": "architecture",
+      "reason": "ADR amendment A7 after security review round 1",
+      "previous": {
+        "architecture": {
+          "status": "evidenced",
+          "evidence": "docs/architecture/architecture.md",
+          "sha256": "52402158bae70d1cf1172e845029febcd7e4b5fd16f68071152296ffe6b07861",
+          "recorded_at": "2026-10-09T21:14:57.437208+00:00"
+        },
+        "design": {
+          "status": "pending"
+        },
+        "build": {
+          "status": "pending"
+        },
+        "test": {
+          "status": "pending"
+        },
+        "release": {
+          "status": "pending"
+        }
+      },
+      "recorded_at": "2026-10-09T21:33:41.978636+00:00"
     }
   ]
 }

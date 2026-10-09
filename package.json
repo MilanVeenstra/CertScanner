@@ -1,0 +1,24 @@
+{
+  "name": "certscanner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension that reads the certification number from a PSA or CGC slab image and opens the official verification page.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/unit/",
+    "fixtures": "node scripts/gen-fixtures.mjs",
+    "e2e": "node --test tests/e2e/"
+  },
+  "devDependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
+    "bwip-js": "4.8.0",
+    "playwright": "1.56.1",
+    "tesseract.js": "7.0.0",
+    "zxing-wasm": "3.1.5"
+  }
+}

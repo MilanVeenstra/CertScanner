@@ -33,6 +33,7 @@
   <symbol id="i-step-done" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="currentColor" stroke="none"/><path d="m5.25 8.25 1.75 1.75 3.75-4" stroke="var(--cs-bg)"/></symbol>
   <symbol id="i-wifi-off" viewBox="0 0 16 16"><path d="m2 2 12 12M5.75 10.75a3.25 3.25 0 0 1 4.5 0M3 8.25a7 7 0 0 1 3.25-1.9M13 8.25a7 7 0 0 0-2.6-1.7M8 13.25v.1"/></symbol>
   <symbol id="i-tab" viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9.5" rx="1.5"/><path d="M2 6.5h5v-3"/></symbol>
+  <symbol id="i-scan-page" viewBox="0 0 16 16"><path d="M2 5V3a1 1 0 0 1 1-1h2M11 2h2a1 1 0 0 1 1 1v2M14 11v2a1 1 0 0 1-1 1h-2M5 14H3a1 1 0 0 1-1-1v-2"/><rect x="5.5" y="4.5" width="5" height="7" rx="1"/><path d="M5.5 6.5h5"/></symbol>
   <symbol id="i-logo" viewBox="0 0 16 16"><rect x="2.5" y="1.5" width="8" height="13" rx="1.5" fill="#FFFFFF" stroke="#0F6E66"/><path d="M2 3a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v2H2z" fill="#0F6E66" stroke="none"/><circle cx="10.5" cy="10.5" r="3" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3"/><path d="m12.6 12.6 1.8 1.8" stroke="#FFFFFF" stroke-width="3.5"/><circle cx="10.5" cy="10.5" r="3" fill="#FFFFFF" stroke="#1A1D21" stroke-width="1.5"/><path d="m12.6 12.6 1.8 1.8" stroke="#1A1D21" stroke-width="2"/></symbol>
 </svg>
 
@@ -52,8 +53,10 @@
     <div id="task-body"></div>
   </section>
 
-  <section id="image-input" class="section" aria-labelledby="input-heading">
-    <h2 id="input-heading" data-i18n="input_heading">Scan an image</h2>
+  <section id="other-ways" class="section" aria-labelledby="other-heading">
+  <h2 id="other-heading" data-i18n="other_ways_heading">Other ways to scan</h2>
+  <section id="image-input" class="subsection" aria-labelledby="input-heading">
+    <h3 id="input-heading" data-i18n="input_heading">Scan an image</h3>
     <div id="drop-zone" class="drop-zone">
       <svg class="icon drop-icon" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>
       <p class="drop-title" id="drop-title" data-i18n="drop_title">Drop a slab photo here</p>
@@ -66,8 +69,8 @@
     </div>
   </section>
 
-  <section id="manual" class="section" aria-labelledby="manual-heading">
-    <h2 id="manual-heading" data-i18n="manual_heading">Type a cert number</h2>
+  <section id="manual" class="subsection" aria-labelledby="manual-heading">
+    <h3 id="manual-heading" data-i18n="manual_heading">Type a cert number</h3>
     <form id="manual-form" novalidate>
       <div class="field">
         <label for="cert-input" data-i18n="field_cert_label">Cert number</label>
@@ -92,6 +95,7 @@
       <p class="hint url-preview" id="url-preview" dir="auto"></p>
     </form>
   </section>
+  </section>
 
   <section id="recent" class="section" aria-labelledby="recent-heading">
     <h2 id="recent-heading" data-i18n="recent_heading">Recent scans</h2>
@@ -108,6 +112,16 @@
     </button>
     <h2 id="settings-heading" tabindex="-1" data-i18n="nav_settings">Settings</h2>
   </div>
+
+  <section class="section" aria-labelledby="toolbar-heading">
+    <h3 id="toolbar-heading" data-i18n="settings_toolbar_heading">Toolbar icon</h3>
+    <label class="switch-row" for="setting-scan-on-click">
+      <span class="switch-text" data-i18n="setting_scan_on_click">Scan the page when I click the icon</span>
+      <input type="checkbox" role="switch" id="setting-scan-on-click" data-testid="setting-scanOnToolbarClick" data-setting="scanOnToolbarClick" aria-describedby="hint-scan-on-click">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+    </label>
+    <p class="hint switch-hint" id="hint-scan-on-click" data-i18n="setting_scan_on_click_hint"></p>
+  </section>
 
   <section class="section" aria-labelledby="opening-heading">
     <h3 id="opening-heading" data-i18n="settings_opening_heading">Opening cert pages</h3>
@@ -164,11 +178,14 @@
      Elements carrying ADR §13 test ids are singletons kept in #parking and moved into [data-slot] placeholders,
      so each id exists exactly once in the document at all times (e2e presence + Playwright strict locators). -->
 <template id="tpl-idle">
-  <p data-ref="idle-body"></p>
-  <p class="muted" data-i18n="idle_body_alt"></p>
+  <p data-i18n="page_scan_lead"></p>
+  <div class="actions"><span data-slot="pagescan"></span></div>
+  <p class="muted" data-ref="right-click-hint"></p>
+  <p class="muted" data-ref="shortcut-hint"></p>
 </template>
 
 <template id="tpl-scanning">
+  <span data-slot="pageprogress"></span>
   <div class="media-row"><span data-slot="thumb"></span><span data-slot="steps"></span></div>
   <p class="caption muted" data-ref="caption"></p>
   <p class="muted" data-ref="slow" data-i18n="scan_slow" hidden></p>
@@ -272,6 +289,52 @@
   <li class="site-row"><span class="site-host" dir="ltr" data-ref="host"></span><button type="button" class="btn btn-secondary btn-sm" data-ref="remove"><span data-ref="remove-label" data-i18n="remove_button"></span></button></li>
 </template>
 
+<template id="tpl-page-results">
+  <p data-ref="summary"></p>
+  <div data-ref="qr-slot"></div>
+  <span data-slot="pageresults"></span>
+  <div class="actions"><button type="button" class="btn btn-secondary" data-action="page-scan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="page_scan_again"></span></button></div>
+  <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
+</template>
+
+<template id="tpl-page-row">
+  <li class="page-row">
+    <div class="thumb thumb-sm" data-ref="thumb-box" hidden><img data-ref="thumb" alt=""></div>
+    <div class="page-row-main">
+      <div class="cand-top"><span class="chip" data-ref="chip"></span><span class="cert cert-sm" dir="ltr" data-ref="number"></span></div>
+      <p class="muted cand-meta" data-ref="meta"></p>
+      <p class="muted path" dir="ltr" data-ref="path"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-secondary btn-sm" data-ref="open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-label" data-i18n="recent_open"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+        <button type="button" class="btn btn-secondary btn-sm" data-ref="choose" hidden><span data-ref="choose-label" data-i18n="page_result_choose"></span></button>
+        <button type="button" class="icon-btn" data-ref="copy"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span class="visually-hidden" data-ref="copy-label" data-i18n="recent_copy"></span></button>
+      </div>
+    </div>
+  </li>
+</template>
+
+<template id="tpl-page-none">
+  <p data-ref="none-reason"></p>
+  <div data-ref="qr-slot"></div>
+  <ul class="tips">
+    <li data-i18n="page_tip_open_photo"></li>
+    <li data-ref="tip-right-click"></li>
+    <li data-i18n="page_tip_upload"></li>
+  </ul>
+  <div class="actions">
+    <button type="button" class="btn btn-secondary" data-action="page-scan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="page_scan_again"></span></button>
+    <button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
+  </div>
+</template>
+
+<template id="tpl-page-access">
+  <p data-ref="access-body"></p>
+  <div data-ref="always" hidden>
+    <div class="actions"><button type="button" class="btn btn-primary host-btn" data-testid="always-allow-button" data-action="always-allow"><span data-ref="always-label"></span></button></div>
+    <p class="hint" data-ref="always-fine"></p>
+  </div>
+</template>
+
 <!-- Parking for the §13 singletons while their state is not shown (hidden; not in the tab order). -->
 <div id="parking" hidden>
   <div class="thumb" data-single="thumb"><svg class="icon thumb-placeholder" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><img data-testid="preview" alt="" hidden></div>
@@ -318,6 +381,9 @@
   <button type="button" class="btn btn-secondary" data-testid="cancel-button" data-action="cancel" data-single="cancel" data-i18n="cancel_button">Cancel</button>
   <button type="button" class="btn btn-secondary host-btn" data-testid="sharper-button" data-action="sharper" data-single="sharper"><span data-ref="sharper-label"></span></button>
   <p data-testid="error-message" data-single="error" tabindex="-1"></p>
+  <button type="button" class="btn btn-primary" data-testid="page-scan-button" data-action="page-scan" data-single="pagescan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="page_scan_button">Scan this page</span></button>
+  <p class="page-progress" data-testid="page-progress" data-single="pageprogress" hidden></p>
+  <ul class="page-results" data-testid="page-result-list" data-single="pageresults" aria-labelledby="task-heading"></ul>
 </div>
 </body>
 </html>

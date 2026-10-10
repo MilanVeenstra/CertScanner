@@ -207,6 +207,9 @@ function manifestProblems(manifestRaw, has) {
   if (m.incognito !== 'not_allowed') out.push('manifest must set "incognito": "not_allowed" (SEC-01: no history writes from incognito)');
   const referenced = [m.background?.service_worker, m.side_panel?.default_path, ...Object.values(m.icons ?? {})].filter(Boolean);
   for (const f of referenced) if (!has(f)) out.push(`manifest references missing file ${f}`);
+  // A9: page-scan keyboard command (a manifest key, not a permission)
+  const cmd = m.commands?.['scan-page'];
+  if (!cmd || !/^__MSG_[a-z0-9_]+__$/.test(cmd.description ?? '') || !cmd.suggested_key?.default) out.push('manifest needs commands["scan-page"] with a suggested key and a localized description (A9)');
   return out;
 }
 
@@ -324,7 +327,7 @@ async function check(info) {
   const manifestRaw = await readFile(path.join(OUT, 'manifest.json'), 'utf8');
   const manifestIssues = manifestProblems(manifestRaw, (f) => existsSync(path.join(OUT, f)));
   for (const p of manifestIssues) fail(p);
-  if (!manifestIssues.length) pass('manifest: MV3, exact permissions, no host_permissions/<all_urls>, incognito not_allowed, ADR CSP, referenced files exist');
+  if (!manifestIssues.length) pass('manifest: MV3, exact permissions, no host_permissions/<all_urls>, incognito not_allowed, ADR CSP, scan-page command, referenced files exist');
 
   // 2. No e2e harness in the release build
   if (existsSync(path.join(OUT, 'e2e-harness'))) fail('dist/ contains e2e-harness/'); else pass('no e2e-harness/ in dist/');

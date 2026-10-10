@@ -375,3 +375,60 @@ export async function acquireFromBlob(blob, method, { signal } = {}) {
   if (!d.ok) return { ok: false, reason: d.reason, origin: null, canRequestSharper: false };
   return success(d.bitmap, blob, ['upload', 'paste', 'drop'].includes(method) ? method : 'upload', 'full', null, false);
 }
+
+// ---------------------------------------------------------------- A9 page mode helpers
+
+/** Same tab still active in its window with the job's page origin (SEC-08), or null. */
+async function activeSameOrigin(job, chromeApi, sig) {
+  let tab;
+  try { tab = await raceAbort(chromeApi.tabs.get(job.tabId), sig); } catch { return null; }
+  let tabOrigin = null;
+  try { tabOrigin = tab.url ? new URL(tab.url).origin : null; } catch { tabOrigin = null; }
+  return tab.active && tab.windowId === job.windowId && tabOrigin && tabOrigin === imageOriginOf(job.pageUrl) ? tab : null;
+}
+
+/**
+ * One screenshot of the visible tab for page mode (no scrolling). Tab/origin are checked before and after.
+ * @returns {Promise<{ok:true, bitmap:ImageBitmap} | {ok:false, reason:'tab-changed'|'capture-failed'}>}
+ */
+export async function captureViewport(job, { signal, chromeApi = globalThis.chrome } = {}) {
+  const tab = await activeSameOrigin(job, chromeApi, signal);
+  if (!tab) return { ok: false, reason: 'tab-changed' };
+  let dataUrl = null;
+  for (let attempt = 0; attempt < 2 && !dataUrl; attempt++) {
+    try {
+      dataUrl = await raceAbort(chromeApi.tabs.captureVisibleTab(tab.windowId, { format: 'png' }), signal);
+    } catch (e) {
+      if (signal?.aborted) throw e;
+      if (attempt === 0 && /MAX_CAPTURE|per second|quota/i.test(String(e?.message))) await new Promise((r) => setTimeout(r, 600));
+      else return { ok: false, reason: 'capture-failed' };
+    }
+  }
+  if (!dataUrl) return { ok: false, reason: 'capture-failed' };
+  if (!(await activeSameOrigin(job, chromeApi, signal))) return { ok: false, reason: 'tab-changed' };
+  try {
+    return { ok: true, bitmap: await createImageBitmap(await dataUrlToBlob(dataUrl)) };
+  } catch {
+    return { ok: false, reason: 'capture-failed' };
+  }
+}
+
+/** Crop a CSS-px rect (viewport coordinates) out of a viewport screenshot. PNG blob, or null when too small. */
+export async function cropToBlob(shot, rect, viewport) {
+  const scale = shot.width / viewport.width;
+  const x0 = Math.max(0, Math.floor(rect.x * scale));
+  const y0 = Math.max(0, Math.floor(rect.y * scale));
+  const x1 = Math.min(shot.width, Math.ceil((rect.x + rect.width) * scale));
+  const y1 = Math.min(shot.height, Math.ceil((rect.y + rect.height) * scale));
+  if (x1 - x0 < MIN_SIDE || y1 - y0 < MIN_SIDE) return null;
+  const canvas = new OffscreenCanvas(x1 - x0, y1 - y0);
+  canvas.getContext('2d').drawImage(shot, x0, y0, x1 - x0, y1 - y0, 0, 0, x1 - x0, y1 - y0);
+  return canvas.convertToBlob({ type: 'image/png' });
+}
+
+/** Wrap a decoded blob as an AcquireResult (page-mode crops). */
+export async function acquiredFromBlob(blob, method, resolution, origin, canRequestSharper) {
+  const d = await decodeBlob(blob);
+  if (!d.ok) return { ok: false, reason: d.reason, origin, canRequestSharper: false };
+  return success(d.bitmap, blob, method, resolution, origin, canRequestSharper);
+}

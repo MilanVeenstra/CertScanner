@@ -67,6 +67,8 @@ export function parseScanJob(raw, { now, windowId }) {
   if (typeof raw.createdAt !== 'number' || !Number.isFinite(raw.createdAt)) return { ok: false, reason: 'shape' };
   const age = now - raw.createdAt;
   if (age < -MAX_FUTURE_SKEW_MS || age > JOB_TTL_MS) return { ok: false, reason: 'stale' };
+  if (raw.kind === 'page') return parsePageJob(raw);
+  if (raw.kind !== undefined && raw.kind !== 'image') return { ok: false, reason: 'shape' };
   const srcOk = raw.srcUrl === null
     || (typeof raw.srcUrl === 'string' && raw.srcUrl.length <= MAX_SRC_URL_CHARS && SRC_SCHEME_RE.test(raw.srcUrl));
   const ok = typeof raw.id === 'string' && raw.id.length > 0 && raw.id.length <= 64
@@ -85,4 +87,37 @@ export function parseScanJob(raw, { now, windowId }) {
   };
   if (raw.srcUrl === null && SRC_ISSUES.has(raw.srcIssue)) job.srcIssue = raw.srcIssue;
   return { ok: true, job };
+}
+
+// ---------------------------------------------------------------- A9 page jobs
+
+/** Triggers that may create a page job. */
+export const PAGE_JOB_SOURCES = new Set(['action', 'command', 'panel']);
+
+/**
+ * Page scan job from the toolbar click, the keyboard command or the panel button (A9).
+ * A tab the extension cannot read has no `url`: pageUrl '' then routes to the restricted path.
+ * @returns {import('../core/types.js').PageScanJob}
+ */
+export function createPageJob(tab, now, id, source) {
+  return {
+    v: SCAN_JOB_VERSION, id, createdAt: now, kind: 'page', source, srcUrl: null,
+    pageUrl: minimizePageUrl(tab?.url ?? ''), frameId: 0, tabId: tab.id, windowId: tab.windowId,
+  };
+}
+
+function parsePageJob(raw) {
+  const ok = typeof raw.id === 'string' && raw.id.length > 0 && raw.id.length <= 64
+    && PAGE_JOB_SOURCES.has(raw.source)
+    && raw.srcUrl === null
+    && raw.mediaType === undefined
+    && typeof raw.pageUrl === 'string' && raw.pageUrl.length <= MAX_PAGE_URL_CHARS
+    && (raw.frameId === undefined || raw.frameId === 0)
+    && isNonNegInt(raw.tabId)
+    && Number.isInteger(raw.windowId);
+  if (!ok) return { ok: false, reason: 'shape' };
+  return {
+    ok: true,
+    job: { v: SCAN_JOB_VERSION, id: raw.id, createdAt: raw.createdAt, kind: 'page', source: raw.source, srcUrl: null, pageUrl: raw.pageUrl, frameId: 0, tabId: raw.tabId, windowId: raw.windowId },
+  };
 }

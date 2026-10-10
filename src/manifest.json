@@ -10,6 +10,9 @@
   "action": { "default_title": "__MSG_action_title__" },
   "background": { "service_worker": "background/sw.js", "type": "module" },
   "side_panel": { "default_path": "sidepanel/sidepanel.html" },
+  "commands": {
+    "scan-page": { "suggested_key": { "default": "Alt+Shift+S" }, "description": "__MSG_command_scan_page__" }
+  },
   "permissions": ["contextMenus", "activeTab", "scripting", "storage", "sidePanel"],
   "optional_host_permissions": ["https://*/*"],
   "content_security_policy": { "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'" }

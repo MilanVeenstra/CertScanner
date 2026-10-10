@@ -124,7 +124,7 @@ describe('SEC-03 hostile busy page / SEC-04 decode bomb (dist-e2e)', { concurren
   });
 });
 
-describe('SEC-06 / J7 accept path: Sharper re-run after a screen-resolution read opens at most one tab per job', { concurrency: false }, () => {
+describe('SEC-06: one job never auto-opens twice (Sharper grant → Rescan, re-runs, identical job id)', { concurrency: false }, () => {
   let servers;
   let tls;
   let env;
@@ -140,7 +140,9 @@ describe('SEC-06 / J7 accept path: Sharper re-run after a screen-resolution read
     await tls?.close();
   });
 
-  test('small on-screen image → confirm/none with offer → grant (stubbed) → full-resolution re-run auto-opens once; rescan opens nothing more', T, async () => {
+  test('screen-resolution read → offer → grant (stubbed) → Rescan at full resolution auto-opens once; further re-runs and a re-delivered job id open nothing', T, async () => {
+    // UX5: Sharper is offered only in confirm/none after a screen capture, so the image is shown small
+    // (110 px) to make the capture unreadable; the full-resolution re-run after the grant then auto-opens.
     const img = `${tls.origin}/psa-8digit-leading-zero.png`;
     const page0 = env.context.pages()[0];
     await page0.goto(`${servers.A}/__e2e/page.html?img=${encodeURIComponent(img)}&w=110&id=img-https-small`);
@@ -150,27 +152,33 @@ describe('SEC-06 / J7 accept path: Sharper re-run after a screen-resolution read
     assert.ok(await stubPermissions(p.page, { grant: true }), 'chrome.permissions stubbed in the panel realm');
     const want = 'https://www.psacard.com/cert/01234567';
     const count = async () => (await E.graderTabs(env)).filter((t) => t.url === want).length;
+    const visibleTestId = (ids) => p.page.evaluate((list) => {
+      const b = list.map((id) => document.querySelector(`[data-testid="${id}"]`)).find((x) => x && !x.hidden && !x.closest('[hidden]') && x.getClientRects().length);
+      return b ? b.dataset.testid : null;
+    }, ids);
+
     const mark = await E.logMark(p.page);
-    await E.writeJob(env, { windowId: tab.windowId, tabId: tab.id, srcUrl: img, pageUrl: tab.url });
+    const job = await E.writeJob(env, { windowId: tab.windowId, tabId: tab.id, srcUrl: img, pageUrl: tab.url });
     const first = await E.waitForScanEnd(p.page, mark);
-    await E.sleep(800);
     console.log(`# SEC-06 first (capture) scan: ${first.state} ${first.number} sharper=${first.sharperVisible} tabs=${await count()}`);
-    assert.ok(first.sharperVisible, `precondition: Sharper offered after a screen-resolution read (state ${first.state})`);
+    assert.ok(['confirm', 'none'].includes(first.state) && first.sharperVisible, `precondition: offer after a screen-resolution read (state ${first.state})`);
+
+    await p.page.locator(tid('sharper-button')).click();
+    await E.poll(async () => (await visibleTestId(['rescan-button'])) === 'rescan-button', { message: 'Rescan offered after the grant', timeout: 10000 });
     const fetchesBefore = tls.log.filter((r) => r.dest !== 'image').length;
     const mark2 = await E.logMark(p.page);
-    await p.page.locator(tid('sharper-button')).click();
+    await p.page.locator(tid('rescan-button')).click();
     const second = await E.waitForScanEnd(p.page, mark2);
     await E.sleep(1500);
-    console.log(`# SEC-06 after grant: requests=${await p.page.evaluate(() => window.__perm.requests)} rerun=${second.state} ${second.number} tabs=${await count()}`);
+    console.log(`# SEC-06 Rescan after grant: ${second.state} ${second.number} tabs=${await count()}`);
     assert.ok(tls.log.filter((r) => r.dest !== 'image').length > fetchesBefore, 'full-resolution fetch of the image after the grant');
     assert.equal(second.number, '01234567');
-    assert.ok((await count()) <= 1, 'at most one tab after the re-run');
+    assert.equal(second.state, 'auto-open');
+    assert.equal(await count(), 1, 'exactly one tab after the re-run');
+
     let reruns = 0;
     for (let i = 0; i < 2; i++) {
-      const id = await p.page.evaluate(() => {
-        const b = [...document.querySelectorAll('[data-testid="rescan-button"], [data-testid="retry-button"]')].find((x) => !x.hidden && !x.closest('[hidden]') && x.getClientRects().length);
-        return b ? b.dataset.testid : null;
-      });
+      const id = await visibleTestId(['rescan-button', 'retry-button']);
       if (!id) break;
       const m = await E.logMark(p.page);
       await p.page.locator(tid(id)).click();
@@ -178,7 +186,12 @@ describe('SEC-06 / J7 accept path: Sharper re-run after a screen-resolution read
       reruns++;
       await E.sleep(1000);
     }
-    console.log(`# SEC-06 extra re-runs of the same job: ${reruns}; tabs=${await count()}`);
-    assert.ok((await count()) <= 1, 'the same cert opened at most once for one job');
+    // Re-deliver the identical job (same id) through the session slot.
+    const m3 = await E.logMark(p.page);
+    await E.writeJob(env, { windowId: tab.windowId, tabId: tab.id, srcUrl: img, pageUrl: tab.url, overrides: { id: job.id } });
+    await E.sleep(3000);
+    const rescanned = (await E.stateLog(p.page, m3)).includes('scanning');
+    console.log(`# SEC-06 further UI re-runs: ${reruns}; identical job id re-delivered → scan started: ${rescanned}; tabs=${await count()}`);
+    assert.equal(await count(), 1, 'the same job never opened a second tab');
   });
 });

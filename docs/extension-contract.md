@@ -22,7 +22,8 @@ image data on the user's machine.)
 
 | Surface | Role |
 | --- | --- |
-| Context menu on images: "Scan slab cert number" | Primary trigger (C: "rechtermuisklik op de foto") |
+| Toolbar icon / keyboard shortcut: "Scan this page" | **Primary trigger** — finds the slab photos on the current page and reads them, no upload needed (C, 2026-10-09: "de pagina zelf scannen zonder eerst een foto te uploaden") |
+| Context menu on images: "Scan slab cert number" | Primary trigger for one specific photo (C: "rechtermuisklik op de foto") |
 | Side panel | Visible task state: image preview, progress, detected cert(s), grader, open/copy/edit, recent scans, paste/drop/upload, manual entry (P) |
 | Toolbar action | Opens the side panel (P) |
 | New tab with official cert page | Outcome (C) |

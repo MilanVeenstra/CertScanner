@@ -89,3 +89,50 @@ export function validateProbeResult(raw, { srcUrl, maxBytes }) {
   }
   return { ok: true, value };
 }
+
+// ---------------------------------------------------------------- A9 page discovery
+
+export const MAX_PAGE_IMAGES = 24;
+export const PAGE_MIN_RENDERED = 120; // CSS px, rendered short side
+export const PAGE_MIN_NATURAL = 150;  // px, natural short side
+const PAGE_SRC_MAX_CHARS = 2_000_000;
+const PAGE_SRC_RE = /^(https?|data|blob):/i;
+const SVG_RE = /^data:image\/svg|\.svgz?(?:[?#]|$)/i;
+
+/**
+ * Validate the untrusted pageImagesProbe() return value. The envelope must be well formed; individual images
+ * that fail a rule are dropped. Result is re-sorted visible-area-first (the page's own order is not trusted),
+ * deduplicated by srcUrl and capped at MAX_PAGE_IMAGES.
+ * @returns {{ok:true, value:{v:1, viewport:{width:number,height:number}, dpr:number,
+ *   images:{srcUrl:string, rect:{x:number,y:number,width:number,height:number}, natural:{width:number,height:number},
+ *   srcsetBest:string|null, visibleFraction:number}[]}} | {ok:false, reason:string}}
+ */
+export function validatePageImages(raw) {
+  if (!isObj(raw)) return fail('shape');
+  if (raw.v !== 1) return fail('version');
+  const viewport = size(raw.viewport, 1, 20000);
+  if (!viewport) return fail('viewport');
+  if (!fin(raw.dpr) || raw.dpr <= 0 || raw.dpr > 8) return fail('dpr');
+  if (!Array.isArray(raw.images) || raw.images.length > 500) return fail('images');
+  const seen = new Set();
+  const images = [];
+  for (const im of raw.images) {
+    if (!isObj(im) || typeof im.srcUrl !== 'string' || im.srcUrl.length > PAGE_SRC_MAX_CHARS || !PAGE_SRC_RE.test(im.srcUrl)) continue;
+    if (SVG_RE.test(im.srcUrl) || seen.has(im.srcUrl)) continue;
+    const r = im.rect;
+    if (!isObj(r) || !fin(r.x) || !fin(r.y) || Math.abs(r.x) > 1e6 || Math.abs(r.y) > 1e7) continue;
+    const rs = size(r, 1, 20000);
+    const nat = size(im.natural, 1, 100000);
+    if (!rs || !nat) continue;
+    if (Math.min(rs.width, rs.height) < PAGE_MIN_RENDERED || Math.min(nat.width, nat.height) < PAGE_MIN_NATURAL) continue;
+    if (!fin(im.visibleFraction) || im.visibleFraction < 0 || im.visibleFraction > 1) continue;
+    const origin = originOf(im.srcUrl);
+    const srcsetBest = typeof im.srcsetBest === 'string' && im.srcsetBest.length <= MAX_URL_CHARS && /^https?:/i.test(im.srcsetBest)
+      && origin && originOf(im.srcsetBest) === origin ? im.srcsetBest : null;
+    seen.add(im.srcUrl);
+    images.push({ srcUrl: im.srcUrl, rect: { x: r.x, y: r.y, width: rs.width, height: rs.height }, natural: nat, srcsetBest, visibleFraction: im.visibleFraction });
+  }
+  const visibleArea = (i) => i.rect.width * i.rect.height * i.visibleFraction;
+  images.sort((a, b) => (visibleArea(b) - visibleArea(a)) || (b.rect.width * b.rect.height - a.rect.width * a.rect.height));
+  return { ok: true, value: { v: 1, viewport, dpr: raw.dpr, images: images.slice(0, MAX_PAGE_IMAGES) } };
+}

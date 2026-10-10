@@ -7,8 +7,9 @@ import { createCertField } from './certField.js';
 import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates } from './viewModel.js';
 import { buildCertUrl } from '../core/certUrls.js';
 
-export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened']);
-export const TASK_STATES = Object.freeze(['idle', 'scanning', 'result', 'edit', 'confirm', 'none', 'error']);
+// A9 adds body 'page-results' and task 'page-results' / 'page-access'.
+export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
+export const TASK_STATES = Object.freeze(['idle', 'scanning', 'result', 'edit', 'confirm', 'none', 'error', 'page-results', 'page-access']);
 const TONE_ICON = { success: 'i-circle-check', info: 'i-circle-i', warning: 'i-triangle', danger: 'i-circle-x' };
 const RECENT_VISIBLE = 5;
 const COPIED_MS = 2000;
@@ -64,6 +65,10 @@ export function createUi(doc, actions) {
     singles.error.textContent = '';
     delete singles.error.dataset.code;
     delete singles.error.dataset.errorId;
+    singles.pageprogress.textContent = '';
+    singles.pageprogress.hidden = true;
+    singles.steps.hidden = false;
+    while (singles.pageresults.firstChild) singles.pageresults.firstChild.remove();
   }
 
   function clone(id) {
@@ -238,16 +243,18 @@ export function createUi(doc, actions) {
   }
 
   // ------------------------------------------------------------ states
-  function showIdle({ focus = false } = {}) {
+  /** S0 (A9): "Scan this page" leads; right-click and shortcut hints follow. */
+  function showIdle({ focus = false, shortcut = '' } = {}) {
     setTaskState('idle');
     setHeading(t('idle_heading'));
     const frag = clone('tpl-idle');
-    ref(frag, 'idle-body').textContent = t('idle_body', [t('context_menu_scan')]);
+    ref(frag, 'right-click-hint').textContent = t('right_click_hint', [t('context_menu_scan')]);
+    ref(frag, 'shortcut-hint').textContent = shortcut ? t('shortcut_hint', [shortcut]) : t('shortcut_none');
     body.appendChild(frag);
     if (focus) heading.focus({ preventScroll: false });
   }
 
-  function showScanning({ caption = '', thumbUrl: url = null, thumbAlt = '' } = {}) {
+  function showScanning({ caption = '', thumbUrl: url = null, thumbAlt = '', page = false } = {}) {
     setTaskState('scanning');
     setHeading(t('scan_heading'));
     stages = [];
@@ -255,9 +262,18 @@ export function createUi(doc, actions) {
     ref(frag, 'caption').textContent = caption;
     body.appendChild(frag);
     setThumb({ thumbUrl: url, thumbAlt }, { placeholder: true });
+    singles.steps.hidden = page; // page mode reports "image k of n" instead of per-image steps
+    singles.pageprogress.hidden = !page;
+    if (page) singles.pageprogress.textContent = t('page_finding');
     renderSteps();
     slowTimer = setTimeout(() => { const s = ref(body, 'slow'); if (s) s.hidden = false; }, SLOW_MS);
-    settle(t('status_scan_started'));
+    settle(t(page ? 'status_page_started' : 'status_scan_started'));
+  }
+
+  /** A9 progress: {stage:'page-discover'} | {stage:'page', index, total}. */
+  function pageProgress(p) {
+    if (task.dataset.state !== 'scanning') return;
+    singles.pageprogress.textContent = p.stage === 'page' ? t('page_progress', [String(p.index), String(p.total)]) : t('page_finding');
   }
 
   function progress(stage) {
@@ -415,6 +431,92 @@ export function createUi(doc, actions) {
     settle(`${t(ev.heading)}. ${t(ev.body, ev.bodySubs)}`, { moveFocus });
   }
 
+  /**
+   * A9 results list. view: {items, thumbs:string[], qrHost}; handlers: {onOpen, onChoose, onCopy}.
+   * Each row shows the number, grader, how it was read and the exact URL that Open will load.
+   */
+  function showPageResults(view, handlers, { moveFocus = true } = {}) {
+    setTaskState('page-results');
+    setHeading(t('page_results_heading'), 'info');
+    const frag = clone('tpl-page-results');
+    ref(frag, 'summary').textContent = t('page_results_summary', [String(view.items.length)]);
+    body.appendChild(frag);
+    qrBlock(body, view.qrHost, view.qrNumberUsed);
+    view.items.forEach((item, i) => {
+      const row = clone('tpl-page-row');
+      const li = row.querySelector('li');
+      li.dataset.testid = `page-result-${i}`;
+      li.dataset.number = item.number;
+      li.dataset.grader = item.grader ?? '';
+      const ids = (n) => `page-${i}-${n}`;
+      const chip = ref(row, 'chip');
+      const number = ref(row, 'number');
+      chip.id = ids('chip');
+      number.id = ids('number');
+      chip.textContent = item.grader ? graderName(item.grader) : t('candidate_grader_unknown');
+      number.textContent = item.number;
+      ref(row, 'meta').textContent = t(methodKey(item.source));
+      const path = ref(row, 'path');
+      const thumb = view.thumbs?.[item.imageIndex];
+      if (thumb) {
+        ref(row, 'thumb-box').hidden = false;
+        const img = ref(row, 'thumb');
+        img.src = thumb;
+        img.alt = t('page_result_photo', [String(item.imageIndex + 1)]);
+      }
+      const open = ref(row, 'open');
+      const choose = ref(row, 'choose');
+      const copy = ref(row, 'copy');
+      ref(row, 'open-label').id = ids('open');
+      ref(row, 'choose-label').id = ids('choose');
+      ref(row, 'copy-label').id = ids('copy');
+      if (item.grader) {
+        path.textContent = displayUrl(buildCertUrl(item.grader, item.number));
+        open.setAttribute('aria-labelledby', `${ids('open')} ${ids('chip')} ${ids('number')}`);
+        open.addEventListener('click', () => handlers.onOpen(item, i));
+      } else {
+        path.hidden = true;
+        open.hidden = true;
+        choose.hidden = false;
+        choose.setAttribute('aria-labelledby', `${ids('choose')} ${ids('number')}`);
+        choose.addEventListener('click', () => handlers.onChoose(item, i));
+      }
+      copy.setAttribute('aria-labelledby', `${ids('copy')} ${ids('number')}`);
+      copy.title = `${t('recent_copy')} ${item.number}`;
+      copy.addEventListener('click', () => handlers.onCopy(item, i));
+      singles.pageresults.appendChild(row);
+    });
+    settle(`${t('page_results_heading')}. ${t('page_results_summary', [String(view.items.length)])}`, { moveFocus });
+  }
+
+  /** A9 none: no slab-sized photos, or photos checked without a readable number; tips follow. */
+  function showPageNone(view, { moveFocus = true } = {}) {
+    setTaskState('none');
+    setHeading(t('page_none_heading'), 'info');
+    const frag = clone('tpl-page-none');
+    ref(frag, 'none-reason').textContent = t(view.discovered ? 'page_none_checked' : 'page_none_no_images');
+    ref(frag, 'tip-right-click').textContent = t('page_tip_right_click', [t('context_menu_scan')]);
+    body.appendChild(frag);
+    qrBlock(body, view.qrHost, false);
+    settle(t('page_none_heading'), { moveFocus });
+  }
+
+  /** A9: the panel button can't read the active tab; explain the icon/shortcut, offer a per-host grant when known. */
+  function showPageAccess({ host = null, shortcut = '' } = {}) {
+    setTaskState('page-access');
+    setHeading(t('page_access_heading'), 'info');
+    const frag = clone('tpl-page-access');
+    ref(frag, 'access-body').textContent = shortcut ? t('page_access_body_keys', [shortcut]) : t('page_access_body');
+    if (host) {
+      ref(frag, 'always').hidden = false;
+      ref(frag, 'always-label').textContent = t('page_access_always', [host]);
+      ref(frag, 'always-fine').textContent = t('page_access_fineprint', [host]);
+      frag.querySelector('[data-action="always-allow"]').title = host;
+    }
+    body.appendChild(frag);
+    settle(`${t('page_access_heading')}. ${ref(body, 'access-body').textContent}`);
+  }
+
   function lowresFocus(target) {
     if (target === 'rescan') body.querySelector('[data-action="rescan"]')?.focus();
     else if (target === 'box') ref(body, 'lowres-box')?.focus();
@@ -469,6 +571,7 @@ export function createUi(doc, actions) {
   function toggleRecent() { recentExpanded = !recentExpanded; }
 
   function renderSettings(s, { historyCount }) {
+    $('setting-scan-on-click').checked = s.scanOnToolbarClick !== false;
     $('setting-always-ask').checked = !s.autoOpen;
     $('setting-background').checked = Boolean(s.openInBackground);
     $('setting-history').checked = Boolean(s.saveHistory);
@@ -504,6 +607,7 @@ export function createUi(doc, actions) {
   return {
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
     showIdle, showScanning, showResult, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    pageProgress, showPageResults, showPageNone, showPageAccess,
     renderRecent, renderSettings, renderSites,
     get field() { return field; },
     get taskState() { return task.dataset.state; },

@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, migrateSettings, applySettingsPatch } from '../../src
 import { MAX_HISTORY, migrateHistory, addEntry, makeEntry } from '../../src/shared/history.js';
 
 test('settings defaults', () => {
-  assert.deepEqual(DEFAULT_SETTINGS, { v: 1, autoOpen: true, openInBackground: false, saveHistory: true });
+  assert.deepEqual(DEFAULT_SETTINGS, { v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true });
 });
 
 test('migrateSettings: missing or invalid -> defaults, nothing written', () => {
@@ -15,7 +15,7 @@ test('migrateSettings: missing or invalid -> defaults, nothing written', () => {
 
 test('migrateSettings: v1 reads known booleans, ignores bad types', () => {
   assert.deepEqual(migrateSettings({ v: 1, autoOpen: false, openInBackground: true, saveHistory: false }),
-    { value: { v: 1, autoOpen: false, openInBackground: true, saveHistory: false }, needsWrite: false });
+    { value: { v: 1, autoOpen: false, openInBackground: true, saveHistory: false, scanOnToolbarClick: true }, needsWrite: false });
   assert.deepEqual(migrateSettings({ v: 1, autoOpen: 'no', saveHistory: 0 }).value, DEFAULT_SETTINGS);
 });
 
@@ -27,9 +27,9 @@ test('migrateSettings: newer version reads known fields and never writes back', 
 });
 
 test('applySettingsPatch keeps newer-version fields and validates the patch', () => {
-  assert.deepEqual(applySettingsPatch(undefined, { autoOpen: false }), { v: 1, autoOpen: false, openInBackground: false, saveHistory: true });
+  assert.deepEqual(applySettingsPatch(undefined, { autoOpen: false }), { v: 1, autoOpen: false, openInBackground: false, saveHistory: true, scanOnToolbarClick: true });
   const newer = applySettingsPatch({ v: 3, autoOpen: true, futureThing: 1 }, { openInBackground: true });
-  assert.deepEqual(newer, { v: 3, autoOpen: true, openInBackground: true, saveHistory: true, futureThing: 1 });
+  assert.deepEqual(newer, { v: 3, autoOpen: true, openInBackground: true, saveHistory: true, scanOnToolbarClick: true, futureThing: 1 });
   assert.throws(() => applySettingsPatch(undefined, { autoOpen: 'yes' }), TypeError);
   assert.throws(() => applySettingsPatch(undefined, { evil: true }), TypeError);
 });
@@ -107,4 +107,12 @@ test('replaceLatest swaps the newest entry for a correction (J12), count unchang
 test('makeEntry never stores the page host (spec R-09: grader, number, method, time only)', () => {
   const e = makeEntry({ grader: 'psa', number: '01234567', source: 'ocr' }, 'https://www.ebay.com/itm/1', 5);
   assert.equal(e.pageHost, null);
+});
+
+test('A9 setting scanOnToolbarClick: default true, tolerant read, patchable', () => {
+  assert.equal(DEFAULT_SETTINGS.scanOnToolbarClick, true);
+  assert.equal(migrateSettings({ v: 1, scanOnToolbarClick: false }).value.scanOnToolbarClick, false);
+  assert.equal(migrateSettings({ v: 1, scanOnToolbarClick: 'no' }).value.scanOnToolbarClick, true);
+  assert.equal(migrateSettings({ v: 1, autoOpen: false }).value.scanOnToolbarClick, true); // older stored settings
+  assert.equal(applySettingsPatch(undefined, { scanOnToolbarClick: false }).scanOnToolbarClick, false);
 });

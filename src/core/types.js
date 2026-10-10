@@ -53,7 +53,13 @@
  *   srcIssue?:'too-long'|'unsupported'}} ScanJob
  */
 
-/** @typedef {{v:number, autoOpen:boolean, openInBackground:boolean, saveHistory:boolean}} Settings */
+/** @typedef {{v:number, autoOpen:boolean, openInBackground:boolean, saveHistory:boolean, scanOnToolbarClick:boolean}} Settings */
+
+/**
+ * A9 page job: scan the images of the page in tab `tabId` (main frame). No srcUrl, no mediaType.
+ * @typedef {{v:1, id:string, createdAt:number, kind:'page', source:'action'|'command'|'panel', srcUrl:null,
+ *   pageUrl:string, frameId:0, tabId:number, windowId:number}} PageScanJob
+ */
 
 /**
  * @typedef {{grader:Grader, number:string, at:number, source:'qr-url'|'barcode'|'ocr'|'manual',

@@ -4,7 +4,7 @@
     "description": "Extension name. Never translated."
   },
   "ext_description": {
-    "message": "Rechtsklik op een PSA- of CGC-slabfoto om de officiële certpagina te openen. Leest op je apparaat. Niet gelieerd aan PSA of CGC.",
+    "message": "Scant de PSA- en CGC-slabfoto's op een pagina en opent de officiële certpagina. Leest op je apparaat. Niet gelieerd aan PSA of CGC.",
     "description": "Web Store / chrome://extensions description, max 132 characters."
   },
   "action_title": {
@@ -666,5 +666,157 @@
   "settings_sites_all": {
     "message": "Alle sites",
     "description": "Added in S6 (SEC-11): row shown when access to all https sites is granted."
+  },
+  "command_scan_page": {
+    "message": "Deze pagina scannen op certnummers van slabs",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)."
+  },
+  "page_scan_button": {
+    "message": "Deze pagina scannen",
+    "description": "Primary button in the panel."
+  },
+  "page_scan_again": {
+    "message": "Deze pagina opnieuw scannen"
+  },
+  "page_scan_lead": {
+    "message": "Zoekt de slabfoto's op de pagina die je bekijkt en leest hun certnummers."
+  },
+  "right_click_hint": {
+    "message": "Of klik met rechts op een slabfoto en kies ‘$MENU$’.",
+    "description": "MENU is the context menu title.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "shortcut_hint": {
+    "message": "Sneltoets: $KEYS$, of klik op het CertScanner-icoon.",
+    "description": "KEYS is the keyboard shortcut set in Chrome.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "shortcut_none": {
+    "message": "Klik op het CertScanner-icoon om de pagina die je bekijkt te scannen.",
+    "description": "Shown when no keyboard shortcut is set."
+  },
+  "other_ways_heading": {
+    "message": "Andere manieren om te scannen"
+  },
+  "page_finding": {
+    "message": "Slabfoto's zoeken op deze pagina…"
+  },
+  "page_progress": {
+    "message": "Afbeelding $INDEX$ van $TOTAL$ scannen",
+    "placeholders": {
+      "index": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "6"
+      }
+    }
+  },
+  "status_page_started": {
+    "message": "Deze pagina wordt gescand."
+  },
+  "page_results_heading": {
+    "message": "Certnummers op deze pagina"
+  },
+  "page_results_summary": {
+    "message": "Gevonden: $COUNT$. Open het nummer dat bij de slab hoort die je bekijkt.",
+    "description": "Neutral count form.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "page_result_choose": {
+    "message": "Grader kiezen"
+  },
+  "page_result_photo": {
+    "message": "Foto $INDEX$",
+    "description": "Thumbnail alt text in the results list.",
+    "placeholders": {
+      "index": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "page_none_heading": {
+    "message": "Geen certnummers gevonden op deze pagina"
+  },
+  "page_none_no_images": {
+    "message": "Er staan geen foto's op deze pagina die groot genoeg zijn voor een slab."
+  },
+  "page_none_checked": {
+    "message": "De foto's op deze pagina zijn gecontroleerd, maar er is geen certnummer gelezen."
+  },
+  "page_tip_open_photo": {
+    "message": "Kleine miniaturen zijn moeilijk te lezen. Open de grote foto van de advertentie en scan opnieuw."
+  },
+  "page_tip_right_click": {
+    "message": "Klik met rechts op een specifieke slabfoto en kies ‘$MENU$’. Als die op schermresolutie is gelezen, biedt CertScanner scherpere scans aan.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "page_tip_upload": {
+    "message": "Of sla de foto op en upload of plak hem hieronder."
+  },
+  "page_access_heading": {
+    "message": "CertScanner kan deze pagina nog niet lezen"
+  },
+  "page_access_body_keys": {
+    "message": "Klik op het CertScanner-icoon in de werkbalk, of druk op $KEYS$, om deze pagina te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body": {
+    "message": "Klik op het CertScanner-icoon in de werkbalk om deze pagina te scannen."
+  },
+  "page_access_always": {
+    "message": "Altijd toestaan op $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_access_fineprint": {
+    "message": "Chrome vraagt of je toegang tot $HOST$ toestaat. CertScanner gebruikt die alleen om slabfoto's te vinden en te lezen die je scant. Je kunt dit altijd intrekken in Instellingen.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "settings_toolbar_heading": {
+    "message": "Werkbalkicoon"
+  },
+  "setting_scan_on_click": {
+    "message": "Pagina scannen als ik op het icoon klik"
+  },
+  "setting_scan_on_click_hint": {
+    "message": "Als dit uit staat, opent het icoon alleen dit paneel."
   }
 }

@@ -3,8 +3,9 @@
 
 export const SETTINGS_KEY = 'settings';
 export const SETTINGS_VERSION = 1;
-export const DEFAULT_SETTINGS = Object.freeze({ v: 1, autoOpen: true, openInBackground: false, saveHistory: true });
-const FIELDS = ['autoOpen', 'openInBackground', 'saveHistory'];
+// A9: scanOnToolbarClick (default true) - the toolbar icon scans the page; when false it only opens the panel.
+export const DEFAULT_SETTINGS = Object.freeze({ v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true });
+const FIELDS = ['autoOpen', 'openInBackground', 'saveHistory', 'scanOnToolbarClick'];
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
@@ -36,7 +37,7 @@ export function applySettingsPatch(raw, patch) {
 }
 
 function pick(s) {
-  return { autoOpen: s.autoOpen, openInBackground: s.openInBackground, saveHistory: s.saveHistory };
+  return { autoOpen: s.autoOpen, openInBackground: s.openInBackground, saveHistory: s.saveHistory, scanOnToolbarClick: s.scanOnToolbarClick };
 }
 
 const area = () => globalThis.chrome.storage.sync;

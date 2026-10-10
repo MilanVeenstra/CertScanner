@@ -4,7 +4,7 @@
     "description": "Extension name. Never translated."
   },
   "ext_description": {
-    "message": "Right-click a PSA or CGC slab photo to open its official cert page. Reads the number on-device. Not affiliated with PSA or CGC.",
+    "message": "Scans the PSA and CGC slab photos on a page and opens the official cert page. Reads on-device. Not affiliated with PSA or CGC.",
     "description": "Web Store / chrome://extensions description, max 132 characters."
   },
   "action_title": {
@@ -666,5 +666,157 @@
   "settings_sites_all": {
     "message": "All sites",
     "description": "Added in S6 (SEC-11): row shown when access to all https sites is granted."
+  },
+  "command_scan_page": {
+    "message": "Scan this page for slab cert numbers",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)."
+  },
+  "page_scan_button": {
+    "message": "Scan this page",
+    "description": "Primary button in the panel."
+  },
+  "page_scan_again": {
+    "message": "Scan this page again"
+  },
+  "page_scan_lead": {
+    "message": "Finds the slab photos on the page you're viewing and reads their cert numbers."
+  },
+  "right_click_hint": {
+    "message": "Or right-click a slab photo and choose “$MENU$”.",
+    "description": "MENU is the context menu title.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "shortcut_hint": {
+    "message": "Shortcut: $KEYS$, or click the CertScanner icon.",
+    "description": "KEYS is the keyboard shortcut set in Chrome.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "shortcut_none": {
+    "message": "Click the CertScanner icon to scan the page you're viewing.",
+    "description": "Shown when no keyboard shortcut is set."
+  },
+  "other_ways_heading": {
+    "message": "Other ways to scan"
+  },
+  "page_finding": {
+    "message": "Looking for slab photos on this page…"
+  },
+  "page_progress": {
+    "message": "Scanning image $INDEX$ of $TOTAL$",
+    "placeholders": {
+      "index": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "6"
+      }
+    }
+  },
+  "status_page_started": {
+    "message": "Scanning this page."
+  },
+  "page_results_heading": {
+    "message": "Cert numbers on this page"
+  },
+  "page_results_summary": {
+    "message": "Found: $COUNT$. Open the one that matches the slab you're looking at.",
+    "description": "Neutral count form.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "page_result_choose": {
+    "message": "Choose grader"
+  },
+  "page_result_photo": {
+    "message": "Photo $INDEX$",
+    "description": "Thumbnail alt text in the results list.",
+    "placeholders": {
+      "index": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "page_none_heading": {
+    "message": "No cert numbers found on this page"
+  },
+  "page_none_no_images": {
+    "message": "No photos large enough to be a slab are visible on this page."
+  },
+  "page_none_checked": {
+    "message": "Checked the photos on this page but couldn't read a cert number."
+  },
+  "page_tip_open_photo": {
+    "message": "Small thumbnails are hard to read. Open the large photo of the listing, then scan again."
+  },
+  "page_tip_right_click": {
+    "message": "Right-click a specific slab photo and choose “$MENU$”. If it was read at screen resolution, CertScanner offers sharper scans.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "page_tip_upload": {
+    "message": "Or save the photo and upload or paste it below."
+  },
+  "page_access_heading": {
+    "message": "CertScanner can't read this page yet"
+  },
+  "page_access_body_keys": {
+    "message": "Click the CertScanner icon in the toolbar, or press $KEYS$, to scan this page.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body": {
+    "message": "Click the CertScanner icon in the toolbar to scan this page."
+  },
+  "page_access_always": {
+    "message": "Always allow on $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_access_fineprint": {
+    "message": "Chrome will ask you to allow access to $HOST$. CertScanner only uses it to find and read slab photos you scan. Remove it any time in Settings.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "settings_toolbar_heading": {
+    "message": "Toolbar icon"
+  },
+  "setting_scan_on_click": {
+    "message": "Scan the page when I click the icon"
+  },
+  "setting_scan_on_click_hint": {
+    "message": "When off, the icon only opens this panel."
   }
 }

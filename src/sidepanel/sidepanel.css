@@ -351,3 +351,15 @@ body.is-dragover .drop-icon { color: var(--cs-accent); }
   .icon { stroke: currentColor; }
   .alert { border-inline-start-color: CanvasText; }
 }
+
+/* ---------------------------------------------------------------- A9 page scan */
+.subsection + .subsection { margin-block-start: var(--cs-space-6); }
+.subsection h3 { font-size: var(--cs-text-lg); }
+.page-progress { font-weight: var(--cs-weight-strong); margin: 0; }
+.page-results { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--cs-space-2); }
+.page-row { display: flex; gap: var(--cs-space-3); align-items: flex-start; padding: 12px; border: 1px solid var(--cs-border-control); border-radius: var(--cs-radius-md); background: var(--cs-bg); }
+.page-row-main { flex: 1 1 auto; min-inline-size: 0; display: grid; gap: var(--cs-space-1); }
+.page-row-main p { margin: 0; }
+.thumb-sm { inline-size: 3.5rem; block-size: 3.5rem; }
+.tips { margin: 0; padding-inline-start: 1.25rem; display: grid; gap: var(--cs-space-1); }
+@media (max-width: 279.98px) { .page-row { flex-direction: column; } }

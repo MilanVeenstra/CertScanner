@@ -536,7 +536,9 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
       assert.ok(E.isGraderUrl(a.urls[0]), `auto-open went to a grader host: ${a.urls[0]}`);
     }
     assert.ok(!env.net.some((n) => E.hostOf(n.url) === foreignHost), 'foreign QR host never requested');
+    console.log(`# panel errors during the journeys run: ${panel.errors.length ? panel.errors.join(' | ') : 'none'}`);
     assert.deepEqual(panel.errors.filter((e) => e.startsWith('pageerror')), [], 'no uncaught panel errors during the run');
+    assert.deepEqual(panel.errors.filter((e) => /Content Security Policy|unsafe-eval|Refused to/i.test(e)), [], 'no CSP violations (vendor eval fallbacks stay silent)');
   });
 });
 

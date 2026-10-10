@@ -1,6 +1,9 @@
-// Service worker (ADR-001 §4): stateless trigger. Every listener is registered synchronously at the
+// Service worker (ADR-001 §4, A9): stateless trigger. Every listener is registered synchronously at the
 // module top level. No runtime messaging listeners exist in v1 (ADR §10).
-import { MENU_ID, createScanJob, jobKey } from '../shared/jobContract.js';
+import { MENU_ID, createScanJob, createPageJob, jobKey } from '../shared/jobContract.js';
+import { SETTINGS_KEY, migrateSettings } from '../shared/settings.js';
+
+export const PAGE_COMMAND = 'scan-page';
 
 function registerMenus() {
   chrome.contextMenus.removeAll(() => {
@@ -12,19 +15,53 @@ function registerMenus() {
   });
 }
 
-chrome.runtime.onInstalled.addListener(registerMenus);
-chrome.runtime.onStartup.addListener(registerMenus); // removeAll -> create; refreshes the localized title
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.warn);
+/** A9: with scanOnToolbarClick (default) the icon scans the page via action.onClicked; otherwise it only opens the panel. */
+async function applyPanelBehavior() {
+  let scanOnClick = true;
+  try {
+    const got = await chrome.storage.sync.get(SETTINGS_KEY);
+    scanOnClick = migrateSettings(got?.[SETTINGS_KEY]).value.scanOnToolbarClick;
+  } catch { /* default */ }
+  await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: !scanOnClick }).catch(console.warn);
+}
+
+/** MUST be the first side effect of a user gesture: no await before sidePanel.open(). */
+function openPanel(windowId) {
+  chrome.sidePanel.open({ windowId }).catch(() => chrome.windows.create({
+    type: 'popup', width: 420, height: 760,
+    url: chrome.runtime.getURL(`sidepanel/sidepanel.html?w=${windowId}`),
+  }).catch(console.warn));
+}
+
+function queue(windowId, job) {
+  chrome.storage.session.set({ [jobKey(windowId)]: job }).catch(console.warn);
+}
+
+chrome.runtime.onInstalled.addListener(() => { registerMenus(); applyPanelBehavior(); });
+chrome.runtime.onStartup.addListener(() => { registerMenus(); applyPanelBehavior(); }); // refreshes the localized title
+applyPanelBehavior();
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes[SETTINGS_KEY]) applyPanelBehavior();
+});
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== MENU_ID || !tab || !(tab.id >= 0)) return;
-  // MUST be the first side effect; no await before it (the gesture is only valid synchronously).
-  chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => chrome.windows.create({
-    type: 'popup', width: 420, height: 760,
-    url: chrome.runtime.getURL(`sidepanel/sidepanel.html?w=${tab.windowId}`),
-  }).catch(console.warn));
-  const job = createScanJob(info, tab, Date.now(), crypto.randomUUID());
-  chrome.storage.session.set({ [jobKey(tab.windowId)]: job }).catch(console.warn);
+  openPanel(tab.windowId);
+  queue(tab.windowId, createScanJob(info, tab, Date.now(), crypto.randomUUID()));
+});
+
+// A9 trigger 1: toolbar icon (only fires while openPanelOnActionClick is false). Grants activeTab.
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab || !(tab.id >= 0)) return;
+  openPanel(tab.windowId);
+  queue(tab.windowId, createPageJob(tab, Date.now(), crypto.randomUUID(), 'action'));
+});
+
+// A9 trigger 2: keyboard command (suggested Alt+Shift+S). Grants activeTab.
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command !== PAGE_COMMAND || !tab || !(tab.id >= 0)) return;
+  openPanel(tab.windowId);
+  queue(tab.windowId, createPageJob(tab, Date.now(), crypto.randomUUID(), 'command'));
 });
 
 chrome.windows.onRemoved.addListener((windowId) => {

@@ -11,6 +11,9 @@
  * logos, trademark artwork or real card/comic images. All values are fixed, so the output is
  * byte-stable for a given Chromium build + installed fonts (see manifest.environment).
  *
+ * It also writes the A9 page-scan listing (tests/fixtures/pages/listing.html + pages/assets/*.png): one slab photo,
+ * small logo/avatar/banner images and page text with non-cert numbers (price, item number, seller ID).
+ *
  * It also writes the OCR benchmark set (ADR-001 §14, D3 gate) to tests/fixtures/bench/ with its own
  * bench-manifest.json: clean renders with varied cert numbers plus deterministic degradations
  * (JPEG q40, 0.5x scale, 1-2 px blur, glare, rotation, dark/low contrast, busy art with other digits).
@@ -1248,6 +1251,190 @@ function frameHtml(entry) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// A9 page scan: single-slab marketplace listing (pages/listing.html + pages/assets/*)
+// ---------------------------------------------------------------------------------------------
+// Discovery thresholds from ADR-001 A9 (pageImagesProbe): rendered short side >= 120 CSS px and natural short
+// side >= 150 px. Used only to declare which listing images a page scan is expected to consider.
+const A9_MIN_RENDERED = 120;
+const A9_MIN_NATURAL = 150;
+const LISTING_SLAB = 'psa-9digit.png';
+const LISTING_RAW = 'non-slab.png';
+const LISTING_CERT_URL = 'https://www.psacard.com/cert/108114622';
+// Numbers printed as page text (and, with ?details=1, inside an image). None of them is a cert number.
+const LISTING_TEXT_NUMBERS = Object.freeze({
+  price: 'US $1,299.00', itemNumber: '2023041712', sellerId: '48213576', ratings: '12,345', cardNumber: '58/102', year: '1999',
+  watchers: '17', shipping: '3 business days', returns: '30 days',
+});
+const LISTING_PROMO_CODE = 'FALL2026'; // printed in the banner image and its alt text only
+const LISTING_MUST_NOT_OPEN_NUMBERS = Object.freeze(['2023041712', '48213576', '129900', '1299', '12345', '58102', '1999']);
+
+const assetPage = (inner, css = '') => `<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0;padding:0}html,body{background:#fff}
+body{font-family:${LABEL_FONT};-webkit-font-smoothing:antialiased}#shot{display:inline-block}${css}
+</style></head><body>${inner}</body></html>`;
+
+/** Non-slab listing images (all synthetic; no logos of real companies, no grader names). */
+function listingAssetSpecs() {
+  return [
+    {
+      file: 'pages/assets/listing-logo.png', role: 'logo', elementId: 'img-logo', display: { width: 48, height: 48 },
+      description: 'Shop logo: 96x96 rounded square with the letters "CS". Shown at 48 px: below the A9 size threshold.',
+      html: assetPage('<div id="shot"><div class="logo">CS</div></div>',
+        '.logo{width:96px;height:96px;border-radius:20px;background:#0f5c63;color:#fff;font-weight:700;font-size:44px;display:flex;align-items:center;justify-content:center;letter-spacing:1px}'),
+    },
+    {
+      file: 'pages/assets/listing-avatar.png', role: 'avatar', elementId: 'img-avatar', display: { width: 64, height: 64 },
+      description: 'Seller avatar: 128x128 initials "JD" on a grey disc. Shown at 64 px: below the A9 size threshold.',
+      html: assetPage('<div id="shot"><div class="av">JD</div></div>',
+        '#shot{background:#fff}.av{width:128px;height:128px;border-radius:64px;background:#c9ced6;color:#33404d;font-weight:700;font-size:48px;display:flex;align-items:center;justify-content:center}'),
+    },
+    {
+      file: 'pages/assets/listing-banner.png', role: 'banner', elementId: 'img-banner', display: { width: 728, height: 90 },
+      description: 'Promotion banner 728x90 with printed digits ("$50", "FALL2026"). Natural short side 90 px: below the A9 size threshold.',
+      html: assetPage(`<div id="shot"><div class="bn"><b>FREE SHIPPING</b> on orders over $50 &middot; use code ${LISTING_PROMO_CODE}</div></div>`,
+        '.bn{width:728px;height:90px;background:linear-gradient(90deg,#ffe7a3,#ffd0c2);color:#5a2b00;font-size:26px;display:flex;align-items:center;justify-content:center;gap:8px}'),
+    },
+    {
+      file: 'pages/assets/listing-details.png', role: 'details', elementId: 'img-details', display: { width: 390, height: 210 },
+      description: 'Item-specifics panel as an image (only with ?details=1): printed item number 2023041712, price US $1,299.00, seller ID 48213576, card no. 58/102, year 1999. No slab wording. Large enough for A9 discovery, so the page scan OCRs it.',
+      html: assetPage(`<div id="shot"><div class="spec"><div class="h">ITEM SPECIFICS</div><table>
+<tr><td>Item number</td><td>${LISTING_TEXT_NUMBERS.itemNumber}</td></tr>
+<tr><td>Price</td><td>${esc(LISTING_TEXT_NUMBERS.price)}</td></tr>
+<tr><td>Seller ID</td><td>${LISTING_TEXT_NUMBERS.sellerId}</td></tr>
+<tr><td>Card no. / Year</td><td>${LISTING_TEXT_NUMBERS.cardNumber} &middot; ${LISTING_TEXT_NUMBERS.year}</td></tr>
+</table></div></div>`,
+      '.spec{width:520px;height:280px;background:#fff;border:2px solid #c8ccd4;padding:18px 24px;color:#222}.h{font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:.5px}table{border-collapse:collapse;font-size:21px;line-height:1.75}td:first-child{padding-right:28px;color:#555}'),
+    },
+  ];
+}
+
+async function renderAsset(pg, html) {
+  await pg.setContent(html, { waitUntil: 'load' });
+  await pg.evaluate(async () => { await document.fonts.ready; });
+  return pg.locator('#shot').screenshot({ type: 'png', animations: 'disabled', caret: 'hide', scale: 'css' });
+}
+
+function listingHtml(sizes) {
+  const disp = (file, width) => ({ width, height: Math.round((sizes[file].height * width) / sizes[file].width) });
+  const slab = disp(LISTING_SLAB, 400);
+  const thumbSlab = disp(LISTING_SLAB, 64);
+  const raw = disp(LISTING_RAW, 320);
+  const thumbRaw = disp(LISTING_RAW, 64);
+  const n = LISTING_TEXT_NUMBERS;
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Synthetic single-slab listing - CertScanner e2e (page scan)</title>
+<style>
+  body{margin:0;font-family:"Liberation Sans",Arial,sans-serif;background:#fff;color:#222}
+  img{display:block}
+  .site{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;border-bottom:1px solid #ddd}
+  .site .name{font-weight:700;font-size:18px}
+  .promo{padding:8px 24px}
+  .listing{display:flex;gap:32px;padding:8px 24px;align-items:flex-start}
+  .photos{display:flex;gap:12px;align-items:flex-start}
+  .thumbs{display:flex;flex-direction:column;gap:8px}
+  .thumbs img{outline:1px solid #ccc}
+  figure{margin:0}
+  .details{width:520px}
+  .details h1{font-size:20px;margin:0 0 8px;line-height:1.3}
+  .price{font-size:26px;font-weight:700;margin:4px 0}
+  .muted{color:#666;font-size:14px;margin:2px 0 10px}
+  dl{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:14px;margin:0 0 12px}
+  dt{color:#666}dd{margin:0}
+  .seller{display:flex;align-items:center;gap:10px;font-size:14px;margin:0 0 12px}
+  .details h2{font-size:15px;margin:8px 0 6px}
+</style>
+</head>
+<body>
+<header class="site"><img id="img-logo" src="assets/listing-logo.png" width="48" height="48" alt="Example Card Shop logo"><span class="name">Example Card Shop (synthetic test page, not affiliated with PSA or CGC)</span></header>
+<div class="promo"><img id="img-banner" src="assets/listing-banner.png" width="728" height="90" alt="Promotion: free shipping on orders over $50, code ${LISTING_PROMO_CODE}"></div>
+<main class="listing">
+  <section class="photos" aria-label="Photos">
+    <div class="thumbs">
+      <img id="img-thumb-slab" data-fixture="${LISTING_SLAB}" src="../${LISTING_SLAB}" width="${thumbSlab.width}" height="${thumbSlab.height}" alt="Thumbnail 1: slab front">
+      <img id="img-thumb-raw" data-fixture="${LISTING_RAW}" src="../${LISTING_RAW}" width="${thumbRaw.width}" height="${thumbRaw.height}" alt="Thumbnail 2: raw card">
+    </div>
+    <figure><img id="img-slab" data-fixture="${LISTING_SLAB}" src="../${LISTING_SLAB}" width="${slab.width}" height="${slab.height}" alt="Synthetic PSA-style slab, front label (listing photo)"></figure>
+  </section>
+  <section class="details">
+    <h1>Synthetic graded trading card in a PSA-style slab (test listing)</h1>
+    <p class="price" id="price">${esc(n.price)}</p>
+    <p class="muted">or Best Offer &middot; ${n.watchers} watchers &middot; Free shipping</p>
+    <dl>
+      <dt>Item number</dt><dd id="item-number">${n.itemNumber}</dd>
+      <dt>Condition</dt><dd>Graded (see photos)</dd>
+      <dt>Card number</dt><dd>${n.cardNumber}</dd>
+      <dt>Year</dt><dd>${n.year}</dd>
+      <dt>Shipping</dt><dd>Ships within ${n.shipping}</dd>
+      <dt>Returns</dt><dd>Accepted within ${n.returns}</dd>
+    </dl>
+    <div class="seller"><img id="img-avatar" src="assets/listing-avatar.png" width="64" height="64" alt="Seller avatar"><span>Seller ID ${n.sellerId} &middot; 99.8% positive (${n.ratings} ratings)</span></div>
+    <figure id="details-figure" hidden><img id="img-details" data-src="assets/listing-details.png" width="390" height="210" alt="Item specifics (image)"></figure>
+    <h2>Also in this listing</h2>
+    <figure><img id="img-raw-card" data-fixture="${LISTING_RAW}" src="../${LISTING_RAW}" width="${raw.width}" height="${raw.height}" alt="Raw card photo (not graded)"></figure>
+  </section>
+</main>
+<script>
+(async () => {
+  // ?slab=0 removes the slab photo and its thumbnail; ?photos=0 removes the slab and the raw-card photo (and thumbnails);
+  // ?details=1 shows an item-specifics image with printed price/item/seller numbers. <html data-ready="1"> once decoded.
+  const q = new URLSearchParams(location.search);
+  const drop = (id) => document.getElementById(id)?.remove();
+  if (q.get('slab') === '0' || q.get('photos') === '0') { drop('img-slab'); drop('img-thumb-slab'); }
+  if (q.get('photos') === '0') { drop('img-raw-card'); drop('img-thumb-raw'); }
+  if (q.get('details') === '1') {
+    const im = document.getElementById('img-details');
+    im.src = im.dataset.src;
+    document.getElementById('details-figure').hidden = false;
+  }
+  await Promise.all([...document.images].filter((im) => im.getAttribute('src')).map((im) => im.decode().catch(() => {})));
+  document.documentElement.dataset.ready = '1';
+})();
+</script>
+</body>
+</html>
+`;
+}
+
+function listingManifestEntry(sizes, assets) {
+  const disp = (file, width) => ({ width, height: Math.round((sizes[file].height * width) / sizes[file].width) });
+  const discoverable = (d, nat) => Math.min(d.width, d.height) >= A9_MIN_RENDERED && Math.min(nat.width, nat.height) >= A9_MIN_NATURAL;
+  const img = (elementId, role, src, display, natural, extra = {}) => ({ elementId, role, src, display, natural, discoverable: discoverable(display, natural), ...extra });
+  const nat = (file) => ({ width: sizes[file].width, height: sizes[file].height });
+  const images = [
+    ...assets.filter((a) => a.role !== 'details').map((a) => img(a.elementId, a.role, a.file.replace(/^pages\//, ''), a.display, { width: a.width, height: a.height })),
+    img('img-thumb-slab', 'thumbnail', `../${LISTING_SLAB}`, disp(LISTING_SLAB, 64), nat(LISTING_SLAB), { fixture: LISTING_SLAB, removedBy: ['slab=0', 'photos=0'] }),
+    img('img-thumb-raw', 'thumbnail', `../${LISTING_RAW}`, disp(LISTING_RAW, 64), nat(LISTING_RAW), { fixture: LISTING_RAW, removedBy: ['photos=0'] }),
+    img('img-slab', 'slab', `../${LISTING_SLAB}`, disp(LISTING_SLAB, 400), nat(LISTING_SLAB), { fixture: LISTING_SLAB, removedBy: ['slab=0', 'photos=0'] }),
+    img('img-raw-card', 'raw-photo', `../${LISTING_RAW}`, disp(LISTING_RAW, 320), nat(LISTING_RAW), { fixture: LISTING_RAW, removedBy: ['photos=0'] }),
+    ...assets.filter((a) => a.role === 'details').map((a) => img(a.elementId, a.role, a.file.replace(/^pages\//, ''), a.display, { width: a.width, height: a.height }, { addedBy: ['details=1'] })),
+  ];
+  return {
+    page: 'pages/listing.html', elementId: 'img-slab', kind: 'single-slab-listing', feature: 'A9 page scan', fixture: LISTING_SLAB,
+    contextMenu: 'image', display: disp(LISTING_SLAB, 400),
+    params: {
+      slab: '0 removes the slab photo and its thumbnail',
+      photos: '0 removes the slab and the raw-card photo (and both thumbnails): no slab-sized photo left',
+      details: '1 shows an item-specifics image with printed price/item/seller numbers (large enough for discovery)',
+    },
+    images,
+    textNumbers: LISTING_TEXT_NUMBERS,
+    mustNeverAutoOpenNumbers: LISTING_MUST_NOT_OPEN_NUMBERS,
+    expected: {
+      default: { status: 'auto-open', url: LISTING_CERT_URL, grader: 'psa', number: '108114622', discovered: ['img-slab', 'img-raw-card'], tabsOpened: 1 },
+      'slab=0': { status: 'none', reason: 'photos checked, no number', discovered: ['img-raw-card'], tabsOpened: 0 },
+      'photos=0': { status: 'none', reason: 'no slab-sized photo', discovered: [], tabsOpened: 0 },
+      'details=1': { accept: ['auto-open', 'page-results'], onlyAutoOpenUrl: LISTING_CERT_URL, discovered: ['img-slab', 'img-raw-card', 'img-details'] },
+      'slab=0&details=1': { accept: ['none', 'page-results'], mustNotAutoOpen: true, tabsOpened: 0, discovered: ['img-raw-card', 'img-details'] },
+    },
+    notes: 'A9 single-slab listing: one PSA-style slab photo (psa-9digit.png at 400 px), a 64 px thumbnail of the same file earlier in the DOM (same URL; too small), a raw-card photo, a logo, an avatar and a promo banner (all too small for discovery), plus page text with a price, an item number (10 digits) and a seller ID (8 digits, PSA length). Page scans read image URLs/geometry only, never page text. <html data-ready="1"> after all images decoded. Expected numbers assume the e2e viewport (--window-size=1280,1000).',
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Generate
 // ---------------------------------------------------------------------------------------------
 async function generate(outDir, browser) {
@@ -1295,6 +1482,23 @@ async function generate(outDir, browser) {
   }
   console.log('wrote pages/busy.html, security/*');
   console.log('wrote pages/gallery.html, pages/frame.html');
+
+  // A9 single-slab listing and its non-slab images.
+  await mkdir(path.join(outDir, 'pages', 'assets'), { recursive: true });
+  const actx = await newContext(browser);
+  const apg = await actx.newPage();
+  const pageAssets = [];
+  for (const spec of listingAssetSpecs()) {
+    const buf = await renderAsset(apg, spec.html);
+    await writeFile(path.join(outDir, spec.file), buf);
+    const { width, height, type } = imageSize(buf);
+    const { html, ...rest } = spec;
+    pageAssets.push({ ...rest, mimeType: type, width, height, bytes: buf.length, sha256: sha256(buf) });
+    console.log(`wrote ${spec.file}`);
+  }
+  await actx.close();
+  await writeFile(path.join(outDir, 'pages', 'listing.html'), listingHtml(sizes));
+  console.log('wrote pages/listing.html');
 
   const pkg = (name) => JSON.parse(readFileSync(path.join(ROOT, 'node_modules', name, 'package.json'), 'utf8')).version;
   const manifest = {
@@ -1353,7 +1557,9 @@ async function generate(outDir, browser) {
     expected: { status: 'error', error: 'timeout', maxSettleMs: 12500, cancelSettleMs: 1000 },
     notes: 'Blocks its main thread with a busy loop after the image renders (html[data-ready="1"], then data-busy="1"). Serve it on a different site than other test pages (e.g. localhost vs 127.0.0.1) so the hang stays in its own renderer. The image must not be fetchable by the extension (e.g. a hotlink-protected URL) so acquisition has to inject the page probe.',
   });
+  manifest.pages.push(listingManifestEntry(sizes, pageAssets));
   manifest.securityFixtures = security;
+  manifest.pageAssets = pageAssets;
   await writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   console.log('wrote manifest.json');
   return manifest.environment;
@@ -1533,6 +1739,56 @@ async function verify(outDir, browser) {
       `srcset currentSrc: ${before.srcsetCurrent.replace(base, '')}; frames: ${Object.entries(frames).map(([k, v]) => `${k}@${v.origin.replace(/:\d+$/, ':<port>')} img ${v.natural}px`).join(', ')}; ` +
       `overlay hit-test: #${state['img-under-overlay'].hitId}`);
     if (before.lazyLoadedEarly) fail('gallery: #img-lazy loaded before scrolling (spacer too short)');
+
+    // 4. A9 listing: assets match the manifest; each variant shows exactly the images it declares as discoverable
+    //    (A9 thresholds); the slab is fully visible in the e2e viewport; the page text holds the non-cert numbers.
+    for (const a of manifest.pageAssets ?? []) {
+      const buf = await readFile(path.join(outDir, a.file));
+      const dim = imageSize(buf);
+      if (sha256(buf) !== a.sha256 || buf.length !== a.bytes) fail(`${a.file}: bytes/sha256 differ from manifest`);
+      if (dim.width !== a.width || dim.height !== a.height) fail(`${a.file}: header ${dim.width}x${dim.height} != manifest`);
+    }
+    const listing = manifest.pages.find((p) => p.kind === 'single-slab-listing');
+    if (!listing) fail('listing: pages/listing.html missing from manifest.pages');
+    else {
+      const lctx = await newContext(browser, { width: 1280, height: 1000 });
+      try {
+        const lpg = await lctx.newPage();
+        lpg.on('request', (r) => { if (!local.some((p) => r.url().startsWith(p))) external.push(r.url()); });
+        for (const [variant, exp] of Object.entries(listing.expected)) {
+          await lpg.goto(`${base}/fixtures/${listing.page}${variant === 'default' ? '' : `?${variant}`}`);
+          await lpg.waitForSelector('html[data-ready="1"]', { timeout: 10000 });
+          const seen = await lpg.evaluate(({ minR, minN }) => [...document.images].filter((im) => im.getAttribute('src')).map((im) => {
+            const r = im.getBoundingClientRect();
+            const ix = Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0));
+            const iy = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
+            return {
+              id: im.id, natural: { width: im.naturalWidth, height: im.naturalHeight }, rendered: { width: Math.round(r.width), height: Math.round(r.height) },
+              discoverable: im.complete && im.naturalWidth > 0 && Math.min(im.naturalWidth, im.naturalHeight) >= minN && Math.min(r.width, r.height) >= minR,
+              visible: r.width && r.height ? (ix * iy) / (r.width * r.height) : 0,
+            };
+          }), { minR: A9_MIN_RENDERED, minN: A9_MIN_NATURAL });
+          const disc = seen.filter((s) => s.discoverable).map((s) => s.id).sort();
+          if (JSON.stringify(disc) !== JSON.stringify([...exp.discovered].sort())) fail(`listing ${variant}: discoverable ${disc.join(',')} != ${exp.discovered.join(',')}`);
+          for (const s of seen) {
+            const m = listing.images.find((i) => i.elementId === s.id);
+            if (!m) { fail(`listing ${variant}: undeclared image #${s.id}`); continue; }
+            if (s.natural.width !== m.natural.width || s.natural.height !== m.natural.height) fail(`listing: #${s.id} natural ${s.natural.width}x${s.natural.height} != manifest`);
+            if (s.rendered.width !== m.display.width || s.rendered.height !== m.display.height) fail(`listing: #${s.id} rendered ${s.rendered.width}x${s.rendered.height} != manifest`);
+            if (s.discoverable !== m.discoverable) fail(`listing: #${s.id} discoverable ${s.discoverable} != manifest`);
+          }
+          if (variant === 'default') {
+            const slab = seen.find((s) => s.id === listing.elementId);
+            if (!slab || slab.visible < 1) fail(`listing: slab photo not fully visible at 1280x1000 (${slab?.visible})`);
+            const text = await lpg.evaluate(() => document.body.innerText);
+            for (const v of Object.values(listing.textNumbers)) if (!text.includes(v)) fail(`listing: page text lacks "${v}"`);
+          }
+          console.log(`  listing${variant === 'default' ? '' : `?${variant}`}: discoverable ${disc.join(', ') || '(none)'}; ${seen.length} images loaded`);
+        }
+      } finally {
+        await lctx.close();
+      }
+    }
     if (external.length) fail(`unexpected non-local requests: ${external.join(', ')}`);
   } finally {
     await ctx.close();

@@ -92,14 +92,33 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
       };
     });
     assert.equal(sw.menu, 'present', 'context menu item certscanner-scan registered on install');
-    assert.equal(sw.behavior.openPanelOnActionClick, true, 'toolbar action opens the side panel');
+    // A9: by default the toolbar icon scans the page (action.onClicked), so Chrome must not open the panel itself.
+    assert.equal(sw.behavior.openPanelOnActionClick, false, 'A9 default: toolbar click scans the page (openPanelOnActionClick false)');
     assert.equal(sw.options.path, 'sidepanel/sidepanel.html');
+    assert.deepEqual(Object.keys(sw.manifest.commands ?? {}), ['scan-page'], 'A9 keyboard command declared');
     assert.equal(sw.onMessage, false, 'no runtime.onMessage listener (ADR §10)');
     assert.equal(sw.onMessageExternal, false, 'no runtime.onMessageExternal listener');
     assert.equal(sw.onConnect, false, 'no runtime.onConnect listener');
     assert.deepEqual([...sw.manifest.permissions].sort(), ['activeTab', 'contextMenus', 'scripting', 'sidePanel', 'storage']);
     assert.deepEqual(sw.manifest.optional_host_permissions, ['https://*/*']);
     assert.deepEqual(sw.manifest.host_permissions, ['<all_urls>'], 'dist-e2e test patch only (release check proves dist/ has none)');
+  });
+
+  test('A9 setting scanOnToolbarClick: off → toolbar only opens the panel (behaviour true, "Open" tooltip); on → scans again', T, async () => {
+    const page = panel.page;
+    const behaviour = () => env.sw.evaluate(async () => (await chrome.sidePanel.getPanelBehavior()).openPanelOnActionClick);
+    const title = () => env.sw.evaluate(() => chrome.action.getTitle({}));
+    const en = JSON.parse(readFileSync(path.join(E.DIST_E2E, '_locales', 'en', 'messages.json'), 'utf8'));
+    assert.equal(await getSetting(page, 'scanOnToolbarClick'), true, 'default on');
+    assert.equal(await behaviour(), false);
+    assert.equal(await title(), en.action_title.message, 'RM-6 tooltip: scan this page');
+    await setSetting(page, 'scanOnToolbarClick', false);
+    await E.poll(async () => (await storageGet(page, 'sync', 'settings'))?.scanOnToolbarClick === false, { message: 'scanOnToolbarClick saved' });
+    await E.poll(async () => (await behaviour()) === true, { message: 'openPanelOnActionClick true after switching off' });
+    assert.equal(await title(), en.action_title_open.message, 'tooltip: Open CertScanner');
+    await setSetting(page, 'scanOnToolbarClick', true);
+    await E.poll(async () => (await behaviour()) === false, { message: 'openPanelOnActionClick false after switching on' });
+    assert.equal(await title(), en.action_title.message);
   });
 
   test('SEC-01 / A7: manifest declares incognito "not_allowed"', T, async () => {
@@ -112,9 +131,14 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     const page = panel.page;
     const ids = ['status-live', 'progress', 'preview', 'result-number', 'result-grader', 'candidate-list', 'grader-select', 'number-input',
       'open-button', 'copy-button', 'cancel-button', 'sharper-button', 'upload-input', 'manual-input', 'manual-submit', 'manual-error',
-      'error-message', 'history-list', 'history-clear', 'setting-autoOpen', 'setting-openInBackground', 'setting-saveHistory'];
+      'error-message', 'history-list', 'history-clear', 'setting-autoOpen', 'setting-openInBackground', 'setting-saveHistory',
+      // A9 additions
+      'page-scan-button', 'page-progress', 'page-result-list', 'setting-scanOnToolbarClick', 'shortcut-current', 'shortcut-button'];
     const missing = await page.evaluate((list) => list.filter((id) => !document.querySelector(`[data-testid="${id}"]`)), ids);
-    assert.deepEqual(missing, [], `missing §13 test ids: ${missing.join(', ')}`);
+    assert.deepEqual(missing, [], `missing §13/A9 test ids: ${missing.join(', ')}`);
+    const dupes = await page.evaluate((list) => list.filter((id) => document.querySelectorAll(`[data-testid="${id}"]`).length > 1), ids);
+    assert.deepEqual(dupes, [], 'test ids are unique');
+    assert.ok(await isVisible(page, 'page-scan-button'), 'A9 idle leads with "Scan this page"');
     const live = await page.locator(tid('status-live')).getAttribute('aria-live');
     assert.equal(live, 'polite');
     assert.equal(await page.evaluate(() => document.body.dataset.windowId), String(galleryTab.windowId), 'body[data-window-id] = ?w=');
@@ -490,10 +514,18 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
       for (const v of e.versions) if (v.scriptURL.startsWith(`chrome-extension://${env.extensionId}/`)) status.push(v.runningStatus);
     });
     await cdp.send('ServiceWorker.enable');
+    // A9 startup path: with scanOnToolbarClick off the behaviour is true; a stale false must be corrected by the
+    // restarted worker's top-level applyPanelBehavior().
+    await setSetting(panel.page, 'scanOnToolbarClick', false);
+    await E.poll(async () => (await env.sw.evaluate(async () => (await chrome.sidePanel.getPanelBehavior()).openPanelOnActionClick)) === true,
+      { message: 'behaviour true with scanOnToolbarClick off' });
     await cdp.send('ServiceWorker.stopAllWorkers');
     await E.poll(() => status.at(-1) === 'stopped', { message: 'extension service worker stopped', timeout: 10000 });
     // Playwright does not surface the restarted worker: drive chrome.* from the panel (also a trusted context).
     env.setDriver(panel.page);
+    await panel.page.evaluate(() => chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }));
+    assert.equal(await panel.page.evaluate(async () => (await chrome.sidePanel.getPanelBehavior()).openPanelOnActionClick), false, 'stale behaviour forced while the worker is stopped');
+    assert.equal(status.at(-1), 'stopped', 'worker still stopped after forcing the stale behaviour');
     // Wake the worker with an event it listens for: closing a window fires windows.onRemoved, whose listener
     // (registered at top level on restart) must clear that window's job slot.
     const tmp = await panel.page.evaluate(async () => (await chrome.windows.create({ url: 'about:blank', focused: false })).id);
@@ -504,7 +536,10 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     await E.poll(async () => (await E.sessionGet(env, `scanJob:${tmp}`)) === null, { message: 'restarted worker cleared the closed window\'s job', timeout: 10000 });
     const menu = await panel.page.evaluate(async () => { try { await chrome.contextMenus.update('certscanner-scan', {}); return true; } catch { return false; } });
     assert.ok(menu, 'context menu still registered');
-    assert.equal(await panel.page.evaluate(async () => (await chrome.sidePanel.getPanelBehavior()).openPanelOnActionClick), true);
+    const behaviour = () => panel.page.evaluate(async () => (await chrome.sidePanel.getPanelBehavior()).openPanelOnActionClick);
+    await E.poll(async () => (await behaviour()) === true, { message: 'restarted worker re-applied the setting (toolbar only opens the panel)', timeout: 10000 });
+    await setSetting(panel.page, 'scanOnToolbarClick', true);
+    await E.poll(async () => (await behaviour()) === false, { message: 'A9 default restored: toolbar scans the page', timeout: 10000 });
     const { result, opened } = await runJob({ srcUrl: `${servers.A}/cgc-comic-10digit.png` });
     assert.equal(result.state, 'auto-open');
     assert.deepEqual(opened.map((t) => t.url), ['https://www.cgccomics.com/certlookup/4012345001/']);

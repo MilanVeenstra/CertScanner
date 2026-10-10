@@ -1,131 +1,173 @@
-# CertScanner — QA test report (e2e, benchmark, fixtures)
+# CertScanner — QA test report (e2e, A9 page scan, benchmark, fixtures)
 
-_Role: qa-engineer (native specialist agent) · Date: 2026-10-09 · Canonical path: `docs/quality/test-report.md`._
-_This report is evidence. It does not override the ADR, the UX spec or the user's decisions._
+_Role: qa-engineer (native specialist agent) · Date: 2026-10-10 · Canonical path: `docs/quality/test-report.md`._
+_This report replaces the 2026-10-09 report (35/35 at `5cf2742`), which predates the A9 page scan. It is evidence. It does not override the ADR, the UX spec or the user's decisions._
 
 ## 1. Outcome
 
-- **Automated e2e: 35/35 pass** on the real extension (`npm run e2e`, exit 0): journeys J1–J11, the security checks SEC-01/03/04/06, job-contract negatives, service-worker restart, and settings and history persistence.
-- **D3 OCR benchmark gate: PASS.** Top-1 accuracy is **100% clean (18/18)** and **88.9% degraded (32/36)**. There were **0 wrong auto-opens**, and auto-open precision was 100% (48/48).
-- **Hard checks held across every run:**
-  - No wrong auto-open.
-  - The foreign QR host `evil.example` was never navigated to or requested, according to both Playwright's log and Chrome's browser-wide NetLog.
-- **No open defects.** Section 6 lists observations for FE tuning, a contract note and limits of the test harness.
-- **Manual checks M1–M11 were not run.** They need branded Chrome and a person. Section 8 has step-by-step instructions.
+| Area | Result |
+|---|---|
+| Automated e2e, full suite + benchmark (`npm run e2e`, final run) | **52/52 pass**, exit 0, at HEAD `03d9589` |
+| A9 page scan (new `tests/e2e/pagescan.test.mjs`) | **15/15 pass** (in the full run, and again after one added assertion, §3) |
+| Toolbar behaviour assertions (`extension.test.mjs`) | Updated to A9. They were red before the edit: 2 failures, exactly the two `openPanelOnActionClick === true` assertions. Now green. |
+| D3 OCR benchmark gate | **PASS**: 100% clean (18/18), 88.9% degraded (32/36), **0 wrong auto-opens**, auto-open precision 48/48. Same accuracy as the 2026-10-09 run. |
+| J11 egress | **pass** on dist-e2e (incl. a page scan) and on the release `dist/` (incl. the page-access path). The release build made 0 extension-initiated http(s) requests. |
+| Hard checks | No wrong auto-open in journeys, page scans or the benchmark. `evil.example` was never navigated to or requested (Playwright log + browser-wide NetLog). The listing's price, item number and seller ID never opened a tab. |
+| Defects | **None.** 5 new observations (O8–O12, §7). O12 affects release-checklist PS4. |
+| Manual checks | M1–M11 and PS1–PS12 **not run**: they need branded Chrome and a person (§9). The real toolbar click, Alt+Shift+S, `sidePanel.open` gesture and permission prompt cannot be automated. |
 
 ## 2. Artifact identity
 
 | Item | Value |
 |---|---|
-| Source | `git HEAD 5cf27427b39b8a7ed3e2f4b82b41d98eba2252f2`. `src/` is clean (build-info `gitDirty:false`). FE's S6 and security fixes are in `7d15b99`. QA's final edits to `tests/e2e/extension.test.mjs` and `tests/e2e/security.test.mjs` are uncommitted; the orchestrator commits them. |
-| e2e build | `dist-e2e/build-info.json`: target `e2e`, gitCommit `5cf2742…`, gitDirty `false`, builtAt `2026-10-09T22:00:55.832Z`, no harness. `dist-e2e/manifest.json` sha256 `cf0b7867ed906a1e150a5398884b5d34c9cd068db392fe8116816edee90d92a7`. |
-| Release build (J11) | `dist/build-info.json`: target `release`, gitCommit `5cf2742…`, gitDirty `false`, builtAt `2026-10-09T22:00:13.232Z`. `dist/manifest.json` sha256 `1e37125fce76ee61c585f6fa97debc7e1e3a9714c1f53f1dc3cb493afb7b2229`. |
-| Fixtures | `tests/fixtures/manifest.json` sha256 `87ca8692…ee930`. `tests/fixtures/bench/bench-manifest.json` sha256 `03dfec6e…3fc25` (57 fixtures, 4,141,607 bytes). |
-| Browser | Playwright-bundled Chromium **141.0.7390.37** (`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`), new headless mode, device scale factor 1, `viewport:null`, `--window-size=1280,1000`. Isolated throw-away profile per suite. |
-| Tooling | Playwright 1.56.1 (library) driven by `node --test`; Node 22.22.0. |
-| OS | Ubuntu 24.04.5 LTS, Linux 6.18.44, x86_64, 4 vCPU, 16 GB RAM. |
-| Run window | 2026-10-09 22:00:55Z – 22:04:57Z (full suite 241 s). |
+| Source | `git HEAD 03d95895443d88898592fbc4e6da723d8910ea98`, branch `claude/sharp-turing-1et8ns`. `src/` is clean (build-info `gitDirty:false`). QA edits are uncommitted (§10); the orchestrator commits them. |
+| e2e build | `dist-e2e/build-info.json`: target `e2e`, gitCommit `03d9589…`, gitDirty `false`, builtAt `2026-10-10T06:47:44.982Z` (rebuilt by the final `npm run e2e`). `dist-e2e/manifest.json` sha256 `88fb2414b131391e91e9e0f64767b756c6e084a4568d2fec796010c055784062`. |
+| Release build | `dist/build-info.json`: target `release`, gitCommit `03d9589…`, gitDirty `false`, builtAt `2026-10-10T06:24:49.686Z`. `dist/manifest.json` sha256 `0aec47bb6c9faf3baf5f3bd21946a65652cebab78336a4247526aa30a3f9a2e1`. Used directly by J11-release and the page-access cases (same commit, not a copy). |
+| Manifest hashes vs FE | Match the S7 handoff prefixes (`0aec47bb…`, `88fb2414…`). |
+| Fixtures | `tests/fixtures/manifest.json` sha256 `245df62fe72a08d902ed88d3bd1719fb62eb8514450e32d638cbd5571f677142`. The change is additive: the listing page entry and `pageAssets`. `bench/bench-manifest.json` sha256 `03dfec6e…fc25` is unchanged (57 fixtures). |
+| Browser | Playwright-bundled Chromium **141.0.7390.37** (`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`), new headless. Device scale factor 1, `viewport:null`, `--window-size=1280,1000` (page viewport 1280×861). Throw-away profile per suite. |
+| Tooling | Playwright 1.56.1 (library) with `node --test`; Node 22.22.0. |
+| OS | Ubuntu 24.04.5 LTS, Linux 6.18.44, x86_64, 4 vCPU, 15 GiB RAM. |
+| Run windows | Final full run 2026-10-10 06:47:44Z – 06:53:42Z (357 s). Page-scan re-run until 06:56:56Z. |
 
-**Network isolation (all e2e launches):**
-- Flags: `--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost` and `--no-proxy-server`.
-- The browser process gets a minimal environment: no proxy variables and no credentials.
-- Grader pages are never contacted. Opened URLs are read with `chrome.tabs.query` from the extension, and for the release build from NetLog.
+**Network isolation (all launches, unchanged):**
+- `--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost` and `--no-proxy-server`.
+- The browser gets a minimal environment (no proxy variables, no credentials).
+- Grader pages are never contacted. Opened URLs are read with `chrome.tabs.query`, and for the release build also from NetLog.
 
 ## 3. Commands and observed results
 
 | Command | Result |
 |---|---|
-| `npm test` (FE unit tests) | 127/127 pass |
-| `npm run check` (release `dist/`) | all checks passed, including `incognito not_allowed`, no `host_permissions`, licences, locale parity |
-| `node scripts/gen-fixtures.mjs` | `VERIFY OK` and `BENCH VERIFY OK`. A second run into a scratch dir (`--out`) was byte-identical to the committed fixtures (`diff -r` clean). Main fixture hashes are unchanged; only `manifest.json` changed. |
-| `CERTSCANNER_E2E_OUT=<dir> npm run e2e` | builds `dist-e2e/`, runs `tests/e2e/**/*.test.mjs`: **tests 35, pass 35, fail 0**, exit 0 |
-| `python3 <skill>/scripts/check_extension.py dist` (static heuristics) | 6 "ERRORS" and 1 warning, all reviewed; none is a real issue (details in O6). |
+| `npm test` | 164/164 pass |
+| `npm run build` / `npm run build:e2e` | `dist/` 64 files, 7.16 MiB; `dist-e2e/` 64 files, 7.17 MiB |
+| `npm run check` | all checks passed (src 37 files, en/nl parity 204 keys, no `host_permissions`) |
+| Baseline before QA edits: `node --test tests/e2e/extension.test.mjs` | 20/22. Only `install` (`:95`) and `service worker stopped` (`:507`) failed, both on `openPanelOnActionClick === true`. |
+| `node scripts/gen-fixtures.mjs` (with the new listing) | `VERIFY OK`, `BENCH VERIFY OK`. A second run into a scratch dir (`--out`) is byte-identical (`diff -r` clean). Existing fixture bytes are unchanged. |
+| `CERTSCANNER_E2E_OUT=<dir> npm run e2e` (final) | **tests 52, pass 52, fail 0**, exit 0 |
+| `node --test --test-concurrency=1 tests/e2e/pagescan.test.mjs` (after adding the O12 navigation check) | tests 15, pass 15, fail 0 |
+| `python3 <skill>/scripts/check_extension.py dist` | Same as the previous report: 6 heuristic "ERRORS" (vendor false positives, O6) and the broad-hosts warning for the optional `https://*/*`. |
 
-**How to run the suite yourself:**
-- Prerequisite: `npm run build:e2e`. `npm run e2e` runs it for you. The suite fails fast with that message if `dist-e2e/` is missing.
-- Skip the benchmark (about 2 min): `CERTSCANNER_SKIP_BENCH=1`.
-- Choose where benchmark output goes: `CERTSCANNER_E2E_OUT=<dir>`. The default is `<tmp>/certscanner-e2e`; it writes `benchmark-results.{json,md}`.
-- Test a different build: `CERTSCANNER_E2E_DIST=<dir>`.
-- Use a different browser binary: `CERTSCANNER_CHROMIUM=<chrome>`.
-- `npm run e2e` already builds first; do not run `playwright install`.
+**Running the suite:**
+- `npm run e2e` builds `dist-e2e/` and runs `tests/e2e/**/*.test.mjs`.
+- `CERTSCANNER_SKIP_BENCH=1` skips the benchmark (about 2 min).
+- `CERTSCANNER_E2E_OUT=<dir>` sets where `benchmark-results.{json,md}` go.
+- `CERTSCANNER_E2E_DIST=<dir>` tests a different build; `CERTSCANNER_CHROMIUM=<chrome>` uses another binary.
+- Do not run `playwright install`.
 
 ## 4. Per-case results (final run)
 
-| # | Case (file) | Evidence | Result |
-|---|---|---|---|
-| 1 | Install (`extension.test.mjs`) | Menu `certscanner-scan` exists; `openPanelOnActionClick:true`; panel path is correct; no `onMessage`, `onMessageExternal` or `onConnect` listeners in the SW or panel; permissions exactly as ADR §3; optional `https://*/*` | pass |
-| 2 | SEC-01 / A7 | `manifest.incognito === "not_allowed"`; `isAllowedIncognitoAccess() === false` (manifest level only; runtime is M11) | pass |
-| 3 | Panel contract | All 22 §13 test ids present; `status-live` has `aria-live=polite`; `body[data-window-id]` equals `?w=`; accessible names on inputs and switches; `lang=en` | pass |
-| 4 | J1 PSA | Job with a same-origin image → `auto-open`, `01234567` (leading zero kept), opened `https://www.psacard.com/cert/01234567` at source index+1 with opener = source tab; job slot removed; history entry holds no image URL or data | pass |
-| 5 | J2 CGC comic | CORS image on :C → `cgccomics.com/certlookup/4012345001/`; no-CORS :B dash form → `4012346002` | pass |
-| 6 | J3 CGC card | Same-origin iframe job (real `frameId`) → `cgccards.com/certlookup/1401036622258/`; 10-digit card wording (bench `cgcd-c16`) → cgc-cards | pass |
-| 7 | J4 QR | `blob:` image via page-fetch → `cgccomics…/4012347003/` with `ocrMs 0`. Foreign QR → **confirm** (12345678 at 0.35 with `qr-untrusted-host`), no tab; Open from confirm → rebuilt `psacard.com/cert/12345678`; `evil.example` absent from tabs and network | pass |
-| 8 | J4b QR edge cases (generated with bwip-js at test time) | Allow-listed host with unmatched path → number `23456789`, any tab equals the rebuilt URL; look-alike `www.psacard.com.evil.example` → never auto-opens, nothing opened | pass |
-| 9 | J5 ambiguous | Confirm, `5012345678`, grader unresolved, no tab. Open without a grader opens nothing. Choosing CGC Comics → `cgccomics…/5012345678/`, state `opened` | pass |
-| 10 | J6 non-slab | `none`, no tab, manual entry and upload offered | pass |
-| 11 | J7 fetch blocked | Hotlink CDN (:B `/hotlink/` returns 403 to non-`<img>` fetches) → extension fetch refused → capture → result never a wrong number. ADR harness case `strategies:['page-fetch','capture']` → `method capture`, `resolution screen`, width ≈ on-screen 400 px, `canRequestSharper false` (http origin) | pass |
-| 12 | J7b Sharper offer | https image (self-signed, `localhost`) read at screen resolution → confirm with "Sharper scans on localhost" (names only that host). `permissions.request` scoped to `https://localhost/*`. Decline → offer withdrawn, manual entry still opens `psacard…/01234567`. Permission API **stubbed** in the panel realm; see §7. | pass |
-| 13 | J8 restricted | `chrome://version` job and Chrome Web Store `pageUrl` → `error` with the same message; image never fetched; no uncaught panel errors; manual entry offered | pass |
-| 14 | J9 keyboard only | Tab to `manual-input`, type `PSA 12345678` + Enter → `psacard…/12345678`; `1401234567890` → `cgccards…/1401234567890/`; `hello` → `manual-error` text, `aria-invalid=true`, `aria-describedby` linked, live region, focus kept, no tab | pass |
-| 15 | J10 offline input | `context.setOffline(true)` (panel `navigator.onLine === false`): upload → `108114622`; synthetic paste → `4012345001`; synthetic drop → `1401036622258`. A text file and a 1×1 PNG → `error` | pass |
-| 16 | Two quick jobs | PSA job then CGC job 60 ms later → only `cgccomics…/4012345001/` opened, even after waiting 4 s | pass |
-| 17 | Panel reload | After completion: no new scan or tab (A5 restore showed the last result, state `auto-open`). Mid-scan reload: the job slot was already empty, no re-run, nothing opened | pass |
-| 18 | Job contract | Stale (10 min), wrong window, `v:2`, `javascript:` src, `tabId -1` and non-object values: each cleared within 5 s with no scan. A job for another window is left alone; `windows.onRemoved` clears it | pass |
-| 19 | Settings and history | "Always ask" on → saved to `storage.sync`, survives reload, upload → `confirm` with no tab (D5). Open in background → tab `active:false`. History survives reload | pass |
-| 20 | SW stopped | CDP `ServiceWorker.stopAllWorkers` → `stopped`. Closing a window wakes it (`running`), and its top-level `windows.onRemoved` listener clears that window's job. Menu and panel behaviour intact; job hand-off → auto-open | pass |
-| 21 | History clear / off | Clear empties list and `storage.local`, survives reload; with saveHistory off an auto-open writes nothing | pass |
-| 22 | Hard check (journeys) | Every auto-open opened exactly one grader URL; no `evil.example`; no `pageerror`; no CSP violations. The only panel console error was the expected 403 from the hotlink CDN in J7. | pass |
-| 23 | J11 dist-e2e (`privacy.test.mjs`) | Playwright log (tabs, extension pages, workers, SW) shows only `chrome-extension://<id>/`, fixture origins and grader URLs; SW loads only its own files; no CDN. NetLog: 27 URL requests, 21 from renderers; 3 grader navigations, all `main frame` and `ERR_NAME_NOT_RESOLVED`; every non-local request failed (no egress) | pass |
-| 24 | J11 release `dist/` | `permissions.getAll().origins = []`, no `host_permissions`. Upload PSA → auto-open, CGC QR → auto-open, foreign QR → not auto-open. NetLog: 2 renderer requests, both official-page navigations (`psacard…/01234567`, `cgccomics…/4012347003/`), DNS-blocked | pass |
-| 25 | SEC-03 busy page (`security.test.mjs`) | Hostile page (`pages/busy.html`, own site `localhost`) blocks its main thread; the image is hotlink-only so the probe must be injected → UI `error` after **12,034 ms** (budget 12,500) | pass |
-| 26 | SEC-03 `scan()` | `error/timeout`, `acquireMs 12001`, settled at 12,005 ms | pass |
-| 27 | SEC-03 Cancel | Cancel 2 s into a hung acquisition → `idle` after **66 ms** (budget 1,000); nothing opened | pass |
-| 28 | SEC-04 decode bomb | 1,080-byte RLE8 BMP declaring 16000×16000 → UI `error` in 80 ms; `scan()` `too-large`, `totalMs 2` | pass |
-| 29 | SEC-06 | 110 px https image → `none` + offer → grant (stubbed) → Rescan → full-resolution fetch → auto-open, **1 tab**. Re-delivering the identical job id starts no scan; still 1 tab | pass |
-| 30–33 | Fixture integrity (`fixtures.test.mjs`) | Hashes and bytes for main, bench and security fixtures. `qr-foreign-host` accepts `confirm`/`none` with `mustNotAutoOpen` and `mustNotOpen`. Bench has ≥40 fixtures and is <8 MB; all degradation types and grader/length combinations covered | pass |
-| 34–35 | Benchmark (`benchmark.test.mjs`) | Cold and warm timings; all 57 fixtures; gate (section 5) | pass |
+### 4.1 A9 page scan — `tests/e2e/pagescan.test.mjs`
+
+Page jobs are written to `chrome.storage.session` `scanJob:<windowId>` from the extension's service worker, in the exact shape of `sw.js` `createPageJob()`:
+`{v:1, id, createdAt, kind:'page', source, srcUrl:null, pageUrl:<origin+path>, frameId:0, tabId, windowId}`, with no `mediaType`.
+That stands in for the toolbar icon and Alt+Shift+S, which cannot be automated.
+P1–P10 carry their ID in the test name. P11–P14 are the tests whose names start with `hard check: every page-scan auto-open`, `page-access state`, `"Always allow on <host>"` and `NL:`.
+
+| # | Case (build) | Evidence (final run) | Time | Result |
+|---|---|---|---|---|
+| P1 | Gallery page job (dist-e2e) | Body and task `page-results` with heading "Cert numbers on this page". Rows: cgc-comics 4012345001, 4012346002, 4012347003; psa 01234567; `?` 5012345678 ("Choose grader", no Open); psa 12345678 (off-site QR note naming `evil.example`). **Every number on a scanned photo is listed.** No stray number, no wrong grader. Each graded row shows its exact official path, a thumbnail and Copy. Summary "Found: 6". No auto-open, no tab, no history entry. Job slot cleared. `evil.example` absent from tabs and network. Photos ≥ 90% visible were scanned first. The lazy image below the fold was not discovered. | UI 8.0 s (cold panel) | pass |
+| P1b | Diagnostic `scanPage()` in the panel realm | 10 discovered, 8 scanned. Every image acquired: 7 by extension-fetch, the `blob:` one by page-fetch. Discovery 3 ms, one capture 157 ms, total 7.1 s (budget 30 s). Per image: §5. | 7.1 s warm | pass |
+| P2 | Listing `pages/listing.html` (dist-e2e) | Discovery finds only the slab photo and the raw-card photo. The logo, avatar, banner and two 64 px thumbnails are excluded. Auto-open `https://www.psacard.com/cert/108114622` **exactly once**, at listing index+1, with the listing as opener. S2 shows `psacard.com/cert/108114622`. History +1 (psa 108114622, no URL). No page-text number shown. Re-sending the same job id clears the slot, starts no scan and leaves still 1 tab. | UI 3.65 s | pass |
+| P3 | Listing `?details=1` and `?slab=0&details=1` | Page text is never read. Printed in an image: seller ID 48213576 → psa @0.70 and item number 2023041712 → no grader @0.35. Both are listed with "Not a clear read", **never opened**. With the slab present the page shows `page-results` instead of auto-open (O8). | 4.1 s / 3.6 s | pass |
+| P4 | Nothing found | `?slab=0`: `none`, "No cert numbers found on this page", "Checked the photos on this page but couldn't read a cert number.", 3 tips (open the photo, right-click, upload), Scan again + Choose image. `?photos=0`: "No photos large enough to be a slab are visible on this page." No tab, no history. | 2.7 s / 61 ms | pass |
+| P5 | Restricted | Panel button (real click) with `chrome://version` active: the no-op probe is refused → E1, no scan started. Page jobs with `pageUrl ''` (hidden URL), `chrome://version/` and a Web Store URL → E1 "Chrome doesn't allow reading this page" with Scan this page + Choose image. Web Store never requested. No uncaught errors. | 11–14 ms | pass |
+| P6 | Cancel at "Scanning image 2 of 8" (gallery) | `idle`, "Scan cancelled." announced, focus on `#task-heading`. No late result within 3 s, nothing opened. | **90 ms** (budget 1 s) | pass |
+| P7 | Panel "Scan this page" with access (dist-e2e) | Real click → `page-results` (6 rows), no tab by itself. Open on a row → exactly the row's official URL; row marked Opened; list kept. "Choose grader" → `confirm` with grader radios → "Back to the results" → same rows. Panel reload → `idle`: the list is not restored, by design, and no scan starts. | 7.4 s | pass |
+| P8 | Newest page job wins | Gallery job, then a listing job 300 ms later → final `auto-open`. Only `psacard.com/cert/108114622` opened within 4 s. | – | pass |
+| P9 | Crop fallback: hotlink CDN refuses every fetch (dist-e2e) | Extension and page fetches were refused (403). The pipeline cropped from one viewport capture: `method capture`, `resolution screen`, DPR 1. 400 px psa-9digit → auto-open 108114622 @0.90. 270 px psa-8digit → auto-open 01234567 @0.90. Never a wrong number. | – | pass |
+| P10 | Page-job contract negatives | `mediaType` on a page job, source `contextMenu`, non-null `srcUrl`, `frameId 3`, stale (10 min), `kind:'frame'`, `tabId -1`: each cleared within 5 s with no scan and no tab. | – | pass |
+| P11 | Hard check (page-scan describe) | Every page-scan auto-open went to its one expected URL. No `pageerror`, no CSP violation, no `evil.example`. Console only shows the expected 403s from the P9 hotlink CDN. | – | pass |
+| P12 | Page access on release **`dist/`** (no host access) | `permissions.getAll().origins = []`. The active tab's URL is hidden. Panel button → `#task[data-state=page-access]`, body `idle`, focus on the heading. Copy: "Click the CertScanner icon in the toolbar, or press Alt+Shift+S, to scan this page." (Chrome reports `scan-page` = Alt+Shift+S). No "Always allow" (host unknown). No scan, no request from any context. | – | pass |
+| P13 | "Always allow" on release `dist/`, https host known from an earlier job, **prompt stubbed** | Offer "Always allow on 127.0.0.1"; `permissions.request({origins:['https://127.0.0.1/*']})`; decline → offer withdrawn, "No access given…" note focused, nothing granted. After the tab moved to another https site: page-access **without** the offer (O12). | – | pass |
+| P14 | Dutch smoke (`--lang=nl`, dist-e2e) | `chrome.i18n.getUILanguage()` is `nl`; toolbar title "Deze pagina scannen op certnummers van slabs"; `html[lang=nl]`; idle "Slab scannen"; button "Deze pagina scannen". Page job → "Certnummers op deze pagina", "Gevonden: 7. …", row button "Openen PSA 81234567", "Grader kiezen". | – | pass |
+
+### 4.2 Updated or extended existing cases
+
+| Case (file) | Change and evidence | Result |
+|---|---|---|
+| Install (`extension.test.mjs`) | `openPanelOnActionClick` is **false** (A9 default: the icon scans the page). `commands` declares `scan-page`. The rest is unchanged: menu, panel path, no message listeners, permissions, optional `https://*/*`. | pass |
+| A9 setting (new) | `setting-scanOnToolbarClick` off → `storage.sync` saved → behaviour **true**, tooltip "Open CertScanner". On → **false**, tooltip "Scan this page for slab cert numbers" (RM-6). | pass |
+| Panel contract | Adds `page-scan-button`, `page-progress`, `page-result-list`, `setting-scanOnToolbarClick`, `shortcut-current`, `shortcut-button`. All present and unique; idle shows "Scan this page". | pass |
+| Service worker stopped | Setting off → behaviour true. CDP `stopAllWorkers` → `stopped`. A stale `false` was forced from the panel while stopped. The worker restarted on its next event → behaviour back to **true** (top-level `applyPanelBehavior`). Setting on → false. Window-job cleanup and image hand-off → auto-open still work. | pass |
+| J11 dist-e2e (`privacy.test.mjs`) | Adds a gallery page job (`page-results`). NetLog: 36 requests, 28 renderer, 10 extension-initiated (all to the local fixture origins), 3 grader navigations (`main frame`, `ERR_NAME_NOT_RESOLVED`). Every non-local request failed (no egress). | pass |
+| J11 release `dist/` | Adds the gallery page and the panel page-scan click (page-access, no request to the page origins). NetLog: 25 requests, 18 renderer, **0 extension-initiated**, 2 grader navigations (`psacard…/01234567`, `cgccomics…/4012347003/`), DNS-blocked. | pass |
+| Fixture integrity (`fixtures.test.mjs`) | Adds the listing: asset hashes; exactly the slab and raw photo are slab-sized; logo, avatar, banner and thumbnails are below threshold; the expected URL matches the slab fixture; no page-text number equals the cert. | pass |
+
+### 4.3 Unchanged cases (all pass in the final run)
+
+| Cases | Key observations (final run) |
+|---|---|
+| J1–J10, J4b, J7b, two quick jobs, panel reload, job contract, settings and history, history clear/off, journeys hard check (`extension.test.mjs`) | Same evidence as the 2026-10-09 report. Panel reload after completion restored `auto-open 108114622` (A5). J7b offered "Sharper scans on localhost". |
+| SEC-03 busy page / `scan()` / Cancel (`security.test.mjs`) | UI `error` after **12,046 ms** (budget 12,500); `scan()` `timeout`, acquireMs 12,001; Cancel → `idle` in **57 ms** |
+| SEC-04 decode bomb | UI `error` in 32 ms; `scan()` `too-large`, totalMs 2 |
+| SEC-06 | Capture read `none` + offer → grant (stubbed) → Rescan → auto-open, 1 tab. Re-delivered identical id → no scan, still 1 tab. |
+| Fixture integrity, benchmark (`fixtures.test.mjs`, `benchmark.test.mjs`) | Hashes OK; gate PASS (§6) |
 
 **Coverage matrix (skill checklist):**
 - **Pass:**
-  - Install and first use.
-  - Panel reload, panel state and window binding.
-  - Worker termination and revival.
-  - Same-origin iframe.
-  - Deny (stubbed).
-  - Restricted pages.
-  - Settings persistence.
-  - Offline.
-  - Duplicates and two quick jobs.
-  - Invalid messages (jobs).
-  - Keyboard and labels (basic).
+  - install and first use, including the A9 default
+  - toolbar setting toggle
+  - panel state and reload
+  - window binding
+  - worker stop and revival, including the panel-behaviour restore
+  - same-origin iframe
+  - restricted pages (image and page jobs, panel button)
+  - grant/deny (stubbed)
+  - settings persistence
+  - offline input
+  - duplicates and newest-job-wins (image and page)
+  - invalid jobs (image and page)
+  - keyboard and labels (basic)
+  - Dutch UI smoke
+  - egress on both builds
 - **Not run:**
-  - Cross-origin iframe: dist-e2e's `<all_urls>` makes it equivalent to a direct fetch.
-  - Revoke and real grant (M5).
-  - Extension update/reload.
-  - Storage migration in the browser (unit-tested by FE).
-  - Zoom, contrast, reduced motion, screen reader, Dutch (M8).
-  - Chrome 116 (M9).
-  - Incognito runtime (M11).
+  - real grant, revoke and prompt (M5, PS4)
+  - extension update/reload
+  - storage migration in the browser (unit-tested by FE)
+  - zoom, contrast, reduced motion, screen reader (M8)
+  - Chrome 116 (M9)
+  - incognito runtime (M11)
+  - HiDPI capture (PS11)
+  - user-restricted sites
 - **Not applicable:**
-  - Account, sign-in, tenant, 429/5xx and backend cases: v1 is local-only with no server.
-  - Popup: no `action.default_popup`.
-  - Content scripts: none declared.
+  - accounts, tenants, 429/5xx and backends (local-only v1)
+  - popup (no `default_popup`)
+  - content scripts (none declared)
+  - cross-origin iframes in page mode (main frame only, by A9 design)
 
-## 5. Benchmark (D3 gate)
+## 5. Page-scan evidence detail
 
-**Fixtures:**
-- 57 synthetic fixtures in `tests/fixtures/bench/`, 3.95 MiB: 18 clean, 36 degraded, 3 negative.
-- Cert numbers: PSA with 7, 8 and 9 digits, including `00573921` and the 9-digit `056734128` with leading zeros; CGC comics with 10 digits, including a dash form, a signature-series band and an allow-listed QR; CGC cards with 13 digits and 10 digits with card wording.
-- Degradations:
-  - JPEG q40
-  - 0.5× scale
-  - 1 px and 2 px blur
-  - glare
-  - rotation by −6° to +5°
-  - dark/low contrast with seeded noise
-  - busy art with competing digits: `151`, `#199`, `199/165`, `©1995-2023`, `No. 300`, `1988`, `58/102`, and a `LOT 20230417` sticker
-  - two combinations
-- All fixtures run through the real panel's upload input in one warm panel. `scan()` is also called in the same realm for candidate diagnostics.
+**Gallery, final run.** Viewport 1280×861, DPR 1, 10 slab-sized images discovered.
+The first 8 by visible area: qr-foreign 1.00, psa-8digit 1.00, ambiguous 1.00, psa-lowres (srcset) 1.00, cgc-comic-dash 0.54, non-slab 1.00, cgc-comic-qr (`blob:`) 0.00, cgc-comic-rotated 0.00.
+
+| img | fixture | method | acquire ms | scan ms | candidates |
+|---|---|---|---|---|---|
+| 0 | qr-foreign-host | extension-fetch | 22 | 848 | 1 (psa 12345678 @0.35, off-site QR) |
+| 1 | psa-8digit-leading-zero | extension-fetch | 22 | 736 | 1 |
+| 2 | ambiguous-10digit | extension-fetch | 17 | 520 | 1 (5012345678 @0.45, no grader) |
+| 3 | psa-lowres (srcset) | extension-fetch | 10 | 459 | 1 (merged with img 1) |
+| 4 | cgc-comic-dash | extension-fetch | 16 | 739 | 1 |
+| 5 | non-slab | extension-fetch | 13 | 2,475 | 0 |
+| 6 | cgc-comic-qr (`blob:`) | page-fetch | 25 | 196 | 1 (qr-url) |
+| 7 | cgc-comic-rotated | extension-fetch | 24 | 811 | 1 |
+
+The selection depends on layout and Chrome's cache. In two other runs, Chrome resolved the srcset image to the already-cached 544w candidate (same URL as img 1, de-duplicated). That left 9 images, so `psa-back-barcode` (81234567) entered the top 8 and was listed.
+P1 therefore derives its expected numbers from the extension's own discovery result and checks them against the fixture manifest. It does not hard-code a list.
+
+**Listing variants.** One run each, final.
+
+| Variant | Discovered | Observed | Tabs |
+|---|---|---|---|
+| default | slab, raw photo | auto-open psa 108114622 @0.90 | 1 (`psacard.com/cert/108114622`) |
+| `?details=1` | slab, raw photo, details image | page-results: psa 108114622 @0.90; psa 48213576 @0.70 (note); `?` 2023041712 @0.35 (note) | 0 |
+| `?slab=0&details=1` | raw photo, details image | page-results: psa 48213576 @0.70; `?` 2023041712 @0.35 | 0 |
+| `?slab=0` | raw photo | none, "photos checked" | 0 |
+| `?photos=0` | – | none, "no photos large enough" | 0 |
+
+## 6. Benchmark (D3 gate), final run
+
+57 synthetic fixtures (18 clean, 36 degraded, 3 negative), run through the real panel's upload input in one warm panel. The fixtures are unchanged from the 2026-10-09 report.
 
 | Metric | Observed | Gate |
 |---|---|---|
@@ -134,187 +176,188 @@ _This report is evidence. It does not override the ADR, the UX spec or the user'
 | Wrong auto-opens | **0** | 0 |
 | Auto-open precision | 48/48 = 100% | – |
 | Auto-open rate on positives (clean / degraded) | 100% / 83.3% | – |
-| Grader correct when top-1 correct | 98% (the one miss is `cgcc-c10-glare`: grader left unresolved, not wrong) | – |
-| Negatives (ambiguous, raw card, raw card JPEG) | confirm / none / none, all accepted, no tab | – |
-| Warm UI time (upload → final state) p50 / p95 / max | 779 / 1,964 / 5,064 ms | – |
-| Warm `scan()` total p50 / p95 / max | 671 / 1,824 / 4,803 ms | – |
-| Cold UI time (first scan in a fresh profile, then 4 freshly loaded panels) | 1,352 / 1,333 / 1,300 / 1,413 / 1,254 ms | – |
+| Grader correct when top-1 correct | 98% | – |
+| Warm UI time p50 / p95 / max | 834 / 2,045 / 5,522 ms | – |
+| Warm `scan()` total p50 / p95 / max | 709 / 1,946 / 5,323 ms | – |
+| Cold UI time (fresh profile, then 4 reloaded panels) | 1,438 / 1,388 / 1,384 / 1,332 / 1,247 ms | – |
 
-A second complete benchmark run earlier on the same day (working tree just before `7d15b99`) gave identical accuracy: 100% clean, 88.9% degraded, 0 wrong auto-opens.
-
-**Misses, for FE tuning.** All four ended in confirm or none, none auto-opened:
+**Misses.** The same four as on 2026-10-09; none auto-opened.
 
 | Fixture | Degradation | Expected | Observed | Pipeline top candidates |
 |---|---|---|---|---|
-| psa-c03-blur2 | blur 2 px | psa 109876543 | **confirm with wrong number `100876043`**, PSA pre-selected | `100876043`/psa/0.53, `10987654`/psa/0.35 |
+| psa-c03-blur2 | blur 2 px | psa 109876543 | **confirm with wrong number `100876043`**, PSA pre-selected | 100876043/psa/0.53, 10987654/psa/0.35 |
 | cgcc-c09-blur2 | blur 2 px | cgc-comics 3984561002 | none | – |
 | cgcd-c17-blur2 | blur 2 px | cgc-cards 2938475610 | none | – |
 | cgcd-c16-rot-6 | rotation −6° | cgc-cards 3901234567 | none | – |
 
-**Per-fixture results.** "Expected" is the preferred status; every fixture also accepts `confirm` except the negatives.
+**Per-fixture results.** "Expected" is the preferred status; every positive also accepts `confirm`.
 
-| Fixture | Category | Degradations | Expected | Observed state | Shown number | Grader | Opened | UI ms | Top pipeline candidates (number/grader/confidence) |
+| Fixture | Category | Degradations | Expected | Observed state | Shown number | Grader | Opened | UI ms | Top pipeline candidates |
 |---|---|---|---|---|---|---|---|---|---|
-| psa-c01 | clean | - | auto-open psa 04718263 | auto-open | 04718263 | psa | psacard.com/cert/04718263 | 795 | 04718263/psa/0.9 |
-| psa-c02 | clean | - | auto-open psa 72910483 | auto-open | 72910483 | psa | psacard.com/cert/72910483 | 733 | 72910483/psa/0.9 |
-| psa-c03 | clean | - | auto-open psa 109876543 | auto-open | 109876543 | psa | psacard.com/cert/109876543 | 827 | 109876543/psa/0.9 |
-| psa-c04 | clean | - | auto-open psa 00573921 | auto-open | 00573921 | psa | psacard.com/cert/00573921 | 799 | 00573921/psa/0.9 |
-| psa-c05 | clean | - | auto-open psa 056734128 | auto-open | 056734128 | psa | psacard.com/cert/056734128 | 808 | 056734128/psa/0.9 |
-| psa-c06 | clean | - | auto-open psa 30561247 | auto-open | 30561247 | psa | psacard.com/cert/30561247 | 667 | 30561247/psa/0.9 |
-| psa-c07 | clean | - | auto-open psa 5123478 | auto-open | 5123478 | psa | psacard.com/cert/5123478 | 647 | 5123478/psa/0.9 |
-| psa-c08 | clean | - | auto-open psa 61834502 | auto-open | 61834502 | psa | psacard.com/cert/61834502 | 607 | 61834502/psa/1 |
-| cgcc-c09 | clean | - | auto-open cgc-comics 3984561002 | auto-open | 3984561002 | cgc-comics | cgccomics.com/certlookup/3984561002/ | 797 | 3984561002/cgc-comics/0.95 |
-| cgcc-c10 | clean | - | auto-open cgc-comics 4087123006 | auto-open | 4087123006 | cgc-comics | cgccomics.com/certlookup/4087123006/ | 899 | 4087123006/cgc-comics/0.95 |
-| cgcc-c11 | clean | - | auto-open cgc-comics 4102938015 | auto-open | 4102938015 | cgc-comics | cgccomics.com/certlookup/4102938015/ | 845 | 4102938015/cgc-comics/0.95 |
-| cgcc-c12 | clean | - | auto-open cgc-comics 3765432011 | auto-open | 3765432011 | cgc-comics | cgccomics.com/certlookup/3765432011/ | 813 | 3765432011/cgc-comics/0.95 |
-| cgcc-c13 | clean | - | auto-open cgc-comics 4155667002 | auto-open | 4155667002 | cgc-comics | cgccomics.com/certlookup/4155667002/ | 297 | 4155667002/cgc-comics/0.95 |
-| cgcd-c14 | clean | - | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 831 | 1402345678901/cgc-cards/0.9 |
-| cgcd-c15 | clean | - | auto-open cgc-cards 1403987650123 | auto-open | 1403987650123 | cgc-cards | cgccards.com/certlookup/1403987650123/ | 694 | 1403987650123/cgc-cards/0.9 |
-| cgcd-c16 | clean | - | auto-open cgc-cards 3901234567 | auto-open | 3901234567 | cgc-cards | cgccards.com/certlookup/3901234567/ | 681 | 3901234567/cgc-cards/0.95 |
-| cgcd-c17 | clean | - | auto-open cgc-cards 2938475610 | auto-open | 2938475610 | cgc-cards | cgccards.com/certlookup/2938475610/ | 777 | 2938475610/cgc-cards/0.95 |
-| cgcd-c18 | clean | - | auto-open cgc-cards 1405551234567 | auto-open | 1405551234567 | cgc-cards | cgccards.com/certlookup/1405551234567/ | 677 | 1405551234567/cgc-cards/0.9 |
-| neg-c19 | negative | - | confirm - 6012349870 | confirm | 6012349870 | - | - | 637 | 6012349870/?/0.45 |
-| neg-c20 | negative | - | none - - | none | - | - | - | 770 | - |
-| psa-b01 | degraded | busy-art | auto-open psa 07294618 | auto-open | 07294618 | psa | psacard.com/cert/07294618 | 1081 | 07294618/psa/0.9 1997165/psa/0.35 2023151/psa/0.35 |
-| cgcc-b02 | degraded | busy-art | auto-open cgc-comics 4011223004 | auto-open | 4011223004 | cgc-comics | cgccomics.com/certlookup/4011223004/ | 900 | 4011223004/cgc-comics/0.95 |
-| cgcd-b03 | degraded | busy-art | auto-open cgc-cards 1404440987654 | auto-open | 1404440987654 | cgc-cards | cgccards.com/certlookup/1404440987654/ | 1051 | 1404440987654/cgc-cards/0.9 |
-| psa-b04 | degraded | busy-art | confirm psa 81726354 | auto-open | 81726354 | psa | psacard.com/cert/81726354 | 889 | 81726354/psa/0.9 |
-| psa-c01-jpeg40 | degraded | jpeg-q40 | auto-open psa 04718263 | auto-open | 04718263 | psa | psacard.com/cert/04718263 | 726 | 04718263/psa/0.9 |
-| psa-c03-jpeg40 | degraded | jpeg-q40 | auto-open psa 109876543 | auto-open | 109876543 | psa | psacard.com/cert/109876543 | 817 | 109876543/psa/0.9 |
-| cgcc-c09-jpeg40 | degraded | jpeg-q40 | auto-open cgc-comics 3984561002 | auto-open | 3984561002 | cgc-comics | cgccomics.com/certlookup/3984561002/ | 847 | 3984561002/cgc-comics/0.95 |
-| cgcd-c14-jpeg40 | degraded | jpeg-q40 | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 779 | 1402345678901/cgc-cards/0.9 |
-| cgcd-c16-jpeg40 | degraded | jpeg-q40 | auto-open cgc-cards 3901234567 | auto-open | 3901234567 | cgc-cards | cgccards.com/certlookup/3901234567/ | 712 | 3901234567/cgc-cards/0.95 |
-| psa-c08-jpeg40 | degraded | jpeg-q40 | auto-open psa 61834502 | auto-open | 61834502 | psa | psacard.com/cert/61834502 | 653 | 61834502/psa/1 |
-| cgcc-c13-jpeg40 | degraded | jpeg-q40 | auto-open cgc-comics 4155667002 | auto-open | 4155667002 | cgc-comics | cgccomics.com/certlookup/4155667002/ | 307 | 4155667002/cgc-comics/0.95 |
-| psa-c02-half | degraded | scale-0.5 | auto-open psa 72910483 | auto-open | 72910483 | psa | psacard.com/cert/72910483 | 442 | 72910483/psa/0.9 |
-| psa-c04-half | degraded | scale-0.5 | auto-open psa 00573921 | auto-open | 00573921 | psa | psacard.com/cert/00573921 | 535 | 00573921/psa/0.9 |
-| cgcc-c10-half | degraded | scale-0.5 | auto-open cgc-comics 4087123006 | auto-open | 4087123006 | cgc-comics | cgccomics.com/certlookup/4087123006/ | 658 | 4087123006/cgc-comics/0.8 |
-| cgcd-c15-half | degraded | scale-0.5 | auto-open cgc-cards 1403987650123 | auto-open | 1403987650123 | cgc-cards | cgccards.com/certlookup/1403987650123/ | 451 | 1403987650123/cgc-cards/0.9 |
-| psa-c08-half | degraded | scale-0.5 | auto-open psa 61834502 | auto-open | 61834502 | psa | psacard.com/cert/61834502 | 467 | 61834502/psa/0.9 |
-| psa-c01-blur1 | degraded | blur-1px | auto-open psa 04718263 | auto-open | 04718263 | psa | psacard.com/cert/04718263 | 820 | 04718263/psa/0.9 |
-| cgcc-c11-blur1 | degraded | blur-1px | auto-open cgc-comics 4102938015 | auto-open | 4102938015 | cgc-comics | cgccomics.com/certlookup/4102938015/ | 838 | 4102938015/cgc-comics/0.95 |
-| cgcd-c14-blur1 | degraded | blur-1px | auto-open cgc-cards 1402345678901 | confirm | 1402345678901 | cgc-cards | - | 611 | 1402345678901/cgc-cards/0.7 |
-| psa-c03-blur2 | degraded | blur-2px | auto-open psa 109876543 | confirm | 100876043 (miss) | psa | - | 816 | 100876043/psa/0.53 10987654/psa/0.35 |
-| cgcc-c09-blur2 | degraded | blur-2px | auto-open cgc-comics 3984561002 | none | - (miss) | - | - | 1188 | - |
-| cgcd-c17-blur2 | degraded | blur-2px | auto-open cgc-cards 2938475610 | none | - (miss) | - | - | 905 | - |
-| psa-c02-glare | degraded | glare | auto-open psa 72910483 | auto-open | 72910483 | psa | psacard.com/cert/72910483 | 678 | 72910483/psa/0.9 |
-| psa-c06-glare | degraded | glare | auto-open psa 30561247 | auto-open | 30561247 | psa | psacard.com/cert/30561247 | 702 | 30561247/psa/0.9 |
-| cgcc-c10-glare | degraded | glare | auto-open cgc-comics 4087123006 | confirm | 4087123006 | - | - | 703 | 4087123006/?/0.45 |
-| cgcd-c14-glare | degraded | glare | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 759 | 1402345678901/cgc-cards/0.9 |
-| psa-c03-rot-3 | degraded | rotate:-3 | auto-open psa 109876543 | auto-open | 109876543 | psa | psacard.com/cert/109876543 | 860 | 109876543/psa/0.9 |
-| cgcc-c09-rot5 | degraded | rotate:5 | auto-open cgc-comics 3984561002 | auto-open | 3984561002 | cgc-comics | cgccomics.com/certlookup/3984561002/ | 809 | 3984561002/cgc-comics/0.85 |
-| cgcd-c16-rot-6 | degraded | rotate:-6 | auto-open cgc-cards 3901234567 | none | - (miss) | - | - | 1234 | - |
-| psa-c07-rot2 | degraded | rotate:2 | auto-open psa 5123478 | auto-open | 5123478 | psa | psacard.com/cert/5123478 | 644 | 5123478/psa/0.9 |
-| psa-c04-dark | degraded | dark-low-contrast | auto-open psa 00573921 | auto-open | 00573921 | psa | psacard.com/cert/00573921 | 1964 | 00573921/psa/0.9 |
-| cgcc-c12-dark | degraded | dark-low-contrast | auto-open cgc-comics 3765432011 | auto-open | 3765432011 | cgc-comics | cgccomics.com/certlookup/3765432011/ | 1172 | 3765432011/cgc-comics/0.94 |
-| cgcd-c18-dark | degraded | dark-low-contrast | auto-open cgc-cards 1405551234567 | auto-open | 1405551234567 | cgc-cards | cgccards.com/certlookup/1405551234567/ | 2923 | 1405551234567/cgc-cards/0.9 |
-| psa-c05-dark | degraded | dark-low-contrast | auto-open psa 056734128 | auto-open | 056734128 | psa | psacard.com/cert/056734128 | 5064 | 056734128/psa/0.9 |
-| psa-b01-jpeg40 | degraded | busy-art, jpeg-q40 | auto-open psa 07294618 | auto-open | 07294618 | psa | psacard.com/cert/07294618 | 1058 | 07294618/psa/0.9 1997165/psa/0.35 2023151/psa/0.35 |
-| cgcd-c14-rot-4-jpeg60 | degraded | rotate:-4, jpeg-q60 | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 753 | 1402345678901/cgc-cards/0.9 |
-| neg-c20-jpeg40 | negative | jpeg-q40 | none - - | none | - | - | - | 773 | - |
+| psa-c01 | clean | - | auto-open psa 04718263 | auto-open | 04718263 | psa | psacard.com/cert/04718263 | 941 | 04718263/psa/0.9 |
+| psa-c02 | clean | - | auto-open psa 72910483 | auto-open | 72910483 | psa | psacard.com/cert/72910483 | 874 | 72910483/psa/0.9 |
+| psa-c03 | clean | - | auto-open psa 109876543 | auto-open | 109876543 | psa | psacard.com/cert/109876543 | 1030 | 109876543/psa/0.9 |
+| psa-c04 | clean | - | auto-open psa 00573921 | auto-open | 00573921 | psa | psacard.com/cert/00573921 | 865 | 00573921/psa/0.9 |
+| psa-c05 | clean | - | auto-open psa 056734128 | auto-open | 056734128 | psa | psacard.com/cert/056734128 | 771 | 056734128/psa/0.9 |
+| psa-c06 | clean | - | auto-open psa 30561247 | auto-open | 30561247 | psa | psacard.com/cert/30561247 | 721 | 30561247/psa/0.9 |
+| psa-c07 | clean | - | auto-open psa 5123478 | auto-open | 5123478 | psa | psacard.com/cert/5123478 | 742 | 5123478/psa/0.9 |
+| psa-c08 | clean | - | auto-open psa 61834502 | auto-open | 61834502 | psa | psacard.com/cert/61834502 | 633 | 61834502/psa/1 |
+| cgcc-c09 | clean | - | auto-open cgc-comics 3984561002 | auto-open | 3984561002 | cgc-comics | cgccomics.com/certlookup/3984561002/ | 804 | 3984561002/cgc-comics/0.95 |
+| cgcc-c10 | clean | - | auto-open cgc-comics 4087123006 | auto-open | 4087123006 | cgc-comics | cgccomics.com/certlookup/4087123006/ | 1035 | 4087123006/cgc-comics/0.95 |
+| cgcc-c11 | clean | - | auto-open cgc-comics 4102938015 | auto-open | 4102938015 | cgc-comics | cgccomics.com/certlookup/4102938015/ | 883 | 4102938015/cgc-comics/0.95 |
+| cgcc-c12 | clean | - | auto-open cgc-comics 3765432011 | auto-open | 3765432011 | cgc-comics | cgccomics.com/certlookup/3765432011/ | 975 | 3765432011/cgc-comics/0.95 |
+| cgcc-c13 | clean | - | auto-open cgc-comics 4155667002 | auto-open | 4155667002 | cgc-comics | cgccomics.com/certlookup/4155667002/ | 315 | 4155667002/cgc-comics/0.95 |
+| cgcd-c14 | clean | - | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 899 | 1402345678901/cgc-cards/0.9 |
+| cgcd-c15 | clean | - | auto-open cgc-cards 1403987650123 | auto-open | 1403987650123 | cgc-cards | cgccards.com/certlookup/1403987650123/ | 816 | 1403987650123/cgc-cards/0.9 |
+| cgcd-c16 | clean | - | auto-open cgc-cards 3901234567 | auto-open | 3901234567 | cgc-cards | cgccards.com/certlookup/3901234567/ | 723 | 3901234567/cgc-cards/0.95 |
+| cgcd-c17 | clean | - | auto-open cgc-cards 2938475610 | auto-open | 2938475610 | cgc-cards | cgccards.com/certlookup/2938475610/ | 784 | 2938475610/cgc-cards/0.95 |
+| cgcd-c18 | clean | - | auto-open cgc-cards 1405551234567 | auto-open | 1405551234567 | cgc-cards | cgccards.com/certlookup/1405551234567/ | 761 | 1405551234567/cgc-cards/0.9 |
+| neg-c19 | negative | - | confirm - 6012349870 | confirm | 6012349870 | - | - | 638 | 6012349870/?/0.45 |
+| neg-c20 | negative | - | none - - | none | - | - | - | 892 | - |
+| psa-b01 | degraded | busy-art | auto-open psa 07294618 | auto-open | 07294618 | psa | psacard.com/cert/07294618 | 1182 | 07294618/psa/0.9 1997165/psa/0.35 2023151/psa/0.35 |
+| cgcc-b02 | degraded | busy-art | auto-open cgc-comics 4011223004 | auto-open | 4011223004 | cgc-comics | cgccomics.com/certlookup/4011223004/ | 1011 | 4011223004/cgc-comics/0.95 |
+| cgcd-b03 | degraded | busy-art | auto-open cgc-cards 1404440987654 | auto-open | 1404440987654 | cgc-cards | cgccards.com/certlookup/1404440987654/ | 1144 | 1404440987654/cgc-cards/0.9 |
+| psa-b04 | degraded | busy-art | confirm psa 81726354 | auto-open | 81726354 | psa | psacard.com/cert/81726354 | 917 | 81726354/psa/0.9 |
+| psa-c01-jpeg40 | degraded | jpeg-q40 | auto-open psa 04718263 | auto-open | 04718263 | psa | psacard.com/cert/04718263 | 855 | 04718263/psa/0.9 |
+| psa-c03-jpeg40 | degraded | jpeg-q40 | auto-open psa 109876543 | auto-open | 109876543 | psa | psacard.com/cert/109876543 | 829 | 109876543/psa/0.9 |
+| cgcc-c09-jpeg40 | degraded | jpeg-q40 | auto-open cgc-comics 3984561002 | auto-open | 3984561002 | cgc-comics | cgccomics.com/certlookup/3984561002/ | 948 | 3984561002/cgc-comics/0.95 |
+| cgcd-c14-jpeg40 | degraded | jpeg-q40 | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 828 | 1402345678901/cgc-cards/0.9 |
+| cgcd-c16-jpeg40 | degraded | jpeg-q40 | auto-open cgc-cards 3901234567 | auto-open | 3901234567 | cgc-cards | cgccards.com/certlookup/3901234567/ | 776 | 3901234567/cgc-cards/0.95 |
+| psa-c08-jpeg40 | degraded | jpeg-q40 | auto-open psa 61834502 | auto-open | 61834502 | psa | psacard.com/cert/61834502 | 611 | 61834502/psa/1 |
+| cgcc-c13-jpeg40 | degraded | jpeg-q40 | auto-open cgc-comics 4155667002 | auto-open | 4155667002 | cgc-comics | cgccomics.com/certlookup/4155667002/ | 265 | 4155667002/cgc-comics/0.95 |
+| psa-c02-half | degraded | scale-0.5 | auto-open psa 72910483 | auto-open | 72910483 | psa | psacard.com/cert/72910483 | 498 | 72910483/psa/0.9 |
+| psa-c04-half | degraded | scale-0.5 | auto-open psa 00573921 | auto-open | 00573921 | psa | psacard.com/cert/00573921 | 485 | 00573921/psa/0.9 |
+| cgcc-c10-half | degraded | scale-0.5 | auto-open cgc-comics 4087123006 | auto-open | 4087123006 | cgc-comics | cgccomics.com/certlookup/4087123006/ | 612 | 4087123006/cgc-comics/0.8 |
+| cgcd-c15-half | degraded | scale-0.5 | auto-open cgc-cards 1403987650123 | auto-open | 1403987650123 | cgc-cards | cgccards.com/certlookup/1403987650123/ | 495 | 1403987650123/cgc-cards/0.9 |
+| psa-c08-half | degraded | scale-0.5 | auto-open psa 61834502 | auto-open | 61834502 | psa | psacard.com/cert/61834502 | 388 | 61834502/psa/0.9 |
+| psa-c01-blur1 | degraded | blur-1px | auto-open psa 04718263 | auto-open | 04718263 | psa | psacard.com/cert/04718263 | 779 | 04718263/psa/0.9 |
+| cgcc-c11-blur1 | degraded | blur-1px | auto-open cgc-comics 4102938015 | auto-open | 4102938015 | cgc-comics | cgccomics.com/certlookup/4102938015/ | 861 | 4102938015/cgc-comics/0.95 |
+| cgcd-c14-blur1 | degraded | blur-1px | auto-open cgc-cards 1402345678901 | confirm | 1402345678901 | cgc-cards | - | 618 | 1402345678901/cgc-cards/0.7 |
+| psa-c03-blur2 | degraded | blur-2px | auto-open psa 109876543 | confirm | 100876043 (miss) | psa | - | 915 | 100876043/psa/0.53 10987654/psa/0.35 |
+| cgcc-c09-blur2 | degraded | blur-2px | auto-open cgc-comics 3984561002 | none | - (miss) | - | - | 1254 | - |
+| cgcd-c17-blur2 | degraded | blur-2px | auto-open cgc-cards 2938475610 | none | - (miss) | - | - | 1096 | - |
+| psa-c02-glare | degraded | glare | auto-open psa 72910483 | auto-open | 72910483 | psa | psacard.com/cert/72910483 | 783 | 72910483/psa/0.9 |
+| psa-c06-glare | degraded | glare | auto-open psa 30561247 | auto-open | 30561247 | psa | psacard.com/cert/30561247 | 696 | 30561247/psa/0.9 |
+| cgcc-c10-glare | degraded | glare | auto-open cgc-comics 4087123006 | confirm | 4087123006 | - | - | 700 | 4087123006/?/0.45 |
+| cgcd-c14-glare | degraded | glare | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 978 | 1402345678901/cgc-cards/0.9 |
+| psa-c03-rot-3 | degraded | rotate:-3 | auto-open psa 109876543 | auto-open | 109876543 | psa | psacard.com/cert/109876543 | 854 | 109876543/psa/0.9 |
+| cgcc-c09-rot5 | degraded | rotate:5 | auto-open cgc-comics 3984561002 | auto-open | 3984561002 | cgc-comics | cgccomics.com/certlookup/3984561002/ | 897 | 3984561002/cgc-comics/0.85 |
+| cgcd-c16-rot-6 | degraded | rotate:-6 | auto-open cgc-cards 3901234567 | none | - (miss) | - | - | 1377 | - |
+| psa-c07-rot2 | degraded | rotate:2 | auto-open psa 5123478 | auto-open | 5123478 | psa | psacard.com/cert/5123478 | 816 | 5123478/psa/0.9 |
+| psa-c04-dark | degraded | dark-low-contrast | auto-open psa 00573921 | auto-open | 00573921 | psa | psacard.com/cert/00573921 | 2045 | 00573921/psa/0.9 |
+| cgcc-c12-dark | degraded | dark-low-contrast | auto-open cgc-comics 3765432011 | auto-open | 3765432011 | cgc-comics | cgccomics.com/certlookup/3765432011/ | 1199 | 3765432011/cgc-comics/0.94 |
+| cgcd-c18-dark | degraded | dark-low-contrast | auto-open cgc-cards 1405551234567 | auto-open | 1405551234567 | cgc-cards | cgccards.com/certlookup/1405551234567/ | 3285 | 1405551234567/cgc-cards/0.9 |
+| psa-c05-dark | degraded | dark-low-contrast | auto-open psa 056734128 | auto-open | 056734128 | psa | psacard.com/cert/056734128 | 5522 | 056734128/psa/0.9 |
+| psa-b01-jpeg40 | degraded | busy-art, jpeg-q40 | auto-open psa 07294618 | auto-open | 07294618 | psa | psacard.com/cert/07294618 | 1160 | 07294618/psa/0.9 1997165/psa/0.35 2023151/psa/0.35 |
+| cgcd-c14-rot-4-jpeg60 | degraded | rotate:-4, jpeg-q60 | auto-open cgc-cards 1402345678901 | auto-open | 1402345678901 | cgc-cards | cgccards.com/certlookup/1402345678901/ | 834 | 1402345678901/cgc-cards/0.9 |
+| neg-c20-jpeg40 | negative | jpeg-q40 | none - - | none | - | - | - | 826 | - |
 
-## 6. Defects and observations
+## 7. Defects and observations
 
-**No open defects.** Nothing failed in the final run against `5cf2742`.
-
-Earlier failures during development were all test-side issues against FE's in-progress tree. FE's diagnosis matched mine and I fixed them in the tests:
-- NetLog reports `ERR_NAME_NOT_RESOLVED`, not `NAME_NOT_RESOLVED`.
-- Playwright does not surface a restarted service worker, which left a stale handle. The SW test now drives chrome.* from the panel and proves the restarted worker through its `windows.onRemoved` cleanup.
-- SEC-06 originally expected a Sharper offer after an auto-open, which UX5 forbids. It was rewritten.
-- `setting-autoOpen` has inverted semantics.
-- Some §13 elements were rendered from templates.
-
-While FE was mid-edit, one interim build of the panel threw `Cannot set properties of null (setting 'hidden')` before `data-ready`. It was transient and absent from the final build.
-
-**SEC-03, SEC-04, SEC-06 and SEC-01 were already fixed in every build I ran.** I did not observe their failing state myself. The security review's round-1 observations are the "before" evidence.
+**No defects.** Nothing failed in the final run against `03d9589`.
+- The only red results were the two pre-A9 assertions (§3), which are test-side and now updated.
+- One QA harness slip during development: P9's diagnostic re-scan ran while the opened cert tab was active, so capture correctly refused (SEC-08). The test now re-activates the source tab first.
 
 | ID | Type | Observation | Repro / evidence | Suggested owner |
 |---|---|---|---|---|
-| O1 | Accuracy risk (R2), not a gate failure | With 2 px blur, `psa-c03-blur2` shows confirm with the **wrong** 9-digit number `100876043` at 0.53 and PSA pre-selected. It is correctly not auto-opened, but one click on Open would open a plausible wrong record. | `tests/fixtures/bench/psa-c03-blur2.jpg` via upload; pipeline candidates in section 5 | FE: consider not pre-filling the number below about 0.6, or highlighting low confidence. UX decision. |
-| O2 | Accuracy | 2 px blur on 10-digit comic/card labels and −6° rotation on a 10-digit card produce **no candidate at all** (`none`). | `cgcc-c09-blur2`, `cgcd-c17-blur2`, `cgcd-c16-rot-6` | FE (OCR tuning: deskew, or a sharpening/upscale pass for the digits crop) |
-| O3 | Performance | Dark/low-contrast scans are slow: `psa-c05-dark` 5.1 s, `cgcd-c18-dark` 2.9 s, `psa-c04-dark` 2.0 s (warm). This is within the 25 s budget but 3–7× the median. | Benchmark rows | FE (cap OCR passes once a valid run is found) |
-| O4 | Contract note | `setting-autoOpen` sits on the "Always ask before opening" switch with `data-inverted="true"` (checked means autoOpen is false). The tests handle this, but ADR §13 does not say so. | `src/sidepanel/sidepanel.html` | Architect: note it in §13 |
-| O5 | Busy-art competition works as designed | `psa-b01`: printed `2023 SV 151` and `Illus. Studio 1999 199/165` merged into PSA-length candidates `2023151` and `1997165` at 0.35, below the 0.50 competitor threshold, so auto-open of the correct cert was kept. The `LOT 20230417` sticker (`psa-b04`) was not read as a candidate. | Benchmark rows | – |
-| O6 | Static checker heuristics | Results of `check_extension.py dist`:<br>• "unsafe HTML asset: ../vendor/…" is a false positive (the checker does not normalise `..`).<br>• "remote or dynamic code" in `tesseract-core-simd-lstm.js` and `zxing-reader.iife.js` matches `function(` case-insensitively; false positive.<br>• `tesseract.min.js` and `worker.min.js` contain Babel/regenerator fallbacks `Function("r","regeneratorRuntime = r")` and `new Function("return this")` inside `try/catch`. The extension CSP (no `unsafe-eval`) blocks them; the e2e run asserted no CSP violation was logged. Not remote code.<br>• "broad hosts" warning: refers to the optional `https://*/*`, which is documented. | Command in section 3 | Release manager: mention in the Store remote-code answer if asked |
-| O7 | Console noise | A hotlink-protected image logs `Failed to load resource: 403` in the panel console when extension-fetch is refused. Expected; harmless. | J7 | – |
+| O1 | Accuracy risk (R2) | 2 px blur: `psa-c03-blur2` shows confirm with the **wrong** number `100876043` at 0.53, PSA pre-selected. Not auto-opened. | Bench row; upload `tests/fixtures/bench/psa-c03-blur2.jpg` | FE/UX: don't pre-fill below about 0.6 |
+| O2 | Accuracy | 2 px blur on 10-digit labels and −6° rotation give no candidate | `cgcc-c09-blur2`, `cgcd-c17-blur2`, `cgcd-c16-rot-6` | FE (OCR tuning) |
+| O3 | Performance | Dark/low-contrast scans are slow: `psa-c05-dark` 5.5 s, `cgcd-c18-dark` 3.3 s (warm). In page scans, a non-slab photo costs about 2.5 s (8 OCR calls) of the 30 s budget. | Bench rows; §5 img 5 | FE (stop OCR passes earlier) |
+| O4 | Contract note | `setting-autoOpen` is inverted (`data-inverted="true"`); ADR §13 doesn't say so | `src/sidepanel/sidepanel.html` | Architect |
+| O5 | Works as designed | Busy-art digits stay below the 0.50 competitor threshold | Bench `psa-b01` | – |
+| O6 | Static checker | Vendor false positives; CSP blocks the Babel `Function` fallbacks; the run logged no CSP violation | §3 | Release manager |
+| O7 | Console noise | Expected `403` from hotlink CDNs (J7, P9) in the panel console | P11 log | – |
+| **O8** | Page-scan UX / R2 (new) | A non-slab image with printed numbers (seller ID `48213576`) yields a **PSA row at 0.70 with an Open button** (plus a "Not a clear read" note). Being ≥ 0.50, it also **blocks the slab's auto-open** on the same page (results list instead). This follows the A9 rules (never auto-opened), but on real listings with item-specifics images the user gets a list and a plausible wrong PSA link. | P3; `listing.html?details=1` and `?slab=0&details=1`; confidences in §5 | Architect/FE: in page mode, consider dropping or demoting candidates from images without slab vocabulary when another image has a confident slab read, or hiding Open for them |
+| **O9** | Hardening (new, low) | Auto-open de-dup (`autoOpened`) and intake `seen` live in panel memory. After a **panel reload**, re-writing an already consumed job id within the 120 s TTL runs it again and opens a **second tab**. Real triggers can't do this (fresh UUID per trigger, slot cleared on consumption), so this is not a defect. It is the same for image jobs. | Scratch probe (not in the suite): listing page job → auto-open; reload panel; same id re-written → `["scanning","auto-open"]`, 2 tabs | FE (optional): keep consumed ids in `storage.session` |
+| **O10** | Page-scan UX (new) | When more than 8 slab-sized photos exist, the list doesn't say that some were not checked (the gallery: 10 found, 8 checked, "Found: 6"). It mentions "checked N of M" only for the 30 s timeout. The page "none" copy says "Checked the photos on this page…" even when some were skipped. | P1/P1b (discovered 10, scanned 8); `pageView.pageSummary` | UX/FE: add "Checked 8 of 10 photos" |
+| **O11** | Copy (new, low) | A toolbar/shortcut page job whose grant is gone by scan time (e.g. the tab navigated cross-origin right after the click) shows E1 "Chrome doesn't allow reading this page". The page itself may be readable. | P13 first step: page job on an https page without a grant → `error/restricted` | UX: consider the page-access copy for `injectFailed` on non-restricted URLs |
+| **O12** | Release-checklist conflict (new) | The "Always allow on ‹host›" offer is practically unreachable. The panel only knows a host from an earlier job and drops it on any navigation it can't see. Release checklist **PS4 expects the offer after moving the tab to a different site; it will not appear.** This confirms FE's "rare" note. | P13 second step: after a cross-origin https navigation → page-access, offer hidden | Architect (e.g. `chrome.permissions.addHostAccessRequest`, Chrome 133+, or drop the offer); release manager: PS4 rewritten in §9 |
 
-## 7. Assumptions and limitations (what automation does not prove)
+## 8. Assumptions and limitations (what automation does not prove)
 
-**What the harness substitutes for real user actions:**
-- **No real right-click, activeTab grant or `sidePanel.open` gesture.** Jobs are written to `chrome.storage.session` from the extension's own service worker, in the same shape as `sw.js` after A7: no `frameUrl`, and `pageUrl` reduced to origin + path. The panel runs as the `?w=` popup-window fallback.
-- **The test build holds host access.** `dist-e2e` has `host_permissions:["<all_urls>"]` because tests cannot produce an activeTab grant. Extension-fetch therefore succeeds where release builds need activeTab or a per-origin grant. The release build was exercised only through upload (J11).
-- **The permission prompt is stubbed.** In J7b and SEC-06, `chrome.permissions.contains/request` were replaced in the panel realm only. Headless Chromium cannot answer the prompt, and the e2e build already holds `<all_urls>`. Fetch, capture, OCR, routing and tab opening stayed real. A real grant, deny or revoke is M5.
+**Simulated by the harness:**
+- **Triggers.** Real toolbar clicks, Alt+Shift+S, right-clicks, the activeTab grant and the `sidePanel.open` gesture are not automatable. Jobs are written from the extension's own service worker in the shipped shapes. The panel runs as the `?w=` popup-window fallback. The panel's own "Scan this page" button is a real click.
+- **Host access.** dist-e2e holds `<all_urls>`, so extension-fetch succeeds for every page image. Under a real activeTab grant, the release build fetches only same-origin images. Cross-origin CDN images go through page-fetch (page CORS) or the crop fallback. P9 forces the crop path with a hotlink CDN. Release-build page scans with a real grant are manual (PS1, PS9, PS11).
+- **Permission prompt.** Stubbed in J7b, SEC-06 and P13 (panel realm only). Real grant, deny and revoke are M5/PS4.
 
-**What was not tested here:**
-- **Playwright and headless limits.**
-  - After `ServiceWorker.stopAllWorkers`, Chromium restarted the worker (confirmed through CDP `runningStatus`), but Playwright 1.56 did not expose the new instance.
-  - Headless runs at device scale factor 1, so capture-resolution results are pessimistic compared with 2× laptop screens.
-- **Out of scope here.**
-  - Branded Chrome.
-  - Chrome 116.
-  - Dutch UI.
-  - Screen readers, zoom and contrast.
-  - Incognito at runtime.
-  - Extension update/reload.
-  - Cross-origin iframe without host access.
-  - Real marketplace CDNs.
-  - Live grader pages, which are DNS-blocked by design.
+**DPR-1 capture limit (honest):**
+- Headless runs at device scale factor 1. Every capture crop is at CSS-pixel resolution: P9's 400 px and 270 px crops; J7 and SEC-06 used 400 px and 110 px.
+- The synthetic labels read correctly at 270 px. Real photos with smaller label text, JPEG artefacts or perspective will fail sooner at DPR 1, ending in `none`/unclear rather than a wrong number, as far as tested.
+- HiDPI screens (DPR 2) give 2× pixels and should do better. That was **not** measured (PS11).
+- The screenshots in `docs/quality/screenshots/` are FE captures (DPR 1, 360 px). QA did not re-capture them.
 
-**About the fixtures and the NetLog:**
-- **The benchmark is synthetic.** HTML/CSS renders in Liberation Sans with abstract art. Real photos (perspective, reflections, other fonts, JPEG chains) are likely harder. The gate result should not be read as real-world accuracy.
-- **NetLog background traffic.** The browser-wide NetLog also records Chromium background services that are not extension traffic: `clients2.google.com` (time), `accounts.google.com`, `redirector.gvt1.com` (spell-check dictionary), `www.google.com/async/folae`, `android.clients.google.com`. They are identified by non-renderer traffic annotations and an initiator of "not an origin", and all failed DNS (no egress).
+**Not tested here:**
+- Branded Chrome; Chrome 116.
+- Screen readers, zoom and contrast beyond FE's scripted self-check.
+- Incognito at runtime; extension update/reload.
+- User-restricted sites; real marketplace CDNs; live grader pages (DNS-blocked by design).
+- By A9 design, page mode does not cover CSS background images, cross-origin iframes or lazy images below the fold. P1 confirms the lazy image is skipped.
 
-## 8. Manual Chrome checks M1–M11 — **not run** (need branded Chrome and a person)
+**Fixtures and logs:**
+- The benchmark and the listing are synthetic (Liberation Sans, abstract art); this is not real-world accuracy.
+- NetLog also records Chromium background services (`clients2.google.com`, `accounts.google.com`, `redirector.gvt1.com`, `www.google.com`, `android.clients.google.com`). They are non-renderer and not from the extension, and all were DNS-blocked.
 
-**Setup for all checks:**
-1. Build the release package: `npm run build`.
-2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select the `dist/` folder.
-3. Pin CertScanner.
+## 9. Manual checks — **not run** (need branded Chrome and a person)
 
-**Test pages:**
-- Serve the fixtures with `cd tests/fixtures && python3 -m http.server 8000`, then open `http://localhost:8000/pages/gallery.html`.
-- For CDN checks, use a real public marketplace listing that shows a graded slab photo.
-- Record the Chrome version (`chrome://version`), the OS, the result, and a screenshot of each step.
+**Setup:**
+1. Run `npm ci && npm run build` on the release commit, or unzip the release ZIP into an empty folder.
+2. In `chrome://extensions`: turn on Developer mode, then **Load unpacked** → `dist/`. Pin CertScanner.
+3. Serve the fixtures: `cd tests/fixtures && python3 -m http.server 8000`. The pages are `http://localhost:8000/pages/gallery.html` and `http://localhost:8000/pages/listing.html` (variants: `?details=1`, `?slab=0`, `?photos=0`).
+4. Record the Chrome version, OS, the screen's DPR (`devicePixelRatio`), `dist/build-info.json` `gitCommit`, the date, and a screenshot of each failing step.
 
-| ID | Check | Steps | Pass when |
-|---|---|---|---|
-| M1 | Context menu opens the panel (fresh / already open) | 1. Close the side panel. 2. Right-click the PSA image (`#img-psa-leading-zero`) and choose "Scan slab cert number". 3. Repeat with the side panel already open. | The panel opens immediately both times, shows progress, then a new tab opens at `https://www.psacard.com/cert/01234567` next to the gallery tab. No permission prompt appears. |
-| M2 | Two quick clicks | Right-click scan the PSA image, then within about 1 s right-click scan the rotated CGC image (`#img-rotated`). | Only the CGC result is shown and only `cgccomics.com/certlookup/4012345001/` opens. The first scan is cancelled silently. |
-| M3 | Click after the service worker stopped | 1. Open `chrome://serviceworker-internals`, find CertScanner and click **Stop** (or wait about 30 s idle with DevTools closed). 2. Right-click scan the ambiguous image. | The panel opens and shows confirm with `5012345678` and no grader pre-selected. No error. |
-| M4 | activeTab on a real CDN | On a real listing page whose image is on another host (for example `i.ebayimg.com`), right-click scan the slab photo. | It works without any prompt. The preview shows the image. If the CDN refuses the fetch, the result is still read from the screen capture. No requests other than the image host and the opened official page (check DevTools → Network on the panel). |
-| M5 | Sharper scans grant / deny / revoke | 1. Make the image small (browser zoom at 50%) on a real https CDN page and scan until confirm/none shows "Sharper scans on ‹host›". 2. Click it → Chrome's prompt must name only that host → **Deny** → the offer disappears and manual entry still works. 3. Restart Chrome and repeat → **Allow** → **Rescan** → full-resolution result. 4. Settings → Sharper scans lists the host → **Remove** → `chrome://extensions` → CertScanner → Details → Site access no longer lists it. | Each step behaves as described. A cert opens at most once per scan. |
-| M6 | Web Store and `chrome://` pages | 1. Open a Chrome Web Store item page and right-click an image. 2. Open `chrome://version`. 3. In both cases, open the panel from the toolbar and upload `tests/fixtures/psa-9digit.png`. | On the Web Store, either no menu item appears or the panel says Chrome does not allow reading the page and offers upload/paste. Upload works. No uncaught errors appear in the panel DevTools. |
-| M7 | Two windows | Open the gallery in windows A and B, each with its own side panel. Scan in A. | Only A's panel reacts. The tab opens in window A. B's panel is unchanged. |
-| M8 | Dutch UI, screen reader, keyboard | 1. Set Chrome's display language to Nederlands (`chrome://settings/languages`; on Linux start with `LANGUAGE=nl`) and relaunch. 2. Check that all panel text is Dutch, the menu reads in Dutch, and `html[lang]` is `nl`. 3. With NVDA, VoiceOver or ChromeVox, scan the PSA image: the result is announced once. 4. Tab through the panel using only the keyboard, type `PSA 12345678` + Enter, then an invalid value. 5. Check at 200% zoom. | Strings are complete and not truncated. Announcements happen. Focus is visible and logical. The error is read out. There is no horizontal scrolling at 200%. |
-| M9 | Chrome 116 | Install Chrome for Testing 116 with a fresh profile, load `dist/`, and repeat M1, M5 (deny) and an upload. | It works with no console errors (APIs used: `sidePanel.open`, `AbortSignal.any`, `storage.session`). |
-| M10 | Official URLs resolve | With normal internet access, open each builder URL for a cert number that the grader itself shows publicly (not the synthetic test numbers): `https://www.psacard.com/cert/<n>`, `https://www.cgccomics.com/certlookup/<n>/`, `https://www.cgccards.com/certlookup/<n>/`. | Each page shows that cert's record. A leading zero on a PSA number is preserved. |
-| M11 | Incognito not allowed (SEC-01) | 1. `chrome://extensions` → CertScanner → **Details**: look for the "Allow in Incognito" toggle. 2. Open an incognito window, right-click an image, and look at the toolbar. | The incognito toggle is absent or cannot be enabled. In incognito there is no "Scan slab cert number" item and the action/panel is unavailable. No history entry is created. |
+**M1–M11 (image journeys).** The detailed steps are unchanged from the 2026-10-09 report and repeated here in short form.
 
-## 9. Files (QA-owned)
+| ID | Steps | Pass when |
+|---|---|---|
+| M1 | Right-click `#img-psa-leading-zero` on the gallery → "Scan slab cert number". Do it with the panel closed, then with it open. | The panel opens at once; `psacard.com/cert/01234567` opens next to the gallery; no prompt |
+| M2 | Right-click scan the PSA image, then within 1 s `#img-rotated` | Only `cgccomics.com/certlookup/4012345001/` opens |
+| M3 | Stop the worker in `chrome://serviceworker-internals`, then right-click scan `#img-ambiguous` | The panel opens; confirm shows `5012345678` with no grader; no error |
+| M4 | Right-click a slab photo on a real listing whose image is on a CDN host | Works without a prompt; screen-capture fallback if the CDN refuses; DevTools shows only the image host and the official page |
+| M5 | Sharper scans on a real https CDN: Deny → Allow → Rescan → Settings Remove | The prompt names only that host; each step as described; at most one tab per scan |
+| M6 | On `chrome://version` and a Web Store item: right-click, use the icon, then upload `tests/fixtures/psa-9digit.png` | "Chrome doesn't allow reading this page"; upload works; no uncaught errors |
+| M7 | Gallery in windows A and B, each with a panel; scan in A | Only A reacts; the tab opens in A |
+| M8 | Dutch UI (`LANGUAGE=nl` on Linux), screen reader (NVDA/VoiceOver/ChromeVox), keyboard only, 200% zoom | All strings Dutch and untruncated; one announcement per result; logical focus; errors read out; no horizontal scrolling |
+| M9 | Chrome for Testing 116, fresh profile: M1, M5-deny, an upload, **PS1** | No console errors |
+| M10 | Open each builder URL for a real public cert number | The right record; PSA leading zero kept (closes R1) |
+| M11 | `chrome://extensions` Details; an incognito window | No "Allow in Incognito"; no menu item, icon action or panel in incognito; no history entry |
 
-**Tests:**
-- `tests/e2e/lib/env.mjs`: launch, isolation, fixture servers (pages, no-CORS with `/hotlink/`, CORS, self-signed HTTPS), job writer, panel helpers, NetLog parser.
-- `tests/e2e/lib/panel.mjs`: §13 test-id interactions, settings, paste/drop, permission stub.
-- `tests/e2e/extension.test.mjs`: journeys.
-- `tests/e2e/security.test.mjs`: SEC-03, SEC-04, SEC-06.
-- `tests/e2e/privacy.test.mjs`: J11 on both builds.
-- `tests/e2e/benchmark.test.mjs`: D3 gate.
-- `tests/e2e/fixtures.test.mjs`: fixture integrity.
+**PS1–PS12 (A9 page scan).** These replace PS1–PS10 in `docs/release/manual-test-checklist.md`; PS4 is rewritten because of O12.
 
-**Fixtures and generator:**
-- `scripts/gen-fixtures.mjs` now also generates:
-  - the benchmark set (`tests/fixtures/bench/` + `bench-manifest.json`);
-  - the SEC-03 page `tests/fixtures/pages/busy.html`;
-  - the SEC-04 bomb `tests/fixtures/security/decode-bomb-rle8.bmp`.
-- `tests/fixtures/manifest.json` changes:
-  - `qr-foreign-host` accepts `confirm` or `none`, with `mustNotAutoOpen`, `mustNotOpen` and `expectWarning`;
-  - `ambiguous-10digit` has `graderUnresolved`;
-  - adds the `busy.html` page entry and `securityFixtures`.
+| ID | Steps | Pass when |
+|---|---|---|
+| PS1 | On `gallery.html`, with the panel closed, click the CertScanner icon. Repeat with the panel open. | The panel opens immediately: "Looking for slab photos…", then "Scanning image N of 8", then "Cert numbers on this page" with about 6 rows (thumbnail, number, grader, exact path). No prompt, no page scrolling, no tab. |
+| PS2 | Press **Alt+Shift+S** (macOS Option+Shift+S). Change the shortcut in `chrome://extensions/shortcuts` and use it. Then clear it and reopen the panel. | Same as PS1 each time. Settings shows the current shortcut. With none set, the idle hint says to click the icon. |
+| PS3 | Click the icon on `listing.html`. Repeat with Settings → "Always ask before opening" on. | First run: exactly one tab `psacard.com/cert/108114622` next to the listing; Recent +1. Second run: a one-row list, no tab. |
+| PS4 | (a) On a real https site where CertScanner has no access, click the panel's **Scan this page** without using the icon. (b) Click the icon on that site, then navigate the same tab to a *different* https site and click **Scan this page**. | (a) and (b) both show "CertScanner can't read this page yet" with the icon/shortcut copy. Expect **no** "Always allow" offer (O12); if one appears, record it. If an offer is shown: Allow → the prompt names only that host → the scan runs → Settings lists the host → Remove revokes it. |
+| PS5 | Settings → turn off "Toolbar button scans the page"; click the icon; restart Chrome; click again; turn it back on. | Off: the icon only opens the panel (tooltip "Open CertScanner"), also after the restart. On: the icon scans (tooltip "Scan this page for slab cert numbers"). |
+| PS6 | Click the icon on `chrome://version` and on a Web Store item. | "Chrome doesn't allow reading this page"; upload works; no uncaught errors in the panel or worker console |
+| PS7 | Click the icon on `listing.html?photos=0` and on a plain text article. | "No cert numbers found on this page" with 3 tips; no tab; nothing in Recent |
+| PS8 | On a long real page with many large photos, click the icon; on a second run press **Cancel** during "Scanning image 2". | At most 8 photos, visible first, done within about 30 s. Cancel returns to idle within 1 s and nothing opens later. |
+| PS9 | Panel DevTools → Network while doing PS1 on a real marketplace listing. | Only the page's image hosts and the opened official page; no other host, CDN or analytics |
+| PS10 | Gallery in windows A and B, each with a panel; click the icon in A. | Only A scans; B unchanged |
+| PS11 (new) | On a real listing whose photos come from a CDN that refuses extension fetches, run PS1 at 100% zoom on a DPR 1 monitor, then on a HiDPI/Retina screen (DPR 2). | Numbers are read from the screen capture or skipped, never wrong. Record found/not found per DPR (§8 DPR-1 limit). |
+| PS12 (new) | Stop the worker (`chrome://serviceworker-internals` → Stop, or 30 s idle with DevTools closed), then click the icon and press the shortcut. | The panel opens and scans each time (`action.onClicked` / `commands.onCommand` are registered at top level); no error |
 
-**Report:** this file.
+## 10. Files (QA-owned) and next owners
+
+**Changed or added (uncommitted, for the orchestrator to commit):**
+
+| File | Change |
+|---|---|
+| `tests/e2e/pagescan.test.mjs` (new) | A9 cases P1–P14 (§4.1) |
+| `tests/e2e/extension.test.mjs` | A9 toolbar-behaviour assertions; setting toggle test; A9 test ids; SW restart restores the behaviour |
+| `tests/e2e/privacy.test.mjs` | Page scan on dist-e2e; page-access on the release build; NetLog extension-initiator check |
+| `tests/e2e/fixtures.test.mjs` | Listing integrity |
+| `tests/e2e/lib/env.mjs` | `page-results` terminal state; `writePageJob()` (createPageJob shape); `launchExtension({env})` for the locale run |
+| `tests/e2e/lib/panel.mjs` | `readPage()`: page-scan view through test ids and data attributes |
+| `scripts/gen-fixtures.mjs` | Generates and verifies `pages/listing.html` and `pages/assets/listing-{logo,avatar,banner,details}.png`; manifest `pages[]` entry and `pageAssets` |
+| `tests/fixtures/pages/listing.html`, `tests/fixtures/pages/assets/*.png` (new) | Generated, byte-stable |
+| `tests/fixtures/manifest.json` | Regenerated; additive only |
+| `docs/quality/test-report.md` | This report |
 
 **Next owners:**
-- FE: O1–O3, optional.
-- Architect: O4 note.
-- User + QA: M1–M11 in branded Chrome before release.
-- Release manager: O6 wording.
+- Architect: O8, O12 (Always-allow reachability), O4.
+- FE: O1–O3, O9 (optional), O10 (with UX).
+- UX: O10, O11.
+- Release manager: replace PS1–PS10 with §9 PS1–PS12 (PS4 rewritten); O6 wording.
+- User + QA: M1–M11 and PS1–PS12 in branded Chrome before release.

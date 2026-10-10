@@ -655,6 +655,230 @@
         "cancelSettleMs": 1000
       },
       "notes": "Blocks its main thread with a busy loop after the image renders (html[data-ready=\"1\"], then data-busy=\"1\"). Serve it on a different site than other test pages (e.g. localhost vs 127.0.0.1) so the hang stays in its own renderer. The image must not be fetchable by the extension (e.g. a hotlink-protected URL) so acquisition has to inject the page probe."
+    },
+    {
+      "page": "pages/listing.html",
+      "elementId": "img-slab",
+      "kind": "single-slab-listing",
+      "feature": "A9 page scan",
+      "fixture": "psa-9digit.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 400,
+        "height": 625
+      },
+      "params": {
+        "slab": "0 removes the slab photo and its thumbnail",
+        "photos": "0 removes the slab and the raw-card photo (and both thumbnails): no slab-sized photo left",
+        "details": "1 shows an item-specifics image with printed price/item/seller numbers (large enough for discovery)"
+      },
+      "images": [
+        {
+          "elementId": "img-logo",
+          "role": "logo",
+          "src": "assets/listing-logo.png",
+          "display": {
+            "width": 48,
+            "height": 48
+          },
+          "natural": {
+            "width": 96,
+            "height": 96
+          },
+          "discoverable": false
+        },
+        {
+          "elementId": "img-avatar",
+          "role": "avatar",
+          "src": "assets/listing-avatar.png",
+          "display": {
+            "width": 64,
+            "height": 64
+          },
+          "natural": {
+            "width": 128,
+            "height": 128
+          },
+          "discoverable": false
+        },
+        {
+          "elementId": "img-banner",
+          "role": "banner",
+          "src": "assets/listing-banner.png",
+          "display": {
+            "width": 728,
+            "height": 90
+          },
+          "natural": {
+            "width": 728,
+            "height": 90
+          },
+          "discoverable": false
+        },
+        {
+          "elementId": "img-thumb-slab",
+          "role": "thumbnail",
+          "src": "../psa-9digit.png",
+          "display": {
+            "width": 64,
+            "height": 100
+          },
+          "natural": {
+            "width": 544,
+            "height": 850
+          },
+          "discoverable": false,
+          "fixture": "psa-9digit.png",
+          "removedBy": [
+            "slab=0",
+            "photos=0"
+          ]
+        },
+        {
+          "elementId": "img-thumb-raw",
+          "role": "thumbnail",
+          "src": "../non-slab.png",
+          "display": {
+            "width": 64,
+            "height": 42
+          },
+          "natural": {
+            "width": 640,
+            "height": 420
+          },
+          "discoverable": false,
+          "fixture": "non-slab.png",
+          "removedBy": [
+            "photos=0"
+          ]
+        },
+        {
+          "elementId": "img-slab",
+          "role": "slab",
+          "src": "../psa-9digit.png",
+          "display": {
+            "width": 400,
+            "height": 625
+          },
+          "natural": {
+            "width": 544,
+            "height": 850
+          },
+          "discoverable": true,
+          "fixture": "psa-9digit.png",
+          "removedBy": [
+            "slab=0",
+            "photos=0"
+          ]
+        },
+        {
+          "elementId": "img-raw-card",
+          "role": "raw-photo",
+          "src": "../non-slab.png",
+          "display": {
+            "width": 320,
+            "height": 210
+          },
+          "natural": {
+            "width": 640,
+            "height": 420
+          },
+          "discoverable": true,
+          "fixture": "non-slab.png",
+          "removedBy": [
+            "photos=0"
+          ]
+        },
+        {
+          "elementId": "img-details",
+          "role": "details",
+          "src": "assets/listing-details.png",
+          "display": {
+            "width": 390,
+            "height": 210
+          },
+          "natural": {
+            "width": 520,
+            "height": 280
+          },
+          "discoverable": true,
+          "addedBy": [
+            "details=1"
+          ]
+        }
+      ],
+      "textNumbers": {
+        "price": "US $1,299.00",
+        "itemNumber": "2023041712",
+        "sellerId": "48213576",
+        "ratings": "12,345",
+        "cardNumber": "58/102",
+        "year": "1999",
+        "watchers": "17",
+        "shipping": "3 business days",
+        "returns": "30 days"
+      },
+      "mustNeverAutoOpenNumbers": [
+        "2023041712",
+        "48213576",
+        "129900",
+        "1299",
+        "12345",
+        "58102",
+        "1999"
+      ],
+      "expected": {
+        "default": {
+          "status": "auto-open",
+          "url": "https://www.psacard.com/cert/108114622",
+          "grader": "psa",
+          "number": "108114622",
+          "discovered": [
+            "img-slab",
+            "img-raw-card"
+          ],
+          "tabsOpened": 1
+        },
+        "slab=0": {
+          "status": "none",
+          "reason": "photos checked, no number",
+          "discovered": [
+            "img-raw-card"
+          ],
+          "tabsOpened": 0
+        },
+        "photos=0": {
+          "status": "none",
+          "reason": "no slab-sized photo",
+          "discovered": [],
+          "tabsOpened": 0
+        },
+        "details=1": {
+          "accept": [
+            "auto-open",
+            "page-results"
+          ],
+          "onlyAutoOpenUrl": "https://www.psacard.com/cert/108114622",
+          "discovered": [
+            "img-slab",
+            "img-raw-card",
+            "img-details"
+          ]
+        },
+        "slab=0&details=1": {
+          "accept": [
+            "none",
+            "page-results"
+          ],
+          "mustNotAutoOpen": true,
+          "tabsOpened": 0,
+          "discovered": [
+            "img-raw-card",
+            "img-details"
+          ]
+        }
+      },
+      "notes": "A9 single-slab listing: one PSA-style slab photo (psa-9digit.png at 400 px), a 64 px thumbnail of the same file earlier in the DOM (same URL; too small), a raw-card photo, a logo, an avatar and a promo banner (all too small for discovery), plus page text with a price, an item number (10 digits) and a seller ID (8 digits, PSA length). Page scans read image URLs/geometry only, never page text. <html data-ready=\"1\"> after all images decoded. Expected numbers assume the e2e viewport (--window-size=1280,1000)."
     }
   ],
   "labelBoxNotes": "labelBox = axis-aligned label band in natural image pixels ({x,y,width,height}); null for non-slab and rotated images.",
@@ -676,6 +900,68 @@
       "mimeType": "image/bmp",
       "bytes": 1080,
       "sha256": "044f4d9412de9c5bac314a720f770d46fb2fe453070ba461ad5ef6ae086a24ff"
+    }
+  ],
+  "pageAssets": [
+    {
+      "file": "pages/assets/listing-logo.png",
+      "role": "logo",
+      "elementId": "img-logo",
+      "display": {
+        "width": 48,
+        "height": 48
+      },
+      "description": "Shop logo: 96x96 rounded square with the letters \"CS\". Shown at 48 px: below the A9 size threshold.",
+      "mimeType": "image/png",
+      "width": 96,
+      "height": 96,
+      "bytes": 2868,
+      "sha256": "70779d715ad678d93e4cb74b837ae0e5591edae04ce37494ca10b8a15b432c7e"
+    },
+    {
+      "file": "pages/assets/listing-avatar.png",
+      "role": "avatar",
+      "elementId": "img-avatar",
+      "display": {
+        "width": 64,
+        "height": 64
+      },
+      "description": "Seller avatar: 128x128 initials \"JD\" on a grey disc. Shown at 64 px: below the A9 size threshold.",
+      "mimeType": "image/png",
+      "width": 128,
+      "height": 128,
+      "bytes": 3159,
+      "sha256": "8adb71ec46386785a9085341dc1e250a8d7b433fb4090826f47613a2150ee82a"
+    },
+    {
+      "file": "pages/assets/listing-banner.png",
+      "role": "banner",
+      "elementId": "img-banner",
+      "display": {
+        "width": 728,
+        "height": 90
+      },
+      "description": "Promotion banner 728x90 with printed digits (\"$50\", \"FALL2026\"). Natural short side 90 px: below the A9 size threshold.",
+      "mimeType": "image/png",
+      "width": 728,
+      "height": 90,
+      "bytes": 27291,
+      "sha256": "4d6d0995ee1420f02942b7a71c94d274c802a829aee5860783c0b7e9224f62a4"
+    },
+    {
+      "file": "pages/assets/listing-details.png",
+      "role": "details",
+      "elementId": "img-details",
+      "display": {
+        "width": 390,
+        "height": 210
+      },
+      "description": "Item-specifics panel as an image (only with ?details=1): printed item number 2023041712, price US $1,299.00, seller ID 48213576, card no. 58/102, year 1999. No slab wording. Large enough for A9 discovery, so the page scan OCRs it.",
+      "mimeType": "image/png",
+      "width": 520,
+      "height": 280,
+      "bytes": 18218,
+      "sha256": "4a128e74216af574663b3bb45b83cc0d220f843990eb2d316fd8b6f35b1d0253"
     }
   ]
 }

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Synthetic single-slab listing - CertScanner e2e (page scan)</title>
+<style>
+  body{margin:0;font-family:"Liberation Sans",Arial,sans-serif;background:#fff;color:#222}
+  img{display:block}
+  .site{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;border-bottom:1px solid #ddd}
+  .site .name{font-weight:700;font-size:18px}
+  .promo{padding:8px 24px}
+  .listing{display:flex;gap:32px;padding:8px 24px;align-items:flex-start}
+  .photos{display:flex;gap:12px;align-items:flex-start}
+  .thumbs{display:flex;flex-direction:column;gap:8px}
+  .thumbs img{outline:1px solid #ccc}
+  figure{margin:0}
+  .details{width:520px}
+  .details h1{font-size:20px;margin:0 0 8px;line-height:1.3}
+  .price{font-size:26px;font-weight:700;margin:4px 0}
+  .muted{color:#666;font-size:14px;margin:2px 0 10px}
+  dl{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:14px;margin:0 0 12px}
+  dt{color:#666}dd{margin:0}
+  .seller{display:flex;align-items:center;gap:10px;font-size:14px;margin:0 0 12px}
+  .details h2{font-size:15px;margin:8px 0 6px}
+</style>
+</head>
+<body>
+<header class="site"><img id="img-logo" src="assets/listing-logo.png" width="48" height="48" alt="Example Card Shop logo"><span class="name">Example Card Shop (synthetic test page, not affiliated with PSA or CGC)</span></header>
+<div class="promo"><img id="img-banner" src="assets/listing-banner.png" width="728" height="90" alt="Promotion: free shipping on orders over $50, code FALL2026"></div>
+<main class="listing">
+  <section class="photos" aria-label="Photos">
+    <div class="thumbs">
+      <img id="img-thumb-slab" data-fixture="psa-9digit.png" src="../psa-9digit.png" width="64" height="100" alt="Thumbnail 1: slab front">
+      <img id="img-thumb-raw" data-fixture="non-slab.png" src="../non-slab.png" width="64" height="42" alt="Thumbnail 2: raw card">
+    </div>
+    <figure><img id="img-slab" data-fixture="psa-9digit.png" src="../psa-9digit.png" width="400" height="625" alt="Synthetic PSA-style slab, front label (listing photo)"></figure>
+  </section>
+  <section class="details">
+    <h1>Synthetic graded trading card in a PSA-style slab (test listing)</h1>
+    <p class="price" id="price">US $1,299.00</p>
+    <p class="muted">or Best Offer &middot; 17 watchers &middot; Free shipping</p>
+    <dl>
+      <dt>Item number</dt><dd id="item-number">2023041712</dd>
+      <dt>Condition</dt><dd>Graded (see photos)</dd>
+      <dt>Card number</dt><dd>58/102</dd>
+      <dt>Year</dt><dd>1999</dd>
+      <dt>Shipping</dt><dd>Ships within 3 business days</dd>
+      <dt>Returns</dt><dd>Accepted within 30 days</dd>
+    </dl>
+    <div class="seller"><img id="img-avatar" src="assets/listing-avatar.png" width="64" height="64" alt="Seller avatar"><span>Seller ID 48213576 &middot; 99.8% positive (12,345 ratings)</span></div>
+    <figure id="details-figure" hidden><img id="img-details" data-src="assets/listing-details.png" width="390" height="210" alt="Item specifics (image)"></figure>
+    <h2>Also in this listing</h2>
+    <figure><img id="img-raw-card" data-fixture="non-slab.png" src="../non-slab.png" width="320" height="210" alt="Raw card photo (not graded)"></figure>
+  </section>
+</main>
+<script>
+(async () => {
+  // ?slab=0 removes the slab photo and its thumbnail; ?photos=0 removes the slab and the raw-card photo (and thumbnails);
+  // ?details=1 shows an item-specifics image with printed price/item/seller numbers. <html data-ready="1"> once decoded.
+  const q = new URLSearchParams(location.search);
+  const drop = (id) => document.getElementById(id)?.remove();
+  if (q.get('slab') === '0' || q.get('photos') === '0') { drop('img-slab'); drop('img-thumb-slab'); }
+  if (q.get('photos') === '0') { drop('img-raw-card'); drop('img-thumb-raw'); }
+  if (q.get('details') === '1') {
+    const im = document.getElementById('img-details');
+    im.src = im.dataset.src;
+    document.getElementById('details-figure').hidden = false;
+  }
+  await Promise.all([...document.images].filter((im) => im.getAttribute('src')).map((im) => im.decode().catch(() => {})));
+  document.documentElement.dataset.ready = '1';
+})();
+</script>
+</body>
+</html>

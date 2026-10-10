@@ -10,6 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import * as E from './lib/env.mjs';
+import { readPage, tid } from './lib/panel.mjs';
 
 const FIX = (f) => path.join(E.FIXTURES, f);
 const T = { timeout: 180_000 };
@@ -35,7 +36,10 @@ function checkNetLog(reqs, { allowedOrigins, expectedGrader }) {
   const nonLocal = reqs.filter((r) => !['127.0.0.1', 'localhost'].includes(E.hostOf(r.url)));
   for (const r of nonLocal) assert.ok(r.netError && r.netError !== 'OK', `${r.url} must not have succeeded (no egress)`);
   const background = [...new Set(nonLocal.filter((r) => !r.renderer).map((r) => `${E.hostOf(r.url)} [${r.annotationName}]`))];
-  return { total: reqs.length, renderer: renderer.length, grader: grader.length, background };
+  // Requests the extension itself initiated (fetches from the panel/worker): only local fixture origins, never elsewhere.
+  const byExtension = reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url));
+  assert.deepEqual(byExtension.filter((r) => !allowedOrigins.has(new URL(r.url).origin)).map((r) => r.url), [], 'extension-initiated requests stay on the page/image origins');
+  return { total: reqs.length, renderer: renderer.length, grader: grader.length, background, byExtension: byExtension.length };
 }
 
 function checkPlaywrightLog(env, allowedOrigins) {
@@ -80,6 +84,11 @@ describe('J11 privacy on dist-e2e: jobs + upload', { concurrency: false }, () =>
     const r4 = await E.uploadAndWait(p.page, FIX('cgc-card-13digit.png'));
     assert.deepEqual([r1.state, r2.state, r4.state], ['auto-open', 'auto-open', 'auto-open']);
     assert.notEqual(r3.state, 'auto-open');
+    // A9 page scan of the whole gallery (page job shaped like sw.js createPageJob; no tab opens).
+    const mark5 = await E.logMark(p.page);
+    await E.writePageJob(env, { windowId: tab.windowId, tabId: tab.id, pageUrl: tab.url });
+    const r5 = await E.waitForScanEnd(p.page, mark5, { timeout: 60000 });
+    assert.equal(r5.state, 'page-results');
     await E.sleep(1500);
     const local = new Set([servers.A, servers.B, servers.C]);
     checkPlaywrightLog(env, local);
@@ -87,12 +96,13 @@ describe('J11 privacy on dist-e2e: jobs + upload', { concurrency: false }, () =>
     const summary = checkNetLog(E.parseNetLog(await readFile(path.join(dir, 'netlog.json'), 'utf8')), {
       allowedOrigins: local, expectedGrader: [OFFICIAL.psa01234567, OFFICIAL.comic4012345001, OFFICIAL.card1401036622258],
     });
-    console.log(`# J11 dist-e2e NetLog: ${summary.total} URL requests, renderer ${summary.renderer}, grader navigations ${summary.grader}; Chromium background services (not extension, all DNS-blocked): ${summary.background.join(', ') || 'none'}`);
+    console.log(`# J11 dist-e2e NetLog: ${summary.total} URL requests, renderer ${summary.renderer}, extension-initiated ${summary.byExtension}, grader navigations ${summary.grader}; Chromium background services (not extension, all DNS-blocked): ${summary.background.join(', ') || 'none'}`);
   });
 });
 
-describe('J11 privacy on the release build (no host access): upload only', { concurrency: false }, () => {
+describe('J11 privacy on the release build (no host access): upload + A9 panel button without access', { concurrency: false }, () => {
   let env;
+  let servers;
   let dir;
   let variant = null;
   let releaseDir;
@@ -111,33 +121,45 @@ describe('J11 privacy on the release build (no host access): upload only', { con
       identity = `release-equivalent copy of dist-e2e with host_permissions removed (dist/ missing or from another source state)`;
     }
     dir = await mkdtemp(path.join(os.tmpdir(), 'certscanner-netlog-rel-'));
+    servers = await E.startServers();
     env = await E.launchExtension({ extensionPath: releaseDir, args: [`--log-net-log=${path.join(dir, 'netlog.json')}`, '--net-log-capture-mode=Default'] });
   });
   after(async () => {
     await env?.close();
+    await servers?.close();
     await rm(dir, { recursive: true, force: true });
     await variant?.cleanup();
   });
 
-  test('release manifest has no host access; scans by upload request nothing but the opened official pages', T, async () => {
+  test('release manifest has no host access; panel page scan without access reads nothing; uploads request nothing but the opened official pages', T, async () => {
     console.log(`# J11 release build under test: ${identity}`);
     const perms = await env.sw.evaluate(() => chrome.permissions.getAll());
     assert.deepEqual(perms.origins, [], 'no host access at install');
     const manifest = await env.sw.evaluate(() => chrome.runtime.getManifest());
     assert.equal(manifest.host_permissions, undefined);
     const windowId = await env.sw.evaluate(async () => (await chrome.windows.getAll())[0].id);
+    // A9: a web page is open; the panel's "Scan this page" without access → page-access state, nothing is read.
+    const page0 = env.context.pages()[0];
+    await page0.goto(`${servers.A}/pages/gallery.html`);
+    await page0.waitForSelector('html[data-ready="1"]', { state: 'attached', timeout: 15000 });
     const p = await E.openPanel(env, windowId);
+    const logStart = servers.log.length;
+    await p.page.locator(tid('page-scan-button')).click();
+    await E.poll(async () => (await readPage(p.page)).task === 'page-access', { message: 'page-access', timeout: 10000 });
+    await E.sleep(1000);
+    assert.deepEqual(servers.log.slice(logStart).filter((r) => r.path !== '/favicon.ico'), [], 'no request to the page origins after the click');
     const a = await E.uploadAndWait(p.page, FIX('psa-8digit-leading-zero.png'));
     const b = await E.uploadAndWait(p.page, FIX('cgc-comic-qr.png'));
     const c = await E.uploadAndWait(p.page, FIX('qr-foreign-host.png'));
     assert.deepEqual([a.state, b.state], ['auto-open', 'auto-open']);
     assert.notEqual(c.state, 'auto-open');
     await E.sleep(1500);
-    checkPlaywrightLog(env, new Set());
+    const local = new Set([servers.A, servers.B, servers.C]);
+    checkPlaywrightLog(env, local);
     await env.close();
-    const summary = checkNetLog(E.parseNetLog(await readFile(path.join(dir, 'netlog.json'), 'utf8')), {
-      allowedOrigins: new Set(), expectedGrader: [OFFICIAL.psa01234567, OFFICIAL.comicQr4012347003],
-    });
-    console.log(`# J11 release NetLog: ${summary.total} URL requests, renderer ${summary.renderer}, grader navigations ${summary.grader}; Chromium background services (not extension, all DNS-blocked): ${summary.background.join(', ') || 'none'}`);
+    const reqs = E.parseNetLog(await readFile(path.join(dir, 'netlog.json'), 'utf8'));
+    const summary = checkNetLog(reqs, { allowedOrigins: local, expectedGrader: [OFFICIAL.psa01234567, OFFICIAL.comicQr4012347003] });
+    assert.equal(summary.byExtension, 0, 'release build: the extension initiated no http(s) request at all');
+    console.log(`# J11 release NetLog: ${summary.total} URL requests, renderer ${summary.renderer}, extension-initiated ${summary.byExtension}, grader navigations ${summary.grader}; Chromium background services (not extension, all DNS-blocked): ${summary.background.join(', ') || 'none'}`);
   });
 });

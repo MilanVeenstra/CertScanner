@@ -39,6 +39,26 @@ test('security fixtures: busy page and decode bomb are declared', () => {
   assert.ok(buf.length < 2048);
 });
 
+test('A9 listing page: assets match their hashes; exactly one discoverable slab; page-text numbers are not cert numbers', () => {
+  const listing = main.pages.find((p) => p.kind === 'single-slab-listing');
+  assert.ok(listing, 'pages/listing.html declared');
+  assert.ok(readFileSync(path.join(FIXTURES, listing.page), 'utf8').includes('id="img-slab"'));
+  for (const a of main.pageAssets) {
+    const p = path.join(FIXTURES, a.file);
+    assert.equal(statSync(p).size, a.bytes, a.file);
+    assert.equal(sha(p), a.sha256, a.file);
+  }
+  const disc = listing.images.filter((i) => i.discoverable && !i.addedBy);
+  assert.deepEqual(disc.map((i) => i.role).sort(), ['raw-photo', 'slab'], 'default listing: one slab photo + one raw-card photo are slab-sized');
+  for (const role of ['logo', 'avatar', 'banner', 'thumbnail']) {
+    assert.ok(listing.images.filter((i) => i.role === role).every((i) => !i.discoverable), `${role} below the A9 size threshold`);
+  }
+  assert.equal(listing.expected.default.url, 'https://www.psacard.com/cert/108114622');
+  const slabFixture = main.fixtures.find((f) => f.file === listing.fixture);
+  assert.equal(slabFixture.expected.number, listing.expected.default.number);
+  for (const n of listing.mustNeverAutoOpenNumbers) assert.notEqual(n, listing.expected.default.number);
+});
+
 test('benchmark set: >= 40 fixtures, < 8 MB, hashes match, expectations well-formed', () => {
   assert.ok(bench.fixtures.length >= 40, `${bench.fixtures.length} fixtures`);
   let total = 0;

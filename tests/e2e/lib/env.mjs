@@ -33,7 +33,8 @@ export const CERT_URL = Object.freeze({
   'cgc-comics': (n) => `https://www.cgccomics.com/certlookup/${n}/`,
   'cgc-cards': (n) => `https://www.cgccards.com/certlookup/${n}/`,
 });
-export const TERMINAL_STATES = Object.freeze(['idle', 'auto-open', 'confirm', 'none', 'error', 'opened']);
+// A9 adds 'page-results' (page scan with a list of numbers). 'idle' is where a cancelled scan ends.
+export const TERMINAL_STATES = Object.freeze(['idle', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
 export const HOST_RESOLVER_RULES = 'MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -64,12 +65,12 @@ export async function poll(fn, { timeout = 15000, interval = 100, message = 'con
 }
 
 /** Minimal environment for the browser process: no proxies, no tokens or cloud credentials. */
-function browserEnv() {
+function browserEnv(extra = {}) {
   const keep = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TZ', 'TMPDIR', 'FONTCONFIG_PATH', 'XDG_RUNTIME_DIR'];
   const env = {};
   for (const k of keep) if (process.env[k] !== undefined) env[k] = process.env[k];
   env.TZ ??= 'UTC';
-  return env;
+  return { ...env, ...extra };
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -180,15 +181,15 @@ export async function makeVariant(patch) {
 
 /**
  * Launch Chromium with the extension. Returns helpers bound to the context.
- * @param {{extensionPath?:string, args?:string[]}} [opts]
+ * @param {{extensionPath?:string, args?:string[], env?:Record<string,string>}} [opts]  env: extra browser variables (e.g. LANGUAGE)
  */
-export async function launchExtension({ extensionPath = DIST_E2E, args = [] } = {}) {
+export async function launchExtension({ extensionPath = DIST_E2E, args = [], env: extraEnv = {} } = {}) {
   const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'certscanner-profile-'));
   const context = await chromium.launchPersistentContext(userDataDir, {
     executablePath: CHROME,
     headless: true,
     viewport: null,
-    env: browserEnv(),
+    env: browserEnv(extraEnv),
     args: [
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,
@@ -286,6 +287,23 @@ export async function writeJob(env, { windowId, tabId, srcUrl, pageUrl, frameId 
     await chrome.storage.session.set({ [`scanJob:${a.windowId}`]: job });
     return job;
   }, { windowId, tabId, srcUrl, pageUrl: minimizePageUrl(pageUrl), frameId, ageMs, overrides });
+}
+
+/**
+ * Write an A9 page job (toolbar icon / Alt+Shift+S / panel button) exactly like sw.js createPageJob():
+ * {v:1, id, createdAt, kind:'page', source, srcUrl:null, pageUrl:<origin+path>, frameId:0, tabId, windowId}, no mediaType.
+ * The real triggers (icon click, shortcut) also grant activeTab and call sidePanel.open(); neither is automatable, so
+ * dist-e2e's <all_urls> stands in for the grant. `pageUrl:''` reproduces a tab whose URL Chrome hides.
+ */
+export async function writePageJob(env, { windowId, tabId, pageUrl, source = 'action', ageMs = 0, overrides = {} }) {
+  return env.sw.evaluate(async (a) => {
+    const job = {
+      v: 1, id: crypto.randomUUID(), createdAt: Date.now() - a.ageMs, kind: 'page', source: a.source, srcUrl: null,
+      pageUrl: a.pageUrl, frameId: 0, tabId: a.tabId, windowId: a.windowId, ...a.overrides,
+    };
+    await chrome.storage.session.set({ [`scanJob:${a.windowId}`]: job });
+    return job;
+  }, { windowId, tabId, pageUrl: pageUrl === '' ? '' : minimizePageUrl(pageUrl), source, ageMs, overrides });
 }
 
 export async function sessionGet(env, key) {

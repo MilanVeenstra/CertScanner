@@ -95,6 +95,59 @@ export async function accessibleNames(page, ids) {
 }
 
 /**
+ * A9 page-scan view: body/task state, heading, the results rows (`page-result-<i>` with data-number/data-grader),
+ * the progress line, tips and the live status. Row buttons are found by `data-ref` (open / choose / copy).
+ */
+export async function readPage(page) {
+  return page.evaluate(() => {
+    const q = (id) => document.querySelector(`[data-testid="${id}"]`);
+    const visible = (el) => !!el && !el.hidden && !el.closest('[hidden]') && el.getClientRects().length > 0;
+    const rows = [...document.querySelectorAll('[data-testid]')].filter((el) => /^page-result-\d+$/.test(el.dataset.testid)).map((li) => {
+      const ref = (r) => li.querySelector(`[data-ref="${r}"]`);
+      const thumb = ref('thumb');
+      return {
+        i: Number(li.dataset.testid.slice('page-result-'.length)),
+        number: li.dataset.number ?? null,
+        grader: li.dataset.grader || null,
+        opened: li.dataset.opened === 'true',
+        path: visible(ref('path')) ? ref('path').textContent.trim() : '',
+        thumb: visible(ref('thumb-box')) && !!thumb?.getAttribute('src'),
+        thumbAlt: thumb?.alt ?? '',
+        note: visible(ref('note')) ? ref('note').textContent.trim() : '',
+        noteTone: ref('note')?.dataset.tone ?? null,
+        open: visible(ref('open')),
+        choose: visible(ref('choose')),
+        copy: visible(ref('copy')),
+        openName: ref('open')?.getAttribute('aria-labelledby')?.split(/\s+/).map((id) => document.getElementById(id)?.textContent.trim() ?? '').join(' ') ?? '',
+      };
+    });
+    const task = document.getElementById('task');
+    const err = q('error-message');
+    return {
+      body: document.body.dataset.state,
+      task: task?.dataset.state ?? null,
+      heading: document.getElementById('task-heading')?.textContent.trim() ?? '',
+      listVisible: visible(q('page-result-list')),
+      rows,
+      summary: [...(task?.querySelectorAll('[data-ref="summary"] p') ?? [])].map((p) => p.textContent.trim()),
+      progress: q('page-progress')?.textContent.trim() ?? '',
+      progressVisible: visible(q('page-progress')),
+      tips: [...(task?.querySelectorAll('.tips li') ?? [])].map((li) => li.textContent.trim()),
+      noneReason: task?.querySelector('[data-ref="none-reason"]')?.textContent.trim() ?? '',
+      accessBody: task?.querySelector('[data-ref="access-body"]')?.textContent.trim() ?? '',
+      alwaysAllowVisible: visible(q('always-allow-button')),
+      actions: [...(task?.querySelectorAll('[data-action]') ?? [])].filter(visible).map((b) => b.dataset.action),
+      pageScanButtonVisible: visible(q('page-scan-button')),
+      error: visible(err) ? err.textContent.trim() : '',
+      errorCode: err?.dataset.code ?? '',
+      status: q('status-live')?.textContent.trim() ?? '',
+      focusId: document.activeElement?.id ?? null,
+      lang: document.documentElement.lang,
+    };
+  });
+}
+
+/**
  * Replace chrome.permissions.contains/request in the panel realm only. The e2e build holds <all_urls>
  * and headless Chromium cannot show the permission prompt; this stub lets the real UI, acquisition,
  * capture, OCR and tab opening run while "not granted until the user accepts" is simulated.

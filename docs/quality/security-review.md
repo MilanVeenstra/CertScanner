@@ -178,3 +178,46 @@ Conditional pass, no security blocker: package only from a clean commit with `SO
 **Incident (resolved):** the reviewer accidentally created a self-referencing symlink `node_modules/node_modules`; the orchestrator removed only that link (`unlink`) on 2026-10-10.
 
 **Not run:** real toolbar click/shortcut and permission prompt, forced SEC-08 tab switch, subdomain wildcard grant listing, Chrome 116.
+
+---
+
+## Round 3: commit `5d67884` (S8 improvement round re-verification)
+
+**Reviewer:** security-reviewer (independent native specialist agent; read-only) · **Date:** 2026-10-10 · Saved by the orchestrator.
+**Source:** `5d678841546060f1528b61d44d196d6d7f7984ad` (fresh export; src-tree prefix `9aed47f4586a43cf`); shipped content of `b6b6f14` identical. Release `dist/manifest.json` `0aec47bb…a2e1`, `dist-e2e` `88fb2414…4062`; clean package (throw-away repo, commit epoch 1760000000) `3913bdbf3e7f384e…1486`, 71 entries.
+
+### Outcome
+
+No critical, high or medium findings. SEC-14, 15, 17, 18, 19 fixed and verified; SEC-13 fixed for the round-2 variants, but four further hidden-slab variants still auto-open → **SEC-20 (Low)**. One docs item SEC-21 (Info).
+
+| ID | Status | Evidence |
+|---|---|---|
+| SEC-13 | Partly fixed (bypass SEC-20) | `opacity:0`, `visibility:hidden` not discovered; off-screen, covered, opacity 0.05, `clip-path:inset(50%)` → list; control auto-opens. Still auto-open: `pointer-events:none` overlay, `filter:opacity(0)`, 2 px clip window, srcset swap |
+| SEC-14 | Fixed | JPEG SOF after 64 KiB → `too-large` in 2.1 ms; GIF frame > screen 0.1 ms; earlier bombs ≤ 0.2 ms; only viewport crop after `too-large` |
+| SEC-15 | Fixed | clean packages deterministic without `SOURCE_DATE_EPOCH`; ignored/untracked/edited files refused; `--allow-dirty` → `-dirty.zip`; tampered vendor/licence/version refused |
+| SEC-16 | Fixed | labels match UI (nit SEC-21) |
+| SEC-17 | Fixed | failed removal announced as failed |
+| SEC-18 | Fixed | Clear history / history off / window close remove `lastResult` (+ `scanJob`, `seenJobs` on close) |
+| SEC-19 | Fixed | only `data:image/(?!svg)` kept; non-boolean `topmostAtCenter` dropped |
+| O9 `seenJobs` | OK | job-id strings only, cap 20 |
+| `error.injectError` | OK | never in DOM or storage; `lastResult` keeps `{code}` only |
+
+| ID | Severity | Evidence | Scenario | Fix | Blocks release | Orchestrator decision |
+|---|---|---|---|---|---|---|
+| SEC-20 | Low (integrity/UX) | `pageImagesProbe.js:28-68` centre-only hit test, opacity only; `pageScan.js:113-118`/`pageProbe.js:140` analyse `srcsetBest` while prominence is measured on the displayed image | Hostile page shows slab A and gets slab B auto-opened via overlay, `filter`, clip window or srcset swap | Treat filter/clip-path/mask/blend/ancestor opacity as not prominent; 5-point hit test; page auto-open only from displayed `currentSrc` bytes | No (recommended before 1.0) | **Fix now** (improvement round 2) |
+| SEC-21 | Info (docs) | PRIVACY.md last-result wording; NL summary lacks probe visibility/`seenJobs`; ADR §9 table lacks `seenJobs` | Docs understate deletion (safe direction) | Update wording | No | **Fix now** (orchestrator) |
+
+### Regression sweep (observed)
+
+| Check | Result |
+|---|---|
+| `npm test` | 199/199 |
+| `npm run check` | all passed (39 src files, 7 vendor + 16 licences, pins match, 212 locale keys) |
+| `diff -rq dist dist-e2e` | only `manifest.json` (+`<all_urls>`) and `build-info.json` |
+| Runtime manifest (release) | exact permissions; optional `https://*/*`; no host permissions/WAR/externally_connectable; `incognito:not_allowed`; CSP as ADR; origins `[]` |
+| Native CSP | eval/Function/string timer/inline/remote import blocked; WASM allowed |
+| Greps | no DOM sinks, no eval-family, no messaging; `fetch` only in `acquire.js`/`pageProbe.js`; `tabs.create` only in `opener.js` + shortcuts constant |
+| Egress | release `dist/` uploads + E12 job: none; 12 dist-e2e page scans: none |
+| Licences | 11 upstream texts in `dist/vendor/licenses/`, byte-identical to `third_party/licenses/`, all in `THIRD_PARTY_NOTICES.txt` |
+
+**Release recommendation (code):** pass, no security blocker; package from a clean commit with `npm run package` and record the ZIP sha256; fix SEC-20 or accept as documented Low before a public 1.0. **Not run:** real toolbar/shortcut gesture and activeTab, Chrome 116, branded Chrome; real decodes of crafted files (verified via sniff/policy + unit tests); ICO with unreadable size < 256 KiB and AVIF with decoy header size remain decoder-dependent.

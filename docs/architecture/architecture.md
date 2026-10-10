@@ -330,6 +330,8 @@ QR rules: only `http:`/`https:` (missing scheme → retry with `https://`); empt
 // chrome.storage.local 'history'  (newest first, ≤25, dedupe on grader+number; no image data, no URLs)
 { v: 1, entries: [{ grader: 'psa', number: '01234567', at: 1760000000000, source: 'ocr', pageHost: 'www.ebay.com' }] } // pageHost null for upload/paste/manual
 // chrome.storage.session 'scanJob:<windowId>' → ScanJob (ephemeral; srcUrl/pageUrl live only here)
+// chrome.storage.session 'seenJobs:<windowId>' → string[] (≤20 consumed job ids; A10)
+// chrome.storage.session 'lastResult:<windowId>' → last completed result, no images/URLs (A5; cleared by Clear history, history off, window close)
 ```
 
 Migrations (`shared/settings.js`, `shared/history.js`) are pure, run on read, return `{value, needsWrite}`:

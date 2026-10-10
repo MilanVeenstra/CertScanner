@@ -31,8 +31,8 @@
     "architecture": {
       "status": "evidenced",
       "evidence": "docs/architecture/architecture.md",
-      "sha256": "29b98dd404a1848c1c0fbc61f5d2835dc6e3c382b93f20f5aa74bfbb8aa3b8ef",
-      "recorded_at": "2026-10-10T08:00:32.818971+00:00"
+      "sha256": "ca2e59b6ab313dfa3d945386fac08c49d758bbb4826f91821e0e8c8f24e242a5",
+      "recorded_at": "2026-10-10T08:14:34.743639+00:00"
     },
     "design": {
       "status": "pending"
@@ -180,6 +180,32 @@
         }
       },
       "recorded_at": "2026-10-10T08:00:32.751515+00:00"
+    },
+    {
+      "action": "invalidate",
+      "stage": "architecture",
+      "reason": "ADR §9 storage table updated (SEC-21)",
+      "previous": {
+        "architecture": {
+          "status": "evidenced",
+          "evidence": "docs/architecture/architecture.md",
+          "sha256": "29b98dd404a1848c1c0fbc61f5d2835dc6e3c382b93f20f5aa74bfbb8aa3b8ef",
+          "recorded_at": "2026-10-10T08:00:32.818971+00:00"
+        },
+        "design": {
+          "status": "pending"
+        },
+        "build": {
+          "status": "pending"
+        },
+        "test": {
+          "status": "pending"
+        },
+        "release": {
+          "status": "pending"
+        }
+      },
+      "recorded_at": "2026-10-10T08:14:34.656553+00:00"
     }
   ]
 }

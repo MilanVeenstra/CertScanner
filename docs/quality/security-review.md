@@ -102,3 +102,79 @@
 ### Not run / residual risk
 
 Not run: incognito runtime test, Chrome 116, real-CDN activeTab behaviour, drag-and-drop of links into the panel, Store dashboard. Residual: a counterfeit slab showing a real cert number still "verifies" (R8, disclosed); a per-host grant gives lasting credential-less fetch access to that host (revocable); activeTab + capture expose the visible tab area in memory after a click.
+
+---
+
+## Round 2: commit `03d9589` (S6 security fixes + A9 page scan)
+
+**Reviewer:** security-reviewer (independent native specialist agent; read-only) · **Date:** 2026-10-10 · Saved by the orchestrator.
+**Source:** `03d95895443d88898592fbc4e6da723d8910ea98` from a fresh `git archive` export (src-tree sha256 prefix `4db373e4457811db`).
+**Builds:** release `dist/manifest.json` sha256 `0aec47bb6c9faf3b…a2e1`; `dist-e2e/manifest.json` `88fb2414b131391e…4062`; test ZIP (`SOURCE_DATE_EPOCH=1760000000 --allow-dirty`) `094f816f68b171b5…c44b`, 64 files.
+**Environment:** Node 22.22.0, Playwright 1.56.1, bundled Chromium 141.0.7390.37 headless, 127.0.0.1 servers only.
+
+### Outcome
+
+No critical, high or medium findings. All round-1 code blockers fixed. Page scan withstands huge image lists, 36 MB of URLs, hostile schemes, main-world prototype tampering, busy pages, Cancel and the 30 s budget; aggregation can't be outvoted. New: four Low (SEC-13…16), three Info (SEC-17…19).
+
+### Round-1 items re-verified
+
+| ID | Status | Evidence |
+|---|---|---|
+| SEC-01 | Fixed | `manifest.json` `"incognito":"not_allowed"`, enforced by `--check`; runtime: cannot be enabled in incognito |
+| SEC-02 | Fixed | descriptions 126 (en) / 131 (nl); every locale checked ≤132 |
+| SEC-03 | Fixed | `raceAbort` in acquire/scanner/pageScan; probe 300 ms fallback; busy page: acquire `timeout` at 12,002 ms, Cancel 86 ms; page scan Cancel 31 ms, budget error at 30,017 ms |
+| SEC-04 | Fixed for listed formats (bypass: SEC-14) | BMP/WebP VP8L/ICO/AVIF bombs refused in 1–6 ms |
+| SEC-05 | Partial (legal gate open) | six licence files shipped and required; texts not yet compared with upstream |
+| SEC-06 | Fixed | `autoOpenKey` per job id incl. page jobs; unit + e2e |
+| SEC-07 | Accepted residual, widened by page scan (SEC-13) | preview shows analysed bytes |
+| SEC-08 | Fixed (code) | post-capture re-check in single and page mode |
+| SEC-09 | Fixed | query/hash stripped from `pageUrl`; history/lastResult hold no URLs |
+| SEC-10 | Accepted (disclosed) | four CDN default strings; runtime egress none |
+| SEC-11 | Fixed, small residual | "All sites" row; subdomain-wildcard grants not listed |
+| SEC-12 | Mostly fixed (gaps: SEC-15) | release-only, dirty refused without `--allow-dirty`, ZIP of `dist/` only, manifest re-validated, deterministic with `SOURCE_DATE_EPOCH` |
+
+### New findings
+
+| ID | Severity | Evidence | Scenario | Fix | Blocks release | Orchestrator decision |
+|---|---|---|---|---|---|---|
+| SEC-13 | Low (integrity/UX) | `pageImagesProbe.js:25-40` has no CSS-visibility/occlusion filter; `pageAggregate.js:187-197` ignores visibility for auto-open | Hostile page shows slab A as CSS background, adds invisible `<img>` of slab B (`opacity:0`, off-screen or `visibility:hidden`) → B auto-opened | Skip images failing `checkVisibility({checkOpacity, checkVisibilityCSS})`; auto-open only when the winning image is ≥ 50 % in the viewport and topmost at its centre | No (recommended before 1.0) | **Fix now** |
+| SEC-14 | Low (availability) | 64 KiB header read; JPEG SOF after 64 KiB and GIF frames larger than the screen bypass the sniffer; after `too-large` page-fetch decodes again | 1 MB JPEG → 16000² decode 1,107 ms; 8 such images exhaust the page budget | Walk JPEG segments up to ~1 MB; GIF largest image descriptor; stop after `too-large` | No | **Fix now** |
+| SEC-15 | Low (release integrity) | dirty check misses ignored files and `third_party/`; same ZIP name for dirty builds; `builtAt` defaults to now; vendor hashes compared only to `node_modules` | Ignored `src/dist/stowaway.txt` and edited licence packaged with `gitDirty:false` | Package from `git ls-files`/archive or extend the check; `-dirty` ZIP name; default epoch = commit time; pin vendor sha256 | No | **Fix now** |
+| SEC-16 | Low (privacy policy/Store accuracy) | Docs still say "Sharper scans"/"Scan the page when I click the icon"; "image's host name" vs page host; cites `bb1666f` | Policy points to settings that don't exist | Update labels (en/nl), re-source | **Yes (Store, docs only)** | **Fix now (release manager)** |
+| SEC-17 | Info | removal announced without checking result | "Removed All sites." while still granted | Announce from resolved boolean | No | Fix now |
+| SEC-18 | Info | Clear history / history off don't clear `lastResult:<windowId>` | cert number + host restored up to 12 h | Clear `lastResult:*` too, and on window close | No | Fix now |
+| SEC-19 | Info | `probeValidate.js:174` accepts any `data:` type | harmless (decode fails) | `^data:image/(?!svg)` | No | Fix now |
+
+### Verified controls (new surface)
+
+- SW: `sidePanel.open` first in all three listeners; only `action`, `commands`, `contextMenus` listeners; no messaging listeners.
+- Settings → SW behaviour/tooltip switch at runtime; malformed synced values fall back.
+- Probe: self-contained, ISOLATED world, main frame only; main-world prototype overrides ineffective; `javascript:`, `data:text/html`, SVG dropped; 3,000 images → 39 ms, capped 24, 8 scanned; 36 M chars of URLs → 786 ms + 87 ms validation; malformed envelopes rejected.
+- Aggregation: 20 repeats at 0.79, off-site QR, duplicate numbers across graders, null grader, manual source and invalid lengths never auto-open.
+- Panel: `blob:` thumbnails revoked; `textContent` only; i18n substitutions not re-expanded; dropped links/HTML refused without fetch; clipboard writes digits only; "Always allow" requests exactly `https://<host>/*` as the first call; `chrome://extensions/shortcuts` is a constant.
+- Greps: no `innerHTML`/`eval`/`Function`/`importScripts`/remote `import()`/messaging/WAR/`externally_connectable`; `fetch` only in `acquire.js`/`pageProbe.js`; `tabs.create` only in `opener.js` (via `buildCertUrl`) and the shortcuts constant.
+- Privacy docs vs behaviour: probe reads only URL, srcset, rect, natural size, viewport, dpr — matches PRIVACY.md except SEC-16 labels.
+
+### Commands (observed)
+
+| Command / test | Result |
+|---|---|
+| `npm test` | 164/164 pass |
+| `npm run check` | all checks passed |
+| `build:e2e` + `diff -rq dist dist-e2e` | only `manifest.json` (+`<all_urls>`) and `build-info.json` differ |
+| `--package` without git / with `--e2e` | refused / refused |
+| `SOURCE_DATE_EPOCH=… --package --allow-dirty` ×2 | identical `094f816f…`; 64 entries dated 1980-01-01; manifest identical to `dist/` |
+| Decode bombs (release `dist/`) | 9 refused in 1–6 ms; JPEG SOF-after-head 1,107 ms; GIF frame > screen 1,033 ms |
+| Busy page / page busy (dist-e2e) | see SEC-03 |
+| Page T1–T9 (dist-e2e) | as above; no panel errors; no egress beyond 127.0.0.1 |
+| Egress (release `dist/`) | PSA auto-open 01234567; CGC QR 4012347003; origins `[]`; egress none |
+| Native CSP probe | `new Function`, `eval`, string timer, inline script, remote `import()` blocked; WASM allowed |
+| QA e2e `security` + `privacy` | 7/7 pass |
+
+### Release recommendation (code)
+
+Conditional pass, no security blocker: package only from a clean commit with `SOURCE_DATE_EPOCH` and record the ZIP sha256 (until SEC-15 is fixed); fix SEC-13 before a public 1.0. Store/legal gates: SEC-16 docs and SEC-05 upstream licence comparison.
+
+**Incident (resolved):** the reviewer accidentally created a self-referencing symlink `node_modules/node_modules`; the orchestrator removed only that link (`unlink`) on 2026-10-10.
+
+**Not run:** real toolbar click/shortcut and permission prompt, forced SEC-08 tab switch, subdomain wildcard grant listing, Chrome 116.

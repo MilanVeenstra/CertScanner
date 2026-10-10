@@ -176,6 +176,18 @@ describe('A9 page scan on dist-e2e (page jobs shaped like sw.js createPageJob; <
       assert.ok(qrRow.note.includes(FOREIGN_HOST) && qrRow.noteTone === 'warning', 'off-site QR row carries the warning');
     }
     assert.equal(r.view.summary[0], msg(en, 'page_results_summary', [String(r.view.rows.length)]));
+    // O10: more slab-sized photos than the 8-photo budget → "Checked 8 of <total> photos." (total = the probe's `total`).
+    const total = disc.total;
+    console.log(`# P1 O10 summary: ${JSON.stringify(r.view.summary)} (probe total ${total}, images returned ${disc.images.length})`);
+    assert.ok(Number.isInteger(total) && total > PAGE_SCAN_IMAGES, `the gallery has more slab-sized photos (${total}) than the ${PAGE_SCAN_IMAGES}-photo budget`);
+    assert.equal(r.view.summary.length, 2, 'count line + coverage line');
+    assert.equal(r.view.summary[1], msg(en, 'page_results_capped', [String(PAGE_SCAN_IMAGES), String(total)]), 'O10 "Checked 8 of N photos." line');
+    // Perf 5: row thumbnails are <= 240 px copies, not the full photos.
+    const thumbs = await panel.page.evaluate(async () => Promise.all([...document.querySelectorAll('[data-testid="page-result-list"] [data-ref="thumb"]')]
+      .filter((i) => i.getAttribute('src')).map(async (i) => { await i.decode().catch(() => {}); return { w: i.naturalWidth, h: i.naturalHeight, blob: i.src.startsWith('blob:') }; })));
+    console.log(`# P1 row thumbnails: ${thumbs.map((t) => `${t.w}x${t.h}`).join(', ')}`);
+    assert.equal(thumbs.length, r.view.rows.length, 'one thumbnail per row');
+    for (const t of thumbs) assert.ok(t.blob && t.w > 0 && Math.max(t.w, t.h) <= 240, `row thumbnail ${t.w}x${t.h} is a <= 240 px blob copy`);
     assert.equal(await E.sessionGet(env, `scanJob:${panelWindow}`), null, 'job slot consumed');
     assert.equal((await historyEntries()).length, historyBefore, 'a results list writes no history');
     const tabs = await E.allTabs(env);
@@ -573,7 +585,17 @@ describe('A9 page access on the release build (no host access): the panel button
     await E.writePageJob(env, { windowId, tabId: active.id, pageUrl: url });
     await E.waitForScanEnd(p.page, mark, { timeout: 30000 });
     const first = await readPage(p.page);
-    console.log(`# job without a live grant: ${first.body}/${first.errorCode}`);
+    const cmd = (await env.sw.evaluate(() => chrome.commands.getAll())).find((c) => c.name === 'scan-page')?.shortcut ?? '';
+    const firstId = await p.page.evaluate(() => document.querySelector('[data-testid="error-message"]')?.dataset.errorId ?? null);
+    console.log(`# job without a live grant: ${first.body}/${first.errorCode} (${firstId}) "${first.heading}" / "${first.error}"; actions ${first.actions.join(',')}; focus #${first.focusId}`);
+    // O11: a toolbar job on a readable https page whose grant is gone → E12 page-no-access (not E1 restricted).
+    assert.equal(first.body, 'error');
+    assert.equal(first.errorCode, 'page-no-access');
+    assert.equal(firstId, 'E12');
+    assert.equal(first.heading, msg(en, 'err_page_no_access_heading'));
+    assert.equal(first.error, cmd ? msg(en, 'err_page_no_access_body', [cmd]) : msg(en, 'err_page_no_access_body_icon'), 'E12 body names the icon and the shortcut');
+    assert.ok(first.actions.includes('page-scan') && first.actions.includes('choose'), 'Scan this page + Choose image');
+    assert.equal(first.focusId, 'task-heading');
     // Panel "Scan this page": no access → page-access with the offer for the known https host.
     mark = await E.logMark(p.page);
     await p.page.locator('#task [data-action="page-scan"]').first().click();
@@ -606,6 +628,20 @@ describe('A9 page access on the release build (no host access): the panel button
     assert.equal(nav.task, 'page-access');
     assert.equal(noteVisible, false, 'page-access card re-rendered');
     assert.equal(nav.alwaysAllowVisible, false, 'no offer after the tab left the known host (observation O12)');
+
+    // O11: a toolbar job on the new site (no grant) → E12 again; E12 is not restored when the panel is reopened.
+    mark = await E.logMark(p.page);
+    await E.writePageJob(env, { windowId, tabId: active.id, pageUrl: other });
+    await E.waitForScanEnd(p.page, mark, { timeout: 30000 });
+    const again = await readPage(p.page);
+    assert.equal(again.errorCode, 'page-no-access', 'E12 for the new site too');
+    await E.reloadPanel(p.page);
+    await E.sleep(1000);
+    const reopened = await readPage(p.page);
+    console.log(`# E12 after a cross-origin move: ${again.body}/${again.errorCode}; after panel reload: body ${reopened.body}, task ${reopened.task}`);
+    assert.equal(reopened.body, 'idle', 'E12 is not restored on reopen');
+    assert.equal(reopened.error, '');
+    assert.deepEqual(p.errors.filter((e) => e.startsWith('pageerror')), []);
   });
 });
 

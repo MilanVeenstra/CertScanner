@@ -1521,7 +1521,7 @@ const HIDDEN_A_URL = 'https://www.psacard.com/cert/108114622';
 /**
  * geometry: what a browser reports at 1280x861 (the e2e page viewport) -- checkVisibility({checkOpacity,
  * checkVisibilityCSS}), visible fraction of B in the viewport, and the element hit at the centre of B's visible part.
- * asserted:false = residual techniques the SEC-13 probe does not model (handoff "Limits"); e2e logs them only.
+ * asserted:false = residual techniques the probe does not model; e2e logs them only. Since SEC-20 (S9) every listed variant is asserted.
  */
 const HIDDEN_VARIANTS = Object.freeze({
   none: { how: 'control: B visible', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { status: 'auto-open', url: HIDDEN_B_URL, discovered: ['img-slab-b'], tabsOpened: 1 }, asserted: true },
@@ -1530,10 +1530,10 @@ const HIDDEN_VARIANTS = Object.freeze({
   offscreen: { how: 'B positioned at left:-5000px', geometry: { cssVisible: true, visibleFraction: 0, hit: null }, expected: { status: 'page-results', listed: ['01234567'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
   overlay: { how: 'opaque <div> covers B', geometry: { cssVisible: true, visibleFraction: 1, hit: 'cover-b' }, expected: { status: 'page-results', listed: ['01234567'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
   faint: { how: 'opacity:0.05 on B', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { status: 'page-results', listed: ['01234567'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
-  'filter-opacity': { how: 'filter:opacity(0) on B (residual: not modelled)', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
-  'overlay-pe-none': { how: 'opaque <div> with pointer-events:none covers B (residual: hit testing cannot see it)', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
-  'clip-path': { how: 'clip-path:inset(0 0 100% 0) on B (residual: not modelled)', geometry: { cssVisible: true, visibleFraction: 1, hit: 'spot-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
-  'clipped-parent': { how: 'B inside a 0 px tall overflow:hidden box', geometry: { cssVisible: true, visibleFraction: 1, hit: 'row' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
+  'filter-opacity': { how: 'filter:opacity(0) on B', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
+  'overlay-pe-none': { how: 'opaque <div> with pointer-events:none covers B', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
+  'clip-path': { how: 'clip-path:inset(0 0 100% 0) on B', geometry: { cssVisible: true, visibleFraction: 1, hit: 'spot-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
+  'clipped-parent': { how: 'B inside a 0 px tall overflow:hidden box', geometry: { cssVisible: true, visibleFraction: 1, hit: 'row' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
 });
 
 function hiddenHtml(sizes) {
@@ -1610,7 +1610,7 @@ function hiddenManifestEntry(sizes) {
     viewport: { width: 1280, height: 861 },
     variants: HIDDEN_VARIANTS,
     mustNeverOpenUrls: [HIDDEN_A_URL],
-    notes: 'SEC-13 hostile page: slab A (psa-9digit, 108114622) is painted as a CSS background (never discovered by design); slab B (psa-8digit-leading-zero, 01234567) is the only <img>. In every hiding variant a page scan must not auto-open B (results list or none); slab A can never be read. Variants with asserted:false are residual techniques that the probe does not model; e2e records their outcome without failing.',
+    notes: 'SEC-13 hostile page: slab A (psa-9digit, 108114622) is painted as a CSS background (never discovered by design); slab B (psa-8digit-leading-zero, 01234567) is the only <img>. In every hiding variant a page scan must not auto-open B (results list or none); slab A can never be read. All variants are asserted since the SEC-20 fix (filter/clip/mask/blend styling, five-point hit test incl. pointer-events:none covers, displayed-image-first auto-open).',
   };
 }
 

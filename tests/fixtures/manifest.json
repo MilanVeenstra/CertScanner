@@ -1018,7 +1018,7 @@
           "asserted": true
         },
         "filter-opacity": {
-          "how": "filter:opacity(0) on B (residual: not modelled)",
+          "how": "filter:opacity(0) on B",
           "geometry": {
             "cssVisible": true,
             "visibleFraction": 1,
@@ -1035,10 +1035,10 @@
             ],
             "tabsOpened": 0
           },
-          "asserted": false
+          "asserted": true
         },
         "overlay-pe-none": {
-          "how": "opaque <div> with pointer-events:none covers B (residual: hit testing cannot see it)",
+          "how": "opaque <div> with pointer-events:none covers B",
           "geometry": {
             "cssVisible": true,
             "visibleFraction": 1,
@@ -1055,10 +1055,10 @@
             ],
             "tabsOpened": 0
           },
-          "asserted": false
+          "asserted": true
         },
         "clip-path": {
-          "how": "clip-path:inset(0 0 100% 0) on B (residual: not modelled)",
+          "how": "clip-path:inset(0 0 100% 0) on B",
           "geometry": {
             "cssVisible": true,
             "visibleFraction": 1,
@@ -1075,7 +1075,7 @@
             ],
             "tabsOpened": 0
           },
-          "asserted": false
+          "asserted": true
         },
         "clipped-parent": {
           "how": "B inside a 0 px tall overflow:hidden box",
@@ -1095,13 +1095,13 @@
             ],
             "tabsOpened": 0
           },
-          "asserted": false
+          "asserted": true
         }
       },
       "mustNeverOpenUrls": [
         "https://www.psacard.com/cert/108114622"
       ],
-      "notes": "SEC-13 hostile page: slab A (psa-9digit, 108114622) is painted as a CSS background (never discovered by design); slab B (psa-8digit-leading-zero, 01234567) is the only <img>. In every hiding variant a page scan must not auto-open B (results list or none); slab A can never be read. Variants with asserted:false are residual techniques that the probe does not model; e2e records their outcome without failing."
+      "notes": "SEC-13 hostile page: slab A (psa-9digit, 108114622) is painted as a CSS background (never discovered by design); slab B (psa-8digit-leading-zero, 01234567) is the only <img>. In every hiding variant a page scan must not auto-open B (results list or none); slab A can never be read. All variants are asserted since the SEC-20 fix (filter/clip/mask/blend styling, five-point hit test incl. pointer-events:none covers, displayed-image-first auto-open)."
     }
   ],
   "labelBoxNotes": "labelBox = axis-aligned label band in natural image pixels ({x,y,width,height}); null for non-slab and rotated images.",

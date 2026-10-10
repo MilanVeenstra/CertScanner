@@ -466,7 +466,7 @@ Same host and session. "Before" is the HEAD build (`03d9589` src), copied from `
 - No change to the right-click (single image) flow.
 - Nothing was committed by FE.
 
-**Source identity:** HEAD `f4e60ae` (the orchestrator's WIP snapshot) plus an uncommitted tree. src-tree sha256 prefix `8f4c5c9c108442eb`. Both manifests unchanged.
+**Source identity:** all S9 source and tests are in the orchestrator's snapshot `a5fb46a`; only this section is uncommitted. src-tree sha256 prefix `8f4c5c9c108442eb`. Both manifests unchanged.
 
 **Environment:** Chromium 141.0.7390.37 headless, Playwright 1.56.1, Node 22.22.0.
 
@@ -484,7 +484,7 @@ Same host and session. "Before" is the HEAD build (`03d9589` src), copied from `
 |---|---|
 | `npm test` | **208/208** (was 199). New tests:<br>- each rule-1 property on the image and on an ancestor;<br>- opacity 0.85 vs 0.95;<br>- 3 vs 4 of 5 points; the 2 px window;<br>- painting `pointer-events:none` covers (background, colour, `::after`, `backdrop-filter`, `<img>`), with no false positive for transparent layers, a corner badge, an invisible layer or the image's own ancestor;<br>- positioned pseudo-element of a 0×0 element (absolute, fixed vs static);<br>- the > 30,000-element fail-safe;<br>- `pageProbe` fetch modes;<br>- displayed first, srcset only when unclear, page fetch in srcset mode;<br>- srcset-only and merged numbers never auto-open;<br>- `decidePage` gate. |
 | `npm run check` | All checks passed. The URL allow-list caught an SVG namespace literal in the probe, now replaced by a suffix test. |
-| `CERTSCANNER_SKIP_BENCH=1 npm run e2e` (QA suite, run only; QA edits in progress) | E2E_S9_PLACEHOLDER |
+| `CERTSCANNER_SKIP_BENCH=1 npm run e2e` (QA suite, run only; QA edits in progress) | **tests 58, pass 58, fail 0** (benchmark skipped). This includes QA's in-progress `hardening.test.mjs` as it stood at the time of the run. |
 
 ### Browser evidence (dist-e2e; pages in the scratchpad: slab A shown, `<img>` of slab B)
 
@@ -501,6 +501,7 @@ Same host and session. "Before" is the HEAD build (`03d9589` src), copied from `
 | 12 fixtures via upload | – | **12/12, 0 wrong auto-opens** |
 | Gallery page job | – | list of 6 rows, "Checked 8 of 10 photos.", no tab, no panel errors |
 | Listing page job | – | auto-open of 108114622 exactly once |
+| QA `hardening.test.mjs` residual diagnostics, run unedited (filter, `pointer-events:none` overlay, clip-path, 0 px `overflow:hidden` parent) | vf 1, topmost false (all four) | list (01234567), nothing opened |
 
 ### Probe cost (panel → `executeScript` round trip, p50 of 10)
 

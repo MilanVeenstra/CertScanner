@@ -19,10 +19,10 @@ CertScanner only reads a page when you ask it to. You do that by clicking the Ce
 | **A list of the photos on the page**, for page scans. The list holds each image's web address, size and position on screen. | When you start a page scan | Used to pick the photos large enough to be a slab label: up to 8, visible ones first. Only the page itself is checked, not frames embedded in it. **No page text, form data, cookies or other page content is read.** | In memory, for the scan only. |
 | **A screenshot of the visible part of the tab.** | Only when an image can't be loaded directly | Cropped to the photo(s) being scanned. The rest is thrown away right away. | In memory only. Never saved and never uploaded. |
 | **Scan hand-off details.** These are the address of the page you scan (site and path only; the query string and anything after `#` are removed), the right-clicked image's address if there is one, and Chrome's internal tab and window numbers. | During a scan | Passed from the toolbar, shortcut or right-click menu to the panel. Used to load the image, to check that Chrome allows reading the page, and to make sure the tab hasn't changed during the scan. | Chrome session storage. Deleted as soon as the panel picks up the scan. If the panel never does, it is ignored after 2 minutes and deleted when the window or Chrome closes. |
-| **Cert numbers that were read**, the grader, how each number was read, and the image's host name. | After a scan | Shown in the panel. The last result is restored if you close and reopen the panel. | Chrome session storage. Up to 12 hours, and cleared when Chrome closes. No images. |
-| **Recent scans:** grader, cert number, how it was read (barcode, QR code, text, typed or corrected) and time. | When a cert page is opened or a number is copied, if **Keep scan history** is on (the default) | Shown under **Recent scans** so you can reopen or copy a number. | On this device only (`chrome.storage.local`), last 25 entries. **No images, page addresses or image addresses are stored.** |
-| **Settings:** four on/off choices. These are *Always ask before opening*, *Open in a background tab*, *Keep scan history* and *Scan the page when I click the icon*. | When you change them | Applied to how the extension behaves. | `chrome.storage.sync`. If Chrome sync is on, Chrome copies them to your other signed-in devices. |
-| **Sites you said "Not now" or no to** for Sharper scans. | When you dismiss the offer | Stops the same offer from appearing again in this session. | Chrome session storage; cleared when Chrome closes. |
+| **The last result in each window:** up to 5 cert numbers that were read, the grader, how each was read, what the panel showed (for example "opened" or an error code) and one host name. That host name is the image's host for a photo you right-clicked, or the page's host for a page scan or when the image's address is unknown. There is none for uploads, pastes and typed numbers. If a QR code pointed to another site, that site's host name is kept too. | After a scan | Restores the result if you close and reopen the panel. Lists of page-scan results are not restored. | Chrome session storage. Replaced by the next result, ignored after 12 hours, and deleted when Chrome closes. **No images, page addresses or image addresses.** |
+| **Recent scans:** grader, cert number, how it was read (barcode, QR code, text, typed or corrected) and time. | When a cert page is opened or a number is copied, if **Keep scan history** is on (the default) | Shown under **Recent scans** so you can reopen or copy a number. | On this device only (`chrome.storage.local`), last 25 entries. **No images, page or image addresses, or site names are stored.** |
+| **Settings:** four on/off choices. These are *Toolbar button scans the page*, *Always ask before opening*, *Open in a background tab* and *Keep scan history*. | When you change them | Applied to how the extension behaves. | `chrome.storage.sync`. If Chrome sync is on, Chrome copies them to your other signed-in devices. |
+| **Sites where you chose "Not now" or refused access** after the **Sharper scans on ‹site›** offer. | When you dismiss the offer | Stops the same offer from appearing again in this session. | Chrome session storage; cleared when Chrome closes. |
 | **Clipboard.** | Only when you paste into the panel, or click **Copy** | Reads the image or text you paste. Writes the cert number when you click Copy. | Not stored by CertScanner. |
 
 ## 2. What leaves your device
@@ -58,18 +58,19 @@ A web address found inside a QR code is never opened. Only the number in it is u
 | `sidePanel` | Shows progress, results, confirmation and manual entry in Chrome's side panel. |
 | `storage` | Saves your settings and recent scans, and passes a scan from the toolbar or menu to the panel. |
 | Keyboard shortcut (`commands`) | Lets you start a page scan with Alt+Shift+S. This is a setting, not a permission. You can change or remove it at `chrome://extensions/shortcuts`. |
-| **Optional:** access to a single website (`https://<site>/*`) | Asked only when you click **Sharper scans on ‹site›** or **Always allow on ‹site›**. Chrome then shows its own prompt naming that one site. With it, CertScanner can load full-size images from that site, or scan that site from the panel button without clicking the icon first. It never scans by itself. |
+| **Optional:** access to a single website (`https://<site>/*`) | Asked only when you click **Sharper scans on ‹site›** or **Always allow on ‹site›** (the second offer is rare). Chrome then shows its own prompt naming that one site. With it, CertScanner can load full-size images from that site, or scan that site from the panel's **Scan this page** button without clicking the icon first. It never scans by itself. |
 
 **Removing optional site access.** You can remove a site you allowed in two places:
-- In CertScanner, open **Settings**, go to **Sharper scans** and click **Remove**.
+- In CertScanner, open **Settings**, go to **Sites with full access** and click **Remove** next to the site.
 - In Chrome, go to `chrome://extensions`, open CertScanner's **Details** and change **Site access**.
 
 ## 5. Your choices and how to delete data
 
 - **Turn off scan history:** open Settings and switch off **Keep scan history**. This deletes the saved entries right away.
-- **Clear scan history:** Settings → **Clear history**.
+- **Clear scan history:** Settings → **Clear history**. This empties **Recent scans**.
+- **Last result:** it is session data, separate from Recent scans. It is replaced by your next result, ignored after 12 hours and deleted when Chrome closes.
 - **Always ask before opening:** Settings → **Always ask before opening**. Nothing opens until you click **Open**.
-- **Stop the icon from scanning:** Settings → **Scan the page when I click the icon** (off). The icon then only opens the panel.
+- **Stop the toolbar button from scanning:** Settings → **Toolbar button scans the page** (off). Clicking the icon then only opens the panel. The keyboard shortcut still scans; you can remove it at `chrome://extensions/shortcuts`.
 - **Remove everything:** uninstall CertScanner. Chrome deletes its scan history, session data and site access. The four settings may stay in your Chrome sync data until you reset sync.
 
 ## 6. Security
@@ -105,16 +106,18 @@ _Deze samenvatting is ter informatie. Bij verschillen geldt de Engelse tekst hie
   - Kan een afbeelding niet direct geladen worden, dan wordt een schermafbeelding van het zichtbare deel van het tabblad gemaakt. Die wordt in het geheugen bijgesneden tot de foto en daarna weggegooid.
 - **Wat je apparaat verlaat:** alleen het openen van de officiële certpagina met het certnummer (psacard.com, cgccomics.com of cgccards.com). Daarnaast kan de afbeelding opnieuw worden gedownload van de website die haar al toont; CertScanner stuurt daarbij geen cookies of referrer mee. CertScanner heeft zelf geen server en ontvangt niets.
 - **Wat wordt bewaard:**
-  - De instellingen (vier aan/uit-keuzes) gaan via Chrome-synchronisatie.
-  - Recente scans (grader, nummer, manier van lezen, tijd; maximaal 25) blijven alleen op dit apparaat. Er worden geen afbeeldingen of webadressen bewaard.
+  - De instellingen gaan via Chrome-synchronisatie. Het zijn vier aan/uit-keuzes: *Werkbalkknop scant de pagina*, *Altijd vragen voor het openen*, *Openen op een achtergrondtabblad* en *Scangeschiedenis bewaren*.
+  - Recente scans (grader, nummer, manier van lezen, tijd; maximaal 25) blijven alleen op dit apparaat. Er worden geen afbeeldingen, webadressen of sitenamen bewaard.
+  - Het laatste resultaat per venster (certnummers, grader, manier van lezen en één hostnaam: die van de afbeelding of, bij een paginascan, die van de pagina) staat in het sessiegeheugen van Chrome. Het wordt vervangen door het volgende resultaat, na 12 uur genegeerd en gewist als Chrome sluit.
   - Gegevens van de lopende scan staan alleen in het sessiegeheugen van Chrome en verdwijnen als Chrome sluit.
 - **Geen** analytics, advertenties, tracking, verkoop of delen van gegevens. Geen account. Geen code van buitenaf.
 - **Incognito:** CertScanner werkt niet in incognitovensters.
-- **Optionele toegang per site:** alleen na jouw klik op **Scherpere scans op ‹site›** of **Altijd toestaan op ‹site›**, en Chrome vraagt eerst om toestemming voor die ene site. Je kunt die toegang intrekken op twee plekken:
-  - in CertScanner: Instellingen → Scherpere scans → **Verwijderen**;
+- **Werkbalkknop:** zet Instellingen → **Werkbalkknop scant de pagina** uit; een klik op het icoon opent dan alleen het paneel.
+- **Optionele toegang per site:** alleen na jouw klik op **Scherpere scans op ‹site›** of (zelden) **Altijd toestaan op ‹site›**, en Chrome vraagt eerst om toestemming voor die ene site. Je kunt die toegang intrekken op twee plekken:
+  - in CertScanner: Instellingen → **Sites met volledige toegang** → **Verwijderen**;
   - in Chrome: `chrome://extensions` → CertScanner → Details → Sitetoegang.
 - **Verwijderen:**
-  - Instellingen → **Geschiedenis wissen**.
+  - Instellingen → **Geschiedenis wissen** (leegt Recente scans).
   - Of zet **Scangeschiedenis bewaren** uit; dat wist de opgeslagen scans meteen.
   - Of verwijder de extensie.
 - **Contact:** `<maintainer contact>`

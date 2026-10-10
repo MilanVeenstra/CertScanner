@@ -34,7 +34,7 @@ _Version 0.1.0. It is not published on the Chrome Web Store; for now you install
 
 CertScanner reads a page only when you click its icon, press the shortcut or right-click a photo. It never scans by itself.
 - **What it reads:** image addresses, sizes and positions, never page text. Images are processed on your device and never uploaded.
-- **What it stores:** settings sync through Chrome; recent scans (grader, number, method and time) stay on this device; you can turn history off or clear it.
+- **What it stores:** settings sync through Chrome; recent scans (grader, number, method and time) stay on this device, and you can turn history off or clear it; the last result is kept in Chrome's session storage for up to 12 hours.
 - **What leaves your device:** the cert number, only when the grader's official page opens in a tab. The only other request is reloading a photo from the site that already shows it, sent without cookies when CertScanner makes it. There is no server, no account, no analytics and no ads.
 - **Incognito:** the extension does not run in incognito windows.
 
@@ -101,23 +101,23 @@ After pulling new code, run `npm run build` again and click the reload button on
 
 **Settings** (gear icon in the panel):
 
-| Setting | Default | Effect |
-|---|---|---|
-| **Scan the page when I click the icon** | on | When off, the icon only opens the panel |
-| **Always ask before opening** | off | When on, nothing opens until you click **Open** |
-| **Open in a background tab** | off | Keeps you on the page you're viewing |
-| **Keep scan history** | on | Keeps the last 25 numbers on this device only; turning it off deletes them. **Clear history** empties the list. |
+| Section | Setting | Default | Effect |
+|---|---|---|---|
+| Toolbar button and shortcut | **Toolbar button scans the page** | on | When off, clicking the icon only opens the panel (tooltip "Open CertScanner"). The shortcut still scans. **Change shortcut** opens `chrome://extensions/shortcuts`. |
+| Opening cert pages | **Always ask before opening** | off | When on, nothing opens until you click **Open** |
+| Opening cert pages | **Open in a background tab** | off | Keeps you on the page you're viewing |
+| Scan history | **Keep scan history** | on | Keeps the last 25 numbers on this device only; turning it off deletes them. **Clear history** empties the list. |
 
-Under **Sharper scans**, Settings also lists the sites you allowed, each with a **Remove** button.
+Under **Sites with full access**, Settings lists the sites you allowed through **Sharper scans on ‹site›** or **Always allow on ‹site›**, each with a **Remove** button. An **All sites** row appears if broader access was granted in Chrome.
 
 ## Troubleshooting
 
 | You see | What to do |
 |---|---|
 | "Chrome doesn't allow reading this page" | Chrome blocks extensions on `chrome://` pages, the Chrome Web Store, other extensions' pages and local files. Save or copy the image, then drop, paste or upload it in the panel. |
-| "CertScanner can't read this page yet" | The panel's **Scan this page** button works only on a page CertScanner may read: after you used the icon, shortcut or right-click menu there (until you go to another site), or on a site you allowed. Click the icon or press the shortcut. If you scan that site often, choose **Always allow on ‹site›**; you can remove it later in Settings. |
+| "CertScanner can't read this page yet" | The panel's **Scan this page** button works only on a page CertScanner may read: after you used the icon, shortcut or right-click menu there (until you go to another site), or on a site you allowed. Click the icon or press the shortcut. In rare cases the panel also offers **Always allow on ‹site›**; you can remove that access later in Settings → **Sites with full access**. |
 | "No cert numbers found on this page" | Thumbnails are too small to read, so open the listing's large photo first. Scroll lazy-loaded photos into view. Photos inside embedded frames aren't found by a page scan; right-click the photo instead. |
-| "Scanned at screen resolution" / "Sharper scans on ‹site›" | The image host refused a direct download, so the visible screen was used. Click **Sharper scans on ‹site›** and allow that one site in Chrome's prompt, then **Scan again**. You can remove the access any time in Settings. |
+| "Scanned at screen resolution" / "Sharper scans on ‹site›" | The image host refused a direct download, so the visible screen was used. Click **Sharper scans on ‹site›** and allow that one site in Chrome's prompt, then **Scan again**. You can remove the access any time in Settings → **Sites with full access**. |
 | Wrong number, or the wrong grader | Click **Wrong number? Edit** on the result, or pick the right number and grader in the list. Always compare the number with the slab label. |
 | "Choose PSA, CGC Comics or CGC Cards" for a 10-digit number | A 10-digit number can belong to CGC Comics, CGC Cards or PSA. Choose the grader shown on the label. |
 | "Text reader didn't start" | Click **Reload panel**. Barcode reading and typing a number still work in the meantime. |
@@ -182,8 +182,9 @@ dist-e2e/                  test build (git-ignored); never load for real use or 
 | [`docs/architecture/architecture.md`](docs/architecture/architecture.md) | ADR-001 architecture with amendments A1–A9 (page scan is A9) |
 | [`docs/design/design-spec.md`](docs/design/design-spec.md) | UX design: journeys, states, copy (EN/NL), tokens, accessibility, icon |
 | [`docs/implementation/frontend-handoff.md`](docs/implementation/frontend-handoff.md) | Implementation notes and results for slices S1–S6 |
-| [`docs/quality/security-review.md`](docs/quality/security-review.md) | Security and privacy review (round 1) |
-| [`docs/quality/test-report.md`](docs/quality/test-report.md) | QA: e2e results, OCR benchmark, manual checks M1–M11 |
+| [`docs/quality/security-review.md`](docs/quality/security-review.md) | Security and privacy review, rounds 1 (`2cd4f86`) and 2 (`03d9589`) |
+| [`docs/quality/test-report.md`](docs/quality/test-report.md) | QA: e2e results (52/52 at `03d9589`), OCR benchmark, manual checks M1–M11 and PS1–PS12 |
+| [`docs/quality/performance-report.md`](docs/quality/performance-report.md) | Performance: latency, service worker, memory, package size |
 | [`docs/quality/screenshots/`](docs/quality/screenshots/) | Real extension captures of the side-panel states (pre-page-scan build) |
 | [`docs/release/release-report.md`](docs/release/release-report.md) | Release readiness, gates and artifact identity |
 | [`docs/release/store-listing.md`](docs/release/store-listing.md) | Chrome Web Store listing draft (EN/NL), assets plan, privacy-tab answers |
@@ -198,7 +199,7 @@ CertScanner bundles these components, unmodified, under `dist/vendor/`. `npm run
 | Component | Version | Licence | Used for |
 |---|---|---|---|
 | [tesseract.js](https://github.com/naptha/tesseract.js) | 7.0.0 | Apache-2.0 | OCR (text reader) API and worker |
-| [tesseract.js-core](https://github.com/naptha/tesseract.js-core) | 7.0.0 | Apache-2.0 | Tesseract OCR compiled to WebAssembly. Statically links Leptonica (BSD-2-Clause), libjpeg (IJG), libpng, LibTIFF and zlib |
+| [tesseract.js-core](https://github.com/naptha/tesseract.js-core) | 7.0.0 | Apache-2.0 | Tesseract OCR compiled to WebAssembly. Its build statically links Leptonica (BSD-2-Clause), IJG libjpeg 9a, libpng 1.6.38, LibTIFF, zlib 1.2.12, giflib, libwebp and openlibm |
 | [@tesseract.js-data/eng](https://www.npmjs.com/package/@tesseract.js-data/eng) | 1.0.0 | MIT (package); model data from tesseract-ocr/tessdata (Apache-2.0) | English OCR model |
 | [zxing-wasm](https://github.com/Sec-ant/zxing-wasm) | 3.1.5 | MIT; built from zxing-cpp (Apache-2.0) | Barcode and QR-code reader |
 
@@ -206,7 +207,7 @@ CertScanner bundles these components, unmodified, under `dist/vendor/`. `npm run
   - each package's own licence is copied next to it in `dist/vendor/`;
   - the texts for the libraries linked into the WebAssembly are in [`third_party/licenses/`](third_party/licenses/), copied to `dist/vendor/licenses/`;
   - the summary is in `dist/vendor/THIRD_PARTY_NOTICES.txt`.
-- **Open release gate:** the texts in `third_party/licenses/` were taken from Debian packaging files. They still have to be compared with the exact upstream versions compiled into tesseract.js-core 7.0.0 and zxing-wasm 3.1.5 ([details](third_party/licenses/README.md)).
+- **Open release gate (SEC-05):** the texts in `third_party/licenses/` were taken from Debian packaging files. On 2026-10-10 they were compared with the upstream files at the commits that tesseract.js-core 7.0.0 and zxing-wasm 3.1.5 build from. The libpng text is the wrong licence version, and notices for giflib, libwebp, openlibm and zxing-cpp's bundled libzueci are missing. Details: [`docs/release/release-report.md`](docs/release/release-report.md) §5.
 - **Development only:** Playwright and bwip-js are used for tests and are not shipped.
 
 ## License

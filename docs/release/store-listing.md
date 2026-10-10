@@ -1,13 +1,14 @@
 # CertScanner 0.1.0: Chrome Web Store listing draft (EN + NL)
 
 _Role: release-manager · Date: 2026-10-10 · Status: **draft, not submitted**. Nothing has been uploaded to the Chrome Web Store, and no developer account was used._
-_Inputs: `src/manifest.json` and `src/_locales/{en,nl}/messages.json` at `bb1666f`; ADR-001 (A7–A9); design spec §6.1/§11; security review round 1; QA test report._
+_Inputs: `src/manifest.json` and `src/_locales/{en,nl}/messages.json` at `44ea7bf` (`src/` identical to `03d9589`); ADR-001 (A7–A9); design spec §6.1/§11; security review rounds 1–2 (SEC-16 label fixes applied here); QA test report (52/52 at `03d9589`). An improvement round (SEC-13…19) is in progress; re-check the quoted strings against the final commit._
 
 ## 0. How the Store requirements were checked
 
-`developer.chrome.com` and `chromewebstore.google.com` are blocked from this environment (proxy `CONNECT` 403). I used two other sources instead:
+`developer.chrome.com` and `chromewebstore.google.com` are blocked from this environment (proxy `CONNECT` 403; on 2026-10-10 a second fetch of `developer.chrome.com/docs/webstore/images` failed with DNS `ENOTFOUND`). I used other sources instead:
 - the **public source of the docs** on GitHub (`GoogleChrome/developer.chrome.com`, files under `site/en/docs/webstore/`), read on 2026-10-10;
-- a web search, for the data-usage categories.
+- a web search, for the data-usage categories;
+- a web search on 2026-10-10 whose result snippets from `developer.chrome.com/docs/webstore/images` and `/docs/webstore/best-listing` still state: one 440×280 small promo tile is required, screenshots are 1280×800 or 640×400, the marquee tile is 1400×560 and optional, and the store icon is 128×128. These are search snippets, not a read of the live page.
 
 That GitHub repository holds **older copies** of the pages. Every item marked **(verify live)** must be checked against the live Developer Dashboard before upload.
 
@@ -61,14 +62,14 @@ Supported cert pages: PSA (psacard.com), CGC Comics (cgccomics.com) and CGC Card
 YOU STAY IN CONTROL
 • The panel always shows the number that was read, how it was read (barcode, QR code or text) and the exact page that opens. Wrong number? Edit it.
 • If a number isn't clear, or several numbers are found, CertScanner asks before opening anything.
-• Settings: always ask before opening, open in a background tab, keep or turn off scan history, and choose whether clicking the icon scans the page.
+• Settings: always ask before opening, open in a background tab, keep, clear or turn off scan history, and choose whether the toolbar button scans the page.
 • The keyboard shortcut can be changed at chrome://extensions/shortcuts.
 
 PRIVATE BY DESIGN
 • Images are read on your device and never uploaded. No account, no analytics, no ads.
 • A cert number only leaves your device when the grader's official page opens in a tab.
 • CertScanner only reads a page when you click the icon, press the shortcut or right-click a photo. It looks at image addresses and positions, not at page text.
-• Optional "Sharper scans" access is requested for one site at a time, only when it helps, and can be removed in Settings.
+• Optional site access ("Sharper scans on <site>") is requested for one site at a time, only when it helps, and can be removed in Settings under "Sites with full access".
 • Does not run in incognito windows.
 
 GOOD TO KNOW
@@ -96,14 +97,14 @@ Ondersteunde certpagina's: PSA (psacard.com), CGC Comics (cgccomics.com) en CGC 
 JIJ HOUDT DE CONTROLE
 • Het paneel toont altijd welk nummer is gelezen, hoe (barcode, QR-code of tekst) en welke pagina precies opent. Verkeerd nummer? Wijzig het.
 • Is een nummer niet duidelijk, of zijn er meerdere gevonden, dan vraagt CertScanner eerst wat je wilt openen.
-• Instellingen: altijd vragen voor het openen, openen op een achtergrondtabblad, scangeschiedenis bewaren of uitzetten, en kiezen of een klik op het icoon de pagina scant.
+• Instellingen: altijd vragen voor het openen, openen op een achtergrondtabblad, scangeschiedenis bewaren, wissen of uitzetten, en kiezen of de werkbalkknop de pagina scant.
 • De sneltoets wijzig je via chrome://extensions/shortcuts.
 
 PRIVACY
 • Afbeeldingen worden op je apparaat gelezen en nooit geüpload. Geen account, geen analytics, geen advertenties.
 • Een certnummer verlaat je apparaat alleen als de officiële pagina van de grader opent in een tabblad.
 • CertScanner leest een pagina alleen als jij op het icoon klikt, de sneltoets gebruikt of met rechts op een foto klikt. Het kijkt naar adressen en posities van afbeeldingen, niet naar tekst op de pagina.
-• Optionele toegang voor 'Scherpere scans' wordt per site gevraagd, alleen als het helpt, en kun je in Instellingen weer verwijderen.
+• Optionele toegang per site ('Scherpere scans op <site>') wordt alleen gevraagd als het helpt, en kun je in Instellingen onder 'Sites met volledige toegang' weer verwijderen.
 • Werkt niet in incognitovensters.
 
 GOED OM TE WETEN
@@ -116,11 +117,13 @@ Niet gelieerd aan PSA of CGC. PSA en CGC zijn handelsmerken van hun respectieve 
 Privacybeleid: <PRIVACY_POLICY_URL>
 ```
 
-Every UI term quoted above matches the shipped `messages.json`:
+Every UI term quoted above matches `messages.json` at `44ea7bf`:
 - context menu: "Scan slab cert number" / "Certnummer van slab scannen";
 - edit link: "Wrong number? Edit" / "Verkeerd nummer? Wijzigen";
-- "Sharper scans" / "Scherpere scans";
-- the four settings labels.
+- offer button: "Sharper scans on ‹site›" / "Scherpere scans op ‹site›" (`lowres_button`);
+- Settings section: "Sites with full access" / "Sites met volledige toegang" (`settings_sites_heading`);
+- toolbar setting: "Toolbar button scans the page" / "Werkbalkknop scant de pagina" (`setting_scan_on_click`);
+- "Clear history" / "Geschiedenis wissen".
 
 **If FE changes any of these strings, update this draft.**
 
@@ -149,11 +152,11 @@ Plan: 5 screenshots at **1280×800**. Each is a Chrome window showing a syntheti
 
 | # | Shows | Source state | Basis |
 |---|---|---|---|
-| 1 | **Page scan results:** synthetic listing page with 2–3 slab photos, panel showing "Cert numbers on this page" with Open/Copy per row | `body[data-state="page-results"]` (A9) | **New capture.** Suggest QA/FE add a clean synthetic `listing.html` fixture. `gallery.html` contains test-only images (foreign QR, overlay, lazy). |
+| 1 | **Page scan results:** synthetic listing page with 2–3 slab photos, panel showing "Cert numbers on this page" with Open/Copy per row | `body[data-state="page-results"]` (A9) | **New capture.** QA added `tests/fixtures/pages/listing.html`, but it holds one slab (it auto-opens), and `?details=1` adds a plausible wrong PSA row (QA O8). A clean multi-slab variant is still needed. `gallery.html` contains test-only images (foreign QR, overlay, lazy). |
 | 2 | **Opened cert page result:** "Opened PSA cert page", number, "Read from text (OCR)", exact path, verify note | S2 | Re-render of `s2-result-light.png` beside the page |
 | 3 | **Right-click a photo:** context menu "Scan slab cert number" on a slab photo | native menu | **Manual capture in branded Chrome.** Headless runs can't render the native context menu. |
 | 4 | **Confirm when unsure:** "Check the number", grader choice for an ambiguous 10-digit number, URL preview | S3 | Re-render of `s3-confirm-light.png` |
-| 5 | **Settings and privacy:** toolbar-icon setting, always ask, history, Sharper scans list, About text | V2 | Re-render of `v2-settings-light.png` (A9 adds the "Toolbar icon" section) |
+| 5 | **Settings and privacy:** "Toolbar button and shortcut", "Opening cert pages", "Scan history" with Clear history, "Sites with full access", About text | V2 | Re-render of `v2-settings-light.png` (A9 adds the "Toolbar button and shortcut" section) |
 
 - **Optional NL set:** the same 5 captures with the Chrome UI language set to Dutch (`LANGUAGE=nl` on Linux), uploaded as localized screenshots for `nl`.
 - **Dark theme:** optional, for screenshot 2 or 4 only.
@@ -197,7 +200,7 @@ Plan: 5 screenshots at **1280×800**. Each is a Chrome window showing a syntheti
 | Authentication information | No | No logins, passwords or cookies are read; extension downloads omit credentials. |
 | Personal communications | No | n/a |
 | Location | No | n/a |
-| Web history | **No, decide against the live definition** | No list of visited pages is kept. The current page's site and path exist only in session memory during a scan, and history entries hold no page or image addresses. If the live definition covers any transient handling of the current page URL, tick it: over-disclosing is safer than under-disclosing. |
+| Web history | **No, decide against the live definition** | No list of visited pages is kept. The current page's site and path exist only in session storage during the hand-off. History entries hold no page or image addresses and no host names. The last result keeps one image or page host name in session storage for at most 12 hours. If the live definition covers any transient handling of the current page URL or host, tick it: over-disclosing is safer than under-disclosing. |
 | User activity | No | No click, keystroke, scroll or network monitoring. Recent scans are records the user chooses to keep, on the device only. |
 | **Website content** | **Yes** | Images (pixels) and image addresses from pages the user chooses to scan are processed on the device. The user-data FAQ (Q2) lists "taking screenshots or capturing data from a web page" as handling user data, even when nothing is transmitted. |
 
@@ -225,7 +228,7 @@ No account, login or payment is needed. The extension has no server.
 3. Right-click a slab photo and choose "Scan slab cert number" to scan just that photo.
 4. In the side panel you can also upload or paste an image, or type a number such as "PSA 01234567".
 Synthetic test numbers may show "not found" on the grader's site; that is expected. The extension only opens the official page and does not judge authenticity.
-Optional permission: "Sharper scans on <site>" or "Always allow on <site>" appears only after a user click and requests that single https origin.
+Optional permission: "Sharper scans on <site>" (and, rarely, "Always allow on <site>") appears in the panel; clicking it requests that single https origin. Granted sites are listed in Settings under "Sites with full access" with a Remove button.
 ```
 
 The `<PUBLIC_URL_OF …>` placeholder works only if the repository, or a copy of the fixture, is public. Otherwise delete that clause.

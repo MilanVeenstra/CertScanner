@@ -1,7 +1,7 @@
 # CertScanner 0.1.0: permission justifications
 
 _Role: release-manager · Date: 2026-10-10 · Status: **draft for the Chrome Web Store Privacy practices tab**. Nothing has been submitted._
-_Source: `src/manifest.json` at `bb1666f` (ADR-001 §3, §11, amendments A7 and A9); `docs/quality/security-review.md` (draft justifications, round 1)._
+_Source: `src/manifest.json` and `src/_locales/{en,nl}/messages.json` at `44ea7bf` (`src/` is identical to `03d9589`, the commit QA, performance and security round 2 tested); ADR-001 §3, §11, amendments A7 and A9; `docs/quality/security-review.md` (round 1 draft justifications; round 2 SEC-16). An improvement round (SEC-13…19) is in progress; re-check this file against the final commit._
 _The Developer Dashboard lists the permissions found in the uploaded package. Check the list against the final ZIP's manifest and paste one paragraph per field. The field length limit was not verified, because developer.chrome.com was blocked from this environment; shorten the text if the dashboard rejects it._
 
 ## Manifest summary (release build)
@@ -45,6 +45,8 @@ The access is used to find the slab photos on that page and read their pixels. C
 
 It returns that data and exits. No listeners or code stay on the page. It does not read page text, form fields or cookies. There are no declared content scripts.
 
+When the user presses the panel's "Scan this page" button, a trivial function (`return true`) is first injected only to test whether CertScanner may read that tab; it reads nothing.
+
 ### `contextMenus`
 Adds one item, "Scan slab cert number", to the right-click menu, only for images. Choosing it scans that specific photo and opens its official cert page. This is one of the two main ways to use the extension.
 
@@ -59,9 +61,9 @@ The text-recognition engine runs inside this panel, so the panel must stay open 
 
 ### `storage`
 Holds three kinds of data:
-- **`chrome.storage.sync`:** four on/off settings (always ask before opening, open in a background tab, keep scan history, scan the page when clicking the icon).
-- **`chrome.storage.local`:** an optional list of recent scans on this device. Each entry holds grader, cert number, how it was read and time; the list keeps at most 25. Users can switch it off or clear it.
-- **`chrome.storage.session`:** short-lived data for the toolbar/menu → panel hand-off and the last result, cleared when Chrome closes.
+- **`chrome.storage.sync`:** four on/off settings: "Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history".
+- **`chrome.storage.local`:** an optional list of recent scans on this device. Each entry holds grader, cert number, how it was read and time; the list keeps at most 25. Users can switch it off or clear it ("Clear history").
+- **`chrome.storage.session`:** short-lived data, cleared when Chrome closes: the toolbar/shortcut/menu → panel hand-off (page address without query or fragment, image address, tab and window ids); the last result per window (cert numbers, grader, method and one image or page host name, at most 12 hours); and the sites where the user dismissed "Sharper scans on ‹site›".
 
 No images, page addresses or image addresses are stored persistently.
 
@@ -75,11 +77,11 @@ Defines a keyboard shortcut that starts a page scan, the same action as clicking
 ### `https://*/*` (optional, requested for one site at a time)
 Nothing is granted at install. CertScanner asks for one exact origin (`https://<site>/*`) through Chrome's permission prompt. It asks only after the user clicks one of two visible buttons:
 - **"Sharper scans on ‹site›"**, shown only when a photo could only be read at screen resolution. Access to that image host lets CertScanner load the full-size image for a more reliable reading.
-- **"Always allow on ‹site›"**, shown when the user presses the panel's "Scan this page" button on a page the extension cannot read yet. Access to that site lets the button work there without clicking the toolbar icon first.
+- **"Always allow on ‹site›"**, which can appear when the user presses the panel's "Scan this page" button on a page the extension cannot read yet and the panel still knows that page's site from an earlier scan in the same tab. QA found this offer rarely reachable (test report O12). Access to that site lets the button work there without clicking the toolbar icon first.
 
 Neither grant makes CertScanner scan anything automatically. A scan always starts from the user's click or shortcut. Extension downloads are made without cookies or referrer.
 
-Granted sites are listed in the extension's Settings ("Sharper scans"), each with a Remove button. An "All sites" row appears if a broader grant exists. Users can also remove access in Chrome's Site access settings.
+Granted sites are listed in the extension's Settings under "Sites with full access", each with a Remove button. An "All sites" row appears if a broader grant exists. Users can also remove access in Chrome's Site access settings.
 
 The pattern is `https://*/*` rather than a fixed list because slab photos come from many marketplaces, forums and image CDNs that cannot be known in advance. Only `https` origins are offered.
 

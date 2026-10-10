@@ -1,7 +1,9 @@
 // Service worker (ADR-001 §4, A9): stateless trigger. Every listener is registered synchronously at the
 // module top level. No runtime messaging listeners exist in v1 (ADR §10).
 import { MENU_ID, createScanJob, createPageJob, jobKey } from '../shared/jobContract.js';
+import { seenJobsKey } from '../shared/seenJobs.js';
 import { SETTINGS_KEY, migrateSettings } from '../shared/settings.js';
+import { lastResultKey } from '../shared/lastResult.js';
 
 export const PAGE_COMMAND = 'scan-page';
 
@@ -46,8 +48,10 @@ function queue(windowId, job) {
 chrome.runtime.onInstalled.addListener(() => { registerMenus(); applyPanelBehavior(); });
 chrome.runtime.onStartup.addListener(() => { registerMenus(); applyPanelBehavior(); }); // refreshes the localized title
 applyPanelBehavior();
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes[SETTINGS_KEY]) applyPanelBehavior();
+// Settings live in sync storage. Listening to that area only means the panel's session/local writes (jobs, history,
+// last result) never wake a stopped worker.
+chrome.storage.sync.onChanged.addListener((changes) => {
+  if (changes[SETTINGS_KEY]) applyPanelBehavior();
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -70,6 +74,7 @@ chrome.commands.onCommand.addListener((command, tab) => {
   queue(tab.windowId, createPageJob(tab, Date.now(), crypto.randomUUID(), 'command'));
 });
 
+// A closed window leaves nothing behind: its job slot, its consumed job ids and its last result (SEC-18).
 chrome.windows.onRemoved.addListener((windowId) => {
-  chrome.storage.session.remove(jobKey(windowId)).catch(() => {});
+  chrome.storage.session.remove([jobKey(windowId), seenJobsKey(windowId), lastResultKey(windowId)]).catch(() => {});
 });

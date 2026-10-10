@@ -110,3 +110,19 @@ export async function loadLastResult(windowId, now = Date.now()) {
 export async function clearLastResult(windowId) {
   try { await area().remove(lastResultKey(windowId)); } catch { /* ignore */ }
 }
+
+/** Keys of every window's last result in a storage snapshot (pure). */
+export function lastResultKeys(all) {
+  return Object.keys(all ?? {}).filter((k) => k.startsWith('lastResult:'));
+}
+
+/**
+ * SEC-18: "Clear history" and turning history off also forget the last result of every window (it holds a cert
+ * number for up to 12 h).
+ */
+export async function clearAllLastResults(storageArea = area()) {
+  try {
+    const keys = lastResultKeys(await storageArea.get(null));
+    if (keys.length) await storageArea.remove(keys);
+  } catch { /* ignore */ }
+}

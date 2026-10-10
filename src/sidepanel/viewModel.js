@@ -69,15 +69,22 @@ const ERRORS = {
   'dropped-link': { id: 'E8', tone: 'warning', k: 'err_dropped_link', actions: ['choose'], menu: true },
   // A9: the 30 s page budget ran out before any number was read.
   'page-timeout': { id: 'E11', tone: 'warning', k: 'err_page_timeout', actions: ['retry?', 'choose'], menu: true },
+  // O11: a toolbar/shortcut page job lost access to its tab before the scan (body: pageView.noAccessBody).
+  'page-no-access': { id: 'E12', tone: 'warning', k: 'err_page_no_access', actions: ['page?', 'choose'] },
 };
 
 /**
- * Error code (ScanErrorCode or UI-level 'file-type'/'dropped-link'/'page-timeout') -> S5 view.
+ * Error code (ScanErrorCode or UI-level 'file-type'/'dropped-link'/'page-timeout'/'page-no-access') -> S5 view.
  * `retryable`: the last input can be re-run (an in-memory job or blob).
- * `page`: the failed input was an A9 page scan (E1 then offers "Scan this page" for another tab).
+ * `page`: the failed input was an A9 page scan (E1/E12 then offer "Scan this page").
+ * `body`: {key, subs} replacing the default body (E12 names the icon and the current shortcut).
  */
-export function errorView(code, { retryable = false, menuTitle = '', page = false } = {}) {
+export function errorView(code, { retryable = false, menuTitle = '', page = false, body: bodyOverride = null } = {}) {
   const e = ERRORS[code] ?? { id: 'E9', tone: 'danger', k: 'err_generic', actions: ['retry?', 'type'] };
+  if (bodyOverride?.key) {
+    const actions = e.actions.flatMap((a) => (a === 'retry?' ? (retryable ? ['retry'] : []) : a === 'page?' ? (page ? ['page-scan'] : []) : [a]));
+    return { id: e.id, tone: e.tone, heading: `${e.k}_heading`, body: bodyOverride.key, bodySubs: [...(bodyOverride.subs ?? [])], actions };
+  }
   const bodySubs = e.size ? [`${MAX_IMAGE_MB} MB`] : e.menu ? [menuTitle] : [];
   const actions = e.actions.flatMap((a) => {
     if (a === 'retry?') return retryable ? ['retry'] : [];

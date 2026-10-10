@@ -54,17 +54,48 @@ export function accessBody({ scanOnClick, shortcut }) {
   return shortcut ? { key: 'page_access_body_keys_only', subs: [shortcut] } : { key: 'page_access_body_none', subs: [] };
 }
 
+/**
+ * O11 body: a toolbar/shortcut page job whose access was gone by scan time (e.g. the tab navigated to another site
+ * right after the click). Same four variants as accessBody, worded for "this tab".
+ */
+export function noAccessBody({ scanOnClick, shortcut }) {
+  if (scanOnClick) return shortcut ? { key: 'err_page_no_access_body', subs: [shortcut] } : { key: 'err_page_no_access_body_icon', subs: [] };
+  return shortcut ? { key: 'err_page_no_access_body_keys', subs: [shortcut] } : { key: 'err_page_no_access_body_none', subs: [] };
+}
+
 /** Idle hint under "Scan this page"; null when neither the icon nor a shortcut scans. */
 export function idleShortcutHint({ scanOnClick, shortcut }) {
   if (scanOnClick) return shortcut ? { key: 'shortcut_hint', subs: [shortcut] } : { key: 'shortcut_none', subs: [] };
   return shortcut ? { key: 'shortcut_hint_keys_only', subs: [shortcut] } : null;
 }
 
+/**
+ * O10: how many photos were checked out of the slab-sized photos found, when the 8-photo cap left some unchecked.
+ * null when every photo found was checked.
+ */
+export function pageCoverage(result) {
+  const checked = Array.isArray(result?.images) ? result.images.length : 0;
+  const total = Number.isInteger(result?.totalFound) ? result.totalFound : (result?.discovered ?? 0);
+  return checked > 0 && total > checked ? { checked, total } : null;
+}
+
 /** Lines under the page-results heading. */
 export function pageSummary(result) {
   const out = [{ key: 'page_results_summary', subs: [String(result?.items?.length ?? 0)] }];
-  if (result?.partial) out.push({ key: 'page_results_partial', subs: [String(result.partial.checked), String(result.partial.total)] });
+  if (result?.partial) {
+    out.push({ key: 'page_results_partial', subs: [String(result.partial.checked), String(result.partial.total)] });
+  } else {
+    const cov = pageCoverage(result);
+    if (cov) out.push({ key: 'page_results_capped', subs: [String(cov.checked), String(cov.total)] });
+  }
   return out;
+}
+
+/** Reason line of the page "none" state: no slab-sized photo, every photo checked, or only some of them (O10). */
+export function pageNoneReason(result) {
+  if (!result?.discovered) return { key: 'page_none_no_images', subs: [] };
+  const cov = pageCoverage(result);
+  return cov ? { key: 'page_none_checked_some', subs: [String(cov.checked), String(cov.total)] } : { key: 'page_none_checked', subs: [] };
 }
 
 /** Off-site QR warning for a page result (N2): host, and whether a listed number was taken from it. */
@@ -76,12 +107,17 @@ export function pageQrInfo(result) {
 }
 
 /**
- * Error code to show for a failed page scan. 'page-access' = the panel lost access between its tab check and the
- * scan; 'page-timeout' = the 30 s page budget ran out before any number was read.
+ * Error code to show for a failed page scan. When Chrome refused the injection on a page that is not restricted:
+ * 'page-access' for the panel button (it lost access between its tab check and the scan), 'page-no-access' (O11)
+ * for a toolbar/shortcut job whose grant was gone by scan time. Pages Chrome never lets extensions read stay
+ * 'restricted'. 'page-timeout' = the 30 s page budget ran out before any number was read.
  */
 export function pageErrorCode(error, job) {
   const code = error?.code ?? 'engine-failed';
-  if (code === 'restricted' && error?.injectFailed && job?.source === 'panel' && !isRestrictedPage(job.pageUrl)) return 'page-access';
+  if (code === 'restricted' && error?.injectFailed && !isRestrictedPage(job?.pageUrl)
+      && classifyInjectError(error.injectError) === 'access') {
+    return job?.source === 'panel' ? 'page-access' : 'page-no-access';
+  }
   if (code === 'timeout') return 'page-timeout';
   return code;
 }

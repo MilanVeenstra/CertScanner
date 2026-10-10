@@ -39,17 +39,22 @@ export function imageOriginOf(url) {
   }
 }
 
-/** Files of other formats whose dimensions can't be read are only decoded up to this size (SEC-04). */
+/** Files whose dimensions can't be read are only decoded up to this size (SEC-04; JPEG/GIF too since SEC-14). */
 export const SNIFF_UNKNOWN_MAX_BYTES = 256 * 1024;
-const SNIFF_HEAD_BYTES = 64 * 1024;
-const COMMON_FORMATS = new Set(['png', 'jpeg', 'gif', 'webp']);
+export const SNIFF_HEAD_BYTES = 64 * 1024;
+/** SEC-14: JPEG segments / GIF blocks are walked this far into the file when the header sniff needs more bytes. */
+export const SNIFF_DEEP_BYTES = 1024 * 1024;
+/** PNG and WebP keep their size at a fixed offset: unreadable means truncated, and the decoder fails fast. */
+const FIXED_HEADER_FORMATS = new Set(['png', 'webp']);
 
 /**
- * Cheap header sniff so decompression bombs are refused before decoding (SEC-04).
- * Reads PNG, GIF, JPEG (SOFn), WebP (VP8X, VP8, VP8L), BMP (core + info headers), ICO/CUR (directory and
- * embedded PNG headers) and AVIF/HEIF (largest `ispe` property in the bytes given).
+ * Cheap header sniff so decompression bombs are refused before decoding (SEC-04, SEC-14).
+ * Reads PNG, GIF (logical screen and every image descriptor in the bytes given: the largest extent wins), JPEG
+ * (segment walk to the first SOFn; stops at SOS), WebP (VP8X, VP8, VP8L), BMP (core + info headers), ICO/CUR
+ * (directory and embedded PNG headers) and AVIF/HEIF (largest `ispe` property in the bytes given).
+ * `more: true` means the answer may lie beyond the bytes given (JPEG: no SOF/SOS yet; GIF: no image descriptor yet).
  * @param {Uint8Array} b first bytes of the file
- * @returns {{format:string, width:number|null, height:number|null}}
+ * @returns {{format:string, width:number|null, height:number|null, more?:true}}
  */
 export function sniffDimensions(b) {
   const n = b.length;
@@ -65,7 +70,7 @@ export function sniffDimensions(b) {
 
   if (isPng(0)) return dims('png', u32be(16), u32be(20));
   if (n >= 4 && b[0] === 0x89 && b[1] === 0x50) return unknown('png');
-  if (n >= 10 && str(0, 3) === 'GIF') return dims('gif', u16le(6), u16le(8));
+  if (n >= 10 && str(0, 3) === 'GIF') return sniffGif(b);
   if (n >= 4 && b[0] === 0xff && b[1] === 0xd8) {
     let i = 2;
     while (i + 9 < n) {
@@ -73,10 +78,11 @@ export function sniffDimensions(b) {
       const marker = b[i + 1];
       if (marker === 0xff) { i++; continue; }
       if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) return dims('jpeg', u16be(i + 7), u16be(i + 5));
+      if (marker === 0xda || marker === 0xd9) return unknown('jpeg'); // SOS/EOI before any SOF: not decodable
       if (marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7) || marker === 0x01) { i += 2; continue; }
       i += 2 + u16be(i + 2);
     }
-    return unknown('jpeg');
+    return { ...unknown('jpeg'), more: true };
   }
   if (n >= 16 && str(0, 4) === 'RIFF' && str(8, 4) === 'WEBP') {
     const chunk = str(12, 4);
@@ -131,8 +137,59 @@ export function sniffDimensions(b) {
 }
 
 /**
- * Decide before decoding (SEC-04). 'unreadable' only for formats other than PNG/JPEG/GIF/WebP whose dimensions
- * could not be read and that are larger than SNIFF_UNKNOWN_MAX_BYTES.
+ * GIF: logical screen size, widened by every image descriptor found in the bytes given (Chrome grows the canvas to
+ * the first frame, so a frame larger than the screen is what gets decoded; SEC-14).
+ * @param {Uint8Array} b
+ */
+function sniffGif(b) {
+  const n = b.length;
+  const u16le = (i) => b[i] | (b[i + 1] << 8);
+  let w = u16le(6);
+  let h = u16le(8);
+  let i = 13;
+  if (b[10] & 0x80) i += 3 * (2 << (b[10] & 0x07)); // global colour table
+  let frames = 0;
+  let truncated = false;
+  /** Skip a chain of data sub-blocks; returns the index after the terminator, or -1 when it runs past the bytes. */
+  const skipSubBlocks = (j) => {
+    while (j < n) {
+      const len = b[j];
+      if (len === 0) return j + 1;
+      j += 1 + len;
+    }
+    return -1;
+  };
+  for (;;) {
+    if (i >= n) { truncated = true; break; }
+    const tag = b[i];
+    if (tag === 0x3b) break; // trailer
+    if (tag === 0x21) { // extension: label, then sub-blocks
+      const next = i + 2 < n ? skipSubBlocks(i + 2) : -1;
+      if (next < 0) { truncated = true; break; }
+      i = next;
+      continue;
+    }
+    if (tag !== 0x2c) break; // not a GIF block: the decoder refuses the rest
+    if (i + 10 > n) { truncated = true; break; }
+    w = Math.max(w, u16le(i + 1) + u16le(i + 5));
+    h = Math.max(h, u16le(i + 3) + u16le(i + 7));
+    frames++;
+    let j = i + 10;
+    if (b[i + 9] & 0x80) j += 3 * (2 << (b[i + 9] & 0x07)); // local colour table
+    j += 1; // LZW minimum code size
+    const next = j < n ? skipSubBlocks(j) : -1;
+    if (next < 0) { truncated = true; break; }
+    i = next;
+  }
+  // No frame in the bytes given: the screen size alone can't be trusted (the first frame may be far larger).
+  if (frames === 0 && truncated) return { format: 'gif', width: null, height: null, more: true };
+  return { format: 'gif', width: w, height: h };
+}
+
+/**
+ * Decide before decoding (SEC-04, SEC-14). 'unreadable' when the dimensions could not be read and the file is larger
+ * than SNIFF_UNKNOWN_MAX_BYTES; PNG and WebP (fixed-offset headers) are exempt because an unreadable header means a
+ * truncated file that fails to decode at once.
  * @returns {'ok'|'too-large'|'unreadable'}
  */
 export function dimensionPolicy(sniff, byteSize) {
@@ -140,8 +197,19 @@ export function dimensionPolicy(sniff, byteSize) {
     if (sniff.width > MAX_SIDE || sniff.height > MAX_SIDE || sniff.width * sniff.height > MAX_PIXELS) return 'too-large';
     return 'ok';
   }
-  if (COMMON_FORMATS.has(sniff.format)) return 'ok';
+  if (FIXED_HEADER_FORMATS.has(sniff.format)) return 'ok';
   return byteSize > SNIFF_UNKNOWN_MAX_BYTES ? 'unreadable' : 'ok';
+}
+
+/**
+ * Header sniff of a blob: the first 64 KiB, then up to SNIFF_DEEP_BYTES when a JPEG/GIF needs more (SEC-14).
+ * @returns {Promise<{format:string, width:number|null, height:number|null, more?:true}>}
+ */
+export async function sniffBlob(blob) {
+  const head = new Uint8Array(await blob.slice(0, SNIFF_HEAD_BYTES).arrayBuffer());
+  const first = sniffDimensions(head);
+  if (!first.more || blob.size <= head.length) return first;
+  return sniffDimensions(new Uint8Array(await blob.slice(0, SNIFF_DEEP_BYTES).arrayBuffer()));
 }
 
 /**
@@ -153,8 +221,7 @@ export async function decodeBlob(blob) {
   if (blob.size > MAX_IMAGE_BYTES) return { ok: false, reason: 'too-large' };
   let policy = 'ok';
   try {
-    const head = new Uint8Array(await blob.slice(0, SNIFF_HEAD_BYTES).arrayBuffer());
-    policy = dimensionPolicy(sniffDimensions(head), blob.size);
+    policy = dimensionPolicy(await sniffBlob(blob), blob.size);
   } catch { policy = blob.size > SNIFF_UNKNOWN_MAX_BYTES ? 'unreadable' : 'ok'; }
   if (policy === 'too-large') return { ok: false, reason: 'too-large' };
   if (policy === 'unreadable') return { ok: false, reason: 'invalid-image' };
@@ -254,6 +321,9 @@ export async function acquireFromJob(job, { signal, strategies, chromeApi = glob
 
     for (const strategy of order) {
       throwIfAborted(sig);
+      // SEC-14: once the image is known to be too large, don't fetch and decode it again through another path.
+      // The screenshot crop stays available: it is bounded by the viewport.
+      if (fails.has('too-large') && strategy !== 'capture') continue;
       if (strategy === 'data-url') {
         if (!/^data:image\//i.test(srcUrl)) continue;
         try {

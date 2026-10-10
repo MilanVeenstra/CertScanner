@@ -9,6 +9,23 @@ class OcrError extends Error {
   constructor(code, cause) { super(code); this.code = code; this.cause = cause; }
 }
 
+/**
+ * Settle with `promise`, or reject as soon as `signal` aborts. `onAbort` runs synchronously inside the abort event
+ * (before the rejection is seen), so the engine can drop its stuck worker before the next scan asks for one.
+ */
+function raceSignal(promise, signal, onAbort) {
+  if (!signal) return promise;
+  if (signal.aborted) { onAbort(); return Promise.reject(signal.reason); }
+  let listener;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      listener = () => { onAbort(); reject(signal.reason); };
+      signal.addEventListener('abort', listener, { once: true });
+    }),
+  ]).finally(() => signal.removeEventListener('abort', listener));
+}
+
 function withTimeout(promise, ms, code) {
   let timer;
   return Promise.race([
@@ -39,6 +56,9 @@ export function toOcrPage(data, pass, rotation = 0) {
 }
 
 /**
+ * The worker is created lazily, terminated after `idleMs` without work, and also terminated (then lazily recreated)
+ * when a scan is cancelled or times out while a recognize call is still running: a stuck or orphaned recognize
+ * would otherwise hold the single worker and delay the next scan by up to `recognizeTimeoutMs` (perf rec. 3a).
  * @param {{getURL?:(p:string)=>string, idleMs?:number, initTimeoutMs?:number, recognizeTimeoutMs?:number, Tesseract?:any}} [opts]
  */
 export function createOcrEngine({
@@ -54,6 +74,8 @@ export function createOcrEngine({
   let queue = Promise.resolve();
   let progressCb = null;
   let lastInitMs = 0;
+  let generation = 0; // bumped by dispose(): a worker that finishes starting after a dispose is terminated at once
+  let terminations = 0;
 
   function clearIdle() { if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; } }
   function scheduleIdle() { clearIdle(); idleTimer = setTimeout(() => { dispose(); }, idleMs); }
@@ -62,6 +84,7 @@ export function createOcrEngine({
     if (workerP) return workerP;
     if (!Tesseract?.createWorker) return Promise.reject(new OcrError('engine-missing'));
     const t0 = performance.now();
+    const gen = generation;
     const created = Tesseract.createWorker('eng', 1, {
       workerPath: getURL('vendor/tesseract/worker.min.js'),
       corePath: getURL('vendor/tesseract/tesseract-core-simd-lstm.js'),
@@ -72,25 +95,34 @@ export function createOcrEngine({
       logger: (m) => { if (progressCb && m && typeof m.progress === 'number') progressCb(m); },
       errorHandler: () => {},
     });
-    workerP = withTimeout(created, initTimeoutMs, 'init-timeout').then((w) => {
+    const p = withTimeout(created, initTimeoutMs, 'init-timeout').then((w) => {
+      if (gen !== generation) {
+        w.terminate().catch(() => {});
+        throw new OcrError('disposed');
+      }
       worker = w;
       lastInitMs = performance.now() - t0;
       scheduleIdle();
       return w;
     }, (e) => {
-      workerP = null;
+      if (workerP === p) workerP = null;
       created.then((w) => w.terminate()).catch(() => {});
       throw e instanceof OcrError ? e : new OcrError('init-failed', e);
     });
-    return workerP;
+    workerP = p;
+    return p;
   }
 
-  async function dispose() {
+  /** Synchronous part first (callers may start a new warmUp right after), then the async terminate. */
+  function dispose() {
     clearIdle();
+    generation++;
     const w = worker;
     worker = null;
     workerP = null;
-    if (w) await w.terminate().catch(() => {});
+    if (!w) return Promise.resolve();
+    terminations++;
+    return w.terminate().then(() => {}, () => {});
   }
 
   /** Serialized setParameters + recognize (mutex). */
@@ -101,13 +133,18 @@ export function createOcrEngine({
       clearIdle();
       signal?.throwIfAborted();
       progressCb = onProgress ?? null;
+      // Abort while this worker is busy: drop it (only if it is still the current one) so the next scan starts fresh.
+      const dropIfCurrent = () => { if (worker === w) dispose(); };
       try {
         await w.setParameters({ user_defined_dpi: '300', ...params });
-        const res = await withTimeout(w.recognize(image, rectangle ? { rectangle } : {}, { text: true, blocks: true }), recognizeTimeoutMs, 'recognize-timeout');
+        signal?.throwIfAborted();
+        const rec = w.recognize(image, rectangle ? { rectangle } : {}, { text: true, blocks: true });
+        rec.catch(() => {}); // settles after terminate(); never unhandled
+        const res = await withTimeout(raceSignal(rec, signal, dropIfCurrent), recognizeTimeoutMs, 'recognize-timeout');
         signal?.throwIfAborted();
         return toOcrPage(res.data, pass, rotation);
       } catch (e) {
-        if (e instanceof OcrError && e.code === 'recognize-timeout') await dispose(); // stuck worker: start fresh next time
+        if (e instanceof OcrError && e.code === 'recognize-timeout') dropIfCurrent(); // stuck worker: start fresh next time
         throw e;
       } finally {
         progressCb = null;
@@ -123,6 +160,8 @@ export function createOcrEngine({
     dispose,
     get initMs() { return lastInitMs; },
     get ready() { return Boolean(worker); },
+    /** Workers terminated so far (idle, abort, timeout, dispose); diagnostics and tests. */
+    get terminations() { return terminations; },
     /** Sparse text pass (keywords + numbers). */
     recognizeText(image, opts = {}) {
       return run(image, { tessedit_pageseg_mode: PSM.SPARSE_TEXT, tessedit_char_whitelist: '' }, { ...opts, pass: 'text' });

@@ -1,5 +1,6 @@
 // Pure page-scan view logic for the side panel (ADR A9). No chrome, no DOM: unit-tested in Node.
 import { isRestrictedPage } from '../core/certUrls.js';
+import { DEFAULT_RULES } from '../core/certRules.js';
 
 /** Manifest command name of the page-scan shortcut. */
 export const PAGE_COMMAND = 'scan-page';
@@ -37,7 +38,7 @@ export function panelScanPlan(tab, { injectError } = {}) {
   return { action: classifyInjectError(injectError) };
 }
 
-/** Host for "Always allow on ‹host›": only https (optional_host_permissions is https://*\/*). */
+/** Host for "Always allow on ‹host›": https only (the optional host permission covers https sites only). */
 export function alwaysAllowHost(url) {
   try {
     const u = new URL(url);
@@ -92,4 +93,15 @@ export function pageErrorCode(error, job) {
 export function persistablePage(result) {
   if (result?.status !== 'auto-open' || !result.top) return null;
   return { candidates: [result.top], warnings: result.warnings ?? [], imageInfo: null };
+}
+
+/**
+ * Note under a results row: a number taken from an off-site QR code (N2, warning), or a read below the auto-open
+ * threshold (muted). null for clear reads.
+ */
+export function pageRowNote(item, rules = DEFAULT_RULES) {
+  const qr = (item?.evidence ?? []).find((e) => typeof e === 'string' && e.startsWith('qr-untrusted:'));
+  if (qr) return { key: 'page_row_offsite', subs: [qr.slice('qr-untrusted:'.length)], tone: 'warning' };
+  if (typeof item?.confidence === 'number' && item.confidence < rules.SCORE.thresholds.autoOpen) return { key: 'page_row_unclear', subs: [], tone: 'muted' };
+  return null;
 }

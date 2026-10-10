@@ -367,3 +367,8 @@ body.is-dragover .drop-icon { color: var(--cs-accent); }
 .page-row[data-opened="true"] .opened-mark .icon { color: var(--cs-success); }
 .shortcut-current { font-weight: var(--cs-weight-strong); margin-block: var(--cs-space-2) var(--cs-space-1); }
 #shortcut-button { margin-block-start: var(--cs-space-2); }
+#shortcut-help, .shortcut-current { overflow-wrap: anywhere; }
+.row-note { display: flex; gap: var(--cs-space-1); align-items: flex-start; font-size: var(--cs-text-sm); color: var(--cs-text-muted); }
+.row-note .icon { margin-block-start: 2px; }
+.row-note[data-tone="muted"] .icon { display: none; }
+.row-note[data-tone="warning"] .icon { color: var(--cs-warning); }

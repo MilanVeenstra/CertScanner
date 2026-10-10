@@ -349,8 +349,18 @@ function accessProbe() { return true; }
  * Panel "Scan this page" (A9 trigger 3): works while CertScanner can read the active tab (live activeTab grant or a
  * host grant), which is exactly when tabs.query reveals its URL. Otherwise explain the icon/shortcut.
  */
+let panelScanPending = false;
 async function onPageScanButton() {
-  if (windowId === null) return;
+  if (windowId === null || panelScanPending) return; // no duplicate scans from a double click
+  panelScanPending = true;
+  try {
+    await panelScan();
+  } finally {
+    panelScanPending = false;
+  }
+}
+
+async function panelScan() {
   let tab = null;
   try { [tab] = await chrome.tabs.query({ active: true, windowId }); } catch { tab = null; }
   let plan = panelScanPlan(tab);
@@ -370,7 +380,7 @@ async function onPageScanButton() {
   current?.controller.abort();
   current = null;
   last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
-  if (plan.action === 'restricted') showErrorState('restricted');
+  if (plan.action === 'restricted') showErrorState('restricted', { pageError: true });
   else showAccessState(tab?.id ?? null);
 }
 
@@ -400,9 +410,9 @@ function onAlwaysAllow() {
   });
 }
 
-function showErrorState(code, { moveFocus = true, restored = false } = {}) {
+function showErrorState(code, { moveFocus = true, restored = false, pageError = last.input?.kind === 'page' } = {}) {
   setBody('error', { restored });
-  const ev = errorView(code, { retryable: !restored && canRetry(code), menuTitle: t('context_menu_scan') });
+  const ev = errorView(code, { retryable: !restored && canRetry(code), menuTitle: t('context_menu_scan'), page: !restored && pageError });
   ui.showError(ev, { code, moveFocus });
   if (!restored) persist({ task: 'error', body: 'error', result: null, error: { code }, opened: null });
 }

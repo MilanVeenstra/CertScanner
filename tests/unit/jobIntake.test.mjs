@@ -95,3 +95,36 @@ test('consumption removes the key only if the stored id still matches', async ()
   assert.equal(s.data[jobKey(7)]?.id, 'second');
   intake.stop();
 });
+
+test('a re-delivered job id is skipped and also cleared from the slot (no re-run after a panel reload)', async () => {
+  const s = fakeStorage();
+  const seen = [];
+  const intake = startJobIntake({ windowId: 7, onJob: (j) => seen.push(j.id), area: s.area, onChanged: s.onChanged, now: () => NOW });
+  await intake.ready;
+  s.set(jobKey(7), job('dup'));
+  await tick();
+  s.set(jobKey(7), job('dup'));
+  await tick();
+  await tick();
+  assert.deepEqual(seen, ['dup']);
+  assert.equal(jobKey(7) in s.data, false);
+  intake.stop();
+  // A fresh panel (empty `seen`) finds nothing to run.
+  const again = [];
+  const reloaded = startJobIntake({ windowId: 7, onJob: (j) => again.push(j.id), area: s.area, onChanged: s.onChanged, now: () => NOW });
+  await reloaded.ready;
+  assert.deepEqual(again, []);
+  reloaded.stop();
+});
+
+test('page jobs (A9) are delivered through the same slot', async () => {
+  const s = fakeStorage();
+  const seen = [];
+  const intake = startJobIntake({ windowId: 7, onJob: (j) => seen.push(`${j.kind ?? 'image'}:${j.id}`), area: s.area, onChanged: s.onChanged, now: () => NOW });
+  await intake.ready;
+  s.set(jobKey(7), { v: 1, id: 'p1', createdAt: NOW, kind: 'page', source: 'action', srcUrl: null, pageUrl: 'https://shop.example/x', frameId: 0, tabId: 3, windowId: 7 });
+  await tick();
+  assert.deepEqual(seen, ['page:p1']);
+  assert.equal(jobKey(7) in s.data, false);
+  intake.stop();
+});

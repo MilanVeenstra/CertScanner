@@ -57,7 +57,7 @@ export function confirmReasons(result, settings, rules = DEFAULT_RULES) {
 }
 
 const ERRORS = {
-  restricted: { id: 'E1', tone: 'warning', k: 'err_restricted', actions: ['choose'] },
+  restricted: { id: 'E1', tone: 'warning', k: 'err_restricted', actions: ['page?', 'choose'], pageBody: 'err_restricted_page_body' },
   'not-found': { id: 'E2', tone: 'warning', k: 'err_not_found', actions: ['retry?', 'choose'] },
   'tab-changed': { id: 'E2', tone: 'warning', k: 'err_not_found', actions: ['retry?', 'choose'] },
   'too-large': { id: 'E3', tone: 'warning', k: 'err_too_large', actions: ['choose'], size: true },
@@ -72,14 +72,20 @@ const ERRORS = {
 };
 
 /**
- * Error code (ScanErrorCode or UI-level 'file-type'/'dropped-link') -> S5 view.
+ * Error code (ScanErrorCode or UI-level 'file-type'/'dropped-link'/'page-timeout') -> S5 view.
  * `retryable`: the last input can be re-run (an in-memory job or blob).
+ * `page`: the failed input was an A9 page scan (E1 then offers "Scan this page" for another tab).
  */
-export function errorView(code, { retryable = false, menuTitle = '' } = {}) {
+export function errorView(code, { retryable = false, menuTitle = '', page = false } = {}) {
   const e = ERRORS[code] ?? { id: 'E9', tone: 'danger', k: 'err_generic', actions: ['retry?', 'type'] };
   const bodySubs = e.size ? [`${MAX_IMAGE_MB} MB`] : e.menu ? [menuTitle] : [];
-  const actions = e.actions.flatMap((a) => (a === 'retry?' ? (retryable ? ['retry'] : []) : [a]));
-  return { id: e.id, tone: e.tone, heading: `${e.k}_heading`, body: `${e.k}_body`, bodySubs, actions };
+  const actions = e.actions.flatMap((a) => {
+    if (a === 'retry?') return retryable ? ['retry'] : [];
+    if (a === 'page?') return page ? ['page-scan'] : [];
+    return [a];
+  });
+  const body = page && e.pageBody ? e.pageBody : `${e.k}_body`;
+  return { id: e.id, tone: e.tone, heading: `${e.k}_heading`, body, bodySubs, actions };
 }
 
 // ---------------------------------------------------------------- manual entry (§4)

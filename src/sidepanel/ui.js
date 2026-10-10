@@ -5,6 +5,7 @@
 import { t, applyI18n } from '../shared/i18n.js';
 import { createCertField } from './certField.js';
 import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates } from './viewModel.js';
+import { pageRowNote } from './pageView.js';
 import { buildCertUrl } from '../core/certUrls.js';
 
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
@@ -481,6 +482,13 @@ export function createUi(doc, actions) {
       chip.textContent = item.grader ? graderName(item.grader) : t('candidate_grader_unknown');
       number.textContent = item.number;
       ref(row, 'meta').textContent = t(methodKey(item.source));
+      const note = pageRowNote(item);
+      if (note) {
+        const el = ref(row, 'note');
+        el.hidden = false;
+        el.dataset.tone = note.tone;
+        ref(el, 'note-text').textContent = t(note.key, note.subs);
+      }
       const path = ref(row, 'path');
       const thumb = view.thumbs?.[item.imageIndex];
       if (thumb) {

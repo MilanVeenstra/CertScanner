@@ -8,8 +8,8 @@
     "description": "Web Store / chrome://extensions description, max 132 characters."
   },
   "action_title": {
-    "message": "CertScanner openen",
-    "description": "Toolbar button tooltip."
+    "message": "Deze pagina scannen op certnummers van slabs",
+    "description": "Toolbar button tooltip (manifest default_title). The icon scans the page by default (A9)."
   },
   "context_menu_scan": {
     "message": "Certnummer van slab scannen",
@@ -600,13 +600,14 @@
     "message": "Scangeschiedenis gewist."
   },
   "settings_sites_heading": {
-    "message": "Scherpere scans"
+    "message": "Sites met volledige toegang",
+    "description": "Settings section listing optional host grants (Sharper scans and Always allow)."
   },
   "settings_sites_body": {
-    "message": "Sites waarvan CertScanner afbeeldingen op volle grootte mag laden:"
+    "message": "Je hebt deze toegestaan via ‘Scherpere scans’ of ‘Altijd toestaan’. CertScanner mag daar afbeeldingen op volle grootte laden en die pagina's vanuit dit paneel scannen."
   },
   "settings_sites_empty": {
-    "message": "Nog geen. Je krijgt dit aangeboden als een scan scherper kan."
+    "message": "Nog geen. CertScanner biedt dit aan als een scan scherper kan of als het een pagina niet kan lezen."
   },
   "remove_button": {
     "message": "Verwijderen",
@@ -811,12 +812,133 @@
     }
   },
   "settings_toolbar_heading": {
-    "message": "Werkbalkicoon"
+    "message": "Werkbalkknop en sneltoets"
   },
   "setting_scan_on_click": {
-    "message": "Pagina scannen als ik op het icoon klik"
+    "message": "Werkbalkknop scant de pagina",
+    "description": "Switch (setting scanOnToolbarClick)."
   },
   "setting_scan_on_click_hint": {
-    "message": "Als dit uit staat, opent het icoon alleen dit paneel."
+    "message": "Als dit uit staat, opent een klik op het CertScanner-icoon alleen dit paneel."
+  },
+  "action_title_open": {
+    "message": "CertScanner openen",
+    "description": "Toolbar tooltip set at runtime when “Toolbar button scans the page” is off."
+  },
+  "setting_shortcut_current": {
+    "message": "Sneltoets: $KEYS$",
+    "description": "KEYS is the shortcut Chrome reports for “scan this page”.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "setting_shortcut_unset": {
+    "message": "Sneltoets: niet ingesteld"
+  },
+  "setting_shortcut_hint": {
+    "message": "Je kunt hem wijzigen via chrome://extensions/shortcuts.",
+    "description": "Keep the chrome:// address untranslated."
+  },
+  "setting_shortcut_button": {
+    "message": "Sneltoets wijzigen",
+    "description": "Opens chrome://extensions/shortcuts in a new tab."
+  },
+  "shortcut_hint_keys_only": {
+    "message": "Sneltoets: $KEYS$.",
+    "description": "Shown when the toolbar button only opens the panel.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body_keys_only": {
+    "message": "Druk op $KEYS$ om deze pagina te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body_none": {
+    "message": "Zet ‘Werkbalkknop scant de pagina’ aan in Instellingen, of stel een sneltoets in, en gebruik die op deze pagina."
+  },
+  "page_access_why": {
+    "message": "Chrome laat CertScanner een pagina pas lezen nadat je de extensie op die pagina gebruikt."
+  },
+  "page_access_denied": {
+    "message": "Geen toegang gegeven voor $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_access_granted": {
+    "message": "Toegang toegestaan op $HOST$. Deze pagina wordt gescand.",
+    "description": "Status after “Always allow” was granted.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_results_partial": {
+    "message": "Gestopt na 30 seconden: $CHECKED$ van $TOTAL$ foto's gecontroleerd.",
+    "description": "The page budget ran out; TOTAL is at least 2.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "3"
+      },
+      "total": {
+        "content": "$2",
+        "example": "8"
+      }
+    }
+  },
+  "page_result_opened": {
+    "message": "Geopend",
+    "description": "Marks a results row whose cert page was opened."
+  },
+  "page_back_to_results": {
+    "message": "Terug naar de resultaten"
+  },
+  "err_page_timeout_heading": {
+    "message": "Het scannen van deze pagina duurde te lang"
+  },
+  "err_page_timeout_body": {
+    "message": "Probeer het opnieuw, of klik met rechts op een specifieke slabfoto en kies ‘$MENU$’.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "err_restricted_page_body": {
+    "message": "Ga naar een pagina in een ander tabblad en scan die, of sla een slabfoto op en sleep, plak of upload hem hier.",
+    "description": "E1 body when a page scan (A9) hit a page Chrome does not let extensions read."
+  },
+  "page_row_offsite": {
+    "message": "Uit de QR-code die naar $HOST$ linkt. Vergelijk het nummer met het label.",
+    "description": "Note under a page-results row whose number came from an off-site QR code (N2).",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "evil.example"
+      }
+    }
+  },
+  "page_row_unclear": {
+    "message": "Geen duidelijke lezing. Vergelijk het nummer met het label.",
+    "description": "Note under a page-results row read below the auto-open confidence."
   }
 }

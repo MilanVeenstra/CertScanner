@@ -42,7 +42,11 @@ export function startJobIntake({ windowId, onJob, area = globalThis.chrome?.stor
       return;
     }
     const { job } = parsed;
-    if (seen.has(job.id)) return;
+    if (seen.has(job.id)) {
+      // Already handled: clear it too, so a panel reload within the TTL doesn't run it again.
+      removeIfStill(job.id);
+      return;
+    }
     seen.add(job.id);
     try {
       onJob(job);

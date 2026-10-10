@@ -255,6 +255,7 @@
   <span data-slot="error"></span>
   <div class="actions" data-ref="error-actions">
     <button type="button" class="btn btn-primary" data-testid="retry-button" data-action="retry" hidden><span data-i18n="retry_button"></span></button>
+    <button type="button" class="btn btn-primary" data-action="page-scan" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="page_scan_button"></span></button>
     <button type="button" class="btn btn-primary" data-action="reload" hidden><span data-i18n="reload_button"></span></button>
     <button type="button" class="btn btn-secondary" data-action="choose" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
     <button type="button" class="btn btn-secondary" data-action="type" hidden><span data-i18n="type_number_button"></span></button>
@@ -309,6 +310,7 @@
     <div class="page-row-main">
       <div class="cand-top"><span class="chip" data-ref="chip"></span><span class="cert cert-sm" dir="ltr" data-ref="number"></span><span class="opened-mark muted" data-ref="opened" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="page_result_opened"></span></span></div>
       <p class="muted cand-meta" data-ref="meta"></p>
+      <p class="row-note" data-ref="note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-triangle"/></svg><span data-ref="note-text"></span></p>
       <p class="muted path" dir="ltr" data-ref="path"></p>
       <div class="actions">
         <button type="button" class="btn btn-secondary btn-sm" data-ref="open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-label" data-i18n="recent_open"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
@@ -341,7 +343,7 @@
     <p class="hint" data-ref="always-fine"></p>
   </div>
   <div class="alert" data-ref="always-status" tabindex="-1" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-ref="always-status-text"></p></div>
-  <div class="actions"><button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button></div>
+  <div class="actions"><button type="button" class="btn btn-secondary" data-action="page-scan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="retry_button"></span></button><button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button></div>
 </template>
 
 <!-- Parking for the §13 singletons while their state is not shown (hidden; not in the tab order). -->

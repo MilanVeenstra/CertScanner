@@ -211,3 +211,138 @@ From `dist/` (manifest sha256 prefix `1e37125fce76ee61`, HEAD `837e84d` + dirty 
 - Not tested: real context-menu click, `sidePanel.open`, the permission prompt, clipboard, Dutch UI, NVDA/VoiceOver.
 - Contrast was not measured with a tool (tokens copied verbatim from spec §7).
 - Screen-resolution OCR at DPR 1 on ~270 px images is borderline (results alternate between confirm and none, never a wrong number).
+
+---
+
+## S7 page scan (ADR A9) — frontend-engineer, 2026-10-10
+
+**Outcome:** You can now scan the whole page from the toolbar icon, the `Alt+Shift+S` shortcut or the panel's "Scan this page" button. Right-click still scans one photo. Upload, paste and manual entry are now under "Other ways to scan". This includes RM-6 (toolbar tooltip) and RM-7 (sites section). Nothing was committed by FE.
+
+**Source identity:**
+- HEAD `33d930f` (orchestrator WIP snapshot of this work) plus an uncommitted tree.
+- src-tree sha256 prefix `4db373e4457811db` (`find src -type f | sort | xargs sha256sum | sha256sum`).
+- `dist/manifest.json` sha256 prefix `0aec47bb6c9faf3b`; `dist-e2e/manifest.json` sha256 prefix `88fb2414b131391e`.
+- `build-info.gitDirty: true`.
+
+**Environment:** bundled Chromium 141.0.7390.37 (headless), Playwright 1.56.1, Node 22.22.0, Linux.
+
+### Changed files
+
+| File | Change |
+|---|---|
+| `src/sidepanel/main.js` | Page-job intake: kind `page` goes to `startPageScan`. Progress, Cancel, newest-job-wins, one auto-open per job id, history, row thumbnails. Panel button with access check. Page-access state and "Always allow". Retry for page jobs. Shortcut refresh. |
+| `src/sidepanel/pageView.js` (new, pure) | `scanShortcut`, `classifyInjectError`, `panelScanPlan`, `alwaysAllowHost`, `accessBody`, `idleShortcutHint`, `pageSummary`, `pageQrInfo`, `pageErrorCode`, `persistablePage`, `pageRowNote` |
+| `src/pipeline/pageScan.js` | Test-only `deps` seam. `onImageProgress` drives the per-image step list. When the 30 s budget runs out, returns partial results (`partial:{checked,total}`, never auto-open). `error.injectFailed`. |
+| `src/sidepanel/ui.js`, `sidepanel.html`, `sidepanel.css` | Per-image steps. Hint variants. Results rows with an "Opened" mark and row notes (off-site QR / unclear read). Back-to-results link in confirm. Access offer states (offer, denied, failed). Settings shortcut row. E1 "Scan this page" button. |
+| `src/sidepanel/viewModel.js` | `autoOpenKey` covers page jobs. New `page-timeout` (E11) error. E1 gets `page` actions and body. |
+| `src/sidepanel/jobIntake.js` | A re-delivered job id is also removed from the slot. Before, a panel reload within the TTL re-ran it. |
+| `src/shared/lastResult.js` | Accepts the `page-timeout` error code. |
+| `src/background/sw.js` | `applyPanelBehavior` also sets the tooltip (RM-6). Runs at worker start, on install/startup and on settings changes. |
+| `src/_locales/{en,nl}` | 19 new keys and 7 reworded keys (compared with `bb1666f`), EN and NL (informal "je"). Parity 204/204. Descriptions EN 126 / NL 131 characters (limit 132). |
+| `tests/unit/pageScanRun.test.mjs`, `pageView.test.mjs` (new); `jobIntake.test.mjs` (+2 tests) | Orchestration, view logic, intake |
+
+### Commands
+
+| Command | Result |
+|---|---|
+| `npm test` | 164/164 pass. The `pageScanRun` and `jobIntake` duplicate-id tests were seen failing before the code changes. |
+| `npm run check` | all checks pass (src: 37 files) |
+| `CERTSCANNER_SKIP_BENCH=1 npm run e2e` (QA suite, run only, not edited) | 31/33 pass. Both failures assert `openPanelOnActionClick === true` (`extension.test.mjs:95`, `:507`). Under A9 the default is now `false`. QA needs to update these. |
+
+### Browser evidence
+
+These are actual extension runs. The toolbar click and the shortcut **cannot be automated**: page jobs were written to `chrome.storage.session` `scanJob:<windowId>` from the service worker, in the same shape as `createPageJob`. The panel ran as the `?w=` popup.
+
+| # | Scenario (build) | Observed | Timing |
+|---|---|---|---|
+| a | Page job (`action`) on `pages/gallery.html` (dist-e2e) | `page-results`, 6 rows. One row per number below; each row has a thumbnail and the exact URL. The off-site QR warning is shown, and its row says so. No tab opened. `evil.example` never appeared in tabs or network. Job slot cleared. | UI 7.5 s (first scan in the panel) |
+| b | Single-slab listing in scratchpad: one 400 px PSA slab, a 48 px logo, a 320 px raw-card photo, text containing digit strings (dist-e2e) | `auto-open` → `https://www.psacard.com/cert/108114622` at source index+1 with the listing tab as opener. History +1. Re-delivering the same job id: no re-scan, still 1 tab. | UI 4.3 s; `scanPage` 2.9 s |
+| c | `chrome://version` (dist-e2e and dist) | Panel button: E1 (classified from the injection refusal text) with "Scan this page" and Choose image. Page job with `pageUrl ''` or `chrome://version/`: E1. | <1 s |
+| d | Cancel at "Scanning image 2 of 8" | Body `idle`, "Scan cancelled.", focus on `#task-heading`, no tab | settled in 68 ms |
+| e1 | Panel button with access (dist-e2e `<all_urls>`) | Scans, `page-results`. Open from a row opens the tab, marks the row "Opened" and keeps the list. "Choose grader" opens confirm; "Back to the results" returns to the list. | 7.4 s |
+| e2 | Panel button with no access (release `dist/`, `permissions.getAll().origins = []`) | `#task[data-state=page-access]`, body `idle`, "Click the CertScanner icon in the toolbar, or press Alt+Shift+S…". No offer, because the host is unknown. | – |
+| e2' | Known https host (`https://127.0.0.1`, self-signed) | Offer "Always allow on 127.0.0.1" → `permissions.request({origins:['https://127.0.0.1/*']})`. Prompt **stubbed** to deny. Offer withdrawn, note "No access given for 127.0.0.1." and focus on the note. | – |
+| f | Page "none" | Photo checked: "Checked the photos on this page but couldn't read a cert number." No slab-sized photo: "No photos large enough…". Shows three tips plus Scan again and Choose image. | 2.6 s / 0.07 s |
+| g | Crop fallback: hotlink image (fetch → 403, `<img>` OK) | `method capture`, `resolution screen`, auto-open `psa 108114622` | `scanPage` 1.3 s |
+
+**Gallery rows (a):** cgc-comics 4012345001 · cgc-comics 4012346002 · cgc-comics 4012347003 · psa 01234567 · grader unknown 5012345678 (Choose grader) · psa 12345678 (from the off-site QR, 0.35).
+
+**Gallery per-image timings (warm `scanPage`, 10 images found, 8 scanned):** discovery 3 ms, one viewport capture 125 ms, total 6.3 s.
+
+| img | method | acquire ms | scan ms | candidates |
+|---|---|---|---|---|
+| 0 qr-foreign | extension-fetch | 14 | 739 | 1 |
+| 1 psa | extension-fetch | 14 | 670 | 1 |
+| 2 ambiguous | extension-fetch | 13 | 473 | 1 |
+| 3 srcset | extension-fetch | 8 | 397 | 1 |
+| 4 dash | extension-fetch | 14 | 679 | 1 |
+| 5 non-slab | extension-fetch | 10 | 2275 | 0 |
+| 6 blob QR | page-fetch | 22 | 187 | 1 |
+| 7 rotated | extension-fetch | 20 | 649 | 1 |
+
+The images chosen depend on the layout: in some runs `psa-back-barcode` (81234567) made the top 8 instead of another image.
+
+### Settings and service worker (dist-e2e)
+
+| Check | Result |
+|---|---|
+| Fresh install | `openPanelOnActionClick:false`, tooltip "Scan this page for slab cert numbers" |
+| Switch off (`storage.onChanged` path) | `true`, tooltip "Open CertScanner". Idle hint changes to "Shortcut: Alt+Shift+S." |
+| Startup path | Behaviour forced to `false` while the setting is off → CDP `stopAllWorkers` → a `windows.onRemoved` event woke the worker (`starting→running`). The top-level `applyPanelBehavior` restored `true` and "Open CertScanner". |
+| Switch on | `false` plus the scan tooltip |
+| Shortcut | `chrome.commands.getAll()` → "Keyboard shortcut: Alt+Shift+S". Refreshed on panel focus or visibility change (Chrome has no `commands.onChanged`). "Change shortcut" opened `chrome://extensions/shortcuts` via `tabs.create`. |
+| Dutch (`--lang=nl`, dist/) | `html[lang=nl]`, NL tooltip. Idle, page-access and Settings (incl. RM-7) are all Dutch. |
+| Throughout | No uncaught panel errors. No requests outside 127.0.0.1 or the extension. |
+
+### RM items
+
+| Item | Result |
+|---|---|
+| RM-6 | `action_title` = "Scan this page for slab cert numbers" / "Deze pagina scannen op certnummers van slabs" (manifest `default_title`). The new `action_title_open` "Open CertScanner" is set by `chrome.action.setTitle` when the toolbar switch is off. Verified both ways in the browser. |
+| RM-7 | `settings_sites_heading` is now "Sites with full access" / "Sites met volledige toegang". The body explains both sources ("Sharper scans" and "Always allow"), and the empty text now covers both offers. |
+
+### Screenshots
+
+All are actual extension captures, 360 px wide, full page, light and dark. Saved in `docs/quality/screenshots/`.
+- Source: src-tree `4db373e4457811db`, Chromium 141.0.7390.37 headless, Linux, 2026-10-10.
+- Reduced motion was emulated (static ◐ icon), except p1.
+
+| File | State / fixture / build |
+|---|---|
+| `s0-idle-*` (overwritten) | New S0 layout, fresh profile, dist/ |
+| `p1-page-scanning-*` | "Scanning image 2 of 8", gallery.html, dist-e2e |
+| `p2-page-results-*` | gallery.html, 6 rows + off-site QR warning, dist-e2e |
+| `p3-page-access-*`, `p3-page-access-offer-light` | Panel button with no access (http gallery); with a known https host; dist/ |
+| `p4-page-none-*` (extra) | Raw-card page, photo checked, dist-e2e |
+| `v2-settings-*` (overwritten) | Toolbar/shortcut section, RM-7 section, dist-e2e |
+
+**Accessibility self-check** (scripted; axe not installed): idle, scanning, page-results, page-none, page-access and settings at 360 px and 160 CSS px (= 320 px at 200 %) show **0 issues**. The script checks names, 24 px targets, duplicate ids/test ids, alt text, headings, horizontal overflow and `#status`. It found one overflow in Settings at 160 px (the `chrome://` hint), which is now fixed.
+- **Results tab order:** Open ‹grader› ‹number›, Copy ‹number›, per row.
+- **Focus:** `#task-heading` on every state change. Page-access focuses the heading. A denied "Always allow" focuses its note.
+
+### Decisions and limits (for the architect and QA)
+
+| Item | Note |
+|---|---|
+| "Always allow" offer is rare | Chrome hides `tab.url` from tabs CertScanner can't read, so the host is usually unknown. The offer appears only when the panel already knows the https host for that tab, from an earlier job. That knowledge is dropped as soon as the tab navigates out of sight (`tabs.onUpdated`). **Suggestion for the architect:** `chrome.permissions.addHostAccessRequest({tabId})` (Chrome 133+; present in Chromium 141) can ask for the current site without knowing it. Not implemented, because it is a contract change. |
+| No-op access probe | When the URL is hidden, the panel button injects `() => true`. The refusal text tells `chrome://` and Web Store pages (restricted) apart from pages with no access (page-access). The probe reads nothing. |
+| Page jobs and `body[data-state]` | `scanning` → `page-results` / `auto-open` / `none` / `error` / `idle` (Cancel). Page-access is `#task[data-state=page-access]` with body `idle`. |
+| lastResult restore | Only an auto-open page result is restored, because the A5 schema fits it. Results lists and page "none" clear `lastResult` and are not restored: they need the thumbnails, which are not stored. |
+| Partial page | When the 30 s budget runs out with some numbers read, the list shows "Stopped after 30 seconds: checked N of M photos." and never auto-opens. With nothing read: E11 "Scanning this page took too long". Unit-tested only. |
+| Panel button after a result | The "Scan this page" button is in idle, page-results/none ("Scan this page again"), E1 for page scans and page-access ("Try again"). From S2/S3 (single-image results) the user uses the icon or shortcut. |
+| Setting label | "Toolbar button scans the page", as requested. Other copy keeps "CertScanner icon"; the hint links the two terms. |
+
+### Notes for QA (page-scan e2e)
+
+- Add `page-results` to `TERMINAL_STATES`.
+- Update `extension.test.mjs:95` and `:507`: under A9 the default is `openPanelOnActionClick:false` (`true` only when `scanOnToolbarClick` is off).
+- **Job writer:**
+  - Shape: `{v:1, id, createdAt, kind:'page', source:'action'|'command'|'panel', srcUrl:null, pageUrl:<origin+path>, frameId:0, tabId, windowId}`.
+  - Do not include `mediaType`.
+  - `pageUrl:''` reproduces a tab whose URL Chrome hides, which gives restricted.
+- **Test ids:**
+  - `page-scan-button`, `page-progress`, `page-result-list`, `page-result-<i>` (with `data-number` and `data-grader`).
+  - `always-allow-button`, `shortcut-current`, `shortcut-button`, `setting-scanOnToolbarClick`.
+  - Row buttons use `data-ref="open"`, `"choose"` and `"copy"`.
+- In release `dist/` the SW can't see tab URLs, so take the active tab instead of using `findTab`.
+- Not automatable: real toolbar click or shortcut (activeTab grant + `sidePanel.open`), the permission prompt, and real "Always allow" grants (manual M-checks).

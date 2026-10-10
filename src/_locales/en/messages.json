@@ -8,8 +8,8 @@
     "description": "Web Store / chrome://extensions description, max 132 characters."
   },
   "action_title": {
-    "message": "Open CertScanner",
-    "description": "Toolbar button tooltip."
+    "message": "Scan this page for slab cert numbers",
+    "description": "Toolbar button tooltip (manifest default_title). The icon scans the page by default (A9)."
   },
   "context_menu_scan": {
     "message": "Scan slab cert number",
@@ -600,13 +600,14 @@
     "message": "Scan history cleared."
   },
   "settings_sites_heading": {
-    "message": "Sharper scans"
+    "message": "Sites with full access",
+    "description": "Settings section listing optional host grants (Sharper scans and Always allow)."
   },
   "settings_sites_body": {
-    "message": "Sites CertScanner may load full-size images from:"
+    "message": "You allowed these through “Sharper scans” or “Always allow”. CertScanner may load full-size images there and scan those pages from this panel."
   },
   "settings_sites_empty": {
-    "message": "None yet. You'll be offered this when a scan could be sharper."
+    "message": "None yet. CertScanner offers this when a scan could be sharper or when it can't read a page."
   },
   "remove_button": {
     "message": "Remove",
@@ -811,12 +812,133 @@
     }
   },
   "settings_toolbar_heading": {
-    "message": "Toolbar icon"
+    "message": "Toolbar button and shortcut"
   },
   "setting_scan_on_click": {
-    "message": "Scan the page when I click the icon"
+    "message": "Toolbar button scans the page",
+    "description": "Switch (setting scanOnToolbarClick)."
   },
   "setting_scan_on_click_hint": {
-    "message": "When off, the icon only opens this panel."
+    "message": "When off, clicking the CertScanner icon only opens this panel."
+  },
+  "action_title_open": {
+    "message": "Open CertScanner",
+    "description": "Toolbar tooltip set at runtime when “Toolbar button scans the page” is off."
+  },
+  "setting_shortcut_current": {
+    "message": "Keyboard shortcut: $KEYS$",
+    "description": "KEYS is the shortcut Chrome reports for “scan this page”.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "setting_shortcut_unset": {
+    "message": "Keyboard shortcut: not set"
+  },
+  "setting_shortcut_hint": {
+    "message": "You can change it at chrome://extensions/shortcuts.",
+    "description": "Keep the chrome:// address untranslated."
+  },
+  "setting_shortcut_button": {
+    "message": "Change shortcut",
+    "description": "Opens chrome://extensions/shortcuts in a new tab."
+  },
+  "shortcut_hint_keys_only": {
+    "message": "Shortcut: $KEYS$.",
+    "description": "Shown when the toolbar button only opens the panel.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body_keys_only": {
+    "message": "Press $KEYS$ to scan this page.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body_none": {
+    "message": "Turn on “Toolbar button scans the page” in Settings, or set a keyboard shortcut, then use it on this page."
+  },
+  "page_access_why": {
+    "message": "Chrome lets CertScanner read a page only after you use it on that page."
+  },
+  "page_access_denied": {
+    "message": "No access given for $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_access_granted": {
+    "message": "Access allowed on $HOST$. Scanning this page.",
+    "description": "Status after “Always allow” was granted.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_results_partial": {
+    "message": "Stopped after 30 seconds: checked $CHECKED$ of $TOTAL$ photos.",
+    "description": "The page budget ran out; TOTAL is at least 2.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "3"
+      },
+      "total": {
+        "content": "$2",
+        "example": "8"
+      }
+    }
+  },
+  "page_result_opened": {
+    "message": "Opened",
+    "description": "Marks a results row whose cert page was opened."
+  },
+  "page_back_to_results": {
+    "message": "Back to the results"
+  },
+  "err_page_timeout_heading": {
+    "message": "Scanning this page took too long"
+  },
+  "err_page_timeout_body": {
+    "message": "Try again, or right-click a specific slab photo and choose “$MENU$”.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "err_restricted_page_body": {
+    "message": "Switch to a page in another tab and scan it, or save a slab photo and drop, paste or upload it here.",
+    "description": "E1 body when a page scan (A9) hit a page Chrome does not let extensions read."
+  },
+  "page_row_offsite": {
+    "message": "Taken from the QR code that links to $HOST$. Compare the number with the label.",
+    "description": "Note under a page-results row whose number came from an off-site QR code (N2).",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "evil.example"
+      }
+    }
+  },
+  "page_row_unclear": {
+    "message": "Not a clear read. Compare the number with the label.",
+    "description": "Note under a page-results row read below the auto-open confidence."
   }
 }

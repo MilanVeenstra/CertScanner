@@ -106,3 +106,20 @@ test('lastResult keeps a page-timeout error across a panel reopen', async () => 
   const saved = makeLastResult({ task: 'error', body: 'error', result: null, error: { code: 'page-timeout' }, opened: null, imageHost: null }, 1000);
   assert.equal(parseLastResult(saved, { now: 2000 }).ok, true);
 });
+
+test('errorView: a page scan on a restricted page offers "Scan this page" (after switching tabs) before Choose image', async () => {
+  const { errorView } = await import('../../src/sidepanel/viewModel.js');
+  assert.deepEqual(errorView('restricted', { page: true }).actions, ['page-scan', 'choose']);
+  assert.equal(errorView('restricted', { page: true }).body, 'err_restricted_page_body');
+  assert.equal(errorView('restricted', {}).body, 'err_restricted_body');
+  assert.deepEqual(errorView('restricted', {}).actions, ['choose']);
+  assert.deepEqual(errorView('page-timeout', { page: true, retryable: true }).actions, ['retry', 'choose']);
+});
+
+test('pageRowNote: off-site QR rows are flagged first, then reads below the auto-open threshold', async () => {
+  const { pageRowNote } = await import('../../src/sidepanel/pageView.js');
+  assert.deepEqual(pageRowNote({ confidence: 0.35, evidence: ['barcode:QRCode', 'qr-untrusted:evil.example'] }), { key: 'page_row_offsite', subs: ['evil.example'], tone: 'warning' });
+  assert.deepEqual(pageRowNote({ confidence: 0.45, evidence: ['len:10'] }), { key: 'page_row_unclear', subs: [], tone: 'muted' });
+  assert.equal(pageRowNote({ confidence: 0.8, evidence: [] }), null);
+  assert.equal(pageRowNote({ confidence: 0.95 }), null);
+});

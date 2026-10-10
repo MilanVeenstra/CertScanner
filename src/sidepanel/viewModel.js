@@ -67,6 +67,8 @@ const ERRORS = {
   'file-type': { id: 'E6', tone: 'warning', k: 'err_file_type', actions: ['choose'] },
   'invalid-image': { id: 'E7', tone: 'warning', k: 'err_decode', actions: ['choose'] },
   'dropped-link': { id: 'E8', tone: 'warning', k: 'err_dropped_link', actions: ['choose'], menu: true },
+  // A9: the 30 s page budget ran out before any number was read.
+  'page-timeout': { id: 'E11', tone: 'warning', k: 'err_page_timeout', actions: ['retry?', 'choose'], menu: true },
 };
 
 /**
@@ -218,7 +220,7 @@ export function relativeTime(at, now, locale) {
 
 // ---------------------------------------------------------------- auto-open de-dup (SEC-06)
 
-/** At most one auto-open per context-menu job (a Sharper-scans re-run reuses the job); per scan for blobs. */
+/** At most one auto-open per job (context menu or A9 page job; re-runs reuse the job); per scan for blobs. */
 export function autoOpenKey(input, scanId) {
-  return input?.kind === 'job' && input.job?.id ? `job:${input.job.id}` : `scan:${scanId}`;
+  return (input?.kind === 'job' || input?.kind === 'page') && input.job?.id ? `job:${input.job.id}` : `scan:${scanId}`;
 }

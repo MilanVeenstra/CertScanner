@@ -114,13 +114,16 @@
   </div>
 
   <section class="section" aria-labelledby="toolbar-heading">
-    <h3 id="toolbar-heading" data-i18n="settings_toolbar_heading">Toolbar icon</h3>
+    <h3 id="toolbar-heading" data-i18n="settings_toolbar_heading">Toolbar button and shortcut</h3>
     <label class="switch-row" for="setting-scan-on-click">
-      <span class="switch-text" data-i18n="setting_scan_on_click">Scan the page when I click the icon</span>
+      <span class="switch-text" data-i18n="setting_scan_on_click">Toolbar button scans the page</span>
       <input type="checkbox" role="switch" id="setting-scan-on-click" data-testid="setting-scanOnToolbarClick" data-setting="scanOnToolbarClick" aria-describedby="hint-scan-on-click">
       <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
     </label>
     <p class="hint switch-hint" id="hint-scan-on-click" data-i18n="setting_scan_on_click_hint"></p>
+    <p class="shortcut-current" id="shortcut-current" data-testid="shortcut-current" dir="auto"></p>
+    <p class="hint" id="shortcut-help" data-i18n="setting_shortcut_hint"></p>
+    <button type="button" class="btn btn-secondary" id="shortcut-button" data-testid="shortcut-button" aria-describedby="shortcut-help"><span data-i18n="setting_shortcut_button">Change shortcut</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
   </section>
 
   <section class="section" aria-labelledby="opening-heading">
@@ -216,6 +219,7 @@
 </template>
 
 <template id="tpl-confirm">
+  <button type="button" class="link" data-ref="back-to-page" data-action="back-to-page" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="page_back_to_results"></span></button>
   <div data-ref="qr-slot"></div>
   <div class="alert alert-info" data-ref="reasons" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><div data-ref="reason-list"></div></div>
   <div class="media-row">
@@ -290,9 +294,11 @@
 </template>
 
 <template id="tpl-page-results">
-  <p data-ref="summary"></p>
+  <div data-ref="summary"></div>
   <div data-ref="qr-slot"></div>
   <span data-slot="pageresults"></span>
+  <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
+  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="actions"><button type="button" class="btn btn-secondary" data-action="page-scan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="page_scan_again"></span></button></div>
   <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
 </template>
@@ -301,7 +307,7 @@
   <li class="page-row">
     <div class="thumb thumb-sm" data-ref="thumb-box" hidden><img data-ref="thumb" alt=""></div>
     <div class="page-row-main">
-      <div class="cand-top"><span class="chip" data-ref="chip"></span><span class="cert cert-sm" dir="ltr" data-ref="number"></span></div>
+      <div class="cand-top"><span class="chip" data-ref="chip"></span><span class="cert cert-sm" dir="ltr" data-ref="number"></span><span class="opened-mark muted" data-ref="opened" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="page_result_opened"></span></span></div>
       <p class="muted cand-meta" data-ref="meta"></p>
       <p class="muted path" dir="ltr" data-ref="path"></p>
       <div class="actions">
@@ -329,10 +335,13 @@
 
 <template id="tpl-page-access">
   <p data-ref="access-body"></p>
+  <p class="muted" data-i18n="page_access_why"></p>
   <div data-ref="always" hidden>
-    <div class="actions"><button type="button" class="btn btn-primary host-btn" data-testid="always-allow-button" data-action="always-allow"><span data-ref="always-label"></span></button></div>
+    <div class="actions"><button type="button" class="btn btn-secondary host-btn" data-testid="always-allow-button" data-action="always-allow"><span data-ref="always-label"></span></button></div>
     <p class="hint" data-ref="always-fine"></p>
   </div>
+  <div class="alert" data-ref="always-status" tabindex="-1" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-ref="always-status-text"></p></div>
+  <div class="actions"><button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button></div>
 </template>
 
 <!-- Parking for the §13 singletons while their state is not shown (hidden; not in the tab order). -->

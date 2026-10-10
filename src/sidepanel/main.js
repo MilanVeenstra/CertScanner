@@ -1,12 +1,15 @@
-// Side-panel bootstrap and state flow (UX spec §3; ADR §4, §13, A4, A5).
-// body[data-state] keeps the §13 values (+ 'opened'); the finer task-card state lives on section#task[data-state].
+// Side-panel bootstrap and state flow (UX spec §3; ADR §4, §13, A4, A5, A9).
+// body[data-state] keeps the §13 values (+ 'opened', 'page-results'); the finer task-card state lives on
+// section#task[data-state].
 import { applyI18n, t } from '../shared/i18n.js';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, onSettingsChanged } from '../shared/settings.js';
 import { loadHistory, clearHistory, onHistoryChanged, MAX_HISTORY } from '../shared/history.js';
 import { saveLastResult, loadLastResult, clearLastResult } from '../shared/lastResult.js';
 import { buildCertUrl, isValidCert } from '../core/certUrls.js';
 import { scan, disposeEngines } from '../pipeline/scanner.js';
+import { scanPage } from '../pipeline/pageScan.js';
 import { imageOriginOf } from '../pipeline/acquire.js';
+import { createPageJob } from '../shared/jobContract.js';
 import { createUi, graderName } from './ui.js';
 import { createCertField } from './certField.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, MAX_IMAGE_MB } from './viewModel.js';
@@ -14,6 +17,10 @@ import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, recordHistory } from './opener.js';
 import { wireInputs } from './inputs.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, onPermissionsChanged } from './permissionsUi.js';
+import {
+  SHORTCUTS_URL, scanShortcut, panelScanPlan, alwaysAllowHost, accessBody, idleShortcutHint, pageSummary, pageQrInfo,
+  pageErrorCode, persistablePage,
+} from './pageView.js';
 
 const DECLINED_KEY = 'sharperDeclined';
 const doc = document;
@@ -26,10 +33,23 @@ let windowId = null;
 let history = { v: 1, entries: [] };
 /** In-flight scan. */
 let current = null;
-/** Last completed scan context: what Try again / Scan again / Copy / Edit act on. */
-let last = { input: null, job: null, result: null, opened: null, thumbUrl: null, thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null };
+/** Last completed scan context: what Try again / Scan again / Copy / Edit act on. `page`: the A9 results list. */
+const blankLast = () => ({ input: null, job: null, result: null, opened: null, thumbUrl: null, thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null, page: null });
+let last = blankLast();
 const autoOpened = new Set();
 const declined = new Set(); // hosts where "Sharper scans" was denied or dismissed this session
+/** Page-scan shortcut as Chrome reports it ('' = not set). */
+let shortcut = '';
+/** Object URLs of the current page scan's images (row thumbnails); revoked when the next scan starts. */
+let pageThumbs = [];
+/** A9 page-access state: the tab it is about and the https host that "Always allow" would grant. */
+let access = null;
+/**
+ * Last URL this panel saw for a tab (from a job or a readable tabs.query). Chrome hides the URL of tabs CertScanner
+ * can't read, so this is the only way to name the host for "Always allow"; dropped as soon as the tab navigates
+ * somewhere the panel can't see.
+ */
+const tabSites = new Map();
 
 const ui = createUi(doc, {
   submitTaskForm: () => onTaskFormSubmit(),
@@ -42,10 +62,38 @@ $('paste-hint').textContent = t('paste_hint', [t(isMac ? 'shortcut_paste_mac' : 
 $('drop-formats').textContent = t('drop_formats', [t('size_mb', [String(MAX_IMAGE_MB)])]);
 $('hint-history').textContent = t('setting_history_hint', [String(MAX_HISTORY)]);
 $('about-version').textContent = t('about_version', [chrome.runtime.getManifest().version]);
-ui.showIdle();
 
 // ---------------------------------------------------------------- helpers
 const hostOf = (url) => { try { return new URL(url).hostname || null; } catch { return null; } };
+const idleHint = () => idleShortcutHint({ scanOnClick: settings.scanOnToolbarClick !== false, shortcut });
+const accessCopy = () => accessBody({ scanOnClick: settings.scanOnToolbarClick !== false, shortcut });
+
+ui.renderShortcut(shortcut);
+ui.showIdle({ hint: idleHint() });
+
+function rememberTab(tabId, url) {
+  if (Number.isInteger(tabId) && typeof url === 'string' && url) tabSites.set(tabId, url);
+}
+
+function revokePageThumbs() {
+  for (const u of pageThumbs) if (u) URL.revokeObjectURL(u);
+  pageThumbs = [];
+}
+
+function showIdleCard({ focus = false } = {}) {
+  setBody('idle');
+  ui.showIdle({ focus, hint: idleHint() });
+}
+
+/** Shortcut text from Chrome; refreshed on load and whenever the panel regains focus (no commands.onChanged). */
+async function refreshShortcut() {
+  let s = '';
+  try { s = scanShortcut(await chrome.commands.getAll()); } catch { s = ''; }
+  shortcut = s;
+  ui.renderShortcut(shortcut);
+  ui.updateIdleHint(idleHint());
+  ui.updateAccessBody(accessCopy());
+}
 
 function describeInput(input) {
   if (input.kind === 'job') {
@@ -77,15 +125,18 @@ function setBody(state, { restored = false } = {}) {
 // ---------------------------------------------------------------- scanning
 
 async function startScan(input) {
+  if (input.kind === 'page') { startPageScan(input.job); return; }
   current?.controller.abort();
   const controller = new AbortController();
   const id = crypto.randomUUID();
   const job = input.kind === 'job' ? input.job : null;
   current = { id, controller, input, job };
   const isCurrent = () => current?.id === id;
+  if (job) rememberTab(job.tabId, job.pageUrl);
+  revokePageThumbs();
   const d = describeInput(input);
   const thumbUrl = input.kind === 'blob' ? ui.thumbnail(input.blob) : ui.thumbnail(null);
-  last = { input, job, result: null, opened: null, thumbUrl, thumbAlt: d.alt, caption: d.caption, imageHost: d.host, picked: null, lowres: null };
+  last = { ...blankLast(), input, job, thumbUrl, thumbAlt: d.alt, caption: d.caption, imageHost: d.host };
   setBody('scanning');
   ui.showScanning({ caption: d.caption, thumbUrl, thumbAlt: d.alt });
   const result = await scan(input, {
@@ -104,14 +155,17 @@ async function startScan(input) {
   await handleResult(result, autoOpenKey(input, id));
 }
 
+function showCancelled() {
+  ui.thumbnail(null);
+  showIdleCard({ focus: true });
+  ui.announce(t('status_scan_cancelled'));
+  if (windowId !== null) clearLastResult(windowId);
+}
+
 async function handleResult(result, openKey) {
   if (result.status === 'error') {
     if (result.error?.code === 'aborted') {
-      setBody('idle');
-      ui.thumbnail(null);
-      ui.showIdle({ focus: true });
-      ui.announce(t('status_scan_cancelled'));
-      if (windowId !== null) clearLastResult(windowId);
+      showCancelled();
       return;
     }
     showErrorState(result.error?.code ?? 'engine-failed');
@@ -142,7 +196,7 @@ async function handleResult(result, openKey) {
   showConfirmState(result, {});
 }
 
-function showConfirmState(result, { openFailed = false, moveFocus = true, restored = false } = {}) {
+function showConfirmState(result, { openFailed = false, moveFocus = true, restored = false, backToPage = false } = {}) {
   const top = result.candidates[0];
   last.picked = top;
   setBody('confirm', { restored });
@@ -151,7 +205,7 @@ function showConfirmState(result, { openFailed = false, moveFocus = true, restor
     result, candidates: result.candidates, reasons: confirmReasons(result, settings),
     thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, caption: restored ? '' : last.caption,
     qrHost, qrNumberUsed, lowres: restored ? null : last.lowres,
-    prefill: { number: top.number, grader: top.grader },
+    prefill: { number: top.number, grader: top.grader }, backToPage,
   }, { moveFocus });
   if (openFailed) ui.showOpenError();
   if (!restored) persist({ task: 'confirm', body: 'confirm', result, opened: null });
@@ -170,6 +224,182 @@ function canRetry(code) {
   return true;
 }
 
+// ---------------------------------------------------------------- A9 page scan
+
+/** Page job from the toolbar, the shortcut or the panel button: scan the page's slab photos. Newest job wins. */
+async function startPageScan(job) {
+  current?.controller.abort();
+  const controller = new AbortController();
+  const id = crypto.randomUUID();
+  const input = { kind: 'page', job };
+  current = { id, controller, input, job };
+  const isCurrent = () => current?.id === id;
+  rememberTab(job.tabId, job.pageUrl);
+  revokePageThumbs();
+  access = null;
+  const host = hostOf(job.pageUrl);
+  const caption = host ? t('image_source_page', [host]) : '';
+  last = { ...blankLast(), input, job, thumbUrl: ui.thumbnail(null), caption, imageHost: host };
+  setBody('scanning');
+  ui.showScanning({ caption, page: true });
+  const thumbs = [];
+  pageThumbs = thumbs;
+  const result = await scanPage(job, {
+    settings,
+    signal: controller.signal,
+    onProgress: (p) => { if (isCurrent()) ui.pageProgress(p); },
+    onImageProgress: (_i, p) => { if (isCurrent()) ui.progress(p.stage); },
+    onImage: (i, blob) => {
+      if (!isCurrent()) return;
+      thumbs[i] = URL.createObjectURL(blob);
+      ui.updateScanThumb(thumbs[i], t('page_result_photo', [String(i + 1)]));
+    },
+  });
+  if (!isCurrent()) return; // superseded: newest trigger wins, stale results are discarded
+  current = null;
+  await handlePageResult(result, autoOpenKey(input, id));
+}
+
+async function handlePageResult(result, openKey) {
+  const job = last.job;
+  if (result.status === 'error') {
+    const code = pageErrorCode(result.error, job);
+    if (code === 'aborted') showCancelled();
+    else if (code === 'page-access') showAccessState(job.tabId);
+    else showErrorState(code);
+    return;
+  }
+  last.page = { result, thumbs: pageThumbs, opened: new Set(), ...pageQrInfo(result) };
+  if (result.status === 'none') {
+    setBody('none');
+    ui.showPageNone({ discovered: result.discovered, qrHost: last.page.qrHost });
+    if (windowId !== null) clearLastResult(windowId); // a page "none" is not restored (A5 schema)
+    return;
+  }
+  // SEC-06: at most one automatic tab per page job; a re-run of the same job shows the list instead.
+  if (result.status === 'auto-open' && result.top && !autoOpened.has(openKey)) {
+    autoOpened.add(openKey);
+    const top = result.top;
+    last.result = { status: 'auto-open', ...persistablePage(result) };
+    last.thumbUrl = pageThumbs[top.imageIndex] ?? null;
+    last.thumbAlt = t('page_result_photo', [String(top.imageIndex + 1)]);
+    try {
+      const r = await openCert(top, job, settings, { windowId });
+      last.page.opened.add(result.items.indexOf(top));
+      showOpened({ grader: top.grader, number: top.number, method: top.source, url: r.url, background: !r.active, tabId: r.tabId }, 'auto-open');
+    } catch {
+      showPageResultsState({ openFailed: true });
+    }
+    return;
+  }
+  showPageResultsState();
+}
+
+function showPageResultsState({ openFailed = false, moveFocus = true } = {}) {
+  const p = last.page;
+  if (!p) return;
+  last.result = p.result;
+  setBody('page-results');
+  ui.showPageResults({
+    items: p.result.items, thumbs: p.thumbs, qrHost: p.qrHost, qrNumberUsed: p.qrNumberUsed,
+    summary: pageSummary(p.result), opened: p.opened,
+  }, { onOpen: openPageItem, onChoose: choosePageItem, onCopy: copyPageItem }, { moveFocus });
+  if (openFailed) ui.showOpenError();
+  if (windowId !== null) clearLastResult(windowId); // results lists are not restored (they need the thumbnails)
+}
+
+async function openPageItem(item, i) {
+  const p = last.page;
+  try {
+    await openCert({ grader: item.grader, number: item.number, source: item.source }, last.job, settings, { windowId });
+    p?.opened.add(i);
+    ui.markPageOpened(i);
+    ui.announce(t('status_opened', [graderName(item.grader), item.number]));
+  } catch {
+    ui.showOpenError();
+  }
+}
+
+/** A listed number without a known grader: confirm it in S3 (grader radios), with a way back to the list. */
+function choosePageItem(item) {
+  const p = last.page;
+  if (!p) return;
+  const cand = { grader: item.grader, graderOptions: item.graderOptions, number: item.number, confidence: item.confidence, source: item.source, evidence: item.evidence };
+  last.result = { status: 'confirm', candidates: [cand], warnings: p.result.warnings, imageInfo: null };
+  last.thumbUrl = p.thumbs[item.imageIndex] ?? null;
+  last.thumbAlt = t('page_result_photo', [String(item.imageIndex + 1)]);
+  last.lowres = null;
+  showConfirmState(last.result, { backToPage: true });
+}
+
+async function copyPageItem(item) {
+  try {
+    await navigator.clipboard.writeText(item.number);
+    ui.announce(t('status_copied'));
+    if (item.grader && isValidCert(item.grader, item.number)) await recordHistory({ grader: item.grader, number: item.number, source: item.source }, last.job, settings);
+  } catch {
+    ui.announce(t('copy_failed'));
+  }
+}
+
+/** Injected only to learn why a tab is unreadable (its error text); reads and changes nothing. */
+function accessProbe() { return true; }
+
+/**
+ * Panel "Scan this page" (A9 trigger 3): works while CertScanner can read the active tab (live activeTab grant or a
+ * host grant), which is exactly when tabs.query reveals its URL. Otherwise explain the icon/shortcut.
+ */
+async function onPageScanButton() {
+  if (windowId === null) return;
+  let tab = null;
+  try { [tab] = await chrome.tabs.query({ active: true, windowId }); } catch { tab = null; }
+  let plan = panelScanPlan(tab);
+  if (plan.action === 'probe') {
+    try {
+      await chrome.scripting.executeScript({ target: { tabId: tab.id, frameIds: [0] }, world: 'ISOLATED', func: accessProbe });
+      plan = { action: 'access' };
+    } catch (e) {
+      plan = panelScanPlan(tab, { injectError: String(e?.message ?? '') });
+    }
+  }
+  if (plan.action === 'scan') {
+    rememberTab(tab.id, tab.url);
+    startPageScan(createPageJob(tab, Date.now(), crypto.randomUUID(), 'panel'));
+    return;
+  }
+  current?.controller.abort();
+  current = null;
+  last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
+  if (plan.action === 'restricted') showErrorState('restricted');
+  else showAccessState(tab?.id ?? null);
+}
+
+function showAccessState(tabId, { moveFocus = true } = {}) {
+  const host = Number.isInteger(tabId) ? alwaysAllowHost(tabSites.get(tabId)) : null;
+  access = { tabId, host };
+  setBody('idle');
+  ui.showPageAccess({ host, body: accessCopy() }, { moveFocus });
+  if (windowId !== null) clearLastResult(windowId);
+}
+
+/** "Always allow on ‹host›": permissions.request is the first call in the click (user gesture); then scan. */
+function onAlwaysAllow() {
+  const a = access;
+  if (!a?.host) return;
+  requestSharper(`https://${a.host}`).then((granted) => {
+    if (granted) {
+      ui.announce(t('page_access_granted', [a.host]));
+      onPageScanButton();
+    } else {
+      ui.setAccessOffer('denied', a.host);
+      ui.announce(t('page_access_denied', [a.host]));
+    }
+  }, () => {
+    ui.setAccessOffer('failed', a.host);
+    ui.announce(t('perm_failed'));
+  });
+}
+
 function showErrorState(code, { moveFocus = true, restored = false } = {}) {
   setBody('error', { restored });
   const ev = errorView(code, { retryable: !restored && canRetry(code), menuTitle: t('context_menu_scan') });
@@ -181,6 +411,16 @@ function showErrorState(code, { moveFocus = true, restored = false } = {}) {
 async function retry() {
   const input = last.input;
   if (!input) return;
+  if (input.kind === 'page') {
+    let ok = false;
+    try {
+      const tab = await chrome.tabs.get(input.job.tabId);
+      ok = Boolean(tab?.url) && imageOriginOf(tab.url) === imageOriginOf(input.job.pageUrl);
+    } catch { ok = false; }
+    if (ok) startPageScan(input.job);
+    else showAccessState(input.job.tabId);
+    return;
+  }
   if (input.kind === 'job') {
     let ok = false;
     try {
@@ -276,6 +516,9 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'sharper') onSharper();
   else if (a === 'not-now') onNotNow();
   else if (a === 'rescan') { if (last.input) startScan(last.input); }
+  else if (a === 'page-scan') onPageScanButton();
+  else if (a === 'always-allow') onAlwaysAllow();
+  else if (a === 'back-to-page') showPageResultsState();
 });
 $('choose-image').addEventListener('click', () => $('file-input').click());
 
@@ -338,7 +581,7 @@ $('manual-form').addEventListener('submit', async (e) => {
     const r = await openCert({ grader: v.grader, number: v.number, source: 'manual' }, null, settings, { windowId });
     manualField.reset();
     $('cert-input').focus(); // F5: focus stays in the cleared input
-    last = { input: null, job: null, result: null, opened: null, thumbUrl: ui.thumbnail(null), thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null };
+    last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
     showOpened({ grader: v.grader, number: v.number, method: 'manual', url: r.url, background: !r.active, tabId: r.tabId }, 'opened', { moveFocus: false });
   } catch {
     $('cert-error').textContent = t('err_open_tab');
@@ -354,7 +597,7 @@ function renderRecent() {
     onOpen: async (entry) => {
       try {
         const r = await openCert({ grader: entry.grader, number: entry.number, source: entry.source }, null, settings, { windowId });
-        last = { input: null, job: null, result: null, opened: null, thumbUrl: ui.thumbnail(null), thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null };
+        last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
         showOpened({ grader: entry.grader, number: entry.number, method: entry.source, url: r.url, background: !r.active, tabId: r.tabId }, 'opened', { moveFocus: false });
       } catch {
         ui.announce(t('err_open_tab'));
@@ -383,12 +626,15 @@ function showView(name) {
   inputs.clearDrag();
   if (settingsView) {
     refreshSites();
+    refreshShortcut();
     $('settings-heading').focus();
   } else {
     $('settings-button').focus();
   }
 }
 $('settings-button').addEventListener('click', () => showView('settings'));
+// Extensions can't link to chrome:// pages, but tabs.create may open the shortcut editor.
+$('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url: SHORTCUTS_URL }).catch(() => ui.announce(t('err_open_tab'))); });
 $('back-button').addEventListener('click', () => showView('home'));
 
 for (const box of doc.querySelectorAll('[data-setting]')) {
@@ -449,7 +695,7 @@ const inputs = wireInputs({
   onError: (code) => {
     current?.controller.abort();
     current = null;
-    last = { input: null, job: null, result: null, opened: null, thumbUrl: ui.thumbnail(null), thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null };
+    last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
     showErrorState(code);
   },
 });
@@ -466,13 +712,23 @@ window.addEventListener('online', () => doc.querySelectorAll('#task [data-ref="o
 window.addEventListener('offline', () => doc.querySelectorAll('#task [data-ref="offline"]').forEach((el) => { el.hidden = false; }));
 window.addEventListener('pagehide', () => {
   current?.controller.abort();
+  revokePageThumbs();
   disposeEngines();
 });
+// chrome.commands has no change event: re-read the shortcut when the user comes back to the panel.
+window.addEventListener('focus', () => { refreshShortcut(); });
+doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'visible') refreshShortcut(); });
+chrome.tabs.onUpdated.addListener((tabId, info) => {
+  if (!tabSites.has(tabId)) return;
+  if (typeof info.url === 'string' && info.url) tabSites.set(tabId, info.url);
+  else if (info.status === 'loading' || 'url' in info) tabSites.delete(tabId); // navigated where the panel can't see
+});
+chrome.tabs.onRemoved.addListener((tabId) => { tabSites.delete(tabId); });
 
 // ---------------------------------------------------------------- bootstrap
 
 function restore(saved) {
-  last = { input: null, job: null, result: null, opened: null, thumbUrl: null, thumbAlt: '', caption: '', imageHost: saved.imageHost, picked: null, lowres: null };
+  last = { ...blankLast(), imageHost: saved.imageHost };
   const result = { status: saved.body, candidates: saved.candidates.map((c) => ({ ...c, evidence: [] })), warnings: saved.warnings, imageInfo: saved.resolution ? { resolution: saved.resolution } : null };
   last.result = result;
   if (saved.task === 'result' && saved.opened) {
@@ -491,7 +747,13 @@ function restore(saved) {
   try { settings = await loadSettings(); } catch { settings = { ...DEFAULT_SETTINGS }; }
   try { history = await loadHistory(); } catch { history = { v: 1, entries: [] }; }
   renderRecent();
-  onSettingsChanged((s) => { settings = s; renderRecent(); });
+  refreshShortcut();
+  onSettingsChanged((s) => {
+    settings = s;
+    renderRecent();
+    ui.updateIdleHint(idleHint());
+    ui.updateAccessBody(accessCopy());
+  });
   onHistoryChanged((h) => { history = h; renderRecent(); });
   onPermissionsChanged(() => { if (!$('settings').hidden) refreshSites(); });
   try {
@@ -503,6 +765,7 @@ function restore(saved) {
   doc.body.dataset.windowId = String(windowId);
   const saved = await loadLastResult(windowId);
   if (saved && !current) restore(saved);
-  startJobIntake({ windowId, onJob: (job) => startScan({ kind: 'job', job }) });
+  // A9: page jobs (toolbar icon, shortcut) and image jobs (context menu) share the slot; newest job wins.
+  startJobIntake({ windowId, onJob: (job) => (job.kind === 'page' ? startPageScan(job) : startScan({ kind: 'job', job })) });
   doc.body.dataset.ready = '1';
 })();

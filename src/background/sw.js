@@ -15,7 +15,10 @@ function registerMenus() {
   });
 }
 
-/** A9: with scanOnToolbarClick (default) the icon scans the page via action.onClicked; otherwise it only opens the panel. */
+/**
+ * A9: with scanOnToolbarClick (default) the icon scans the page via action.onClicked; otherwise it only opens the
+ * panel. The tooltip says which. Runs at every worker start, on install/startup and on every settings change.
+ */
 async function applyPanelBehavior() {
   let scanOnClick = true;
   try {
@@ -23,6 +26,8 @@ async function applyPanelBehavior() {
     scanOnClick = migrateSettings(got?.[SETTINGS_KEY]).value.scanOnToolbarClick;
   } catch { /* default */ }
   await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: !scanOnClick }).catch(console.warn);
+  const title = chrome.i18n.getMessage(scanOnClick ? 'action_title_scan' : 'action_title');
+  if (title) await chrome.action.setTitle({ title }).catch(console.warn);
 }
 
 /** MUST be the first side effect of a user gesture: no await before sidePanel.open(). */

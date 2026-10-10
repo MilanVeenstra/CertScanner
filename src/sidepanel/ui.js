@@ -243,15 +243,24 @@ export function createUi(doc, actions) {
   }
 
   // ------------------------------------------------------------ states
-  /** S0 (A9): "Scan this page" leads; right-click and shortcut hints follow. */
-  function showIdle({ focus = false, shortcut = '' } = {}) {
+  /** S0 (A9): "Scan this page" leads; right-click and shortcut hints follow. hint: {key, subs} | null */
+  function showIdle({ focus = false, hint = null } = {}) {
     setTaskState('idle');
     setHeading(t('idle_heading'));
     const frag = clone('tpl-idle');
     ref(frag, 'right-click-hint').textContent = t('right_click_hint', [t('context_menu_scan')]);
-    ref(frag, 'shortcut-hint').textContent = shortcut ? t('shortcut_hint', [shortcut]) : t('shortcut_none');
     body.appendChild(frag);
+    updateIdleHint(hint);
     if (focus) heading.focus({ preventScroll: false });
+  }
+
+  /** Shortcut/icon hint in S0; changes with the toolbar setting and the shortcut (no re-render, focus stays). */
+  function updateIdleHint(hint) {
+    if (task.dataset.state !== 'idle') return;
+    const el = ref(body, 'shortcut-hint');
+    if (!el) return;
+    el.textContent = hint ? t(hint.key, hint.subs) : '';
+    el.hidden = !hint;
   }
 
   function showScanning({ caption = '', thumbUrl: url = null, thumbAlt = '', page = false } = {}) {
@@ -262,7 +271,8 @@ export function createUi(doc, actions) {
     ref(frag, 'caption').textContent = caption;
     body.appendChild(frag);
     setThumb({ thumbUrl: url, thumbAlt }, { placeholder: true });
-    singles.steps.hidden = page; // page mode reports "image k of n" instead of per-image steps
+    // Page mode: "Looking for slab photos…", then "Scanning image k of n" above the steps of the current image.
+    singles.steps.hidden = page;
     singles.pageprogress.hidden = !page;
     if (page) singles.pageprogress.textContent = t('page_finding');
     renderSteps();
@@ -270,10 +280,18 @@ export function createUi(doc, actions) {
     settle(t(page ? 'status_page_started' : 'status_scan_started'));
   }
 
-  /** A9 progress: {stage:'page-discover'} | {stage:'page', index, total}. */
+  /** A9 progress: {stage:'page-discover'} | {stage:'page', index, total}. Each new image restarts the step list. */
   function pageProgress(p) {
     if (task.dataset.state !== 'scanning') return;
-    singles.pageprogress.textContent = p.stage === 'page' ? t('page_progress', [String(p.index), String(p.total)]) : t('page_finding');
+    if (p.stage !== 'page') {
+      singles.pageprogress.textContent = t('page_finding');
+      return;
+    }
+    singles.pageprogress.textContent = t('page_progress', [String(p.index), String(p.total)]);
+    stages = [];
+    singles.steps.hidden = false;
+    setThumb({}, { placeholder: true });
+    renderSteps();
   }
 
   function progress(stage) {
@@ -351,6 +369,7 @@ export function createUi(doc, actions) {
     setTaskState('confirm');
     setHeading(t('confirm_heading'), 'info');
     body.appendChild(clone('tpl-confirm'));
+    ref(body, 'back-to-page').hidden = !view.backToPage;
     qrBlock(body, view.qrHost, view.qrNumberUsed);
     if (view.reasons.length) {
       const list = ref(body, 'reason-list');
@@ -432,14 +451,20 @@ export function createUi(doc, actions) {
   }
 
   /**
-   * A9 results list. view: {items, thumbs:string[], qrHost}; handlers: {onOpen, onChoose, onCopy}.
-   * Each row shows the number, grader, how it was read and the exact URL that Open will load.
+   * A9 results list. view: {items, thumbs:string[], qrHost, qrNumberUsed, summary:[{key,subs}], opened:Set<number>};
+   * handlers: {onOpen, onChoose, onCopy}. Each row shows the number, grader, how it was read and the exact URL
+   * that Open will load.
    */
   function showPageResults(view, handlers, { moveFocus = true } = {}) {
     setTaskState('page-results');
     setHeading(t('page_results_heading'), 'info');
     const frag = clone('tpl-page-results');
-    ref(frag, 'summary').textContent = t('page_results_summary', [String(view.items.length)]);
+    const summary = ref(frag, 'summary');
+    for (const line of view.summary ?? []) {
+      const p = doc.createElement('p');
+      p.textContent = t(line.key, line.subs);
+      summary.appendChild(p);
+    }
     body.appendChild(frag);
     qrBlock(body, view.qrHost, view.qrNumberUsed);
     view.items.forEach((item, i) => {
@@ -485,8 +510,19 @@ export function createUi(doc, actions) {
       copy.title = `${t('recent_copy')} ${item.number}`;
       copy.addEventListener('click', () => handlers.onCopy(item, i));
       singles.pageresults.appendChild(row);
+      if (view.opened?.has(i)) markPageOpened(i);
     });
-    settle(`${t('page_results_heading')}. ${t('page_results_summary', [String(view.items.length)])}`, { moveFocus });
+    offline(body);
+    settle([t('page_results_heading'), ...(view.summary ?? []).map((l) => t(l.key, l.subs))].join('. '), { moveFocus });
+  }
+
+  /** A row whose cert page was opened from the list keeps its Open button and shows "Opened". */
+  function markPageOpened(i) {
+    const li = singles.pageresults.querySelector(`[data-testid="page-result-${i}"]`);
+    if (!li) return;
+    li.dataset.opened = 'true';
+    const mark = ref(li, 'opened');
+    if (mark) mark.hidden = false;
   }
 
   /** A9 none: no slab-sized photos, or photos checked without a readable number; tips follow. */
@@ -501,12 +537,15 @@ export function createUi(doc, actions) {
     settle(t('page_none_heading'), { moveFocus });
   }
 
-  /** A9: the panel button can't read the active tab; explain the icon/shortcut, offer a per-host grant when known. */
-  function showPageAccess({ host = null, shortcut = '' } = {}) {
+  /**
+   * A9: the panel button can't read the active tab. Explains the icon/shortcut (body: {key, subs}) and, when the
+   * panel knows the tab's https host, offers "Always allow on ‹host›".
+   */
+  function showPageAccess({ host = null, body: copy }, { moveFocus = true } = {}) {
     setTaskState('page-access');
     setHeading(t('page_access_heading'), 'info');
     const frag = clone('tpl-page-access');
-    ref(frag, 'access-body').textContent = shortcut ? t('page_access_body_keys', [shortcut]) : t('page_access_body');
+    ref(frag, 'access-body').textContent = t(copy.key, copy.subs);
     if (host) {
       ref(frag, 'always').hidden = false;
       ref(frag, 'always-label').textContent = t('page_access_always', [host]);
@@ -514,7 +553,31 @@ export function createUi(doc, actions) {
       frag.querySelector('[data-action="always-allow"]').title = host;
     }
     body.appendChild(frag);
-    settle(`${t('page_access_heading')}. ${ref(body, 'access-body').textContent}`);
+    settle(`${t('page_access_heading')}. ${ref(body, 'access-body').textContent}`, { moveFocus });
+  }
+
+  /** Access body text after a settings/shortcut change, without re-rendering (focus stays). */
+  function updateAccessBody(copy) {
+    if (task.dataset.state !== 'page-access') return;
+    const el = ref(body, 'access-body');
+    if (el) el.textContent = t(copy.key, copy.subs);
+  }
+
+  /** "Always allow" outcome: 'denied' (neutral note, offer withdrawn) or 'failed' (error, button stays). Focus goes to the note. */
+  function setAccessOffer(state, host) {
+    if (task.dataset.state !== 'page-access') return;
+    const note = ref(body, 'always-status');
+    if (!note) return;
+    if (state === 'denied') {
+      ref(body, 'always').hidden = true;
+      note.className = 'alert alert-neutral';
+      ref(note, 'always-status-text').textContent = t('page_access_denied', [host]);
+    } else {
+      note.className = 'alert alert-danger';
+      ref(note, 'always-status-text').textContent = t('perm_failed');
+    }
+    note.hidden = false;
+    note.focus();
   }
 
   function lowresFocus(target) {
@@ -570,6 +633,11 @@ export function createUi(doc, actions) {
 
   function toggleRecent() { recentExpanded = !recentExpanded; }
 
+  /** Settings: the page-scan shortcut as Chrome reports it ('' = not set). */
+  function renderShortcut(shortcut) {
+    $('shortcut-current').textContent = shortcut ? t('setting_shortcut_current', [shortcut]) : t('setting_shortcut_unset');
+  }
+
   function renderSettings(s, { historyCount }) {
     $('setting-scan-on-click').checked = s.scanOnToolbarClick !== false;
     $('setting-always-ask').checked = !s.autoOpen;
@@ -607,8 +675,8 @@ export function createUi(doc, actions) {
   return {
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
     showIdle, showScanning, showResult, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
-    pageProgress, showPageResults, showPageNone, showPageAccess,
-    renderRecent, renderSettings, renderSites,
+    pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, setAccessOffer, updateIdleHint,
+    renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },
     get taskState() { return task.dataset.state; },
     heading,

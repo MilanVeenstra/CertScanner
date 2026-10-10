@@ -13,7 +13,7 @@ const SOURCES = new Set(['qr-url', 'barcode', 'ocr', 'manual']);
 const METHODS = new Set(['qr-url', 'barcode', 'ocr', 'manual', 'edited']);
 const WARNINGS = new Set(['qr-untrusted-host', 'low-resolution', 'ocr-unavailable']);
 const ERRORS = new Set(['restricted', 'not-found', 'too-large', 'fetch-failed', 'capture-failed', 'tab-changed',
-  'invalid-image', 'engine-failed', 'timeout', 'file-type', 'dropped-link']);
+  'invalid-image', 'engine-failed', 'timeout', 'file-type', 'dropped-link', 'page-timeout']);
 const HOST_RE = /^[a-z0-9.-]{1,253}$/i;
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isGrader = (g) => GRADER_IDS.includes(g);

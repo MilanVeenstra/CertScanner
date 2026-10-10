@@ -44,15 +44,13 @@ Full policy: [`PRIVACY.md`](PRIVACY.md).
 
 ## Snel aan de slag (Nederlands)
 
-1. Installeer [Node.js](https://nodejs.org/) 20 of nieuwer.
-2. Open een terminal in deze map en voer uit:
-   ```sh
-   npm ci
-   npm run build
-   ```
-3. Ga in Chrome naar `chrome://extensions` en zet rechtsboven **Ontwikkelaarsmodus** aan.
-4. Klik op **Uitgepakte extensie laden** en kies de map **`dist/`**.
-5. Zet CertScanner vast in de werkbalk (puzzelstukje → punaise).
+**Zonder npm (aanbevolen):**
+1. Download deze repo op GitHub: **Code → Download ZIP**, en pak de ZIP uit.
+2. Ga in Chrome naar `chrome://extensions` en zet rechtsboven **Ontwikkelaarsmodus** aan.
+3. Klik op **Uitgepakte extensie laden** en kies de map **`extension`** (in de uitgepakte map `CertScanner-main`). In die map staat `manifest.json`.
+4. Zet CertScanner vast in de werkbalk (puzzelstukje → punaise).
+
+**Zelf bouwen (alleen als je de code aanpast):** installeer [Node.js](https://nodejs.org/) 20+, voer `npm ci` en `npm run build:extension` uit en laad opnieuw de map `extension/`.
 
 **Gebruiken:**
 - Klik op het CertScanner-icoon of druk op **Alt+Shift+S** (Mac: Option+Shift+S). De slabfoto's op de pagina worden gescand.
@@ -63,6 +61,17 @@ Full policy: [`PRIVACY.md`](PRIVACY.md).
 CertScanner is niet gelieerd aan PSA of CGC. Een certcontrole bewijst niet dat een slab echt is; controleer altijd of de certpagina bij de slab op de foto past. De taal van de extensie volgt je Chrome-instellingen (Nederlands of Engels).
 
 ---
+
+## Install without npm
+
+The repo contains a ready-to-load build in **`extension/`**:
+
+1. On GitHub choose **Code → Download ZIP** and unzip it (or `git clone`).
+2. Open `chrome://extensions` and turn on **Developer mode** (top right).
+3. Click **Load unpacked** and select the **`extension`** folder (the one that contains `manifest.json`).
+4. Pin CertScanner to the toolbar (puzzle icon → pin).
+
+> Selecting the repository root or `src/` gives "Manifest file is missing" or a panel without the OCR engine; always pick `extension/` (or `dist/` after building).
 
 ## Install from source
 
@@ -75,6 +84,7 @@ CertScanner is niet gelieerd aan PSA of CGC. Een certcontrole bewijst niet dat e
 ```sh
 npm ci          # install the exact versions from package-lock.json
 npm run build   # writes the extension to dist/
+npm run build:extension   # build + refresh the committed extension/ folder
 ```
 
 Then:

@@ -97,7 +97,8 @@ describe('S8 on dist-e2e: SEC-13 hidden-image page, O9 consumed ids after a pane
   });
 
   test('SEC-13 hostile page: slab A as a CSS background, <img> of slab B hidden (opacity 0, visibility hidden, off-screen, covered, opacity 0.05) → B never auto-opens (none or list), no tab; control (B visible) auto-opens B', T, async () => {
-    const variants = Object.entries(hidden.variants).filter(([, v]) => v.asserted);
+    // Hiding variants first, the control (none) last: a regression fails on the hidden-image auto-open itself.
+    const variants = Object.entries(hidden.variants).filter(([, v]) => v.asserted).sort(([a], [b]) => (a === 'none') - (b === 'none'));
     for (const [name, spec] of variants) {
       await E.closeGraderTabs(env);
       await show(`${servers.A}/${hidden.page}?hide=${encodeURIComponent(name)}`);

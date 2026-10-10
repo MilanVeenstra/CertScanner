@@ -1,0 +1,1010 @@
+{
+  "ext_name": {
+    "message": "CertScanner",
+    "description": "Extension name. Never translated."
+  },
+  "ext_description": {
+    "message": "Scant de PSA- en CGC-slabfoto's op een pagina en opent de officiële certpagina. Leest op je apparaat. Niet gelieerd aan PSA of CGC.",
+    "description": "Web Store / chrome://extensions description, max 132 characters."
+  },
+  "action_title": {
+    "message": "Deze pagina scannen op certnummers van slabs",
+    "description": "Toolbar button tooltip (manifest default_title). The icon scans the page by default (A9)."
+  },
+  "context_menu_scan": {
+    "message": "Certnummer van slab scannen",
+    "description": "Context menu item on images; also fills $MENU$."
+  },
+  "locale_code": {
+    "message": "nl",
+    "description": "Not visible. Sets <html lang> and the Intl locale."
+  },
+  "nav_settings": {
+    "message": "Instellingen",
+    "description": "Header button and Settings heading."
+  },
+  "nav_back": {
+    "message": "Terug"
+  },
+  "a11y_new_tab": {
+    "message": "(opent in een nieuw tabblad)",
+    "description": "Visually hidden suffix on buttons that open a tab."
+  },
+  "idle_heading": {
+    "message": "Slab scannen"
+  },
+  "idle_body": {
+    "message": "Klik met rechts op een slabfoto op een webpagina en kies ‘$MENU$’.",
+    "description": "MENU is the context menu title.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "idle_body_alt": {
+    "message": "Of sleep, plak of upload hieronder een afbeelding, of typ het nummer."
+  },
+  "input_heading": {
+    "message": "Afbeelding scannen"
+  },
+  "drop_title": {
+    "message": "Sleep een slabfoto hierheen"
+  },
+  "drop_active": {
+    "message": "Loslaten om te scannen",
+    "description": "Drop zone text while dragging."
+  },
+  "paste_hint": {
+    "message": "of plak met $SHORTCUT$",
+    "placeholders": {
+      "shortcut": {
+        "content": "$1",
+        "example": "Ctrl+V"
+      }
+    }
+  },
+  "shortcut_paste_mac": {
+    "message": "⌘V"
+  },
+  "shortcut_paste_other": {
+    "message": "Ctrl+V"
+  },
+  "upload_button": {
+    "message": "Afbeelding kiezen"
+  },
+  "drop_formats": {
+    "message": "JPEG, PNG, WebP of AVIF, tot $SIZE$",
+    "description": "SIZE comes from size_mb.",
+    "placeholders": {
+      "size": {
+        "content": "$1",
+        "example": "15 MB"
+      }
+    }
+  },
+  "size_mb": {
+    "message": "$COUNT$ MB",
+    "description": "File size limit (ADR: 15).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "15"
+      }
+    }
+  },
+  "manual_heading": {
+    "message": "Certnummer typen"
+  },
+  "field_cert_label": {
+    "message": "Certnummer"
+  },
+  "field_cert_hint": {
+    "message": "Bijvoorbeeld PSA 01234567 of CGC 4012345001"
+  },
+  "grader_legend": {
+    "message": "Grader"
+  },
+  "grader_psa": {
+    "message": "PSA",
+    "description": "Grader name. Never translated."
+  },
+  "grader_cgc_comics": {
+    "message": "CGC Comics",
+    "description": "Grader name. Never translated."
+  },
+  "grader_cgc_cards": {
+    "message": "CGC Cards",
+    "description": "Grader name. Never translated."
+  },
+  "grader_auto_hint": {
+    "message": "Gekozen op basis van wat je typte."
+  },
+  "open_button": {
+    "message": "Certpagina openen"
+  },
+  "url_preview": {
+    "message": "Opent $URL$",
+    "description": "URL without scheme, e.g. psacard.com/cert/01234567.",
+    "placeholders": {
+      "url": {
+        "content": "$1",
+        "example": "psacard.com/cert/01234567"
+      }
+    }
+  },
+  "url_preview_pending": {
+    "message": "Kies een grader om de link te zien."
+  },
+  "err_empty": {
+    "message": "Vul een certnummer in."
+  },
+  "err_chars": {
+    "message": "Gebruik cijfers, eventueel na PSA of CGC."
+  },
+  "err_length": {
+    "message": "Certnummers hebben $MIN$ tot $MAX$ cijfers. Dit nummer heeft er $COUNT$.",
+    "placeholders": {
+      "min": {
+        "content": "$1",
+        "example": "7"
+      },
+      "max": {
+        "content": "$2",
+        "example": "13"
+      },
+      "count": {
+        "content": "$3",
+        "example": "5"
+      }
+    }
+  },
+  "err_grader": {
+    "message": "Kies PSA, CGC Comics of CGC Cards."
+  },
+  "err_link": {
+    "message": "Die link is geen certpagina van PSA of CGC."
+  },
+  "warn_length": {
+    "message": "Ongebruikelijke lengte voor $GRADER$. Controleer het nummer voordat je opent.",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "PSA"
+      }
+    }
+  },
+  "scan_heading": {
+    "message": "Bezig met scannen…"
+  },
+  "step_load": {
+    "message": "Afbeelding laden"
+  },
+  "step_barcode": {
+    "message": "Barcode lezen"
+  },
+  "step_text": {
+    "message": "Tekst lezen"
+  },
+  "step_match": {
+    "message": "Nummer bepalen"
+  },
+  "step_state_done": {
+    "message": "Klaar",
+    "description": "Visually hidden step state."
+  },
+  "step_state_active": {
+    "message": "Bezig",
+    "description": "Visually hidden step state."
+  },
+  "step_state_waiting": {
+    "message": "Nog niet gestart",
+    "description": "Visually hidden step state."
+  },
+  "step_state_skipped": {
+    "message": "Overgeslagen",
+    "description": "Visible step state."
+  },
+  "step_text_starting": {
+    "message": "Tekstlezer starten…"
+  },
+  "scan_slow": {
+    "message": "Nog bezig. Grote afbeeldingen duren langer.",
+    "description": "Shown after 8 s."
+  },
+  "cancel_button": {
+    "message": "Annuleren"
+  },
+  "image_alt_page": {
+    "message": "Afbeelding van $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "image_alt_file": {
+    "message": "Jouw afbeelding: $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "slab.jpg"
+      }
+    }
+  },
+  "image_alt_pasted": {
+    "message": "Geplakte afbeelding"
+  },
+  "image_source_page": {
+    "message": "Van $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "image_larger": {
+    "message": "Groter tonen"
+  },
+  "image_smaller": {
+    "message": "Kleiner tonen"
+  },
+  "status_scan_started": {
+    "message": "Afbeelding wordt gescand."
+  },
+  "status_scan_cancelled": {
+    "message": "Scan geannuleerd."
+  },
+  "result_heading": {
+    "message": "Certpagina van $GRADER$ geopend",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "PSA"
+      }
+    }
+  },
+  "result_bg_note": {
+    "message": "De pagina staat op een tabblad op de achtergrond."
+  },
+  "go_to_tab": {
+    "message": "Naar tabblad"
+  },
+  "method_barcode": {
+    "message": "Gelezen uit barcode"
+  },
+  "method_qr": {
+    "message": "Gelezen uit QR-code"
+  },
+  "method_ocr": {
+    "message": "Gelezen uit tekst (OCR)"
+  },
+  "method_typed": {
+    "message": "Door jou getypt"
+  },
+  "method_edited": {
+    "message": "Door jou verbeterd"
+  },
+  "edit_link": {
+    "message": "Verkeerd nummer? Wijzigen"
+  },
+  "open_again": {
+    "message": "Opnieuw openen"
+  },
+  "copy_button": {
+    "message": "Nummer kopiëren"
+  },
+  "copy_done": {
+    "message": "Gekopieerd",
+    "description": "Button label for 2 s after copying."
+  },
+  "copy_failed": {
+    "message": "Kopiëren mislukt. Selecteer het nummer en kopieer het zelf."
+  },
+  "status_copied": {
+    "message": "Nummer gekopieerd."
+  },
+  "verify_note": {
+    "message": "Controleer of de certpagina bij deze slab past. Een geldig nummer alleen bewijst niet dat de slab echt is.",
+    "description": "Always shown with a result."
+  },
+  "status_opened": {
+    "message": "Certpagina van $GRADER$ geopend voor $NUMBER$.",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "PSA"
+      },
+      "number": {
+        "content": "$2",
+        "example": "01234567"
+      }
+    }
+  },
+  "offline_note": {
+    "message": "Je bent offline. De pagina laadt zodra je weer verbinding hebt."
+  },
+  "err_open_tab": {
+    "message": "Kan geen nieuw tabblad openen. Probeer het opnieuw."
+  },
+  "edit_heading": {
+    "message": "Nummer wijzigen"
+  },
+  "confirm_heading": {
+    "message": "Controleer het nummer"
+  },
+  "candidates_legend": {
+    "message": "Mogelijke nummers"
+  },
+  "candidate_best": {
+    "message": "Beste gok"
+  },
+  "candidate_grader_guess": {
+    "message": "Waarschijnlijk $GRADER$",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "PSA"
+      }
+    }
+  },
+  "candidate_grader_unknown": {
+    "message": "Grader onbekend"
+  },
+  "reason_multiple": {
+    "message": "$COUNT$ mogelijke nummers gevonden. Kies het nummer op het label.",
+    "description": "COUNT is always 2 or more.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "reason_cgc_both": {
+    "message": "Dit nummer past bij zowel CGC Comics als CGC Cards. Kies er een."
+  },
+  "reason_grader_unknown": {
+    "message": "Niet duidelijk welke grader dit is. Kies er een."
+  },
+  "reason_unclear": {
+    "message": "De foto is klein of onduidelijk. Vergelijk het nummer met het label."
+  },
+  "reason_always_ask": {
+    "message": "Je hebt ingesteld dat CertScanner altijd eerst vraagt."
+  },
+  "qr_offsite_title": {
+    "message": "QR-code linkt naar een andere site"
+  },
+  "qr_offsite_body": {
+    "message": "Hij verwijst naar $HOST$, niet naar PSA of CGC, en is daarom niet geopend.",
+    "description": "Host as plain text, never a link.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "example.test"
+      }
+    }
+  },
+  "qr_offsite_number": {
+    "message": "Alleen het nummer erin is gebruikt."
+  },
+  "none_heading": {
+    "message": "Geen certnummer gevonden"
+  },
+  "none_body": {
+    "message": "Probeer een scherpere of grotere foto van het label, of typ het nummer."
+  },
+  "type_number_button": {
+    "message": "Nummer typen"
+  },
+  "err_restricted_heading": {
+    "message": "Chrome staat het lezen van deze pagina niet toe"
+  },
+  "err_restricted_body": {
+    "message": "Sla de afbeelding op of kopieer hem, en sleep, plak of upload hem hier."
+  },
+  "err_not_found_heading": {
+    "message": "Afbeelding niet gevonden"
+  },
+  "err_not_found_body": {
+    "message": "De pagina is misschien veranderd. Scroll naar de afbeelding en probeer het opnieuw, of upload hem."
+  },
+  "err_too_large_heading": {
+    "message": "Afbeelding is te groot"
+  },
+  "err_too_large_body": {
+    "message": "Kies een afbeelding tot $SIZE$, of snijd hem bij tot het label.",
+    "placeholders": {
+      "size": {
+        "content": "$1",
+        "example": "15 MB"
+      }
+    }
+  },
+  "err_capture_heading": {
+    "message": "Afbeelding vastleggen mislukt"
+  },
+  "err_capture_body": {
+    "message": "Zorg dat de afbeelding helemaal zichtbaar is op het tabblad en probeer het opnieuw."
+  },
+  "err_engine_heading": {
+    "message": "Tekstlezer is niet gestart"
+  },
+  "err_engine_body": {
+    "message": "Barcodes scannen en het nummer typen werken nog. Laad het paneel opnieuw om het nog eens te proberen."
+  },
+  "err_file_type_heading": {
+    "message": "Dat is geen afbeelding"
+  },
+  "err_file_type_body": {
+    "message": "Gebruik een JPEG-, PNG-, WebP- of AVIF-bestand."
+  },
+  "err_decode_heading": {
+    "message": "Kan deze afbeelding niet openen"
+  },
+  "err_decode_body": {
+    "message": "Het bestand is misschien beschadigd. Probeer een andere afbeelding."
+  },
+  "err_dropped_link_heading": {
+    "message": "Sleep het afbeeldingsbestand zelf"
+  },
+  "err_dropped_link_body": {
+    "message": "Links kunnen niet worden gescand. Klik met rechts op de afbeelding en kies ‘$MENU$’, of sla hem op en sleep het bestand.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "err_generic_heading": {
+    "message": "Er ging iets mis"
+  },
+  "err_generic_body": {
+    "message": "Probeer het opnieuw of typ het nummer."
+  },
+  "retry_button": {
+    "message": "Opnieuw proberen"
+  },
+  "reload_button": {
+    "message": "Paneel opnieuw laden"
+  },
+  "lowres_title": {
+    "message": "Gescand op schermresolutie"
+  },
+  "lowres_body": {
+    "message": "Afbeeldingen op deze pagina komen van $HOST$. Sta afbeeldingen op volle grootte van die site toe voor scherpere scans.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "lowres_button": {
+    "message": "Scherpere scans op $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "lowres_fineprint": {
+    "message": "Chrome vraagt of je toegang tot $HOST$ toestaat. CertScanner gebruikt die alleen om afbeeldingen te laden die je scant. Je kunt dit altijd intrekken in Instellingen.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "lowres_dismiss": {
+    "message": "Niet nu"
+  },
+  "perm_granted": {
+    "message": "Scherpere scans staan aan voor $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "rescan_button": {
+    "message": "Opnieuw scannen"
+  },
+  "perm_denied": {
+    "message": "Geen toestemming gegeven. Scans op $HOST$ gebruiken schermresolutie.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "perm_failed": {
+    "message": "Chrome kon de toestemmingsvraag niet tonen. Probeer het opnieuw."
+  },
+  "recent_heading": {
+    "message": "Recente scans"
+  },
+  "recent_empty": {
+    "message": "Nog geen scans."
+  },
+  "recent_off": {
+    "message": "Geschiedenis staat uit. Je kunt hem aanzetten in Instellingen."
+  },
+  "recent_open": {
+    "message": "Openen",
+    "description": "Accessible name = this + grader + number."
+  },
+  "recent_copy": {
+    "message": "Kopiëren",
+    "description": "Visually hidden label of the copy icon button."
+  },
+  "recent_show_all": {
+    "message": "Alles tonen ($COUNT$)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "recent_show_fewer": {
+    "message": "Minder tonen"
+  },
+  "settings_opening_heading": {
+    "message": "Certpagina's openen"
+  },
+  "setting_always_ask": {
+    "message": "Altijd vragen voor het openen"
+  },
+  "setting_always_ask_hint": {
+    "message": "Als dit uit staat, opent de certpagina vanzelf als er precies één nummer duidelijk is gelezen."
+  },
+  "setting_background": {
+    "message": "Openen op een achtergrondtabblad"
+  },
+  "setting_background_hint": {
+    "message": "Je blijft op de pagina die je bekijkt."
+  },
+  "settings_history_heading": {
+    "message": "Scangeschiedenis"
+  },
+  "setting_history": {
+    "message": "Scangeschiedenis bewaren"
+  },
+  "setting_history_hint": {
+    "message": "Bewaart de laatste $COUNT$ nummers, alleen op dit apparaat. Uitzetten wist ze.",
+    "description": "COUNT is the history size (ADR: 25).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "25"
+      }
+    }
+  },
+  "clear_history": {
+    "message": "Geschiedenis wissen"
+  },
+  "history_empty": {
+    "message": "Geen opgeslagen scans."
+  },
+  "status_history_cleared": {
+    "message": "Scangeschiedenis gewist."
+  },
+  "settings_sites_heading": {
+    "message": "Sites met volledige toegang",
+    "description": "Settings section listing optional host grants (Sharper scans and Always allow)."
+  },
+  "settings_sites_body": {
+    "message": "Je hebt deze toegestaan via ‘Scherpere scans’ of ‘Altijd toestaan’. CertScanner mag daar afbeeldingen op volle grootte laden en die pagina's vanuit dit paneel scannen."
+  },
+  "settings_sites_empty": {
+    "message": "Nog geen. CertScanner biedt dit aan als een scan scherper kan of als het een pagina niet kan lezen."
+  },
+  "remove_button": {
+    "message": "Verwijderen",
+    "description": "Accessible name = this + host."
+  },
+  "status_site_removed": {
+    "message": "$HOST$ verwijderd.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  },
+  "settings_about_heading": {
+    "message": "Over"
+  },
+  "about_privacy": {
+    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Een certnummer verlaat je apparaat pas als de pagina van de grader opent."
+  },
+  "about_lookup": {
+    "message": "Een certcontrole toont wat de database van de grader over een nummer zegt. Of de slab op een foto echt is, kan die niet zeggen."
+  },
+  "about_disclaimer": {
+    "message": "Niet gelieerd aan PSA of CGC."
+  },
+  "about_trademarks": {
+    "message": "PSA en CGC zijn handelsmerken van hun respectieve eigenaren."
+  },
+  "about_language": {
+    "message": "De taal volgt je Chrome-instellingen."
+  },
+  "about_uninstall": {
+    "message": "Als je de extensie verwijdert, wordt de scangeschiedenis gewist."
+  },
+  "about_version": {
+    "message": "Versie $VERSION$",
+    "description": "From the manifest version.",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "0.1.0"
+      }
+    }
+  },
+  "privacy_link": {
+    "message": "Privacybeleid",
+    "description": "Link target is a release dependency."
+  },
+  "footer_local": {
+    "message": "Afbeeldingen blijven op dit apparaat"
+  },
+  "ocr_unavailable_note": {
+    "message": "De tekstlezer is niet gestart, dus alleen de barcode is gebruikt.",
+    "description": "Added in S6: barcode result while OCR failed."
+  },
+  "settings_sites_all": {
+    "message": "Alle sites",
+    "description": "Added in S6 (SEC-11): row shown when access to all https sites is granted."
+  },
+  "command_scan_page": {
+    "message": "Deze pagina scannen op certnummers van slabs",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)."
+  },
+  "page_scan_button": {
+    "message": "Deze pagina scannen",
+    "description": "Primary button in the panel."
+  },
+  "page_scan_again": {
+    "message": "Deze pagina opnieuw scannen"
+  },
+  "page_scan_lead": {
+    "message": "Zoekt de slabfoto's op de pagina die je bekijkt en leest hun certnummers."
+  },
+  "right_click_hint": {
+    "message": "Of klik met rechts op een slabfoto en kies ‘$MENU$’.",
+    "description": "MENU is the context menu title.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "shortcut_hint": {
+    "message": "Sneltoets: $KEYS$, of klik op het CertScanner-icoon.",
+    "description": "KEYS is the keyboard shortcut set in Chrome.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "shortcut_none": {
+    "message": "Klik op het CertScanner-icoon om de pagina die je bekijkt te scannen.",
+    "description": "Shown when no keyboard shortcut is set."
+  },
+  "other_ways_heading": {
+    "message": "Andere manieren om te scannen"
+  },
+  "page_finding": {
+    "message": "Slabfoto's zoeken op deze pagina…"
+  },
+  "page_progress": {
+    "message": "Afbeelding $INDEX$ van $TOTAL$ scannen",
+    "placeholders": {
+      "index": {
+        "content": "$1",
+        "example": "2"
+      },
+      "total": {
+        "content": "$2",
+        "example": "6"
+      }
+    }
+  },
+  "status_page_started": {
+    "message": "Deze pagina wordt gescand."
+  },
+  "page_results_heading": {
+    "message": "Certnummers op deze pagina"
+  },
+  "page_results_summary": {
+    "message": "Gevonden: $COUNT$. Open het nummer dat bij de slab hoort die je bekijkt.",
+    "description": "Neutral count form.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "page_result_choose": {
+    "message": "Grader kiezen"
+  },
+  "page_result_photo": {
+    "message": "Foto $INDEX$",
+    "description": "Thumbnail alt text in the results list.",
+    "placeholders": {
+      "index": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "page_none_heading": {
+    "message": "Geen certnummers gevonden op deze pagina"
+  },
+  "page_none_no_images": {
+    "message": "Er staan geen foto's op deze pagina die groot genoeg zijn voor een slab."
+  },
+  "page_none_checked": {
+    "message": "De foto's op deze pagina zijn gecontroleerd, maar er is geen certnummer gelezen."
+  },
+  "page_tip_open_photo": {
+    "message": "Kleine miniaturen zijn moeilijk te lezen. Open de grote foto van de advertentie en scan opnieuw."
+  },
+  "page_tip_right_click": {
+    "message": "Klik met rechts op een specifieke slabfoto en kies ‘$MENU$’. Als die op schermresolutie is gelezen, biedt CertScanner scherpere scans aan.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "page_tip_upload": {
+    "message": "Of sla de foto op en upload of plak hem hieronder."
+  },
+  "page_access_heading": {
+    "message": "CertScanner kan deze pagina nog niet lezen"
+  },
+  "page_access_body_keys": {
+    "message": "Klik op het CertScanner-icoon in de werkbalk, of druk op $KEYS$, om deze pagina te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body": {
+    "message": "Klik op het CertScanner-icoon in de werkbalk om deze pagina te scannen."
+  },
+  "page_access_always": {
+    "message": "Altijd toestaan op $HOST$",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_access_fineprint": {
+    "message": "Chrome vraagt of je toegang tot $HOST$ toestaat. CertScanner gebruikt die alleen om slabfoto's te vinden en te lezen die je scant. Je kunt dit altijd intrekken in Instellingen.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "settings_toolbar_heading": {
+    "message": "Werkbalkknop en sneltoets"
+  },
+  "setting_scan_on_click": {
+    "message": "Werkbalkknop scant de pagina",
+    "description": "Switch (setting scanOnToolbarClick)."
+  },
+  "setting_scan_on_click_hint": {
+    "message": "Als dit uit staat, opent een klik op het CertScanner-icoon alleen dit paneel."
+  },
+  "action_title_open": {
+    "message": "CertScanner openen",
+    "description": "Toolbar tooltip set at runtime when “Toolbar button scans the page” is off."
+  },
+  "setting_shortcut_current": {
+    "message": "Sneltoets: $KEYS$",
+    "description": "KEYS is the shortcut Chrome reports for “scan this page”.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "setting_shortcut_unset": {
+    "message": "Sneltoets: niet ingesteld"
+  },
+  "setting_shortcut_hint": {
+    "message": "Je kunt hem wijzigen via chrome://extensions/shortcuts.",
+    "description": "Keep the chrome:// address untranslated."
+  },
+  "setting_shortcut_button": {
+    "message": "Sneltoets wijzigen",
+    "description": "Opens chrome://extensions/shortcuts in a new tab."
+  },
+  "shortcut_hint_keys_only": {
+    "message": "Sneltoets: $KEYS$.",
+    "description": "Shown when the toolbar button only opens the panel.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body_keys_only": {
+    "message": "Druk op $KEYS$ om deze pagina te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "page_access_body_none": {
+    "message": "Zet ‘Werkbalkknop scant de pagina’ aan in Instellingen, of stel een sneltoets in, en gebruik die op deze pagina."
+  },
+  "page_access_why": {
+    "message": "Chrome laat CertScanner een pagina pas lezen nadat je de extensie op die pagina gebruikt."
+  },
+  "page_access_denied": {
+    "message": "Geen toegang gegeven voor $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_access_granted": {
+    "message": "Toegang toegestaan op $HOST$. Deze pagina wordt gescand.",
+    "description": "Status after “Always allow” was granted.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "www.ebay.com"
+      }
+    }
+  },
+  "page_results_partial": {
+    "message": "Gestopt na 30 seconden: $CHECKED$ van $TOTAL$ foto's gecontroleerd.",
+    "description": "The page budget ran out; TOTAL is at least 2.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "3"
+      },
+      "total": {
+        "content": "$2",
+        "example": "8"
+      }
+    }
+  },
+  "page_result_opened": {
+    "message": "Geopend",
+    "description": "Marks a results row whose cert page was opened."
+  },
+  "page_back_to_results": {
+    "message": "Terug naar de resultaten"
+  },
+  "err_page_timeout_heading": {
+    "message": "Het scannen van deze pagina duurde te lang"
+  },
+  "err_page_timeout_body": {
+    "message": "Probeer het opnieuw, of klik met rechts op een specifieke slabfoto en kies ‘$MENU$’.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "err_restricted_page_body": {
+    "message": "Ga naar een pagina in een ander tabblad en scan die, of sla een slabfoto op en sleep, plak of upload hem hier.",
+    "description": "E1 body when a page scan (A9) hit a page Chrome does not let extensions read."
+  },
+  "page_row_offsite": {
+    "message": "Uit de QR-code die naar $HOST$ linkt. Vergelijk het nummer met het label.",
+    "description": "Note under a page-results row whose number came from an off-site QR code (N2).",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "evil.example"
+      }
+    }
+  },
+  "page_row_unclear": {
+    "message": "Geen duidelijke lezing. Vergelijk het nummer met het label.",
+    "description": "Note under a page-results row read below the auto-open confidence."
+  },
+  "page_results_capped": {
+    "message": "$CHECKED$ van $TOTAL$ foto's gecontroleerd.",
+    "description": "O10: more slab-sized photos than the 8-photo limit; TOTAL is larger than CHECKED.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "8"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
+  "page_none_checked_some": {
+    "message": "$CHECKED$ van $TOTAL$ foto's op deze pagina gecontroleerd, maar er is geen certnummer gelezen.",
+    "description": "O10: page \"none\" state when the 8-photo limit left some photos unchecked.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "8"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
+  "err_page_no_access_heading": {
+    "message": "CertScanner kan dit tabblad nu niet lezen",
+    "description": "O11 (E12): a toolbar/shortcut page scan lost access to its tab before it started."
+  },
+  "err_page_no_access_body": {
+    "message": "Klik op het CertScanner-icoon of druk op $KEYS$ om het te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "err_page_no_access_body_icon": {
+    "message": "Klik op het CertScanner-icoon om het te scannen."
+  },
+  "err_page_no_access_body_keys": {
+    "message": "Druk op $KEYS$ om het te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "err_page_no_access_body_none": {
+    "message": "Zet ‘Werkbalkknop scant de pagina’ aan in Instellingen, of stel een sneltoets in, en gebruik die op dit tabblad."
+  },
+  "status_site_not_removed": {
+    "message": "$HOST$ kon niet worden verwijderd.",
+    "description": "SEC-17: Chrome did not remove the site access (e.g. access granted at install time).",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+CertScanner bundles the following third-party components, unmodified, under vendor/.
+
+tesseract.js 7.0.0 (Apache-2.0) - vendor/tesseract/{tesseract.min.js,worker.min.js}
+  License: vendor/tesseract/LICENSE-tesseract.js.md
+  Bundled sub-components: vendor/tesseract/tesseract.min.js.LICENSE.txt, vendor/tesseract/worker.min.js.LICENSE.txt
+tesseract.js-core 7.0.0 (Apache-2.0; Emscripten build of Tesseract OCR, Apache-2.0, and Leptonica, BSD-2-Clause)
+  - vendor/tesseract/tesseract-core-simd-lstm.{js,wasm}
+  License: vendor/tesseract/LICENSE-tesseract.js-core.txt
+@tesseract.js-data/eng 1.0.0 (package: MIT) - vendor/tesseract/lang/eng.traineddata.gz
+  Model: Tesseract "eng" 4.0.0_best_int traineddata from the tesseract-ocr/tessdata project (Apache-2.0).
+zxing-wasm 3.1.5 (MIT) - vendor/zxing/{zxing-reader.iife.js,zxing_reader.wasm}
+  License: vendor/zxing/LICENSE-zxing-wasm.txt
+  Built from zxing-cpp (Apache-2.0) - License: vendor/licenses/zxing-cpp.Apache-2.0.txt
+
+Libraries statically linked into vendor/tesseract/tesseract-core-simd-lstm.wasm:
+  Leptonica (BSD-2-Clause) - vendor/licenses/leptonica.BSD-2-Clause.txt
+  IJG libjpeg 9a (IJG license) - vendor/licenses/libjpeg-9a.IJG-legal.txt
+    This software is based in part on the work of the Independent JPEG Group.
+  libpng 1.6.38 (PNG Reference Library License v2) - vendor/licenses/libpng-1.6.38.PNG-v2.txt
+  LibTIFF (libtiff license) - vendor/licenses/libtiff.COPYRIGHT.txt
+  zlib 1.2.12 (zlib license) - vendor/licenses/zlib-1.2.12.txt
+  giflib (MIT-style) - vendor/licenses/giflib.COPYING.txt
+  libwebp (BSD-3-Clause + patent grant) - vendor/licenses/libwebp.COPYING.txt, vendor/licenses/libwebp.PATENTS.txt
+  openlibm (various permissive) - vendor/licenses/openlibm.LICENSE.md
+Libraries compiled into vendor/zxing/zxing_reader.wasm:
+  libzueci, bundled in zxing-cpp (BSD-3-Clause) - vendor/licenses/libzueci.BSD-3-Clause.txt
+
+All code, WebAssembly and model data are packaged with the extension; nothing is downloaded at runtime.

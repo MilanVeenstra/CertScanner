@@ -1,0 +1,74 @@
+{
+  "name": "CertScanner",
+  "version": "0.1.0",
+  "gitCommit": "ba5ca8a0f5fff6cdd3ae2214d02e9479fe824ece",
+  "gitDirty": false,
+  "builtAt": "2026-10-10T11:19:49.000Z",
+  "target": "release",
+  "e2eHarness": false,
+  "vendor": [
+    {
+      "name": "tesseract.js",
+      "version": "7.0.0",
+      "file": "vendor/tesseract/tesseract.min.js",
+      "bytes": 62961,
+      "sha256": "000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e",
+      "remoteUrlStrings": [
+        "https://cdn.jsdelivr.net/npm/tesseract.js@v"
+      ]
+    },
+    {
+      "name": "tesseract.js",
+      "version": "7.0.0",
+      "file": "vendor/tesseract/worker.min.js",
+      "bytes": 111307,
+      "sha256": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
+      "remoteUrlStrings": [
+        "https://cdn.jsdelivr.net/npm/@tesseract.js-data/",
+        "https://cdn.jsdelivr.net/npm/tesseract.js-core@v"
+      ]
+    },
+    {
+      "name": "tesseract.js-core",
+      "version": "7.0.0",
+      "file": "vendor/tesseract/tesseract-core-simd-lstm.js",
+      "bytes": 89271,
+      "sha256": "e48e2f02ddae3716c8dd24bf41cd290d4efa96892d689cdc4013c2545d63f469",
+      "remoteUrlStrings": []
+    },
+    {
+      "name": "tesseract.js-core",
+      "version": "7.0.0",
+      "file": "vendor/tesseract/tesseract-core-simd-lstm.wasm",
+      "bytes": 2857601,
+      "sha256": "34e8d50cac216427d86bf397d610fdd9f49492539bbcdfbfccc4eda20c810bea",
+      "remoteUrlStrings": []
+    },
+    {
+      "name": "@tesseract.js-data/eng",
+      "version": "1.0.0",
+      "file": "vendor/tesseract/lang/eng.traineddata.gz",
+      "bytes": 2952873,
+      "sha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91",
+      "remoteUrlStrings": []
+    },
+    {
+      "name": "zxing-wasm",
+      "version": "3.1.5",
+      "file": "vendor/zxing/zxing-reader.iife.js",
+      "bytes": 36583,
+      "sha256": "228e6d8ccb841c544386eeafd5f18294d3e4aa0e7aa20419bc51a0009b9d3c17",
+      "remoteUrlStrings": [
+        "https://fastly.jsdelivr.net/npm/zxing-wasm@3.1.5/dist/${n[1]}/${e}"
+      ]
+    },
+    {
+      "name": "zxing-wasm",
+      "version": "3.1.5",
+      "file": "vendor/zxing/zxing_reader.wasm",
+      "bytes": 966895,
+      "sha256": "aecc1876de036c62c8419f67a5e1a16b1698a325bcd190aa84810d516e263931",
+      "remoteUrlStrings": []
+    }
+  ]
+}

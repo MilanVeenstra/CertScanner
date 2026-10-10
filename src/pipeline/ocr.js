@@ -129,6 +129,10 @@ export function createOcrEngine({
   function run(image, params, { rectangle, signal, pass, rotation, onProgress } = {}) {
     const job = queue.then(async () => {
       signal?.throwIfAborted();
+      // Read a Blob's bytes up front: tesseract.js reads a Blob asynchronously inside recognize(), and a terminate()
+      // during that read made its later postMessage hit a null worker (unhandled rejection after Cancel).
+      const input = image instanceof Blob ? new Uint8Array(await image.arrayBuffer()) : image;
+      signal?.throwIfAborted();
       const w = await warmUp();
       clearIdle();
       signal?.throwIfAborted();
@@ -138,7 +142,7 @@ export function createOcrEngine({
       try {
         await w.setParameters({ user_defined_dpi: '300', ...params });
         signal?.throwIfAborted();
-        const rec = w.recognize(image, rectangle ? { rectangle } : {}, { text: true, blocks: true });
+        const rec = w.recognize(input, rectangle ? { rectangle } : {}, { text: true, blocks: true });
         rec.catch(() => {}); // settles after terminate(); never unhandled
         const res = await withTimeout(raceSignal(rec, signal, dropIfCurrent), recognizeTimeoutMs, 'recognize-timeout');
         signal?.throwIfAborted();

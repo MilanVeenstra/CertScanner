@@ -104,3 +104,21 @@ test('a worker that finishes starting after dispose() is terminated, not kept', 
   assert.equal(w.terminated, true);
   assert.equal(ocr.ready, false);
 });
+
+test('a Blob is handed to tesseract.js as bytes, so a terminate() during its async Blob read cannot hit a null worker', async () => {
+  const T = fakeTesseract();
+  const seen = [];
+  const create = T.createWorker;
+  T.createWorker = async (...a) => {
+    const w = await create(...a);
+    const rec = w.recognize;
+    w.recognize = (image, ...rest) => { seen.push(image); return rec(image, ...rest); };
+    return w;
+  };
+  const ocr = engine(T);
+  await ocr.recognizeText(new Blob([new Uint8Array([1, 2, 3])]));
+  assert.equal(seen.length, 1);
+  assert.ok(seen[0] instanceof Uint8Array, 'recognize() receives a Uint8Array, not a Blob');
+  assert.deepEqual([...seen[0]], [1, 2, 3]);
+  await ocr.dispose();
+});

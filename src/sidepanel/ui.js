@@ -36,6 +36,9 @@ export function createUi(doc, actions) {
   let stages = [];
   let lastAnnounced = '';
   let thumbUrl = null;
+  /** URL the preview shows normally (a small thumbnail) and, while "Show larger" is open, the full image's URL. */
+  let shownThumbUrl = null;
+  let largeUrl = null;
   let recentExpanded = false;
   let currentCandidates = [];
 
@@ -53,7 +56,7 @@ export function createUi(doc, actions) {
   /** Move every singleton back to #parking and clear its content, so hidden ids never expose stale results. */
   function park() {
     for (const el of Object.values(singles)) if (el.parentElement !== parking) parking.appendChild(el);
-    singles.thumb.classList.remove('is-large');
+    closeLarger();
     for (const name of ['chip', 'number', 'method', 'path']) ref(singles.read, name).textContent = '';
     const items = ref(singles.candidates, 'candidate-items');
     while (items.firstChild) items.firstChild.remove();
@@ -132,6 +135,8 @@ export function createUi(doc, actions) {
     const box = singles.thumb;
     const img = box.querySelector('img');
     const ph = box.querySelector('.thumb-placeholder');
+    closeLarger();
+    shownThumbUrl = url;
     if (url) {
       img.src = url;
       img.alt = thumbAlt;
@@ -147,7 +152,19 @@ export function createUi(doc, actions) {
     }
   }
 
-  /** Object URL for the current thumbnail; revoked when replaced or cleared. */
+  /** "Show larger" closed: back to the small thumbnail, and the full image's URL is revoked. */
+  function closeLarger() {
+    const box = singles.thumb;
+    box.classList.remove('is-large');
+    if (largeUrl) {
+      const img = box.querySelector('img');
+      if (shownThumbUrl) img.src = shownThumbUrl; else img.removeAttribute('src');
+      URL.revokeObjectURL(largeUrl);
+      largeUrl = null;
+    }
+  }
+
+  /** Object URL for the current (small) thumbnail; revoked when replaced or cleared. */
   function thumbnail(blob) {
     if (thumbUrl) URL.revokeObjectURL(thumbUrl);
     thumbUrl = blob ? URL.createObjectURL(blob) : null;
@@ -415,12 +432,24 @@ export function createUi(doc, actions) {
     settle(summary, { moveFocus });
   }
 
-  function toggleLarger() {
+  /**
+   * "Show larger" / "Show smaller". `fullBlob`: the original image; its object URL exists only while the large view
+   * is open (perf rec. 1). Without it the small thumbnail is shown larger.
+   */
+  function toggleLarger(fullBlob = null) {
     const box = singles.thumb;
     const btn = ref(body, 'larger');
     if (!btn) return;
     const large = !box.classList.contains('is-large');
-    box.classList.toggle('is-large', large);
+    if (large) {
+      if (fullBlob) {
+        largeUrl = URL.createObjectURL(fullBlob);
+        box.querySelector('img').src = largeUrl;
+      }
+      box.classList.add('is-large');
+    } else {
+      closeLarger();
+    }
     btn.setAttribute('aria-expanded', String(large));
     btn.textContent = t(large ? 'image_smaller' : 'image_larger');
   }
@@ -533,12 +562,16 @@ export function createUi(doc, actions) {
     if (mark) mark.hidden = false;
   }
 
-  /** A9 none: no slab-sized photos, or photos checked without a readable number; tips follow. */
+  /**
+   * A9 none: no slab-sized photos, or photos checked without a readable number (O10: "Checked 8 of 10 photos…" when
+   * the cap left some unchecked); tips follow. view.reason: {key, subs}.
+   */
   function showPageNone(view, { moveFocus = true } = {}) {
     setTaskState('none');
     setHeading(t('page_none_heading'), 'info');
     const frag = clone('tpl-page-none');
-    ref(frag, 'none-reason').textContent = t(view.discovered ? 'page_none_checked' : 'page_none_no_images');
+    const reason = view.reason ?? { key: view.discovered ? 'page_none_checked' : 'page_none_no_images', subs: [] };
+    ref(frag, 'none-reason').textContent = t(reason.key, reason.subs);
     ref(frag, 'tip-right-click').textContent = t('page_tip_right_click', [t('context_menu_scan')]);
     body.appendChild(frag);
     qrBlock(body, view.qrHost, false);
@@ -569,6 +602,12 @@ export function createUi(doc, actions) {
     if (task.dataset.state !== 'page-access') return;
     const el = ref(body, 'access-body');
     if (el) el.textContent = t(copy.key, copy.subs);
+  }
+
+  /** E12 (O11) body after a settings/shortcut change, without re-rendering (focus stays). */
+  function updateNoAccessBody(copy) {
+    if (task.dataset.state !== 'error' || singles.error.dataset.code !== 'page-no-access') return;
+    singles.error.textContent = t(copy.key, copy.subs);
   }
 
   /** "Always allow" outcome: 'denied' (neutral note, offer withdrawn) or 'failed' (error, button stays). Focus goes to the note. */
@@ -683,7 +722,7 @@ export function createUi(doc, actions) {
   return {
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
     showIdle, showScanning, showResult, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
-    pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, setAccessOffer, updateIdleHint,
+    pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },
     get taskState() { return task.dataset.state; },

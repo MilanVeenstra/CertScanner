@@ -8,9 +8,11 @@
  *   node scripts/build.mjs --package -> builds + checks dist/, writes certscanner-<version>.zip from dist/ only
  *                                       (deterministic order/timestamps), re-validates the manifest inside the ZIP
  *                                       and prints its sha256. Refuses target != release or a dirty tree unless
- *                                       --allow-dirty (SEC-12).
+ *                                       --allow-dirty (SEC-12); a dirty package is named certscanner-<version>-dirty.zip.
  *
- * Env: SOURCE_DATE_EPOCH (seconds) makes builtAt reproducible.
+ * Dirty = any modified, untracked or ignored file under src/, third_party/, scripts/build.mjs, package*.json (SEC-15).
+ * Vendor files and their licences are pinned by sha256 below; any difference fails the build (SEC-15).
+ * Env: SOURCE_DATE_EPOCH (seconds) sets builtAt; default: the HEAD commit time (SEC-15), else the current time.
  */
 import { createHash } from 'node:crypto';
 import * as zlib from 'node:zlib';
@@ -32,23 +34,25 @@ const ALLOW_DIRTY = args.has('--allow-dirty');
 if (E2E && CHECK) { console.error('--e2e cannot be combined with --check/--package (they validate the release dist/)'); process.exit(2); }
 const OUT = path.join(ROOT, E2E ? 'dist-e2e' : 'dist');
 
-/** Executable/data files shipped from node_modules (ADR §12). */
+/** Executable/data files shipped from node_modules (ADR §12), pinned by sha256 (SEC-15). */
 const VENDOR = [
-  { pkg: 'tesseract.js', from: 'tesseract.js/dist/tesseract.min.js', to: 'vendor/tesseract/tesseract.min.js' },
-  { pkg: 'tesseract.js', from: 'tesseract.js/dist/worker.min.js', to: 'vendor/tesseract/worker.min.js' },
-  { pkg: 'tesseract.js-core', from: 'tesseract.js-core/tesseract-core-simd-lstm.js', to: 'vendor/tesseract/tesseract-core-simd-lstm.js' },
-  { pkg: 'tesseract.js-core', from: 'tesseract.js-core/tesseract-core-simd-lstm.wasm', to: 'vendor/tesseract/tesseract-core-simd-lstm.wasm' },
-  { pkg: '@tesseract.js-data/eng', from: '@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz', to: 'vendor/tesseract/lang/eng.traineddata.gz' },
-  { pkg: 'zxing-wasm', from: 'zxing-wasm/dist/iife/reader/index.js', to: 'vendor/zxing/zxing-reader.iife.js' },
-  { pkg: 'zxing-wasm', from: 'zxing-wasm/dist/reader/zxing_reader.wasm', to: 'vendor/zxing/zxing_reader.wasm' },
+  { pkg: 'tesseract.js', from: 'tesseract.js/dist/tesseract.min.js', to: 'vendor/tesseract/tesseract.min.js', sha256: '000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e' },
+  { pkg: 'tesseract.js', from: 'tesseract.js/dist/worker.min.js', to: 'vendor/tesseract/worker.min.js', sha256: '576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d' },
+  { pkg: 'tesseract.js-core', from: 'tesseract.js-core/tesseract-core-simd-lstm.js', to: 'vendor/tesseract/tesseract-core-simd-lstm.js', sha256: 'e48e2f02ddae3716c8dd24bf41cd290d4efa96892d689cdc4013c2545d63f469' },
+  { pkg: 'tesseract.js-core', from: 'tesseract.js-core/tesseract-core-simd-lstm.wasm', to: 'vendor/tesseract/tesseract-core-simd-lstm.wasm', sha256: '34e8d50cac216427d86bf397d610fdd9f49492539bbcdfbfccc4eda20c810bea' },
+  { pkg: '@tesseract.js-data/eng', from: '@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz', to: 'vendor/tesseract/lang/eng.traineddata.gz', sha256: '45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91' },
+  { pkg: 'zxing-wasm', from: 'zxing-wasm/dist/iife/reader/index.js', to: 'vendor/zxing/zxing-reader.iife.js', sha256: '228e6d8ccb841c544386eeafd5f18294d3e4aa0e7aa20419bc51a0009b9d3c17' },
+  { pkg: 'zxing-wasm', from: 'zxing-wasm/dist/reader/zxing_reader.wasm', to: 'vendor/zxing/zxing_reader.wasm', sha256: 'aecc1876de036c62c8419f67a5e1a16b1698a325bcd190aa84810d516e263931' },
 ];
 const LICENSES = [
-  { from: 'tesseract.js/LICENSE.md', to: 'vendor/tesseract/LICENSE-tesseract.js.md' },
-  { from: 'tesseract.js/dist/tesseract.min.js.LICENSE.txt', to: 'vendor/tesseract/tesseract.min.js.LICENSE.txt' },
-  { from: 'tesseract.js/dist/worker.min.js.LICENSE.txt', to: 'vendor/tesseract/worker.min.js.LICENSE.txt' },
-  { from: 'tesseract.js-core/LICENSE', to: 'vendor/tesseract/LICENSE-tesseract.js-core.txt' },
-  { from: 'zxing-wasm/LICENSE', to: 'vendor/zxing/LICENSE-zxing-wasm.txt' },
+  { from: 'tesseract.js/LICENSE.md', to: 'vendor/tesseract/LICENSE-tesseract.js.md', sha256: 'b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1' },
+  { from: 'tesseract.js/dist/tesseract.min.js.LICENSE.txt', to: 'vendor/tesseract/tesseract.min.js.LICENSE.txt', sha256: 'cdf963ced7d25a0f98901a547647b4d6e2dbe0197fd78c87a059a87b0e542fe2' },
+  { from: 'tesseract.js/dist/worker.min.js.LICENSE.txt', to: 'vendor/tesseract/worker.min.js.LICENSE.txt', sha256: '45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac' },
+  { from: 'tesseract.js-core/LICENSE', to: 'vendor/tesseract/LICENSE-tesseract.js-core.txt', sha256: 'c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08' },
+  { from: 'zxing-wasm/LICENSE', to: 'vendor/zxing/LICENSE-zxing-wasm.txt', sha256: 'fb506e4ade12d7a9efa67c9d76a9a28c8e15d347ca49a69e48e29b40b34ad2ab' },
 ];
+/** Paths whose working-tree state decides gitDirty (SEC-15): every file that ends up in, or decides, the package. */
+const DIRTY_PATHS = ['src', 'third_party', 'scripts/build.mjs', 'package.json', 'package-lock.json'];
 /** Licence texts of libraries linked into the vendor WASM (SEC-05); kept in the repo, see third_party/licenses/README.md. */
 const LINKED_LICENSES_DIR = path.join(ROOT, 'third_party', 'licenses');
 const LINKED_LICENSES = [
@@ -104,6 +108,11 @@ function remoteUrlStrings(buf) {
 
 async function build() {
   for (const v of VENDOR) if (!existsSync(path.join(NM, v.from))) throw new Error(`missing ${v.from}; run npm ci`);
+  // SEC-15: what ships must be byte-identical to the reviewed vendor files.
+  for (const v of [...VENDOR, ...LICENSES]) {
+    const got = sha256(readFileSync(path.join(NM, v.from)));
+    if (got !== v.sha256) throw new Error(`vendor sha256 mismatch for node_modules/${v.from}: ${got} (pinned ${v.sha256}); run npm ci or review the update`);
+  }
   for (const [name, want] of Object.entries(EXPECTED_VERSIONS)) {
     const got = pkgVersion(name);
     if (want instanceof RegExp ? !want.test(got) : got !== want) throw new Error(`${name} is ${got}, expected ${want}`);
@@ -144,19 +153,23 @@ async function build() {
   }
 
   const commit = git('rev-parse', 'HEAD');
-  const dirty = git('status', '--porcelain', '--', 'src', 'scripts/build.mjs', 'package.json', 'package-lock.json');
-  const epoch = Number(process.env.SOURCE_DATE_EPOCH);
+  // SEC-15: modified, untracked AND ignored files count (an ignored file under src/ would be copied into dist/).
+  const dirty = commit === null ? null : git('status', '--porcelain', '--ignored', '--untracked-files=all', '--', ...DIRTY_PATHS);
+  const envEpoch = Number(process.env.SOURCE_DATE_EPOCH);
+  const commitEpoch = Number(commit === null ? NaN : git('log', '-1', '--format=%ct', 'HEAD'));
+  const epoch = Number.isFinite(envEpoch) && envEpoch > 0 ? envEpoch : (Number.isFinite(commitEpoch) && commitEpoch > 0 ? commitEpoch : null);
   const info = {
     name: 'CertScanner',
     version: manifest.version,
     gitCommit: commit,
     gitDirty: dirty === null ? null : dirty.length > 0,
-    builtAt: new Date(Number.isFinite(epoch) && epoch > 0 ? epoch * 1000 : Date.now()).toISOString(),
+    builtAt: new Date(epoch !== null ? epoch * 1000 : Date.now()).toISOString(),
     target: E2E ? 'e2e' : 'release',
     e2eHarness: harness,
     vendor: vendorInfo,
   };
   await writeFile(path.join(OUT, 'build-info.json'), `${JSON.stringify(info, null, 2)}\n`);
+  if (dirty) info.dirtyFiles = dirty.split('\n').filter(Boolean).slice(0, 10); // for the refusal message only
 
   const files = await walk(OUT);
   const bytes = files.reduce((s, f) => s + statSync(f).size, 0);
@@ -297,14 +310,16 @@ function unzipFiles(buf) {
 
 async function packageZip(info) {
   if (info.target !== 'release') throw new Error(`refusing to package target=${info.target} (release only)`);
-  if (info.gitDirty !== false) {
-    if (!ALLOW_DIRTY) throw new Error(`refusing to package: gitDirty=${info.gitDirty} (commit first, or pass --allow-dirty for a local test package)`);
-    console.warn('WARNING: packaging a dirty working tree (--allow-dirty); not for Store upload.');
+  const dirty = info.gitDirty !== false;
+  if (dirty) {
+    const which = info.dirtyFiles?.length ? `: ${info.dirtyFiles.join(', ')}` : '';
+    if (!ALLOW_DIRTY) throw new Error(`refusing to package: gitDirty=${info.gitDirty}${which} (commit first, or pass --allow-dirty for a local test package)`);
+    console.warn(`WARNING: packaging a dirty working tree (--allow-dirty)${which}; named -dirty, not for Store upload.`);
   }
   const files = (await walk(OUT)).map((f) => path.relative(OUT, f).split(path.sep).join('/')).sort();
   const entries = await Promise.all(files.map(async (name) => ({ name, data: await readFile(path.join(OUT, name)) })));
   const zip = zipFiles(entries);
-  const zipPath = path.join(ROOT, `certscanner-${info.version}.zip`);
+  const zipPath = path.join(ROOT, `certscanner-${info.version}${dirty ? '-dirty' : ''}.zip`);
   await writeFile(zipPath, zip);
 
   // Re-validate what is actually inside the ZIP.
@@ -349,12 +364,15 @@ async function check(info) {
     if (!existsSync(p)) { fail(`missing vendor file ${v.to}`); vendorOk = false; continue; }
     const h = sha256(await readFile(p));
     const recorded = info.vendor.find((x) => x.file === v.to)?.sha256;
-    if (h !== recorded || h !== sha256(await readFile(path.join(NM, v.from)))) { fail(`vendor hash mismatch ${v.to}`); vendorOk = false; }
+    if (h !== recorded || h !== v.sha256) { fail(`vendor hash mismatch ${v.to} (pinned ${v.sha256})`); vendorOk = false; }
   }
-  for (const l of LICENSES) if (!existsSync(path.join(OUT, l.to))) { fail(`missing license ${l.to}`); vendorOk = false; }
+  for (const l of LICENSES) {
+    if (!existsSync(path.join(OUT, l.to))) { fail(`missing license ${l.to}`); vendorOk = false; continue; }
+    if (sha256(await readFile(path.join(OUT, l.to))) !== l.sha256) { fail(`license hash mismatch ${l.to} (pinned ${l.sha256})`); vendorOk = false; }
+  }
   for (const f of LINKED_LICENSES) if (!existsSync(path.join(OUT, 'vendor', 'licenses', f))) { fail(`missing linked-library license vendor/licenses/${f}`); vendorOk = false; }
   if (!readFileSync(path.join(OUT, 'vendor', 'THIRD_PARTY_NOTICES.txt'), 'utf8').includes('based in part on the work of the Independent JPEG Group')) { fail('THIRD_PARTY_NOTICES.txt lacks the IJG acknowledgement'); vendorOk = false; }
-  if (vendorOk) pass(`vendor: ${VENDOR.length} files + ${LICENSES.length + LINKED_LICENSES.length} licenses present (incl. WASM-linked libraries), sha256 recorded in build-info.json`);
+  if (vendorOk) pass(`vendor: ${VENDOR.length} files + ${LICENSES.length + LINKED_LICENSES.length} licenses present (incl. WASM-linked libraries); vendor files and package licences match the pinned sha256, recorded in build-info.json`);
 
   // 4. Source scan: URLs, dangerous sinks, inline scripts, remote code
   const srcFiles = (await walk(SRC)).filter((f) => TEXT_EXT.has(path.extname(f)));

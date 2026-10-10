@@ -52,3 +52,20 @@ test('parseLastResult rejects stale, malformed and hostile values', () => {
   bad({ opened: { grader: 'psa', number: '12', method: 'ocr', background: false } });
   bad({ savedAt: 'yesterday' });
 });
+
+// ---------------------------------------------------------------- SEC-18
+test('SEC-18: clearAllLastResults removes every window\'s last result and nothing else', async () => {
+  const { lastResultKeys, clearAllLastResults } = await import('../../src/shared/lastResult.js');
+  const data = { 'lastResult:7': { v: 1 }, 'lastResult:12': { v: 1 }, 'scanJob:7': { v: 1 }, sharperDeclined: ['a'], 'seenJobs:7': ['x'] };
+  assert.deepEqual(lastResultKeys(data).sort(), ['lastResult:12', 'lastResult:7']);
+  assert.deepEqual(lastResultKeys(undefined), []);
+  const removed = [];
+  const area = {
+    get: async (k) => { assert.equal(k, null); return { ...data }; },
+    remove: async (keys) => { removed.push(...keys); for (const k of keys) delete data[k]; },
+  };
+  await clearAllLastResults(area);
+  assert.deepEqual(removed.sort(), ['lastResult:12', 'lastResult:7']);
+  assert.deepEqual(Object.keys(data).sort(), ['scanJob:7', 'seenJobs:7', 'sharperDeclined']);
+  await clearAllLastResults({ get: async () => { throw new Error('gone'); }, remove: async () => {} }); // never throws
+});

@@ -31,8 +31,8 @@
     "architecture": {
       "status": "evidenced",
       "evidence": "docs/architecture/architecture.md",
-      "sha256": "bf70db1b8737bcfc1e2d5c9a1c582042fc1735b63a49e67c33bac3be5ccfc40d",
-      "recorded_at": "2026-10-09T21:58:25.505547+00:00"
+      "sha256": "29b98dd404a1848c1c0fbc61f5d2835dc6e3c382b93f20f5aa74bfbb8aa3b8ef",
+      "recorded_at": "2026-10-10T08:00:32.818971+00:00"
     },
     "design": {
       "status": "pending"
@@ -154,6 +154,32 @@
         }
       },
       "recorded_at": "2026-10-09T21:58:25.438583+00:00"
+    },
+    {
+      "action": "invalidate",
+      "stage": "architecture",
+      "reason": "ADR amendments A9 (page scan, user requirement change) and A10 (improvement round)",
+      "previous": {
+        "architecture": {
+          "status": "evidenced",
+          "evidence": "docs/architecture/architecture.md",
+          "sha256": "bf70db1b8737bcfc1e2d5c9a1c582042fc1735b63a49e67c33bac3be5ccfc40d",
+          "recorded_at": "2026-10-09T21:58:25.505547+00:00"
+        },
+        "design": {
+          "status": "pending"
+        },
+        "build": {
+          "status": "pending"
+        },
+        "test": {
+          "status": "pending"
+        },
+        "release": {
+          "status": "pending"
+        }
+      },
+      "recorded_at": "2026-10-10T08:00:32.751515+00:00"
     }
   ]
 }

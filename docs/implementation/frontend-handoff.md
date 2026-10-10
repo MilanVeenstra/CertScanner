@@ -346,3 +346,112 @@ All are actual extension captures, 360 px wide, full page, light and dark. Saved
   - Row buttons use `data-ref="open"`, `"choose"` and `"copy"`.
 - In release `dist/` the SW can't see tab URLs, so take the active tab instead of using `findTab`.
 - Not automatable: real toolbar click or shortcut (activeTab grant + `sidePanel.open`), the permission prompt, and real "Always allow" grants (manual M-checks).
+
+---
+
+## S8 improvement round: security round 2 + memory (frontend-engineer, 2026-10-10)
+
+**Outcome:** All approved items are done: SEC-13, SEC-14, SEC-15, SEC-17, SEC-18, SEC-19, perf items 5–8, and O9–O11. Nothing was committed by FE.
+- The memory budget **passes after idle disposal** (117 MiB, budget ≤ 150).
+- **While scanning** it passes only between scans. Between scans the median is 235 MiB; 5 of 25 samples reach 251–265. Mid-scan readings are still above 250 (p50 290, max 416).
+
+**Source identity:**
+- HEAD `2f34199` (the orchestrator's WIP snapshot of part of this work) plus an uncommitted tree.
+- src-tree sha256 prefix `9aed47f4586a43cf`.
+- `dist/manifest.json` and `dist-e2e/manifest.json` are unchanged: `0aec47bb6c9faf3b` and `88fb2414b131391e`.
+- The memory soak ran on a frozen copy of `dist-e2e` with src prefix `3d8188f1d0337c23`. That tree differs from the final one only by a no-op tidy in `ui.js` (`closeLarger`).
+
+**Environment:** bundled Chromium 141.0.7390.37 headless, Playwright 1.56.1, Node 22.22.0.
+
+### Changes
+
+| Item | Change | Files |
+|---|---|---|
+| SEC-13 | **Probe:** skips images that fail `checkVisibility({checkOpacity, checkVisibilityCSS})` (feature-detected). Returns `topmostAtCenter` per image, measured with `elementsFromPoint` at the centre of the visible part. It is true when the image is hit first, or an ancestor is hit first and the image has `pointer-events:none`, **and** the image's effective opacity is at least 0.5. It is stricter than the brief in two ways: an ancestor hit first does not count while the image itself can be hit (pseudo-element covers), and faint images (opacity 0.05) do not count.<br>**Validation:** the field must be a boolean; a missing value counts as false.<br>**Routing:** `isProminent` = visible ≥ 0.5 and topmost. `decidePage` auto-opens only if the number was read from at least one prominent image; otherwise it shows the list. | `pageImagesProbe.js`, `probeValidate.js`, `core/pageAggregate.js`, `pageScan.js` |
+| SEC-14 | **JPEG:** segment walk to the first SOFn; stops at SOS/EOI.<br>**GIF:** logical screen plus every image descriptor; the largest extent wins.<br>**Deep sniff:** when the first 64 KiB are not enough (`more:true`), up to 1 MiB is read (`sniffBlob`). A JPEG/GIF with no readable size and more than 256 KiB is refused (PNG/WebP exempt).<br>**Stop after too-large:** once `too-large` is known, no other fetch/decode strategy runs. The capture crop stays, because it is viewport-bounded. | `acquire.js` |
+| SEC-15 | **Dirty check:** `git status --porcelain --ignored --untracked-files=all` over `src third_party scripts/build.mjs package*.json`; the refusal lists the offending files.<br>**Dirty ZIP name:** `certscanner-<v>-dirty.zip`.<br>**builtAt:** `SOURCE_DATE_EPOCH`, else the HEAD commit time.<br>**Pins:** sha256 for the 7 vendor files and 5 `node_modules` licence files; a mismatch fails the build, and `--check` compares against the pins.<br>**`.gitignore`:** `/dist/` and `/dist-e2e/` are anchored, so `src/dist/` shows as untracked.<br>The orchestrator's `LINKED_LICENSES` and `notices()` lines are untouched. | `scripts/build.mjs`, `.gitignore` |
+| SEC-17 | **Remove a site:** the status comes from the resolved boolean ("Removed ‹host›." / "Couldn't remove ‹host›."), then the list is refreshed. | `permissionsUi.js` (`removalStatus`), `main.js` |
+| SEC-18 | **Clear history and History off:** also remove every `lastResult:*` key.<br>**Window closed:** the SW removes `scanJob:<w>`, `seenJobs:<w>` and `lastResult:<w>`. | `lastResult.js` (`clearAllLastResults`), `main.js`, `sw.js` |
+| SEC-19 | **data: images:** must match `^data:image/(?!svg)`, in both the probe and the validation. | `pageImagesProbe.js`, `probeValidate.js` |
+| Perf 5 | **Thumbnails:** the preview and the page rows show a ≤ 240 px PNG made with `createImageBitmap` (resize) → `OffscreenCanvas` → blob, after the scanner has decoded the image. Every bitmap is closed; a 3 s timeout applies.<br>**Show larger:** creates the object URL of the original blob, and revokes it on "Show smaller" or on any state change. | `sidepanel/thumbs.js` (new), `ui.js`, `main.js` |
+| Perf 6 | **Worker on abort:** an abort or timeout during `recognize` terminates the worker at once. The next call creates a new one. A generation guard stops a worker that finishes starting after `dispose()` from being kept.<br>**Warm-up:** OCR and zxing warm up when page discovery finds at least one photo, not when the panel opens. | `ocr.js`, `pageScan.js` |
+| Perf 7 | **SW listener:** `chrome.storage.sync.onChanged` only. | `sw.js` |
+| Perf 8 | **srcset:** the largest same-origin `srcsetBest` is tried first (extension fetch only). If that fails, the shown image goes through the normal strategies. | `pageScan.js` |
+| O9 | **Consumed job ids:** kept in `storage.session` `seenJobs:<windowId>` (newest 20, ids only). Intake is serialized behind loading this list. | `shared/seenJobs.js` (new), `jobIntake.js` |
+| O10 | **Probe count:** the probe returns `total` (qualifying images before the cap); the scan returns `totalFound`.<br>**Copy:** results show "Checked 8 of 10 photos." / "8 van 10 foto's gecontroleerd." (not shown when the 30 s timeout line appears). The page "none" state shows "Checked 8 of 10 photos on this page but couldn't read a cert number." | `pageView.js`, `ui.js`, locales |
+| O11 | **New E12** (`page-no-access`): a toolbar/shortcut job whose injection Chrome refused on a non-restricted page, classified from Chrome's message. Heading "CertScanner can't read this tab right now"; body "Click the CertScanner icon or press ‹shortcut› to scan it.", in 4 variants for setting and shortcut. Actions: Scan this page, Choose image. Not restored on reopen.<br>Real restricted pages keep E1. | `pageView.js`, `viewModel.js`, `main.js`, `ui.js`, locales |
+
+**Locales:** 8 new keys in EN and NL (parity 212/212).
+
+**Not done (not approved):** rotation passes as a second sweep, early stop, pre-warming on panel open.
+
+### Commands
+
+| Command | Result |
+|---|---|
+| `npm test` | **199/199 pass** (was 164; 35 new or updated). New files: `ocrEngine`, `thumbs`, `sw`, `build` (SEC-15; real build in a throw-away git repo, about 7 s). Extended: `pageScan`, `pageScanRun`, `security`, `jobIntake`, `lastResult`, `pageView`, `pipeline`. Seven older assertions were updated for the intended changes: the GIF header alone, JPEG with unknown size above 256 KiB, `decidePage` needing prominence, and E1 → E12 for toolbar jobs that lost access. The new OCR abort test hangs against the old `ocr.js`. |
+| `npm run check` | all checks passed (src 39 files, 16 licences, pins match) |
+| `CERTSCANNER_SKIP_BENCH=1 npm run e2e` (QA suite, run only) | **tests 50, pass 50, fail 0** (benchmark skipped). P1 gallery `page-results` in 7.7 s; P2 listing auto-open in 3.6 s; P6 Cancel idle in 257 ms. The P13 first step now logs `error/page-no-access` (O11; it is only logged, not asserted). |
+
+### Browser evidence
+
+All runs are actual extension runs. Page jobs were written from the SW, as before.
+
+| Check | Build | Observed |
+|---|---|---|
+| 12 main fixtures via upload | dist-e2e | **12/12 pass, 0 wrong auto-opens**. Every preview ≤ 240 px (for example 154×240 for 544×850). |
+| Show larger / smaller | dist-e2e | Opens at 544×850 from a new blob URL. Closing returns to 154×240; `fetch(oldUrl)` fails (revoked); `aria-expanded=false`. |
+| Gallery page job | dist-e2e | `page-results`, 6 rows, no auto-open, 0 tabs. Summary: "Found: 6…" plus "Checked 8 of 10 photos.". Row thumbnails 145–167 × 240. UI 7.4 s. No panel errors. |
+| Listing page job | dist-e2e | Auto-open of psacard.com/cert/108114622 exactly once. UI 3.4 s. |
+| O9 | dist-e2e | Reload the panel, then re-write the same job id: no state change, still 1 tab. `seenJobs:<w>` holds the ids. |
+| SEC-13 hostile pages (scratchpad; slab A as a CSS background, `<img>` of slab B) | dist-e2e | `opacity:0` and `visibility:hidden`: not discovered → none.<br>Off-screen (vf 0), covered by an opaque div (vf 1, not topmost) and opacity 0.05 (vf 1, not topmost): `page-results` listing 01234567, **no tab**.<br>Control (B visible): auto-open. |
+| Cancel at "Scanning image 2", text step | dist-e2e | Idle in **52 ms**, "Scan cancelled.", focus on `#task-heading`, no tab. Worker terminated (created 1 / terminated 1). The next gallery scan works (7.6 s). |
+| O10 none (10 photos without numbers) | dist-e2e | "Checked 8 of 10 photos on this page but couldn't read a cert number." |
+| O11 | release `dist/` (origins `[]`) | Toolbar and command job on an unreadable tab: E12 with the heading and "Click the CertScanner icon or press Alt+Shift+S to scan it."; actions page-scan and choose; focus on the heading. A `chrome://version/` job keeps E1. No panel errors. |
+| SEC-17 | dist-e2e | "All sites" (install-time `<all_urls>`) → Remove → "Couldn't remove All sites.". The origins are unchanged. |
+| SEC-18 | dist-e2e | After an auto-open, `lastResult:<w>` existed. Clear history removed every `lastResult:*` key. |
+| SEC-14 crafted files | dist-e2e panel | JPEG with SOF after 200 KB (16000²) and GIF 10×10 screen with a 16000² frame: `too-large` in **6.6 / 2.8 ms**, no decode; the upload UI shows E3. No real decode bomb was run. |
+| SW wake-ups (perf `a3-wakes.mjs`) | before → after | session set 3 → 0, local set 3 → 0, upload scan 3 → 0, page scan 3 → 0 worker starts |
+
+### Memory (perf harness `d-soak.mjs`: 20 UI uploads incl. 12 MP twice, 5 gallery page scans, 222 s idle)
+
+Same host and session. "Before" is the HEAD build (`03d9589` src), copied from `dist-e2e`. Extension renderer PSS in MiB.
+
+| Point | Before | After | Budget |
+|---|---|---|---|
+| Baseline | 61 | 61 | – |
+| After image scan 20 | 448 | **265** | ≤ 250 while scanning |
+| After page scan 5 | 620 | **235** | ≤ 250 while scanning |
+| Post-scan samples (25): max / median / > 250 | 620 / 370 / 16 | **265 / 235 / 5** | ≤ 250 |
+| 250 ms series while scanning: p50 / p95 / max | 507 / 660 / 691 | **290 / 347 / 416** | ≤ 250 |
+| Idle +222 s (worker disposed) | 472 | **117** | ≤ 150 ✅ |
+| VmHWM image / page phase | 655 / 793 | 518 / 437 | – |
+| Blob URLs live after the page phase | 8 (902 KB) | 8 (173 KB) | – |
+
+`memory-infra` run (`d3-memdump.mjs`): 215 MiB after 20 uploads (was 377), 179 after a pressure signal, 98 after `disposeEngines()`.
+
+**What remains:** the live OCR worker (about 130 MiB per the perf report) plus transient decoding and preprocessing during a scan. Further cuts need changes outside this round, for example a smaller OCR working size, which needs the D3 accuracy gate (architect/perf to decide).
+
+### Screenshots (actual captures, 360 px, full page, reduced motion)
+
+- `p2-page-results-{light,dark}.png` were refreshed. They show the new "Checked 8 of 9 photos." line; this run found 9 photos.
+- `p5-error-no-access-{light,dark}.png` are new (E12, release `dist/`).
+
+### Contract and data deltas (for the architect and release)
+
+| Delta | Note |
+|---|---|
+| Permissions and manifest | No change. |
+| `pageImagesProbe` envelope | Adds `images[].topmostAtCenter` and `total`. The probe now also reads computed opacity/pointer-events and a hit test of the image's own position: no page text. This is an A9 contract extension; the ADR and PRIVACY wording ("URL, srcset, rect, natural size, viewport, dpr") need an update. |
+| `scanPage` result | Adds `totalFound` and `error.injectError` (≤ 300 characters of Chrome's message, kept in memory only). |
+| UI | New error E12 `page-no-access`. `ScanJob` and `jobContract.js` are unchanged. |
+| Storage | `storage.session` gains `seenJobs:<windowId>` (≤ 20 job ids). Clear history / History off also clear `lastResult:*`. |
+
+### Limits and residual risks
+
+| Item | Note |
+|---|---|
+| SEC-13 residual | Hit testing can't see overlays with `pointer-events:none`; `filter:opacity()`, clip-path and blend tricks are not modelled. The probe only checks the centre point. The result is still the list instead of auto-open in all tested variants. |
+| Prominence rule | A number counts as prominent when **any** image it was read from is prominent, not only its best-scoring image. The user can see that slab; this avoids losing auto-open when a hidden carousel copy scores higher. |
+| Too-large | Too-large still allows the screenshot crop (bounded by the viewport). The brief said "stop trying further strategies"; the crop path was kept deliberately. |
+| Not run | Real toolbar/shortcut gesture, real decode bombs, branded Chrome, GPU raster memory. |

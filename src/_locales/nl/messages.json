@@ -940,5 +940,71 @@
   "page_row_unclear": {
     "message": "Geen duidelijke lezing. Vergelijk het nummer met het label.",
     "description": "Note under a page-results row read below the auto-open confidence."
+  },
+  "page_results_capped": {
+    "message": "$CHECKED$ van $TOTAL$ foto's gecontroleerd.",
+    "description": "O10: more slab-sized photos than the 8-photo limit; TOTAL is larger than CHECKED.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "8"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
+  "page_none_checked_some": {
+    "message": "$CHECKED$ van $TOTAL$ foto's op deze pagina gecontroleerd, maar er is geen certnummer gelezen.",
+    "description": "O10: page \"none\" state when the 8-photo limit left some photos unchecked.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "8"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
+  "err_page_no_access_heading": {
+    "message": "CertScanner kan dit tabblad nu niet lezen",
+    "description": "O11 (E12): a toolbar/shortcut page scan lost access to its tab before it started."
+  },
+  "err_page_no_access_body": {
+    "message": "Klik op het CertScanner-icoon of druk op $KEYS$ om het te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "err_page_no_access_body_icon": {
+    "message": "Klik op het CertScanner-icoon om het te scannen."
+  },
+  "err_page_no_access_body_keys": {
+    "message": "Druk op $KEYS$ om het te scannen.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "err_page_no_access_body_none": {
+    "message": "Zet ‘Werkbalkknop scant de pagina’ aan in Instellingen, of stel een sneltoets in, en gebruik die op dit tabblad."
+  },
+  "status_site_not_removed": {
+    "message": "$HOST$ kon niet worden verwijderd.",
+    "description": "SEC-17: Chrome did not remove the site access (e.g. access granted at install time).",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
   }
 }

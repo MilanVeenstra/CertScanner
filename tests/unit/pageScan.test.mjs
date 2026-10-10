@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createPageJob, parseScanJob, PAGE_JOB_SOURCES } from '../../src/shared/jobContract.js';
 import { validatePageImages, MAX_PAGE_IMAGES } from '../../src/pipeline/probeValidate.js';
 import { pageImagesProbe } from '../../src/pipeline/pageImagesProbe.js';
-import { aggregatePage, decidePage } from '../../src/core/pageAggregate.js';
+import { aggregatePage, decidePage, isProminent, PROMINENT_MIN_VISIBLE } from '../../src/core/pageAggregate.js';
 import { settings } from './helpers.mjs';
 
 const NOW = 1_760_000_000_000;
@@ -115,7 +115,7 @@ test('pageImagesProbe is self-contained and finds large, loaded, non-SVG images 
 
 // ---------------------------------------------------------------- aggregation + routing
 const cand = (over = {}) => ({ grader: 'psa', graderOptions: ['psa'], number: '01234567', confidence: 0.89, source: 'ocr', evidence: [], ...over });
-const per = (index, candidates, warnings = []) => ({ index, status: 'confirm', candidates, warnings });
+const per = (index, candidates, warnings = [], prominent = true) => ({ index, status: 'confirm', candidates, warnings, prominent });
 
 test('aggregatePage merges by grader+number keeping the best confidence and its image', () => {
   const a = aggregatePage([per(0, [cand({ confidence: 0.6 })]), per(1, [cand({ confidence: 0.89 })]), per(2, [cand({ number: '4012345001', grader: 'cgc-comics', graderOptions: ['cgc-comics'], confidence: 0.95 })])]);
@@ -157,4 +157,134 @@ test('decidePage: off-site QR in the confident number\'s image blocks auto-open;
   assert.deepEqual(qr.warnings, [{ code: 'qr-untrusted-host', detail: 'evil.example' }]);
   assert.equal(decidePage(aggregatePage([per(0, []), per(1, [])]), settings()).status, 'none');
   assert.equal(decidePage(aggregatePage([]), settings()).status, 'none');
+});
+
+// ---------------------------------------------------------------- SEC-13 / SEC-19 / O10 (S8)
+
+/** Fake DOM for pageImagesProbe: images with geometry, CSS visibility, hit-test result and opacity. */
+function withFakeDom({ images, hits = new Map(), styles = new Map() }, fn) {
+  const saved = { document: globalThis.document, window: globalThis.window };
+  globalThis.document = {
+    baseURI: 'https://shop.example/', images,
+    elementsFromPoint: (x, y) => {
+      for (const [el, box] of hits) if (x >= box[0] && x < box[0] + box[2] && y >= box[1] && y < box[1] + box[3]) return [el];
+      return [];
+    },
+  };
+  globalThis.window = {
+    innerWidth: 1280, innerHeight: 900, devicePixelRatio: 1,
+    getComputedStyle: (el) => ({ opacity: '1', pointerEvents: 'auto', ...(styles.get(el) ?? {}) }),
+  };
+  return Promise.resolve().then(fn).finally(() => Object.assign(globalThis, saved));
+}
+const probeFn = () => new Function(`return (${pageImagesProbe.toString()});`)();
+function fakeImg(srcUrl, rect, { natural = [680, 1044], visible = true, parent = null } = {}) {
+  return {
+    currentSrc: srcUrl, src: srcUrl, complete: true, naturalWidth: natural[0], naturalHeight: natural[1],
+    getAttribute: () => null, parentElement: parent ?? { tagName: 'DIV', parentElement: null },
+    getBoundingClientRect: () => ({ left: rect[0], top: rect[1], width: rect[2], height: rect[3] }),
+    checkVisibility: () => visible,
+  };
+}
+
+test('SEC-13 probe: CSS-hidden images are skipped (checkVisibility with opacity and visibility checks)', async () => {
+  let opts = null;
+  const hidden = fakeImg('https://shop.example/slab-b.jpg', [0, 0, 300, 460], { visible: false });
+  hidden.checkVisibility = (o) => { opts = o; return false; };
+  const shown = fakeImg('https://shop.example/slab-a.jpg', [400, 0, 300, 460]);
+  await withFakeDom({ images: [hidden, shown], hits: new Map([[shown, [400, 0, 300, 460]]]) }, async () => {
+    const r = await probeFn()({});
+    assert.deepEqual(r.images.map((i) => i.srcUrl), ['https://shop.example/slab-a.jpg']);
+    assert.equal(opts.checkOpacity, true);
+    assert.equal(opts.checkVisibilityCSS, true);
+  });
+});
+
+test('SEC-13 probe: topmostAtCenter = the image is hit first at the centre of its visible part and is mostly opaque', async () => {
+  const top = fakeImg('https://shop.example/top.jpg', [0, 0, 300, 460]);
+  const covered = fakeImg('https://shop.example/covered.jpg', [400, 0, 300, 460]);
+  const cover = { contains: () => false };
+  const wrap = { tagName: 'A', parentElement: null, contains: (el) => el === inert };
+  const inert = fakeImg('https://shop.example/inert.jpg', [800, 0, 300, 460], { parent: wrap });
+  const faint = fakeImg('https://shop.example/faint.jpg', [0, 500, 300, 380]);
+  const offscreen = fakeImg('https://shop.example/off.jpg', [0, 2000, 300, 460]);
+  const partly = fakeImg('https://shop.example/partly.jpg', [1100, 0, 300, 460]); // 180 of 300 px visible
+  const hits = new Map([[top, [0, 0, 300, 460]], [cover, [400, 0, 300, 460]], [wrap, [800, 0, 300, 460]], [faint, [0, 500, 300, 380]], [partly, [1100, 0, 180, 460]]]);
+  const styles = new Map([[inert, { pointerEvents: 'none' }], [faint, { opacity: '0.3' }]]);
+  await withFakeDom({ images: [top, covered, inert, faint, offscreen, partly], hits, styles }, async () => {
+    const r = await probeFn()({});
+    const by = Object.fromEntries(r.images.map((i) => [i.srcUrl.split('/').pop(), i.topmostAtCenter]));
+    assert.deepEqual(by, { 'top.jpg': true, 'covered.jpg': false, 'inert.jpg': true, 'faint.jpg': false, 'off.jpg': false, 'partly.jpg': true });
+    const v = validatePageImages(r);
+    assert.equal(v.ok, true);
+    assert.equal(v.value.images.find((i) => i.srcUrl.endsWith('covered.jpg')).topmostAtCenter, false);
+  });
+});
+
+test('SEC-13 probe: an ancestor hit first does not count when the image itself is hit-testable (pseudo-element cover)', async () => {
+  const wrap = { tagName: 'DIV', parentElement: null, contains: (el) => el === img };
+  const img = fakeImg('https://shop.example/b.jpg', [0, 0, 300, 460], { parent: wrap });
+  await withFakeDom({ images: [img], hits: new Map([[wrap, [0, 0, 300, 460]]]) }, async () => {
+    const r = await probeFn()({});
+    assert.equal(r.images[0].topmostAtCenter, false);
+  });
+});
+
+test('SEC-19 probe + validation: only raster data: images; total counts every qualifying image before the cap', async () => {
+  const imgs = [
+    fakeImg('data:text/html;base64,PGgxPg==', [0, 0, 300, 460]),
+    fakeImg('data:image/svg+xml;base64,AAAA', [0, 0, 300, 460]),
+    fakeImg('data:image/png;base64,iVBORw0KGgo=', [0, 0, 300, 460]),
+    ...Array.from({ length: 5 }, (_, i) => fakeImg(`https://shop.example/${i}.jpg`, [0, 0, 300, 460])),
+  ];
+  await withFakeDom({ images: imgs }, async () => {
+    const r = await probeFn()({ max: 3 });
+    assert.equal(r.images.length, 3);
+    assert.equal(r.total, 6);
+    assert.ok(!r.images.some((i) => /^data:(text|image\/svg)/.test(i.srcUrl)));
+  });
+  const env2 = (images, extra = {}) => ({ v: 1, viewport: { width: 1280, height: 900 }, dpr: 1, images, ...extra });
+  const v = validatePageImages(env2([
+    img({ srcUrl: 'data:text/html;base64,PGgxPg==' }),
+    img({ srcUrl: 'data:application/octet-stream;base64,AAAA' }),
+    img({ srcUrl: 'data:image/jpeg;base64,/9j/' }),
+  ], { total: 40 }));
+  assert.deepEqual(v.value.images.map((i) => i.srcUrl), ['data:image/jpeg;base64,/9j/']);
+  assert.equal(v.value.total, 40);
+  assert.equal(validatePageImages(env2([img()], { total: -1 })).value.total, 1);
+  assert.equal(validatePageImages(env2([img()], { total: 'many' })).value.total, 1);
+  assert.equal(validatePageImages(env2([img(), img({ srcUrl: 'https://i.ebayimg.com/2.jpg' })], { total: 1 })).value.total, 2);
+});
+
+test('SEC-13 validation: topmostAtCenter must be boolean; missing counts as not topmost', () => {
+  const env2 = (images) => ({ v: 1, viewport: { width: 1280, height: 900 }, dpr: 1, images });
+  const v = validatePageImages(env2([
+    img({ srcUrl: 'https://a.example/1.jpg', topmostAtCenter: true }),
+    img({ srcUrl: 'https://a.example/2.jpg', topmostAtCenter: 'yes' }),
+    img({ srcUrl: 'https://a.example/3.jpg' }),
+  ]));
+  assert.deepEqual(v.value.images.map((i) => [i.srcUrl, i.topmostAtCenter]), [['https://a.example/1.jpg', true], ['https://a.example/3.jpg', false]]);
+});
+
+test('SEC-13 isProminent: >= 50 % in the viewport and topmost at its centre', () => {
+  assert.equal(PROMINENT_MIN_VISIBLE, 0.5);
+  assert.equal(isProminent({ visibleFraction: 1, topmostAtCenter: true }), true);
+  assert.equal(isProminent({ visibleFraction: 0.5, topmostAtCenter: true }), true);
+  assert.equal(isProminent({ visibleFraction: 0.49, topmostAtCenter: true }), false);
+  assert.equal(isProminent({ visibleFraction: 1, topmostAtCenter: false }), false);
+  assert.equal(isProminent({ visibleFraction: 1 }), false);
+  assert.equal(isProminent(null), false);
+});
+
+test('SEC-13 T1: slab A shown as CSS background (not an image), invisible/covered <img> of slab B -> list, never auto-open', () => {
+  // Only the hidden image B is scanned (A is a CSS background, which discovery never reads).
+  const b = aggregatePage([per(0, [cand({ number: '81234567', confidence: 0.9 })], [], false)]);
+  assert.equal(b.items[0].prominent, false);
+  assert.equal(decidePage(b, settings()).status, 'page-results');
+  // The same number also read from a prominent image: the user can see that slab, so it may auto-open.
+  const seen = aggregatePage([per(0, [cand({ number: '81234567', confidence: 0.9 })], [], false), per(1, [cand({ number: '81234567', confidence: 0.6 })], [], true)]);
+  assert.equal(seen.items[0].prominent, true);
+  assert.equal(decidePage(seen, settings()).status, 'auto-open');
+  // A missing flag is not prominent.
+  assert.equal(decidePage(aggregatePage([{ index: 0, candidates: [cand()], warnings: [] }]), settings()).status, 'page-results');
 });

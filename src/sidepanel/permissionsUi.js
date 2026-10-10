@@ -49,6 +49,15 @@ export function removeAllSites(patterns, chromeApi = globalThis.chrome) {
   return chromeApi.permissions.remove({ origins: patterns }).catch(() => false);
 }
 
+/**
+ * SEC-17: status text after a Remove click, from what Chrome resolved (true only when the access was removed;
+ * install-time grants and failures resolve false).
+ * @returns {{key:'status_site_removed'|'status_site_not_removed', subs:string[]}}
+ */
+export function removalStatus(removed, label) {
+  return { key: removed === true ? 'status_site_removed' : 'status_site_not_removed', subs: [String(label)] };
+}
+
 export function onPermissionsChanged(cb, chromeApi = globalThis.chrome) {
   chromeApi.permissions.onAdded.addListener(cb);
   chromeApi.permissions.onRemoved.addListener(cb);

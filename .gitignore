@@ -1,5 +1,6 @@
 node_modules/
-dist/
-dist-e2e/
+# Build output at the repo root only: a dist/ folder inside src/ must show up as untracked (SEC-15).
+/dist/
+/dist-e2e/
 *.zip
 .extension-builder/.state.lock

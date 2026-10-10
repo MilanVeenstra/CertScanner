@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PAGE_COMMAND, SHORTCUTS_URL, scanShortcut, classifyInjectError, panelScanPlan, alwaysAllowHost,
-  accessBody, idleShortcutHint, pageSummary, pageQrInfo, pageErrorCode, persistablePage,
+  accessBody, idleShortcutHint, pageSummary, pageQrInfo, pageErrorCode, persistablePage, noAccessBody, pageNoneReason, pageCoverage,
 } from '../../src/sidepanel/pageView.js';
 import { autoOpenKey } from '../../src/sidepanel/viewModel.js';
 
@@ -70,9 +70,15 @@ test('pageQrInfo: off-site QR host and whether a listed number came from it', ()
   assert.deepEqual(pageQrInfo({ ...r, items: [{ evidence: ['len:8'] }] }), { qrHost: 'evil.example', qrNumberUsed: false });
 });
 
-test('pageErrorCode: toolbar/shortcut refusals are restricted; a panel scan that lost access asks for a click', () => {
+test('pageErrorCode: lost access asks for a click (panel: page-access; toolbar/shortcut: E12, O11); Chrome-refused pages stay restricted', () => {
+  const noAccess = 'Cannot access contents of the page. Extension manifest must request permission to access the respective host.';
+  assert.equal(pageErrorCode({ code: 'restricted', injectFailed: true, injectError: noAccess }, { source: 'panel', pageUrl: 'https://a.example/' }), 'page-access');
   assert.equal(pageErrorCode({ code: 'restricted', injectFailed: true }, { source: 'panel', pageUrl: 'https://a.example/' }), 'page-access');
-  assert.equal(pageErrorCode({ code: 'restricted', injectFailed: true }, { source: 'action', pageUrl: 'https://a.example/' }), 'restricted');
+  assert.equal(pageErrorCode({ code: 'restricted', injectFailed: true, injectError: noAccess }, { source: 'action', pageUrl: 'https://a.example/' }), 'page-no-access');
+  assert.equal(pageErrorCode({ code: 'restricted', injectFailed: true, injectError: noAccess }, { source: 'command', pageUrl: 'https://a.example/' }), 'page-no-access');
+  assert.equal(pageErrorCode({ code: 'restricted', injectFailed: true, injectError: 'The extensions gallery cannot be scripted.' }, { source: 'action', pageUrl: 'https://a.example/' }), 'restricted');
+  assert.equal(pageErrorCode({ code: 'restricted', injectFailed: true, injectError: noAccess }, { source: 'action', pageUrl: 'chrome://version/' }), 'restricted');
+  assert.equal(pageErrorCode({ code: 'restricted' }, { source: 'action', pageUrl: '' }), 'restricted');
   assert.equal(pageErrorCode({ code: 'restricted' }, { source: 'panel', pageUrl: 'chrome://version/' }), 'restricted');
   assert.equal(pageErrorCode({ code: 'timeout' }, { source: 'command' }), 'page-timeout');
   assert.equal(pageErrorCode({ code: 'aborted' }, { source: 'command' }), 'aborted');
@@ -122,4 +128,34 @@ test('pageRowNote: off-site QR rows are flagged first, then reads below the auto
   assert.deepEqual(pageRowNote({ confidence: 0.45, evidence: ['len:10'] }), { key: 'page_row_unclear', subs: [], tone: 'muted' });
   assert.equal(pageRowNote({ confidence: 0.8, evidence: [] }), null);
   assert.equal(pageRowNote({ confidence: 0.95 }), null);
+});
+
+// ---------------------------------------------------------------- S8: O10, O11
+test('O10: "Checked 8 of 10 photos" when the cap left photos unchecked (results and none); not after a timeout', () => {
+  assert.deepEqual(pageCoverage({ images: new Array(8), totalFound: 10 }), { checked: 8, total: 10 });
+  assert.equal(pageCoverage({ images: new Array(3), totalFound: 3 }), null);
+  assert.deepEqual(pageCoverage({ images: new Array(8), discovered: 12 }), { checked: 8, total: 12 }); // older result shape
+  assert.deepEqual(pageSummary({ items: [{}, {}], images: new Array(8), totalFound: 10, partial: null }), [
+    { key: 'page_results_summary', subs: ['2'] },
+    { key: 'page_results_capped', subs: ['8', '10'] },
+  ]);
+  assert.deepEqual(pageSummary({ items: [{}], images: new Array(8), totalFound: 10, partial: { checked: 3, total: 8 } }), [
+    { key: 'page_results_summary', subs: ['1'] },
+    { key: 'page_results_partial', subs: ['3', '8'] },
+  ]);
+  assert.deepEqual(pageNoneReason({ discovered: 0, images: [] }), { key: 'page_none_no_images', subs: [] });
+  assert.deepEqual(pageNoneReason({ discovered: 2, images: new Array(2), totalFound: 2 }), { key: 'page_none_checked', subs: [] });
+  assert.deepEqual(pageNoneReason({ discovered: 10, images: new Array(8), totalFound: 10 }), { key: 'page_none_checked_some', subs: ['8', '10'] });
+});
+
+test('O11: E12 body follows the toolbar setting and the shortcut; error view offers Scan this page + Choose image', async () => {
+  const { errorView } = await import('../../src/sidepanel/viewModel.js');
+  assert.deepEqual(noAccessBody({ scanOnClick: true, shortcut: 'Alt+Shift+S' }), { key: 'err_page_no_access_body', subs: ['Alt+Shift+S'] });
+  assert.deepEqual(noAccessBody({ scanOnClick: true, shortcut: '' }), { key: 'err_page_no_access_body_icon', subs: [] });
+  assert.deepEqual(noAccessBody({ scanOnClick: false, shortcut: 'Alt+Shift+S' }), { key: 'err_page_no_access_body_keys', subs: ['Alt+Shift+S'] });
+  assert.deepEqual(noAccessBody({ scanOnClick: false, shortcut: '' }), { key: 'err_page_no_access_body_none', subs: [] });
+  assert.deepEqual(errorView('page-no-access', { page: true, body: noAccessBody({ scanOnClick: true, shortcut: 'Alt+Shift+S' }) }), {
+    id: 'E12', tone: 'warning', heading: 'err_page_no_access_heading', body: 'err_page_no_access_body', bodySubs: ['Alt+Shift+S'], actions: ['page-scan', 'choose'],
+  });
+  assert.equal(errorView('restricted', { page: true }).heading, 'err_restricted_heading', 'real restricted pages keep E1');
 });

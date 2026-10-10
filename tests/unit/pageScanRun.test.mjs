@@ -6,13 +6,13 @@ import { settings } from './helpers.mjs';
 
 const NOW = 1_760_000_000_000;
 const job = (over = {}) => ({ v: 1, id: 'page-1', createdAt: NOW, kind: 'page', source: 'action', srcUrl: null, pageUrl: 'https://shop.example/item/1', frameId: 0, tabId: 3, windowId: 7, ...over });
-const img = (n, over = {}) => ({ srcUrl: `https://img.example/${n}.jpg`, rect: { x: 0, y: 0, width: 300, height: 460 }, natural: { width: 680, height: 1044 }, srcsetBest: null, visibleFraction: 1, ...over });
-const envelope = (images) => ({ v: 1, viewport: { width: 1280, height: 900 }, dpr: 1, images });
+const img = (n, over = {}) => ({ srcUrl: `https://img.example/${n}.jpg`, rect: { x: 0, y: 0, width: 300, height: 460 }, natural: { width: 680, height: 1044 }, srcsetBest: null, visibleFraction: 1, topmostAtCenter: true, ...over });
+const envelope = (images, extra = {}) => ({ v: 1, viewport: { width: 1280, height: 900 }, dpr: 1, images, ...extra });
 /** Node unrefs AbortSignal.timeout() timers; keep the loop alive while a budget test waits on one. */
 const keepAlive = (msMax = 3000) => { const t = setTimeout(() => {}, msMax); return () => clearTimeout(t); };
 const cand = (number, over = {}) => ({ grader: 'psa', graderOptions: ['psa'], number, confidence: 0.9, source: 'ocr', evidence: [], ...over });
 
-function fakeChrome(images, { injectError = null } = {}) {
+function fakeChrome(images, { injectError = null, total } = {}) {
   const calls = [];
   return {
     calls,
@@ -20,7 +20,7 @@ function fakeChrome(images, { injectError = null } = {}) {
       executeScript: async (o) => {
         calls.push(o.func?.name);
         if (injectError) throw new Error(injectError);
-        return [{ result: envelope(images) }];
+        return [{ result: envelope(images, total === undefined ? {} : { total }) }];
       },
     },
   };
@@ -29,8 +29,9 @@ function fakeChrome(images, { injectError = null } = {}) {
 /** deps: acquire succeeds with a fake blob; scan returns per-URL candidates (or hangs for 'hang'). */
 function deps(bySrc, { acquireFails = new Set(), log = [] } = {}) {
   return {
-    acquire: async (j) => {
-      log.push(['acquire', j.srcUrl]);
+    warmUp: () => log.push(['warmUp']),
+    acquire: async (j, o) => {
+      log.push(['acquire', j.srcUrl, ...(o?.strategies ? [o.strategies.join('+')] : [])]);
       if (acquireFails.has(j.srcUrl)) return { ok: false, reason: 'fetch-failed', origin: 'https://img.example', canRequestSharper: true };
       return { ok: true, bitmap: { close() {} }, blob: { size: 10, src: j.srcUrl }, info: { method: 'extension-fetch', resolution: 'full', width: 680, height: 1044, origin: 'https://img.example', canRequestSharper: false } };
     },
@@ -146,4 +147,62 @@ test('scanPage: per-image scans never auto-open on their own (autoOpen forced of
   d.scan = async (input, o) => { seen = o.settings.autoOpen; return inner(input, o); };
   await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1)]), deps: d });
   assert.equal(seen, false);
+});
+
+// ---------------------------------------------------------------- S8: SEC-13, srcset, warm-up, O10, O11
+
+test('SEC-13 T1: the only slab image is off-screen or covered -> results list, never auto-open', async () => {
+  for (const hidden of [{ visibleFraction: 0, topmostAtCenter: false }, { visibleFraction: 1, topmostAtCenter: false }, { visibleFraction: 0.3, topmostAtCenter: true }]) {
+    const c = fakeChrome([img(1, hidden)]);
+    const r = await scanPage(job(), { settings: settings(), chromeApi: c, deps: deps({ 'https://img.example/1.jpg': [cand('81234567')] }) });
+    assert.equal(r.status, 'page-results', JSON.stringify(hidden));
+    assert.equal(r.top, null);
+    assert.deepEqual(r.items.map((i) => i.number), ['81234567']);
+  }
+  const shown = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1)]), deps: deps({ 'https://img.example/1.jpg': [cand('81234567')] }) });
+  assert.equal(shown.status, 'auto-open');
+});
+
+test('srcset: the largest same-origin candidate is fetched first (extension fetch only); the shown image is the fallback', async () => {
+  const log = [];
+  const big = 'https://img.example/1-1600.jpg';
+  const r = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]), deps: deps({ [big]: [cand('01234567')] }, { log }) });
+  assert.deepEqual(log.filter((x) => x[0] === 'acquire'), [['acquire', big, 'extension-fetch']]);
+  assert.equal(r.status, 'auto-open');
+
+  const log2 = [];
+  await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]), deps: deps({}, { log: log2, acquireFails: new Set([big]) }) });
+  assert.deepEqual(log2.filter((x) => x[0] === 'acquire'), [
+    ['acquire', big, 'extension-fetch'],
+    ['acquire', 'https://img.example/1.jpg', 'data-url+extension-fetch+page-fetch'],
+  ]);
+});
+
+test('engines are warmed up once, right after discovery found a photo; not for pages without photos', async () => {
+  const log = [];
+  await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1), img(2)]), deps: deps({}, { log }) });
+  assert.deepEqual(log.slice(0, 2).map((x) => x[0]), ['warmUp', 'acquire']);
+  assert.equal(log.filter((x) => x[0] === 'warmUp').length, 1);
+  const none = [];
+  const r = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([]), deps: deps({}, { log: none }) });
+  assert.equal(r.status, 'none');
+  assert.deepEqual(none, []);
+});
+
+test('O10: totalFound counts every slab-sized photo on the page, beyond the 24/8 caps', async () => {
+  const many = Array.from({ length: 10 }, (_, i) => img(i));
+  const r = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome(many, { total: 30 }), deps: deps({}) });
+  assert.equal(r.images.length, 8);
+  assert.equal(r.discovered, 10);
+  assert.equal(r.totalFound, 30);
+  const r2 = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome(many.slice(0, 3)), deps: deps({}) });
+  assert.equal(r2.totalFound, 3);
+});
+
+test('O11: a refused discovery keeps a short copy of Chrome\'s message (restricted vs no access)', async () => {
+  const r = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([], { injectError: `Cannot access contents of the page. ${'x'.repeat(500)}` }), deps: deps({}) });
+  assert.equal(r.error.code, 'restricted');
+  assert.equal(r.error.injectFailed, true);
+  assert.match(r.error.injectError, /^Cannot access contents of the page\./);
+  assert.ok(r.error.injectError.length <= 300);
 });

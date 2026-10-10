@@ -940,5 +940,71 @@
   "page_row_unclear": {
     "message": "Not a clear read. Compare the number with the label.",
     "description": "Note under a page-results row read below the auto-open confidence."
+  },
+  "page_results_capped": {
+    "message": "Checked $CHECKED$ of $TOTAL$ photos.",
+    "description": "O10: more slab-sized photos than the 8-photo limit; TOTAL is larger than CHECKED.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "8"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
+  "page_none_checked_some": {
+    "message": "Checked $CHECKED$ of $TOTAL$ photos on this page but couldn't read a cert number.",
+    "description": "O10: page \"none\" state when the 8-photo limit left some photos unchecked.",
+    "placeholders": {
+      "checked": {
+        "content": "$1",
+        "example": "8"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
+  "err_page_no_access_heading": {
+    "message": "CertScanner can't read this tab right now",
+    "description": "O11 (E12): a toolbar/shortcut page scan lost access to its tab before it started."
+  },
+  "err_page_no_access_body": {
+    "message": "Click the CertScanner icon or press $KEYS$ to scan it.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "err_page_no_access_body_icon": {
+    "message": "Click the CertScanner icon to scan it."
+  },
+  "err_page_no_access_body_keys": {
+    "message": "Press $KEYS$ to scan it.",
+    "placeholders": {
+      "keys": {
+        "content": "$1",
+        "example": "Alt+Shift+S"
+      }
+    }
+  },
+  "err_page_no_access_body_none": {
+    "message": "Turn on “Toolbar button scans the page” in Settings, or set a keyboard shortcut, then use it on this tab."
+  },
+  "status_site_not_removed": {
+    "message": "Couldn't remove $HOST$.",
+    "description": "SEC-17: Chrome did not remove the site access (e.g. access granted at install time).",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "i.ebayimg.com"
+      }
+    }
   }
 }

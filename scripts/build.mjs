@@ -53,11 +53,16 @@ const LICENSES = [
 const LINKED_LICENSES_DIR = path.join(ROOT, 'third_party', 'licenses');
 const LINKED_LICENSES = [
   'leptonica.BSD-2-Clause.txt',
-  'libjpeg-turbo-and-IJG.debian-copyright.txt',
-  'libpng.debian-copyright.txt',
-  'libtiff.debian-copyright.txt',
-  'zlib.debian-copyright.txt',
+  'libjpeg-9a.IJG-legal.txt',
+  'libpng-1.6.38.PNG-v2.txt',
+  'libtiff.COPYRIGHT.txt',
+  'zlib-1.2.12.txt',
+  'giflib.COPYING.txt',
+  'libwebp.COPYING.txt',
+  'libwebp.PATENTS.txt',
+  'openlibm.LICENSE.md',
   'zxing-cpp.Apache-2.0.txt',
+  'libzueci.BSD-3-Clause.txt',
 ];
 const EXPECTED_VERSIONS = { 'tesseract.js': '7.0.0', 'tesseract.js-core': /^7\./, '@tesseract.js-data/eng': '1.0.0', 'zxing-wasm': '3.1.5' };
 
@@ -177,11 +182,16 @@ zxing-wasm ${v('zxing-wasm')} (MIT) - vendor/zxing/{zxing-reader.iife.js,zxing_r
 
 Libraries statically linked into vendor/tesseract/tesseract-core-simd-lstm.wasm:
   Leptonica (BSD-2-Clause) - vendor/licenses/leptonica.BSD-2-Clause.txt
-  libjpeg (Independent JPEG Group) - vendor/licenses/libjpeg-turbo-and-IJG.debian-copyright.txt
+  IJG libjpeg 9a (IJG license) - vendor/licenses/libjpeg-9a.IJG-legal.txt
     This software is based in part on the work of the Independent JPEG Group.
-  libpng (libpng license) - vendor/licenses/libpng.debian-copyright.txt
-  LibTIFF (libtiff license) - vendor/licenses/libtiff.debian-copyright.txt
-  zlib (zlib license) - vendor/licenses/zlib.debian-copyright.txt
+  libpng 1.6.38 (PNG Reference Library License v2) - vendor/licenses/libpng-1.6.38.PNG-v2.txt
+  LibTIFF (libtiff license) - vendor/licenses/libtiff.COPYRIGHT.txt
+  zlib 1.2.12 (zlib license) - vendor/licenses/zlib-1.2.12.txt
+  giflib (MIT-style) - vendor/licenses/giflib.COPYING.txt
+  libwebp (BSD-3-Clause + patent grant) - vendor/licenses/libwebp.COPYING.txt, vendor/licenses/libwebp.PATENTS.txt
+  openlibm (various permissive) - vendor/licenses/openlibm.LICENSE.md
+Libraries compiled into vendor/zxing/zxing_reader.wasm:
+  libzueci, bundled in zxing-cpp (BSD-3-Clause) - vendor/licenses/libzueci.BSD-3-Clause.txt
 
 All code, WebAssembly and model data are packaged with the extension; nothing is downloaded at runtime.
 `;

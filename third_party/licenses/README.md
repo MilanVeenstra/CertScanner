@@ -1,21 +1,28 @@
 # Third-party licence texts for libraries linked into the bundled WebAssembly
 
-`tesseract.js-core` (Apache-2.0) statically links several C libraries into
-`tesseract-core-simd-lstm.wasm`, and `zxing-wasm`'s `zxing_reader.wasm` is built from
-zxing-cpp. Their licences require the notices below to ship with binary redistributions.
-`scripts/build.mjs` copies this directory to `dist/vendor/licenses/` and `--check` fails
-if any file is missing.
+`tesseract.js-core` 7.0.0 (Apache-2.0) statically links several C libraries into
+`tesseract-core-simd-lstm.wasm`, and `zxing-wasm` 3.1.5's `zxing_reader.wasm` is built from
+zxing-cpp. Their licences require these notices to ship with binary redistributions.
+`scripts/build.mjs` copies this directory to `dist/vendor/licenses/`, and `--check` fails if
+any file is missing.
 
-| File | Component | Identified in the binary by | Source of the text |
+Upstream versions were identified by the release manager on 2026-10-10 from tesseract.js-core
+v7.0.0's `.gitmodules`/build scripts and zxing-wasm v3.1.5's zxing-cpp submodule, and
+cross-checked against strings in the shipped WASM where possible.
+
+| File | Component (upstream revision) | Evidence in the binary | Source of the text |
 |---|---|---|---|
-| `leptonica.BSD-2-Clause.txt` | Leptonica | `leptonica-%d.%d.%d` | Standard BSD-2-Clause text with Leptonica's copyright line |
-| `libjpeg-turbo-and-IJG.debian-copyright.txt` | IJG libjpeg ("This software is based in part on the work of the Independent JPEG Group") | `Copyright (C) 2014, Thomas G. Lane, Guido Vollbeding` | Debian `libjpeg-turbo8` copyright file (contains the IJG licence) |
-| `libpng.debian-copyright.txt` | libpng 1.6.x | `1.6.38.git`, `libpng error` | Debian `libpng16-16t64` copyright file |
-| `libtiff.debian-copyright.txt` | LibTIFF | `libtiff does not allow …` | Debian `libtiff6` copyright file |
-| `zlib.debian-copyright.txt` | zlib | inflate/deflate symbols via libpng | Debian `zlib1g` copyright file |
-| `zxing-cpp.Apache-2.0.txt` | zxing-cpp | `ZXing::` symbols | Apache License 2.0 text (`/usr/share/common-licenses/Apache-2.0`) |
+| `leptonica.BSD-2-Clause.txt` | Leptonica (`4af068b`) | `leptonica-%d.%d.%d` | Upstream `leptonica-license.txt` |
+| `libjpeg-9a.IJG-legal.txt` | IJG libjpeg 9a (LuaDist `6c0fcb8`) | `Copyright (C) 2014, Thomas G. Lane, Guido Vollbeding` | Upstream README "LEGAL ISSUES" section (contains the required IJG acknowledgement) |
+| `libpng-1.6.38.PNG-v2.txt` | libpng 1.6.38 (`a37d483`) | `1.6.38.git` | Upstream `LICENSE` (PNG Reference Library License v2) |
+| `libtiff.COPYRIGHT.txt` | LibTIFF (`b51bb15`) | `libtiff does not allow …` | Upstream `COPYRIGHT` |
+| `zlib-1.2.12.txt` | zlib 1.2.12 (`21767c6`) | `1.2.12` | Licence comment at the top of upstream `zlib.h` |
+| `giflib.COPYING.txt` | giflib (`fa37672`) | GIF decoder symbols | Upstream `COPYING` |
+| `libwebp.COPYING.txt`, `libwebp.PATENTS.txt` | libwebp (`20ef03e`) | `WebP decode failed`, `VP8L` | Upstream `COPYING` and `PATENTS` |
+| `openlibm.LICENSE.md` | openlibm (`ae2d916`) | on the link line (presence in the binary not confirmed) | Upstream `LICENSE.md` |
+| `zxing-cpp.Apache-2.0.txt` | zxing-cpp (`2ecec3f`) | `ZXing::` symbols | Upstream `LICENSE` |
+| `libzueci.BSD-3-Clause.txt` | libzueci (bundled in zxing-cpp) | ECI handling in zxing-cpp | Upstream `zueci.h` copyright + SPDX `BSD-3-Clause` identifier; standard BSD-3-Clause text |
 
-**Release gate:** these texts were copied from the build machine's Debian packaging files on
-2026-10-09, not from the exact upstream versions compiled into tesseract.js-core 7.0.0 /
-zxing-wasm 3.1.5. The release manager must compare them with the upstream licence files of
-those versions before publishing.
+Tesseract itself (Apache-2.0) is covered by `vendor/tesseract/LICENSE-tesseract.js-core.txt`.
+
+This is a text comparison, not legal advice. Re-run the comparison whenever a vendor version changes.

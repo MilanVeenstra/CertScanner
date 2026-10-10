@@ -11,7 +11,10 @@ import { buildCertUrl } from '../core/certUrls.js';
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
 export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
 export const TASK_STATES = Object.freeze(['idle', 'scanning', 'result', 'edit', 'confirm', 'none', 'error', 'page-results', 'page-access']);
-const TONE_ICON = { success: 'i-circle-check', info: 'i-circle-i', warning: 'i-triangle', danger: 'i-circle-x' };
+const TONE_ICON = { success: 'i-check', info: 'i-circle-i', warning: 'i-triangle', danger: 'i-ban' };
+/** "Other ways to scan" disclosure per task state (design handoff: open in Idle, folded after a result, hidden while the
+ * task card already shows the number form). The user can still toggle it; the next state change resets it. */
+const OTHER_WAYS = { idle: 'open', scanning: 'closed', result: 'closed', 'page-results': 'closed', none: 'closed', error: 'closed', 'page-access': 'closed', edit: 'hidden', confirm: 'hidden' };
 const RECENT_VISIBLE = 5;
 const COPIED_MS = 2000;
 const SLOW_MS = 8000;
@@ -43,6 +46,17 @@ export function createUi(doc, actions) {
   let currentCandidates = [];
 
   applyI18n(parking);
+  const otherWays = $('other-ways');
+  const otherToggle = $('other-toggle');
+  function setOtherWays(mode) {
+    otherWays.hidden = mode === 'hidden';
+    const open = mode === 'open';
+    otherWays.dataset.open = String(open);
+    otherToggle.setAttribute('aria-expanded', String(open));
+  }
+  otherToggle.addEventListener('click', () => setOtherWays(otherWays.dataset.open === 'true' ? 'closed' : 'open'));
+  /** Unfold "Other ways to scan" (e.g. the task card's "Type a number" action); no-op while the task card shows the form. */
+  function openOtherWays() { if (!otherWays.hidden) setOtherWays('open'); }
   singles.certform.addEventListener('submit', (e) => { e.preventDefault(); actions.submitTaskForm(); });
   singles.candidates.addEventListener('change', (e) => {
     const c = currentCandidates[Number(e.target.value)];
@@ -121,6 +135,7 @@ export function createUi(doc, actions) {
     field = null;
     park();
     task.dataset.state = state;
+    setOtherWays(OTHER_WAYS[state] ?? 'closed');
     if (state === 'scanning') task.setAttribute('aria-busy', 'true'); else task.removeAttribute('aria-busy');
     while (body.firstChild) body.firstChild.remove();
   }
@@ -174,6 +189,7 @@ export function createUi(doc, actions) {
   function fillRead(c, { path }) {
     const r = singles.read;
     ref(r, 'chip').textContent = c.grader ? graderName(c.grader) : t('candidate_grader_unknown');
+    ref(r, 'chip').dataset.unknown = String(!c.grader);
     ref(r, 'number').textContent = c.number;
     ref(r, 'method').textContent = t(methodKey(c.method ?? c.source));
     const p = ref(r, 'path');
@@ -306,6 +322,16 @@ export function createUi(doc, actions) {
       return;
     }
     singles.pageprogress.textContent = t('page_progress', [String(p.index), String(p.total)]);
+    const bar = ref(body, 'segbar');
+    if (bar && Number.isInteger(p.total) && p.total > 0 && p.total <= 24) {
+      bar.hidden = false;
+      while (bar.firstChild) bar.firstChild.remove();
+      for (let i = 1; i <= p.total; i++) {
+        const seg = doc.createElement('span');
+        seg.dataset.state = i < p.index ? 'done' : i === p.index ? 'active' : 'todo';
+        bar.appendChild(seg);
+      }
+    }
     stages = [];
     singles.steps.hidden = false;
     setThumb({}, { placeholder: true });
@@ -320,7 +346,7 @@ export function createUi(doc, actions) {
 
   function renderSteps() {
     const s = stepStates(stages);
-    const icons = { waiting: 'i-circle', active: reducedMotion() ? 'i-half' : 'i-spinner', done: 'i-step-done', skipped: 'i-circle-dash' };
+    const icons = { waiting: 'i-circle', active: reducedMotion() ? 'i-half' : 'i-spinner', done: 'i-check', skipped: 'i-circle-dash' };
     const labels = { waiting: 'step_state_waiting', active: 'step_state_active', done: 'step_state_done', skipped: 'step_state_skipped' };
     for (const li of singles.steps.children) {
       const state = s[li.dataset.step];
@@ -385,7 +411,7 @@ export function createUi(doc, actions) {
    */
   function showConfirm(view, { moveFocus = true } = {}) {
     setTaskState('confirm');
-    setHeading(t('confirm_heading'), 'info');
+    setHeading(t('confirm_heading'), 'warning');
     body.appendChild(clone('tpl-confirm'));
     ref(body, 'back-to-page').hidden = !view.backToPage;
     qrBlock(body, view.qrHost, view.qrNumberUsed);
@@ -509,6 +535,7 @@ export function createUi(doc, actions) {
       chip.id = ids('chip');
       number.id = ids('number');
       chip.textContent = item.grader ? graderName(item.grader) : t('candidate_grader_unknown');
+      chip.dataset.unknown = String(!item.grader);
       number.textContent = item.number;
       ref(row, 'meta').textContent = t(methodKey(item.source));
       const note = pageRowNote(item);
@@ -682,6 +709,9 @@ export function createUi(doc, actions) {
 
   /** Settings: the page-scan shortcut as Chrome reports it ('' = not set). */
   function renderShortcut(shortcut) {
+    const kbd = ref(singles.pagescan, 'kbd');
+    kbd.textContent = shortcut || '';
+    kbd.hidden = !shortcut;
     $('shortcut-current').textContent = shortcut ? t('setting_shortcut_current', [shortcut]) : t('setting_shortcut_unset');
   }
 
@@ -720,6 +750,7 @@ export function createUi(doc, actions) {
   }
 
   return {
+    openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
     showIdle, showScanning, showResult, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,

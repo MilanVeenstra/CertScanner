@@ -1,15 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-  <!-- CertScanner icon, 128 px master (UX spec §11): slab outline, label band, card window, magnifier with "#". No grader logos, no check mark. -->
-  <rect x="21" y="17" width="58" height="90" rx="9" fill="#FFFFFF" stroke="#0F6E66" stroke-width="6"/>
-  <path d="M21 26a9 9 0 0 1 9-9h40a9 9 0 0 1 9 9v14H21z" fill="#0F6E66"/>
-  <rect x="30" y="26" width="26" height="5" rx="2.5" fill="#FFFFFF"/>
-  <rect id="mark2" x="62" y="26" width="8" height="5" rx="2.5" fill="#FFFFFF"/>
-  <rect x="32" y="49" width="36" height="46" rx="4" fill="#E3F2F0" stroke="#0F6E66" stroke-width="4"/>
-  <g stroke="#FFFFFF" stroke-linecap="round" fill="none">
-    <circle cx="80" cy="79" r="18" stroke-width="14"/>
-    <path d="M93 92l12 12" stroke-width="16"/>
-  </g>
-  <circle cx="80" cy="79" r="18" fill="#FFFFFF" stroke="#1A1D21" stroke-width="7"/>
-  <path d="M93 92l12 12" stroke="#1A1D21" stroke-width="9" stroke-linecap="round"/>
-  <path id="hash" d="M76 71v16M84 71v16M72 75h16M72 83h16" stroke="#0F6E66" stroke-width="3.5" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <rect x="3" y="1.75" width="13.5" height="19" fill="#FFFFFF" stroke="#141414" stroke-width="2"/>
+  <rect x="3" y="1.75" width="13.5" height="4.5" fill="#B3122B"/>
+  <circle cx="15" cy="15" r="4.75" fill="#FFFFFF" stroke="#141414" stroke-width="2"/>
+  <path d="M18.6 18.6 22 22" stroke="#141414" stroke-width="2.5"/>
 </svg>

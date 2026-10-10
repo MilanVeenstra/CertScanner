@@ -543,6 +543,7 @@ function cancelEdit() {
 }
 
 function focusCertInput() {
+  ui.openOtherWays();
   const input = $('cert-input');
   input.scrollIntoView({ block: 'center' });
   input.focus();

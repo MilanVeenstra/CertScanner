@@ -1,5 +1,7 @@
 # CertScanner — ontwerpbrief (voor Claude Design)
 
+> **Let op (2026-10-10):** de visuele stijl is inmiddels vervangen door het ontwerp uit Claude Design (zwart/wit/rood, vierkante hoeken). De actuele tokens en componenten staan in `docs/design/restyle-handoff.md`; §7–§8 hieronder beschrijven de oude (teal) stijl.
+
 ## 1. Wat is het?
 
 **CertScanner** is een Chrome-extensie voor verzamelaars van gegradeerde trading cards en comics. Op een webpagina

@@ -12,7 +12,7 @@ import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import bwipjs from 'bwip-js/node';
 import * as E from './lib/env.mjs';
-import { accessibleNames, chooseGrader, dropImage, getSetting, isVisible, pasteImage, setSetting, storageGet, stubPermissions, tabTo, tid } from './lib/panel.mjs';
+import { accessibleNames, chooseGrader, dropImage, expandOtherWays, getSetting, isVisible, pasteImage, setSetting, storageGet, stubPermissions, tabTo, tid } from './lib/panel.mjs';
 
 const FIX = (f) => path.join(E.FIXTURES, f);
 const fixtureManifest = JSON.parse(readFileSync(FIX('manifest.json'), 'utf8'));
@@ -274,6 +274,7 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     const { result, opened } = await runJob({ srcUrl: `${servers.A}/non-slab.png`, settle: 1500 });
     assert.equal(result.state, 'none');
     assert.equal(opened.length, 0);
+    await expandOtherWays(panel.page); // design: "Other ways to scan" folds away after a result
     assert.ok(await isVisible(panel.page, 'manual-input'), 'manual entry offered');
     assert.equal(await panel.page.locator(tid('upload-input')).count(), 1, 'upload offered');
   });
@@ -322,6 +323,7 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     assert.equal(b.result.state, 'error');
     assert.equal(b.result.error, a.result.error, 'same restricted message');
     assert.ok(!env.net.some((n) => n.url.includes('googleusercontent')), 'restricted job never fetched its image');
+    await expandOtherWays(panel.page);
     assert.ok(await isVisible(panel.page, 'manual-input'));
     assert.deepEqual(panel.errors.slice(errorsBefore), [], 'no uncaught panel errors');
     await cv.close();
@@ -332,7 +334,15 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     const page = panel.page;
     await page.bringToFront();
     await page.evaluate(() => document.activeElement?.blur());
-    await tabTo(page, 'manual-input');
+    // Keyboard only: unfold "Other ways to scan" (it folds away after each result) before reaching the field.
+    const toManual = async () => {
+      if (await page.locator(tid('other-ways-toggle')).getAttribute('aria-expanded') === 'false') {
+        await tabTo(page, 'other-ways-toggle');
+        await page.keyboard.press('Enter');
+      }
+      await tabTo(page, 'manual-input');
+    };
+    await toManual();
     let beforeTabs = await E.graderTabs(env);
     await page.keyboard.type('PSA 12345678');
     await page.keyboard.press('Enter');
@@ -341,7 +351,7 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     await E.poll(async () => (await page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'state opened' });
 
     beforeTabs = await E.graderTabs(env);
-    await tabTo(page, 'manual-input');
+    await toManual();
     await page.keyboard.press('ControlOrMeta+A');
     await page.keyboard.press('Backspace');
     await page.keyboard.type('1401234567890');
@@ -350,7 +360,7 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     assert.equal((await newGraderTabsSince(beforeTabs))[0].url, 'https://www.cgccards.com/certlookup/1401234567890/');
 
     beforeTabs = await E.graderTabs(env);
-    await tabTo(page, 'manual-input');
+    await toManual();
     await page.keyboard.press('ControlOrMeta+A');
     await page.keyboard.press('Backspace');
     await page.keyboard.type('hello');
@@ -616,8 +626,16 @@ describe('J7b "Sharper scans" offer for an https image read at screen resolution
     assert.equal(await isVisible(p.page, 'sharper-button'), false, 'offer withdrawn after decline');
     assert.equal(await env.sw.evaluate(() => chrome.permissions.contains({ origins: ['https://localhost/*'] })), true,
       'informational: the e2e build holds <all_urls>; the stub decides what the panel sees');
-    await p.page.locator(tid('manual-input')).fill('PSA 01234567');
-    await p.page.locator(tid('manual-submit')).click();
+    if (await p.page.locator('#other-ways').isHidden()) {
+      // Confirm state: the task card itself holds the number form (design: "Other ways to scan" is hidden there).
+      await p.page.locator(tid('number-input')).fill('01234567');
+      await p.page.locator(`${tid('grader-select')} label:has(input[value="psa"])`).click();
+      await p.page.locator(tid('open-button')).click();
+    } else {
+      await expandOtherWays(p.page);
+      await p.page.locator(tid('manual-input')).fill('PSA 01234567');
+      await p.page.locator(tid('manual-submit')).click();
+    }
     await E.poll(async () => (await E.graderTabs(env)).some((t) => t.url === 'https://www.psacard.com/cert/01234567'), { message: 'manual entry after decline' });
     assert.deepEqual(p.errors.filter((e) => e.startsWith('pageerror')), []);
   });

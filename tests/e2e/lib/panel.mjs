@@ -171,3 +171,9 @@ export async function stubPermissions(page, { grant }) {
 }
 
 export { sleep };
+
+/** Unfold "Other ways to scan" (design 2026-10-10: open in Idle, folded after a result, hidden in Edit/Confirm). */
+export async function expandOtherWays(page) {
+  const toggle = page.locator(tid('other-ways-toggle'));
+  if (await toggle.isVisible() && (await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+}

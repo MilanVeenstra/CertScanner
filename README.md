@@ -1,2 +1,216 @@
 # CertScanner
-Automatic Cert Scanner for PSA and CGC
+
+**Automatic cert scanner for PSA and CGC slabs: a Chrome extension (Manifest V3).**
+
+CertScanner reads the certification number from photos of PSA and CGC graded slabs and opens that grader's official cert lookup page. You don't have to retype a 7- to 13-digit number from a small listing photo.
+
+> **Not affiliated with PSA or CGC.** PSA and CGC are trademarks of their respective owners.
+> **A cert lookup does not prove a slab is genuine.** It shows what the grader's database says about a number. Always check that the cert page matches the slab in the photo.
+
+_Version 0.1.0. It is not published on the Chrome Web Store; for now you install it from source. See [`docs/release/release-report.md`](docs/release/release-report.md) for release status._
+
+---
+
+## What it does
+
+- **Scan the page you're viewing.** Click the CertScanner toolbar icon or press **Alt+Shift+S**. CertScanner finds the large photos on the page (up to 8, visible ones first), reads their cert numbers on your device and shows them in Chrome's side panel.
+  - If exactly one number is read clearly, its official cert page opens right away.
+  - Otherwise you get a list ("Cert numbers on this page") with **Open** and **Copy** for each number.
+- **Scan one specific photo.** Right-click a slab photo and choose **Scan slab cert number**.
+- **Fallbacks.** In the side panel you can:
+  - drop, paste (Ctrl+V / ⌘V) or upload an image (JPEG, PNG, WebP or AVIF, up to 15 MB);
+  - type a number such as `PSA 01234567` or `CGC 4012345001`.
+- **You stay in control:**
+  - The panel always shows the number that was read, how it was read (barcode, QR code or text), and the exact page that opens. **Wrong number? Edit** lets you correct it.
+  - When a number is unclear, or several are found, CertScanner asks before opening anything.
+
+| Grader | Official page that opens |
+|---|---|
+| PSA | `https://www.psacard.com/cert/<number>` |
+| CGC Comics | `https://www.cgccomics.com/certlookup/<number>/` |
+| CGC Cards | `https://www.cgccards.com/certlookup/<number>/` |
+
+## Privacy in one paragraph
+
+CertScanner reads a page only when you click its icon, press the shortcut or right-click a photo. It never scans by itself.
+- **What it reads:** image addresses, sizes and positions, never page text. Images are processed on your device and never uploaded.
+- **What it stores:** settings sync through Chrome; recent scans (grader, number, method and time) stay on this device; you can turn history off or clear it.
+- **What leaves your device:** the cert number, only when the grader's official page opens in a tab. The only other request is reloading a photo from the site that already shows it, sent without cookies when CertScanner makes it. There is no server, no account, no analytics and no ads.
+- **Incognito:** the extension does not run in incognito windows.
+
+Full policy: [`PRIVACY.md`](PRIVACY.md).
+
+---
+
+## Snel aan de slag (Nederlands)
+
+1. Installeer [Node.js](https://nodejs.org/) 20 of nieuwer.
+2. Open een terminal in deze map en voer uit:
+   ```sh
+   npm ci
+   npm run build
+   ```
+3. Ga in Chrome naar `chrome://extensions` en zet rechtsboven **Ontwikkelaarsmodus** aan.
+4. Klik op **Uitgepakte extensie laden** en kies de map **`dist/`**.
+5. Zet CertScanner vast in de werkbalk (puzzelstukje → punaise).
+
+**Gebruiken:**
+- Klik op het CertScanner-icoon of druk op **Alt+Shift+S** (Mac: Option+Shift+S). De slabfoto's op de pagina worden gescand.
+- Of klik met de rechtermuisknop op een slabfoto en kies **Certnummer van slab scannen**.
+- Je kunt in het zijpaneel ook een afbeelding slepen, plakken of uploaden, of het nummer typen.
+- Je wijzigt de sneltoets via `chrome://extensions/shortcuts`.
+
+CertScanner is niet gelieerd aan PSA of CGC. Een certcontrole bewijst niet dat een slab echt is; controleer altijd of de certpagina bij de slab op de foto past. De taal van de extensie volgt je Chrome-instellingen (Nederlands of Engels).
+
+---
+
+## Install from source
+
+**Requirements:**
+- Node.js **20 or newer** (with npm);
+- Google Chrome **116 or newer** (desktop).
+
+`npm ci` downloads the pinned dependencies from the npm registry. The extension itself downloads nothing at runtime.
+
+```sh
+npm ci          # install the exact versions from package-lock.json
+npm run build   # writes the extension to dist/
+```
+
+Then:
+
+1. Open `chrome://extensions`.
+2. Turn on **Developer mode** (top right).
+3. Click **Load unpacked** and select the **`dist/`** folder.
+4. Pin CertScanner to the toolbar (puzzle icon → pin).
+
+After pulling new code, run `npm run build` again and click the reload button on CertScanner's card in `chrome://extensions`.
+
+> Load **`dist/`**, never `dist-e2e/`. `dist-e2e/` is a test build with access to all sites, for automated tests only.
+
+## How to use
+
+| To… | Do this |
+|---|---|
+| Scan the page you're viewing | Click the CertScanner icon, or press **Alt+Shift+S** (macOS: Option+Shift+S) |
+| Change or remove the shortcut | `chrome://extensions/shortcuts` → CertScanner → "Scan this page for slab cert numbers" |
+| Scan one photo | Right-click it → **Scan slab cert number** |
+| Scan a saved image | Open the side panel and drop, paste or upload it |
+| Look up a number you know | Type it in the panel (e.g. `PSA 01234567`), choose the grader if asked, then **Open cert page** |
+| Reopen or copy an earlier number | **Recent scans** in the panel |
+
+**Settings** (gear icon in the panel):
+
+| Setting | Default | Effect |
+|---|---|---|
+| **Scan the page when I click the icon** | on | When off, the icon only opens the panel |
+| **Always ask before opening** | off | When on, nothing opens until you click **Open** |
+| **Open in a background tab** | off | Keeps you on the page you're viewing |
+| **Keep scan history** | on | Keeps the last 25 numbers on this device only; turning it off deletes them. **Clear history** empties the list. |
+
+Under **Sharper scans**, Settings also lists the sites you allowed, each with a **Remove** button.
+
+## Troubleshooting
+
+| You see | What to do |
+|---|---|
+| "Chrome doesn't allow reading this page" | Chrome blocks extensions on `chrome://` pages, the Chrome Web Store, other extensions' pages and local files. Save or copy the image, then drop, paste or upload it in the panel. |
+| "CertScanner can't read this page yet" | The panel's **Scan this page** button works only on a page CertScanner may read: after you used the icon, shortcut or right-click menu there (until you go to another site), or on a site you allowed. Click the icon or press the shortcut. If you scan that site often, choose **Always allow on ‹site›**; you can remove it later in Settings. |
+| "No cert numbers found on this page" | Thumbnails are too small to read, so open the listing's large photo first. Scroll lazy-loaded photos into view. Photos inside embedded frames aren't found by a page scan; right-click the photo instead. |
+| "Scanned at screen resolution" / "Sharper scans on ‹site›" | The image host refused a direct download, so the visible screen was used. Click **Sharper scans on ‹site›** and allow that one site in Chrome's prompt, then **Scan again**. You can remove the access any time in Settings. |
+| Wrong number, or the wrong grader | Click **Wrong number? Edit** on the result, or pick the right number and grader in the list. Always compare the number with the slab label. |
+| "Choose PSA, CGC Comics or CGC Cards" for a 10-digit number | A 10-digit number can belong to CGC Comics, CGC Cards or PSA. Choose the grader shown on the label. |
+| "Text reader didn't start" | Click **Reload panel**. Barcode reading and typing a number still work in the meantime. |
+| The shortcut does nothing | Another extension or your OS may be using Alt+Shift+S. Set a different key at `chrome://extensions/shortcuts`. |
+| Nothing happens in an incognito window | This is by design: CertScanner does not run in incognito. |
+
+## Development
+
+| Command | What it does |
+|---|---|
+| `npm run build` | Copies `src/` and the vendor files to `dist/`. Writes `dist/build-info.json` with the version, git commit and vendor hashes. No bundler. |
+| `npm test` | Unit tests (`node --test tests/unit`). Pure logic, no browser. |
+| `npm run check` | Builds, then checks the release `dist/`: exact permissions, no host permissions or `<all_urls>`, `incognito: not_allowed`, CSP, the `scan-page` command, vendor hashes and licences, no remote/inline code, locale parity, descriptions ≤ 132 characters. |
+| `npm run e2e` | Builds `dist-e2e/` (test-only host access), then runs the Playwright end-to-end, privacy, security and OCR-benchmark suites in Chromium. Takes several minutes; `CERTSCANNER_SKIP_BENCH=1` skips the benchmark. |
+| `npm run fixtures` | Regenerates and verifies the synthetic test images and pages in `tests/fixtures/`. They contain no real labels or logos. |
+| `npm run package` | Builds, runs the full check and writes **`certscanner-<version>.zip`** from `dist/` only. Prints the sha256. Refuses a dirty working tree. Set `SOURCE_DATE_EPOCH` for a reproducible `build-info.json`. |
+
+**End-to-end tests** need a Chromium that Playwright 1.56.1 can launch:
+- run `npx playwright install chromium` once; or
+- point `CERTSCANNER_CHROMIUM` at a Chromium/Chrome for Testing binary.
+
+The e2e suites block all outside network access. The QA report lists the other variables (`CERTSCANNER_E2E_OUT`, `CERTSCANNER_E2E_DIST`).
+
+**Conventions** (see the [architecture ADR](docs/architecture/architecture.md)):
+- vanilla ES modules, no bundler;
+- every UI string lives in `src/_locales/{en,nl}/messages.json`;
+- text is rendered with `textContent` only;
+- no runtime messaging listeners;
+- every OCR/barcode asset is packaged.
+
+## Project structure
+
+```text
+src/
+  manifest.json            MV3 manifest (permissions: contextMenus, activeTab, scripting, storage, sidePanel)
+  _locales/{en,nl}/        all UI text (English default, Dutch)
+  background/sw.js         service worker: right-click menu, toolbar icon, shortcut → side panel hand-off
+  sidepanel/               side panel UI, scan lifecycle, settings, permissions UI
+  pipeline/                image acquisition, page probes, preprocessing, barcode, OCR, scanner, page scan
+  core/                    pure logic: cert rules, parser, URL builders and QR allow-list, routing, manual entry
+  shared/                  job contract, settings, history, i18n, last result, abort helper
+  icons/                   16/32/48/128 PNG icons + SVG masters
+scripts/
+  build.mjs                build, --check, --package, --e2e
+  gen-fixtures.mjs         synthetic fixtures and benchmark set
+tests/
+  unit/                    node --test unit tests
+  e2e/                     Playwright suites (journeys, privacy, security, benchmark, fixtures)
+  fixtures/                synthetic slab images, test pages, benchmark images
+third_party/licenses/      licence texts for libraries compiled into the bundled WebAssembly
+docs/                      research, architecture, design, quality and release documents
+dist/                      build output (git-ignored); load this folder in Chrome
+dist-e2e/                  test build (git-ignored); never load for real use or ship
+```
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [`docs/extension-contract.md`](docs/extension-contract.md) | Single purpose, surfaces, data, permission budget, behaviour rules |
+| [`docs/research/research.md`](docs/research/research.md) | Product research: cert URLs and formats, OCR/barcode options, Store policy, competitors |
+| [`docs/architecture/architecture.md`](docs/architecture/architecture.md) | ADR-001 architecture with amendments A1–A9 (page scan is A9) |
+| [`docs/design/design-spec.md`](docs/design/design-spec.md) | UX design: journeys, states, copy (EN/NL), tokens, accessibility, icon |
+| [`docs/implementation/frontend-handoff.md`](docs/implementation/frontend-handoff.md) | Implementation notes and results for slices S1–S6 |
+| [`docs/quality/security-review.md`](docs/quality/security-review.md) | Security and privacy review (round 1) |
+| [`docs/quality/test-report.md`](docs/quality/test-report.md) | QA: e2e results, OCR benchmark, manual checks M1–M11 |
+| [`docs/quality/screenshots/`](docs/quality/screenshots/) | Real extension captures of the side-panel states (pre-page-scan build) |
+| [`docs/release/release-report.md`](docs/release/release-report.md) | Release readiness, gates and artifact identity |
+| [`docs/release/store-listing.md`](docs/release/store-listing.md) | Chrome Web Store listing draft (EN/NL), assets plan, privacy-tab answers |
+| [`docs/release/permission-justifications.md`](docs/release/permission-justifications.md) | Why each permission is needed |
+| [`docs/release/manual-test-checklist.md`](docs/release/manual-test-checklist.md) | Manual checks in real Chrome before release |
+| [`PRIVACY.md`](PRIVACY.md) | Privacy policy |
+
+## Third-party software
+
+CertScanner bundles these components, unmodified, under `dist/vendor/`. `npm run check` fails if any licence file is missing.
+
+| Component | Version | Licence | Used for |
+|---|---|---|---|
+| [tesseract.js](https://github.com/naptha/tesseract.js) | 7.0.0 | Apache-2.0 | OCR (text reader) API and worker |
+| [tesseract.js-core](https://github.com/naptha/tesseract.js-core) | 7.0.0 | Apache-2.0 | Tesseract OCR compiled to WebAssembly. Statically links Leptonica (BSD-2-Clause), libjpeg (IJG), libpng, LibTIFF and zlib |
+| [@tesseract.js-data/eng](https://www.npmjs.com/package/@tesseract.js-data/eng) | 1.0.0 | MIT (package); model data from tesseract-ocr/tessdata (Apache-2.0) | English OCR model |
+| [zxing-wasm](https://github.com/Sec-ant/zxing-wasm) | 3.1.5 | MIT; built from zxing-cpp (Apache-2.0) | Barcode and QR-code reader |
+
+- **Licence texts:**
+  - each package's own licence is copied next to it in `dist/vendor/`;
+  - the texts for the libraries linked into the WebAssembly are in [`third_party/licenses/`](third_party/licenses/), copied to `dist/vendor/licenses/`;
+  - the summary is in `dist/vendor/THIRD_PARTY_NOTICES.txt`.
+- **Open release gate:** the texts in `third_party/licenses/` were taken from Debian packaging files. They still have to be compared with the exact upstream versions compiled into tesseract.js-core 7.0.0 and zxing-wasm 3.1.5 ([details](third_party/licenses/README.md)).
+- **Development only:** Playwright and bwip-js are used for tests and are not shipped.
+
+## License
+
+CertScanner is released under the **MIT License**, as declared in `package.json`.
+
+> The repository does not contain a `LICENSE` file yet. Add one, with the copyright holder's name and year, before publishing the source or the extension.

@@ -879,6 +879,229 @@
         }
       },
       "notes": "A9 single-slab listing: one PSA-style slab photo (psa-9digit.png at 400 px), a 64 px thumbnail of the same file earlier in the DOM (same URL; too small), a raw-card photo, a logo, an avatar and a promo banner (all too small for discovery), plus page text with a price, an item number (10 digits) and a seller ID (8 digits, PSA length). Page scans read image URLs/geometry only, never page text. <html data-ready=\"1\"> after all images decoded. Expected numbers assume the e2e viewport (--window-size=1280,1000)."
+    },
+    {
+      "page": "pages/hidden.html",
+      "elementId": "img-slab-b",
+      "kind": "hostile-hidden-image",
+      "finding": "SEC-13",
+      "fixture": "psa-8digit-leading-zero.png",
+      "contextMenu": "image",
+      "display": {
+        "width": 300,
+        "height": 469
+      },
+      "background": {
+        "elementId": "bg-slab-a",
+        "fixture": "psa-9digit.png",
+        "display": {
+          "width": 400,
+          "height": 625
+        },
+        "url": "https://www.psacard.com/cert/108114622"
+      },
+      "params": {
+        "hide": "one of none, opacity0, visibility, offscreen, overlay, faint, filter-opacity, overlay-pe-none, clip-path, clipped-parent (default none = control)"
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 861
+      },
+      "variants": {
+        "none": {
+          "how": "control: B visible",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 1,
+            "hit": "img-slab-b"
+          },
+          "expected": {
+            "status": "auto-open",
+            "url": "https://www.psacard.com/cert/01234567",
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 1
+          },
+          "asserted": true
+        },
+        "opacity0": {
+          "how": "opacity:0 on B",
+          "geometry": {
+            "cssVisible": false,
+            "visibleFraction": 1,
+            "hit": "img-slab-b"
+          },
+          "expected": {
+            "status": "none",
+            "reason": "no slab-sized photo",
+            "mustNotAutoOpen": true,
+            "discovered": [],
+            "tabsOpened": 0
+          },
+          "asserted": true
+        },
+        "visibility": {
+          "how": "visibility:hidden on B",
+          "geometry": {
+            "cssVisible": false,
+            "visibleFraction": 1,
+            "hit": "spot-b"
+          },
+          "expected": {
+            "status": "none",
+            "reason": "no slab-sized photo",
+            "mustNotAutoOpen": true,
+            "discovered": [],
+            "tabsOpened": 0
+          },
+          "asserted": true
+        },
+        "offscreen": {
+          "how": "B positioned at left:-5000px",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 0,
+            "hit": null
+          },
+          "expected": {
+            "status": "page-results",
+            "listed": [
+              "01234567"
+            ],
+            "mustNotAutoOpen": true,
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 0
+          },
+          "asserted": true
+        },
+        "overlay": {
+          "how": "opaque <div> covers B",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 1,
+            "hit": "cover-b"
+          },
+          "expected": {
+            "status": "page-results",
+            "listed": [
+              "01234567"
+            ],
+            "mustNotAutoOpen": true,
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 0
+          },
+          "asserted": true
+        },
+        "faint": {
+          "how": "opacity:0.05 on B",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 1,
+            "hit": "img-slab-b"
+          },
+          "expected": {
+            "status": "page-results",
+            "listed": [
+              "01234567"
+            ],
+            "mustNotAutoOpen": true,
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 0
+          },
+          "asserted": true
+        },
+        "filter-opacity": {
+          "how": "filter:opacity(0) on B (residual: not modelled)",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 1,
+            "hit": "img-slab-b"
+          },
+          "expected": {
+            "accept": [
+              "page-results",
+              "none"
+            ],
+            "mustNotAutoOpen": true,
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 0
+          },
+          "asserted": false
+        },
+        "overlay-pe-none": {
+          "how": "opaque <div> with pointer-events:none covers B (residual: hit testing cannot see it)",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 1,
+            "hit": "img-slab-b"
+          },
+          "expected": {
+            "accept": [
+              "page-results",
+              "none"
+            ],
+            "mustNotAutoOpen": true,
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 0
+          },
+          "asserted": false
+        },
+        "clip-path": {
+          "how": "clip-path:inset(0 0 100% 0) on B (residual: not modelled)",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 1,
+            "hit": "spot-b"
+          },
+          "expected": {
+            "accept": [
+              "page-results",
+              "none"
+            ],
+            "mustNotAutoOpen": true,
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 0
+          },
+          "asserted": false
+        },
+        "clipped-parent": {
+          "how": "B inside a 0 px tall overflow:hidden box",
+          "geometry": {
+            "cssVisible": true,
+            "visibleFraction": 1,
+            "hit": "row"
+          },
+          "expected": {
+            "accept": [
+              "page-results",
+              "none"
+            ],
+            "mustNotAutoOpen": true,
+            "discovered": [
+              "img-slab-b"
+            ],
+            "tabsOpened": 0
+          },
+          "asserted": false
+        }
+      },
+      "mustNeverOpenUrls": [
+        "https://www.psacard.com/cert/108114622"
+      ],
+      "notes": "SEC-13 hostile page: slab A (psa-9digit, 108114622) is painted as a CSS background (never discovered by design); slab B (psa-8digit-leading-zero, 01234567) is the only <img>. In every hiding variant a page scan must not auto-open B (results list or none); slab A can never be read. Variants with asserted:false are residual techniques that the probe does not model; e2e records their outcome without failing."
     }
   ],
   "labelBoxNotes": "labelBox = axis-aligned label band in natural image pixels ({x,y,width,height}); null for non-slab and rotated images.",
@@ -900,6 +1123,55 @@
       "mimeType": "image/bmp",
       "bytes": 1080,
       "sha256": "044f4d9412de9c5bac314a720f770d46fb2fe453070ba461ad5ef6ae086a24ff"
+    },
+    {
+      "file": "security/jpeg-sof-after-64k.jpg",
+      "finding": "SEC-14",
+      "description": "Baseline JPEG (~72 KB) declaring 16000x16000 px (256 MP) in a SOF0 placed after 64 KiB of COM segments; decodable tables and flat entropy data.",
+      "declared": {
+        "width": 16000,
+        "height": 16000
+      },
+      "structure": {
+        "sofOffset": 72097,
+        "headBytes": 65536,
+        "unknownSizeLimitBytes": 262144
+      },
+      "expected": {
+        "status": "error",
+        "error": "too-large",
+        "maxSettleMs": 2000
+      },
+      "mimeType": "image/jpeg",
+      "bytes": 72180,
+      "sha256": "485c8cc360d6c6c56465e976afa0c962e924563c6fdb69b5507ca936432382a7"
+    },
+    {
+      "file": "security/gif-frame-larger-than-screen.gif",
+      "finding": "SEC-14",
+      "description": "GIF89a with a 10x10 logical screen and one 16000x16000 frame (LZW clear + end only).",
+      "declared": {
+        "width": 16000,
+        "height": 16000
+      },
+      "structure": {
+        "screen": {
+          "width": 10,
+          "height": 10
+        },
+        "frame": {
+          "width": 16000,
+          "height": 16000
+        }
+      },
+      "expected": {
+        "status": "error",
+        "error": "too-large",
+        "maxSettleMs": 2000
+      },
+      "mimeType": "image/gif",
+      "bytes": 42,
+      "sha256": "445f59f2f39ee4fc2b0abcfeb94aa6623ec2069787ba0a556c4b6b6f450a4516"
     }
   ],
   "pageAssets": [

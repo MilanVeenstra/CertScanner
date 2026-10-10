@@ -18,7 +18,10 @@ test('main fixtures match manifest.json (sha256, bytes)', () => {
     assert.equal(statSync(p).size, f.bytes, f.file);
     assert.equal(sha(p), f.sha256, f.file);
   }
-  for (const f of main.securityFixtures ?? []) assert.equal(sha(path.join(FIXTURES, f.file)), f.sha256, f.file);
+  for (const f of main.securityFixtures ?? []) {
+    assert.equal(statSync(path.join(FIXTURES, f.file)).size, f.bytes, f.file);
+    assert.equal(sha(path.join(FIXTURES, f.file)), f.sha256, f.file);
+  }
 });
 
 test('qr-foreign-host: confirm or none accepted, never auto-open, foreign URL must not open (orchestrator decision)', () => {
@@ -37,6 +40,44 @@ test('security fixtures: busy page and decode bomb are declared', () => {
   assert.equal(buf.readInt32LE(18), 16000);
   assert.equal(buf.readInt32LE(22), 16000);
   assert.ok(buf.length < 2048);
+});
+
+test('SEC-14 crafted files: JPEG SOF0 (16000x16000) only after the first 64 KiB, file below 256 KiB; GIF 10x10 screen with a 16000x16000 frame', () => {
+  const jpeg = main.securityFixtures.find((f) => f.file.endsWith('.jpg') && f.finding === 'SEC-14');
+  const gif = main.securityFixtures.find((f) => f.file.endsWith('.gif') && f.finding === 'SEC-14');
+  assert.ok(jpeg && gif, 'both SEC-14 fixtures declared');
+  const j = readFileSync(path.join(FIXTURES, jpeg.file));
+  const at = jpeg.structure.sofOffset;
+  assert.deepEqual([j[0], j[1], j[at], j[at + 1]], [0xff, 0xd8, 0xff, 0xc0], 'SOI, then SOF0 at the declared offset');
+  assert.equal(j.readUInt16BE(at + 5), 16000);
+  assert.equal(j.readUInt16BE(at + 7), 16000);
+  assert.ok(at > 64 * 1024, `SOF0 at ${at} is beyond the first 64 KiB`);
+  assert.ok(j.length < 256 * 1024, `${j.length} bytes: below the unknown-size limit, so only the deep sniff can refuse it`);
+  assert.equal(j.subarray(0, 64 * 1024).filter((b, i, a) => b === 0xff && a[i + 1] >= 0xc0 && a[i + 1] <= 0xc3).length, 0, 'no SOF marker in the first 64 KiB');
+  const g = readFileSync(path.join(FIXTURES, gif.file));
+  assert.equal(g.toString('ascii', 0, 6), 'GIF89a');
+  assert.deepEqual([g.readUInt16LE(6), g.readUInt16LE(8)], [10, 10], 'logical screen 10x10');
+  const d = g.indexOf(0x2c, 13 + 6 + 8);
+  assert.deepEqual([g.readUInt16LE(d + 5), g.readUInt16LE(d + 7)], [16000, 16000], 'frame 16000x16000');
+});
+
+test('SEC-13 hostile page: slab A only as a CSS background, slab B the only <img>; every hiding variant must not auto-open; control auto-opens B', () => {
+  const hidden = main.pages.find((p) => p.kind === 'hostile-hidden-image');
+  assert.ok(hidden, 'pages/hidden.html declared');
+  const html = readFileSync(path.join(FIXTURES, hidden.page), 'utf8');
+  assert.equal((html.match(/<img\s/g) ?? []).length, 1, 'one <img> element (slab B)');
+  assert.ok(html.includes(`url("../${hidden.background.fixture}")`), 'slab A is a CSS background');
+  const a = main.fixtures.find((f) => f.file === hidden.background.fixture);
+  const b = main.fixtures.find((f) => f.file === hidden.fixture);
+  assert.notEqual(a.expected.number, b.expected.number, 'A and B carry different cert numbers');
+  assert.equal(hidden.variants.none.expected.url, `https://www.psacard.com/cert/${b.expected.number}`, 'control opens B');
+  assert.deepEqual(hidden.mustNeverOpenUrls, [`https://www.psacard.com/cert/${a.expected.number}`], 'A can never be opened');
+  for (const [name, v] of Object.entries(hidden.variants)) {
+    if (name === 'none') continue;
+    assert.equal(v.expected.mustNotAutoOpen, true, `${name}: must not auto-open`);
+  }
+  assert.deepEqual(Object.entries(hidden.variants).filter(([, v]) => v.asserted).map(([k]) => k).sort(),
+    ['faint', 'none', 'offscreen', 'opacity0', 'overlay', 'visibility'], 'asserted variants: the four hiding techniques of the brief, opacity 0.05, and the control');
 });
 
 test('A9 listing page: assets match their hashes; exactly one discoverable slab; page-text numbers are not cert numbers', () => {

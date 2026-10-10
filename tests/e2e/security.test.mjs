@@ -1,15 +1,33 @@
 // Runtime checks for docs/quality/security-review.md round 1: SEC-03 (hang budgets), SEC-04 (decode
 // bomb), SEC-06 (Sharper re-run opens at most one tab), SEC-01 (incognito not allowed, manifest level).
+// Round 2: SEC-14 crafted JPEG (SOF0 beyond the first 64 KiB) and GIF (frame larger than the logical screen).
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import * as E from './lib/env.mjs';
-import { isVisible, stubPermissions, tid } from './lib/panel.mjs';
+import { isVisible, readPage, stubPermissions, tid } from './lib/panel.mjs';
 
 const manifest = JSON.parse(readFileSync(path.join(E.FIXTURES, 'manifest.json'), 'utf8'));
 const busySpec = manifest.pages.find((p) => p.kind === 'hostile-busy-loop');
 const bomb = manifest.securityFixtures.find((f) => f.finding === 'SEC-04');
+const crafted = manifest.securityFixtures.filter((f) => f.finding === 'SEC-14');
+
+/** Count createImageBitmap calls in the panel realm (the scanner's decode and the thumbnail both go through it). */
+async function countDecodes(page) {
+  await page.evaluate(() => {
+    if (!window.__decodes) {
+      window.__decodes = [];
+      const orig = window.createImageBitmap;
+      window.createImageBitmap = function counted(src, ...rest) {
+        window.__decodes.push({ kind: src?.constructor?.name ?? typeof src, size: typeof src?.size === 'number' ? src.size : null });
+        return orig.call(this, src, ...rest);
+      };
+    }
+    window.__decodes.length = 0;
+  });
+  return () => page.evaluate(() => window.__decodes.slice());
+}
 const T = { timeout: 150_000 };
 
 /** Wait for a terminal state after `mark`, but never longer than `capMs`; returns {result|null, ms}. */
@@ -122,6 +140,37 @@ describe('SEC-03 hostile busy page / SEC-04 decode bomb (dist-e2e)', { concurren
     assert.ok(r.wallMs <= bomb.expected.maxSettleMs, `upload settled after ${r.wallMs} ms`);
     assert.ok(direct.timings.totalMs <= bomb.expected.maxSettleMs, `scan() took ${direct.timings.totalMs} ms`);
   });
+
+  for (const f of crafted) {
+    test(`SEC-14 crafted ${path.basename(f.file)} (${f.declared.width}x${f.declared.height}) via upload → E3 "too-large" within ${f.expected.maxSettleMs} ms, never handed to the decoder`, T, async () => {
+      const en = JSON.parse(readFileSync(path.join(E.DIST_E2E, '_locales', 'en', 'messages.json'), 'utf8'));
+      const buf = readFileSync(path.join(E.FIXTURES, f.file));
+      const decodes = await countDecodes(panel.page);
+      const r = await E.uploadAndWait(panel.page, { name: path.basename(f.file), mimeType: f.mimeType, buffer: buf }, { timeout: 30000 });
+      const v = await readPage(panel.page);
+      const errorId = await panel.page.evaluate(() => document.querySelector('[data-testid="error-message"]')?.dataset.errorId ?? null);
+      const uiDecodes = await decodes();
+      const direct = await E.scanInPanel(panel.page, { kind: 'blob-b64', b64: buf.toString('base64'), type: f.mimeType });
+      const allDecodes = await decodes();
+      // Positive control: the counter sees a normal decode (so "0 decodes" above is not vacuous).
+      const ok = readFileSync(path.join(E.FIXTURES, 'psa-9digit.png'));
+      const control = await E.scanInPanel(panel.page, { kind: 'blob-b64', b64: ok.toString('base64'), type: 'image/png' });
+      const controlDecodes = (await decodes()).filter((d) => d.size === ok.length).length;
+      console.log(`# SEC-14 ${path.basename(f.file)} (${buf.length} B): upload ${r.state}/${v.errorCode} (${errorId}) after ${r.wallMs} ms; scan() ${direct.status}/${direct.error?.code} acquireMs=${direct.timings.acquireMs} totalMs=${direct.timings.totalMs}; createImageBitmap calls with this file: ${allDecodes.filter((d) => d.size === buf.length).length} (control PNG: ${controlDecodes}, ${control.status})`);
+      assert.equal(r.state, 'error');
+      assert.equal(v.errorCode, 'too-large');
+      assert.equal(errorId, 'E3');
+      assert.equal(v.heading, en.err_too_large_heading.message);
+      assert.ok(r.wallMs <= f.expected.maxSettleMs, `upload settled after ${r.wallMs} ms`);
+      assert.equal(direct.status, 'error');
+      assert.equal(direct.error?.code, f.expected.error);
+      assert.ok(direct.timings.totalMs <= f.expected.maxSettleMs, `scan() took ${direct.timings.totalMs} ms`);
+      assert.deepEqual(uiDecodes, [], 'the upload decoded nothing (no scan decode, no thumbnail)');
+      assert.equal(allDecodes.filter((d) => d.size === buf.length).length, 0, 'scan() never handed the file to createImageBitmap');
+      assert.ok(controlDecodes >= 1, 'control: a normal PNG is decoded through the counted createImageBitmap');
+      assert.equal((await E.graderTabs(env)).length, 0, 'nothing opened');
+    });
+  }
 });
 
 describe('SEC-06: one job never auto-opens twice (Sharper grant → Rescan, re-runs, identical job id)', { concurrency: false }, () => {

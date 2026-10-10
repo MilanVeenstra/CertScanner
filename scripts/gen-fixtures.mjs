@@ -14,6 +14,10 @@
  * It also writes the A9 page-scan listing (tests/fixtures/pages/listing.html + pages/assets/*.png): one slab photo,
  * small logo/avatar/banner images and page text with non-cert numbers (price, item number, seller ID).
  *
+ * Security fixtures: pages/busy.html (SEC-03), security/decode-bomb-rle8.bmp (SEC-04), pages/hidden.html (SEC-13:
+ * slab A as a CSS background, slab B's <img> hidden in several ways) and two SEC-14 crafted files
+ * (security/jpeg-sof-after-64k.jpg, security/gif-frame-larger-than-screen.gif).
+ *
  * It also writes the OCR benchmark set (ADR-001 §14, D3 gate) to tests/fixtures/bench/ with its own
  * bench-manifest.json: clean renders with varied cert numbers plus deterministic degradations
  * (JPEG q40, 0.5x scale, 1-2 px blur, glare, rotation, dark/low contrast, busy art with other digits).
@@ -1226,6 +1230,57 @@ function rle8BombBmp(width = 16000, height = 16000) {
   return buf;
 }
 
+/**
+ * SEC-14: baseline JPEG whose frame header (SOF0, 16000x16000) sits beyond the first 64 KiB, behind two COM segments.
+ * A header sniff of only the first 64 KiB finds no size; the file is far below 256 KiB, so the pre-SEC-14 rule
+ * ("unknown size and small: decode") would have decoded it. Tables and a few entropy bytes make it decodable, so a
+ * regression would allocate ~1 GB of pixels instead of refusing.
+ */
+function jpegSofAfterHead({ width = 16000, height = 16000, padSegments = 2, padBytes = 36000 } = {}) {
+  const seg = (marker, payload) => {
+    const b = Buffer.alloc(4 + payload.length);
+    b[0] = 0xff;
+    b[1] = marker;
+    b.writeUInt16BE(payload.length + 2, 2);
+    Buffer.from(payload).copy(b, 4);
+    return b;
+  };
+  const pad = Buffer.alloc(padBytes, 'CertScanner SEC-14 synthetic padding: the frame header lies beyond the first 64 KiB. ', 'ascii');
+  const counts = (n1) => [n1, ...new Array(15).fill(0)];
+  const parts = [
+    Buffer.from([0xff, 0xd8]), // SOI
+    seg(0xe0, [0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]), // APP0 JFIF 1.1
+    ...new Array(padSegments).fill(0).map(() => seg(0xfe, pad)), // COM padding
+    seg(0xdb, [0x00, ...new Array(64).fill(1)]), // DQT table 0
+  ];
+  const sofOffset = parts.reduce((n, b) => n + b.length, 0);
+  parts.push(
+    seg(0xc0, [8, height >> 8, height & 0xff, width >> 8, width & 0xff, 3, 1, 0x11, 0, 2, 0x11, 0, 3, 0x11, 0]), // SOF0
+    seg(0xc4, [0x00, ...counts(1), 0x00]), // DHT DC 0: one 1-bit code for category 0
+    seg(0xc4, [0x10, ...counts(1), 0x00]), // DHT AC 0: one 1-bit code for EOB
+    seg(0xda, [3, 1, 0x00, 2, 0x00, 3, 0x00, 0, 63, 0]), // SOS
+    Buffer.from([0x00, 0x00, 0x00, 0x00]), // entropy-coded data: flat blocks
+    Buffer.from([0xff, 0xd9]), // EOI
+  );
+  return { buf: Buffer.concat(parts), sofOffset };
+}
+
+/**
+ * SEC-14: GIF whose logical screen is 10x10 but whose only frame is 16000x16000 (Chrome sizes the canvas to the
+ * frame). LZW data is just clear + end-of-information, so a decoder would allocate the full frame.
+ */
+function gifFrameLargerThanScreen({ screen = 10, frame = 16000 } = {}) {
+  const u16 = (v) => [v & 0xff, v >> 8];
+  return Buffer.from([
+    ...Buffer.from('GIF89a', 'ascii'), ...u16(screen), ...u16(screen), 0x80, 0x00, 0x00, // screen, 2-entry colour table
+    0x00, 0x00, 0x00, 0xff, 0xff, 0xff,
+    0x21, 0xf9, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, // graphic control extension
+    0x2c, ...u16(0), ...u16(0), ...u16(frame), ...u16(frame), 0x00, // image descriptor
+    0x02, 0x01, 0x2c, 0x00, // LZW min code size 2; one sub-block: clear (4), EOI (5); terminator
+    0x3b, // trailer
+  ]);
+}
+
 const SECURITY_FIXTURES = [
   {
     file: 'security/decode-bomb-rle8.bmp',
@@ -1235,6 +1290,26 @@ const SECURITY_FIXTURES = [
     declared: { width: 16000, height: 16000 },
     expected: { status: 'error', error: 'too-large', maxSettleMs: 2000 },
     mimeType: 'image/bmp',
+  },
+  {
+    file: 'security/jpeg-sof-after-64k.jpg',
+    make: () => jpegSofAfterHead().buf,
+    finding: 'SEC-14',
+    description: 'Baseline JPEG (~72 KB) declaring 16000x16000 px (256 MP) in a SOF0 placed after 64 KiB of COM segments; decodable tables and flat entropy data.',
+    declared: { width: 16000, height: 16000 },
+    structure: { sofOffset: jpegSofAfterHead().sofOffset, headBytes: 65536, unknownSizeLimitBytes: 262144 },
+    expected: { status: 'error', error: 'too-large', maxSettleMs: 2000 },
+    mimeType: 'image/jpeg',
+  },
+  {
+    file: 'security/gif-frame-larger-than-screen.gif',
+    make: () => gifFrameLargerThanScreen(),
+    finding: 'SEC-14',
+    description: 'GIF89a with a 10x10 logical screen and one 16000x16000 frame (LZW clear + end only).',
+    declared: { width: 16000, height: 16000 },
+    structure: { screen: { width: 10, height: 10 }, frame: { width: 16000, height: 16000 } },
+    expected: { status: 'error', error: 'too-large', maxSettleMs: 2000 },
+    mimeType: 'image/gif',
   },
 ];
 
@@ -1435,6 +1510,111 @@ function listingManifestEntry(sizes, assets) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// SEC-13: hostile page that shows slab A as a CSS background and hides an <img> of slab B (pages/hidden.html)
+// ---------------------------------------------------------------------------------------------
+// The user sees slab A; the only discoverable image is B, hidden in one of several ways. A page scan must never
+// auto-open B's cert in a hiding variant (list or none). `none` is the control: B visible -> B auto-opens.
+const HIDDEN_A = 'psa-9digit.png';
+const HIDDEN_B = 'psa-8digit-leading-zero.png';
+const HIDDEN_B_URL = 'https://www.psacard.com/cert/01234567';
+const HIDDEN_A_URL = 'https://www.psacard.com/cert/108114622';
+/**
+ * geometry: what a browser reports at 1280x861 (the e2e page viewport) -- checkVisibility({checkOpacity,
+ * checkVisibilityCSS}), visible fraction of B in the viewport, and the element hit at the centre of B's visible part.
+ * asserted:false = residual techniques the SEC-13 probe does not model (handoff "Limits"); e2e logs them only.
+ */
+const HIDDEN_VARIANTS = Object.freeze({
+  none: { how: 'control: B visible', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { status: 'auto-open', url: HIDDEN_B_URL, discovered: ['img-slab-b'], tabsOpened: 1 }, asserted: true },
+  opacity0: { how: 'opacity:0 on B', geometry: { cssVisible: false, visibleFraction: 1, hit: 'img-slab-b' }, expected: { status: 'none', reason: 'no slab-sized photo', mustNotAutoOpen: true, discovered: [], tabsOpened: 0 }, asserted: true },
+  visibility: { how: 'visibility:hidden on B', geometry: { cssVisible: false, visibleFraction: 1, hit: 'spot-b' }, expected: { status: 'none', reason: 'no slab-sized photo', mustNotAutoOpen: true, discovered: [], tabsOpened: 0 }, asserted: true },
+  offscreen: { how: 'B positioned at left:-5000px', geometry: { cssVisible: true, visibleFraction: 0, hit: null }, expected: { status: 'page-results', listed: ['01234567'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
+  overlay: { how: 'opaque <div> covers B', geometry: { cssVisible: true, visibleFraction: 1, hit: 'cover-b' }, expected: { status: 'page-results', listed: ['01234567'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
+  faint: { how: 'opacity:0.05 on B', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { status: 'page-results', listed: ['01234567'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: true },
+  'filter-opacity': { how: 'filter:opacity(0) on B (residual: not modelled)', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
+  'overlay-pe-none': { how: 'opaque <div> with pointer-events:none covers B (residual: hit testing cannot see it)', geometry: { cssVisible: true, visibleFraction: 1, hit: 'img-slab-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
+  'clip-path': { how: 'clip-path:inset(0 0 100% 0) on B (residual: not modelled)', geometry: { cssVisible: true, visibleFraction: 1, hit: 'spot-b' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
+  'clipped-parent': { how: 'B inside a 0 px tall overflow:hidden box', geometry: { cssVisible: true, visibleFraction: 1, hit: 'row' }, expected: { accept: ['page-results', 'none'], mustNotAutoOpen: true, discovered: ['img-slab-b'], tabsOpened: 0 }, asserted: false },
+});
+
+function hiddenHtml(sizes) {
+  const disp = (file, width) => ({ width, height: Math.round((sizes[file].height * width) / sizes[file].width) });
+  const a = disp(HIDDEN_A, 400);
+  const b = disp(HIDDEN_B, 300);
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hostile page: hidden slab image (synthetic, SEC-13)</title>
+<style>
+  body{margin:0;padding:16px 24px;font-family:"Liberation Sans",Arial,sans-serif;background:#fff;color:#222}
+  h1{font-size:16px;margin:0 0 12px}
+  .row{display:flex;gap:32px;align-items:flex-start}
+  #bg-slab-a{width:${a.width}px;height:${a.height}px;background:#eee url("../${HIDDEN_A}") center/contain no-repeat}
+  #spot-b{position:relative;width:${b.width}px;height:${b.height}px}
+  #img-slab-b{display:block}
+  #cover-b{position:absolute;inset:0;background:#f2f2f2;display:flex;align-items:center;justify-content:center;font-size:18px;color:#555}
+  #cover-b[hidden]{display:none}
+</style>
+</head>
+<body>
+<h1>Hostile test page: the slab you see is a CSS background; another slab photo is hidden (SEC-13)</h1>
+<div class="row" id="row">
+  <div id="bg-slab-a" role="img" aria-label="Synthetic PSA-style slab shown as a CSS background (slab A)" data-fixture="${HIDDEN_A}"></div>
+  <div id="spot-b">
+    <img id="img-slab-b" data-fixture="${HIDDEN_B}" src="../${HIDDEN_B}" width="${b.width}" height="${b.height}" alt="Synthetic PSA-style slab (slab B)">
+    <div id="cover-b" hidden>Photo unavailable</div>
+  </div>
+</div>
+<script>
+(async () => {
+  // ?hide=<variant> hides slab B's <img> (see manifest.pages[kind=hostile-hidden-image].variants); default "none" is the
+  // control (B visible). <html data-hide="<variant>" data-ready="1"> once slab A's background and slab B have decoded.
+  const mode = new URLSearchParams(location.search).get('hide') || 'none';
+  const img = document.getElementById('img-slab-b');
+  const spot = document.getElementById('spot-b');
+  const cover = document.getElementById('cover-b');
+  const variants = {
+    none: () => {},
+    opacity0: () => { img.style.opacity = '0'; },
+    visibility: () => { img.style.visibility = 'hidden'; },
+    offscreen: () => { spot.style.position = 'absolute'; spot.style.left = '-5000px'; spot.style.top = '0'; },
+    overlay: () => { cover.hidden = false; },
+    faint: () => { img.style.opacity = '0.05'; },
+    'filter-opacity': () => { img.style.filter = 'opacity(0)'; },
+    'overlay-pe-none': () => { cover.hidden = false; cover.style.pointerEvents = 'none'; },
+    'clip-path': () => { img.style.clipPath = 'inset(0 0 100% 0)'; },
+    'clipped-parent': () => { spot.style.height = '0'; spot.style.overflow = 'hidden'; },
+  };
+  const apply = Object.prototype.hasOwnProperty.call(variants, mode) ? variants[mode] : variants.none;
+  apply();
+  document.documentElement.dataset.hide = Object.prototype.hasOwnProperty.call(variants, mode) ? mode : 'none';
+  const bg = new Image();
+  bg.src = '../${HIDDEN_A}';
+  await Promise.all([img.decode().catch(() => {}), bg.decode().catch(() => {})]);
+  document.documentElement.dataset.ready = '1';
+})();
+</script>
+</body>
+</html>
+`;
+}
+
+function hiddenManifestEntry(sizes) {
+  const disp = (file, width) => ({ width, height: Math.round((sizes[file].height * width) / sizes[file].width) });
+  return {
+    page: 'pages/hidden.html', elementId: 'img-slab-b', kind: 'hostile-hidden-image', finding: 'SEC-13', fixture: HIDDEN_B,
+    contextMenu: 'image', display: disp(HIDDEN_B, 300),
+    background: { elementId: 'bg-slab-a', fixture: HIDDEN_A, display: disp(HIDDEN_A, 400), url: HIDDEN_A_URL },
+    params: { hide: `one of ${Object.keys(HIDDEN_VARIANTS).join(', ')} (default none = control)` },
+    viewport: { width: 1280, height: 861 },
+    variants: HIDDEN_VARIANTS,
+    mustNeverOpenUrls: [HIDDEN_A_URL],
+    notes: 'SEC-13 hostile page: slab A (psa-9digit, 108114622) is painted as a CSS background (never discovered by design); slab B (psa-8digit-leading-zero, 01234567) is the only <img>. In every hiding variant a page scan must not auto-open B (results list or none); slab A can never be read. Variants with asserted:false are residual techniques that the probe does not model; e2e records their outcome without failing.',
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Generate
 // ---------------------------------------------------------------------------------------------
 async function generate(outDir, browser) {
@@ -1499,6 +1679,8 @@ async function generate(outDir, browser) {
   await actx.close();
   await writeFile(path.join(outDir, 'pages', 'listing.html'), listingHtml(sizes));
   console.log('wrote pages/listing.html');
+  await writeFile(path.join(outDir, 'pages', 'hidden.html'), hiddenHtml(sizes));
+  console.log('wrote pages/hidden.html');
 
   const pkg = (name) => JSON.parse(readFileSync(path.join(ROOT, 'node_modules', name, 'package.json'), 'utf8')).version;
   const manifest = {
@@ -1558,6 +1740,7 @@ async function generate(outDir, browser) {
     notes: 'Blocks its main thread with a busy loop after the image renders (html[data-ready="1"], then data-busy="1"). Serve it on a different site than other test pages (e.g. localhost vs 127.0.0.1) so the hang stays in its own renderer. The image must not be fetchable by the extension (e.g. a hotlink-protected URL) so acquisition has to inject the page probe.',
   });
   manifest.pages.push(listingManifestEntry(sizes, pageAssets));
+  manifest.pages.push(hiddenManifestEntry(sizes));
   manifest.securityFixtures = security;
   manifest.pageAssets = pageAssets;
   await writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
@@ -1609,6 +1792,28 @@ async function verify(outDir, browser) {
     const buf = await readFile(path.join(outDir, f.file));
     if (sha256(buf) !== f.sha256 || buf.length !== f.bytes) fail(`${f.file}: bytes/sha256 differ from manifest`);
     if (f.file.endsWith('.bmp') && (buf.toString('ascii', 0, 2) !== 'BM' || buf.readInt32LE(18) !== f.declared.width || buf.readInt32LE(22) !== f.declared.height)) fail(`${f.file}: BMP header mismatch`);
+    if (f.file.endsWith('.jpg')) {
+      const s = f.structure;
+      const at = s.sofOffset;
+      if (buf[0] !== 0xff || buf[1] !== 0xd8 || buf[at] !== 0xff || buf[at + 1] !== 0xc0) fail(`${f.file}: SOI/SOF0 not where declared`);
+      else if (buf.readUInt16BE(at + 5) !== f.declared.height || buf.readUInt16BE(at + 7) !== f.declared.width) fail(`${f.file}: SOF0 size mismatch`);
+      if (!(at > s.headBytes)) fail(`${f.file}: SOF0 at ${at} is inside the first ${s.headBytes} bytes`);
+      if (!(buf.length < s.unknownSizeLimitBytes)) fail(`${f.file}: ${buf.length} bytes, not below the ${s.unknownSizeLimitBytes}-byte unknown-size limit`);
+      // Segment walk from SOI: no SOFn before the declared offset.
+      let i = 2;
+      while (i < at) {
+        const m = buf[i + 1];
+        if (buf[i] !== 0xff || (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m))) { fail(`${f.file}: unexpected marker at ${i}`); break; }
+        i += 2 + buf.readUInt16BE(i + 2);
+      }
+      if (i !== at) fail(`${f.file}: segment walk reaches ${i}, not the SOF0 at ${at}`);
+    }
+    if (f.file.endsWith('.gif')) {
+      const s = f.structure;
+      if (buf.toString('ascii', 0, 6) !== 'GIF89a' || buf.readUInt16LE(6) !== s.screen.width || buf.readUInt16LE(8) !== s.screen.height) fail(`${f.file}: GIF screen mismatch`);
+      const d = buf.indexOf(0x2c, 13 + 6 + 8);
+      if (d < 0 || buf.readUInt16LE(d + 5) !== s.frame.width || buf.readUInt16LE(d + 7) !== s.frame.height) fail(`${f.file}: GIF frame mismatch`);
+    }
   }
   // 1. Static: size budget, hash and header dimensions match the manifest.
   for (const f of manifest.fixtures) {
@@ -1787,6 +1992,48 @@ async function verify(outDir, browser) {
         }
       } finally {
         await lctx.close();
+      }
+    }
+    // 5. SEC-13 hostile page: in each variant slab A's background loads and slab B's <img> loads, and the browser
+    //    reports the declared geometry (CSS visibility, visible fraction, element hit at the centre of B).
+    const hidden = manifest.pages.find((p) => p.kind === 'hostile-hidden-image');
+    if (!hidden) fail('hidden: pages/hidden.html missing from manifest.pages');
+    else {
+      const hctx = await newContext(browser, hidden.viewport);
+      try {
+        const hpg = await hctx.newPage();
+        hpg.on('request', (r) => { if (!local.some((p) => r.url().startsWith(p))) external.push(r.url()); });
+        for (const [variant, spec] of Object.entries(hidden.variants)) {
+          await hpg.goto(`${base}/fixtures/${hidden.page}?hide=${encodeURIComponent(variant)}`);
+          await hpg.waitForSelector('html[data-ready="1"]', { timeout: 10000 });
+          const g = await hpg.evaluate(async () => {
+            const img = document.getElementById('img-slab-b');
+            const bgUrl = /url\("?(.*?)"?\)/.exec(getComputedStyle(document.getElementById('bg-slab-a')).backgroundImage)?.[1];
+            const bg = new Image();
+            bg.src = bgUrl;
+            await bg.decode().catch(() => {});
+            const r = img.getBoundingClientRect();
+            const x0 = Math.max(r.left, 0); const y0 = Math.max(r.top, 0);
+            const x1 = Math.min(r.right, innerWidth); const y1 = Math.min(r.bottom, innerHeight);
+            const vf = x1 > x0 && y1 > y0 ? Math.round((((x1 - x0) * (y1 - y0)) / (r.width * r.height)) * 100) / 100 : 0;
+            const hit = vf > 0 ? document.elementFromPoint((x0 + x1) / 2, (y0 + y1) / 2) : null;
+            return {
+              mode: document.documentElement.dataset.hide, bgNatural: bg.naturalWidth, natural: img.naturalWidth,
+              cssVisible: img.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }), visibleFraction: vf,
+              hit: hit ? (hit.id || hit.tagName.toLowerCase()) : null, rendered: { width: Math.round(r.width), height: Math.round(r.height) },
+            };
+          });
+          const want = spec.geometry;
+          if (g.mode !== variant) fail(`hidden ${variant}: page applied "${g.mode}"`);
+          if (!(g.bgNatural > 0) || !(g.natural > 0)) fail(`hidden ${variant}: slab A background or slab B not loaded`);
+          if (g.rendered.width !== hidden.display.width || g.rendered.height !== hidden.display.height) fail(`hidden ${variant}: B rendered ${g.rendered.width}x${g.rendered.height}`);
+          if (g.cssVisible !== want.cssVisible || g.visibleFraction !== want.visibleFraction || g.hit !== want.hit) {
+            fail(`hidden ${variant}: geometry ${JSON.stringify({ cssVisible: g.cssVisible, visibleFraction: g.visibleFraction, hit: g.hit })} != ${JSON.stringify(want)}`);
+          }
+          console.log(`  hidden?hide=${variant}: cssVisible ${g.cssVisible}, visible ${g.visibleFraction}, hit #${g.hit}`);
+        }
+      } finally {
+        await hctx.close();
       }
     }
     if (external.length) fail(`unexpected non-local requests: ${external.join(', ')}`);

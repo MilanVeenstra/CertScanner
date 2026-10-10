@@ -267,10 +267,12 @@ const success = (bitmap, blob, method, resolution, origin, canRequestSharper) =>
 
 /**
  * @param {import('../core/types.js').ScanJob} job
- * @param {{signal?:AbortSignal, strategies?:string[], chromeApi?:typeof chrome}} [opts] strategies: test-only override
+ * @param {{signal?:AbortSignal, strategies?:string[], chromeApi?:typeof chrome, pageFetch?:'displayed'|'srcset'}} [opts]
+ *   strategies: page mode / test override. pageFetch (page mode, SEC-20): what the page-context fetch may load:
+ *   only the displayed image, or only its largest srcset candidate. Default: srcset candidate, then the image.
  * @returns {Promise<import('../core/types.js').AcquireResult>}
  */
-export async function acquireFromJob(job, { signal, strategies, chromeApi = globalThis.chrome } = {}) {
+export async function acquireFromJob(job, { signal, strategies, chromeApi = globalThis.chrome, pageFetch } = {}) {
   const sig = AbortSignal.any([signal, AbortSignal.timeout(ACQUIRE_TIMEOUT_MS)].filter(Boolean));
   const order = Array.isArray(strategies) ? strategies.filter((s) => STRATEGIES.includes(s)) : STRATEGIES;
   const srcUrl = job?.srcUrl ?? null;
@@ -306,7 +308,8 @@ export async function acquireFromJob(job, { signal, strategies, chromeApi = glob
         target: { tabId: job.tabId, frameIds: [job.frameId] },
         world: 'ISOLATED',
         func: pageProbe,
-        args: [srcUrl, mode, MAX_IMAGE_BYTES],
+        args: mode === 'inspect' && (pageFetch === 'displayed' || pageFetch === 'srcset')
+          ? [srcUrl, mode, MAX_IMAGE_BYTES, { fetch: pageFetch }] : [srcUrl, mode, MAX_IMAGE_BYTES],
       }), sig);
       const v = validateProbeResult(results?.[0]?.result, { srcUrl, maxBytes: MAX_IMAGE_BYTES });
       if (!v.ok) throw new AcquireError('fetch-failed');

@@ -86,7 +86,7 @@ test('originPattern requests exactly one https host', () => {
 
 test('pageProbe is self-contained (serializable for executeScript)', () => {
   const src = pageProbe.toString();
-  assert.match(src, /^async function pageProbe\(srcUrl, mode, maxBytes\)/);
+  assert.match(src, /^async function pageProbe\(srcUrl, mode, maxBytes, opts\)/);
   // No references to module-level identifiers: re-evaluating the source alone must yield a function.
   const fn = new Function(`return (${src});`)();
   assert.equal(typeof fn, 'function');
@@ -111,4 +111,28 @@ test('acquireFromJob: missing srcUrl reports why (too-large vs invalid-image), r
   assert.equal((await acquireFromJob(job, { chromeApi })).reason, 'too-large'); // older jobs: ADR default
   assert.equal((await acquireFromJob({ ...job, srcIssue: 'unsupported' }, { chromeApi })).reason, 'invalid-image');
   assert.equal((await acquireFromJob({ ...job, srcIssue: 'unsupported', pageUrl: 'chrome://version/' }, { chromeApi })).reason, 'restricted');
+});
+
+test('SEC-20 pageProbe inspect: page mode fetches only the displayed image (or only the srcset candidate); default unchanged', async () => {
+  const fn = new Function(`return (${pageProbe.toString()});`)();
+  const saved = { document: globalThis.document, window: globalThis.window, fetch: globalThis.fetch, FileReader: globalThis.FileReader };
+  globalThis.FileReader = class { readAsDataURL(blob) { blob.arrayBuffer().then((b) => { this.result = `data:${blob.type};base64,${Buffer.from(b).toString('base64')}`; this.onload(); }); } };
+  const fetched = [];
+  const img = {
+    currentSrc: 'https://x.example/a-270.jpg', src: 'https://x.example/a-270.jpg', naturalWidth: 270, naturalHeight: 422, complete: true,
+    getAttribute: (n) => (n === 'srcset' ? 'a-270.jpg 270w, b-4000.jpg 4000w' : null), parentElement: { tagName: 'DIV' },
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 270, height: 422 }),
+  };
+  globalThis.document = { images: [img], baseURI: 'https://x.example/' };
+  globalThis.window = { innerWidth: 1280, innerHeight: 900, devicePixelRatio: 1 };
+  globalThis.window.top = globalThis.window;
+  globalThis.fetch = async (url) => { fetched.push(url); return new Response(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'image/jpeg' } }); };
+  try {
+    const run = async (opts) => { fetched.length = 0; const r = await fn('https://x.example/a-270.jpg', 'inspect', 1000, opts); return { url: r.fetch?.url, fetched: [...fetched] }; };
+    assert.deepEqual(await run({ fetch: 'displayed' }), { url: 'https://x.example/a-270.jpg', fetched: ['https://x.example/a-270.jpg'] });
+    assert.deepEqual(await run({ fetch: 'srcset' }), { url: 'https://x.example/b-4000.jpg', fetched: ['https://x.example/b-4000.jpg'] });
+    assert.deepEqual(await run(undefined), { url: 'https://x.example/b-4000.jpg', fetched: ['https://x.example/b-4000.jpg'] }); // right-click mode
+  } finally {
+    Object.assign(globalThis, saved);
+  }
 });

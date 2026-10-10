@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { scanPage } from '../../src/pipeline/pageScan.js';
+import { aggregatePage, decidePage } from '../../src/core/pageAggregate.js';
 import { settings } from './helpers.mjs';
 
 const NOW = 1_760_000_000_000;
@@ -31,9 +32,11 @@ function deps(bySrc, { acquireFails = new Set(), log = [] } = {}) {
   return {
     warmUp: () => log.push(['warmUp']),
     acquire: async (j, o) => {
-      log.push(['acquire', j.srcUrl, ...(o?.strategies ? [o.strategies.join('+')] : [])]);
-      if (acquireFails.has(j.srcUrl)) return { ok: false, reason: 'fetch-failed', origin: 'https://img.example', canRequestSharper: true };
-      return { ok: true, bitmap: { close() {} }, blob: { size: 10, src: j.srcUrl }, info: { method: 'extension-fetch', resolution: 'full', width: 680, height: 1044, origin: 'https://img.example', canRequestSharper: false } };
+      log.push(['acquire', j.srcUrl, ...(o?.strategies ? [o.strategies.join('+')] : []), ...(o?.pageFetch ? [o.pageFetch] : [])]);
+      // page fetch in 'srcset' mode loads the srcset candidate of the displayed image (job.srcUrl stays the displayed URL)
+      const src = o?.pageFetch === 'srcset' ? `${j.srcUrl}#srcset` : j.srcUrl;
+      if (acquireFails.has(src)) return { ok: false, reason: 'fetch-failed', origin: 'https://img.example', canRequestSharper: true };
+      return { ok: true, bitmap: { close() {} }, blob: { size: 10, src }, info: { method: 'extension-fetch', resolution: 'full', width: 680, height: 1044, origin: 'https://img.example', canRequestSharper: false } };
     },
     capture: async () => ({ ok: true, bitmap: { width: 1280, height: 900, close() {} } }),
     crop: async (_shot, rect) => ({ size: 5, rect }),
@@ -163,19 +166,65 @@ test('SEC-13 T1: the only slab image is off-screen or covered -> results list, n
   assert.equal(shown.status, 'auto-open');
 });
 
-test('srcset: the largest same-origin candidate is fetched first (extension fetch only); the shown image is the fallback', async () => {
+test('SEC-20 rule 3: the displayed image is read first (page fetch limited to it); a confident read skips srcset', async () => {
   const log = [];
   const big = 'https://img.example/1-1600.jpg';
-  const r = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]), deps: deps({ [big]: [cand('01234567')] }, { log }) });
-  assert.deepEqual(log.filter((x) => x[0] === 'acquire'), [['acquire', big, 'extension-fetch']]);
+  const r = await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]), deps: deps({ 'https://img.example/1.jpg': [cand('01234567')] }, { log }) });
+  assert.deepEqual(log.filter((x) => x[0] === 'acquire'), [['acquire', 'https://img.example/1.jpg', 'data-url+extension-fetch+page-fetch', 'displayed']]);
   assert.equal(r.status, 'auto-open');
+  assert.equal(r.top.displayedConfidence, 0.9);
+});
 
-  const log2 = [];
-  await scanPage(job(), { settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]), deps: deps({}, { log: log2, acquireFails: new Set([big]) }) });
-  assert.deepEqual(log2.filter((x) => x[0] === 'acquire'), [
-    ['acquire', big, 'extension-fetch'],
-    ['acquire', 'https://img.example/1.jpg', 'data-url+extension-fetch+page-fetch'],
+test('SEC-20 rule 3: srcset swap - displayed slab A unclear, srcset bytes read slab B -> list, B never auto-opens', async () => {
+  const log = [];
+  const big = 'https://img.example/1-4000.jpg';
+  const r = await scanPage(job(), {
+    settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]),
+    deps: deps({ 'https://img.example/1.jpg': [cand('108114622', { confidence: 0.6 })], [big]: [cand('01234567', { confidence: 0.95 })] }, { log }),
+  });
+  assert.deepEqual(log.filter((x) => x[0] === 'acquire').map((x) => x.slice(1)), [
+    ['https://img.example/1.jpg', 'data-url+extension-fetch+page-fetch', 'displayed'],
+    [big, 'extension-fetch'],
   ]);
+  assert.equal(r.status, 'page-results');
+  const b = r.items.find((i) => i.number === '01234567');
+  assert.ok(b.evidence.includes('src:srcset-best'));
+  assert.equal(b.displayedConfidence, null);
+  assert.deepEqual(r.images[0].srcset, { ok: true, method: 'extension-fetch', candidates: 1, ms: r.images[0].srcset.ms });
+});
+
+test('SEC-20 rule 3: a number read only from srcset bytes never auto-opens, even alone; page fetch of srcset when extension fetch fails', async () => {
+  const log = [];
+  const big = 'https://img.example/1-1600.jpg';
+  const r = await scanPage(job(), {
+    settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]),
+    deps: deps({ 'https://img.example/1.jpg': [], 'https://img.example/1.jpg#srcset': [cand('01234567', { confidence: 0.95 })] }, { log, acquireFails: new Set([big]) }),
+  });
+  assert.deepEqual(log.filter((x) => x[0] === 'acquire').map((x) => x.slice(1)), [
+    ['https://img.example/1.jpg', 'data-url+extension-fetch+page-fetch', 'displayed'],
+    [big, 'extension-fetch'],
+    ['https://img.example/1.jpg', 'page-fetch', 'srcset'],
+  ]);
+  assert.equal(r.status, 'page-results');
+  assert.deepEqual(r.items.map((i) => i.number), ['01234567']);
+  // The same number also read (unclearly) from the displayed bytes: the >= 0.80 read is still srcset-only.
+  const merged = await scanPage(job(), {
+    settings: settings(), chromeApi: fakeChrome([img(1, { srcsetBest: big })]),
+    deps: deps({ 'https://img.example/1.jpg': [cand('01234567', { confidence: 0.6 })], [big]: [cand('01234567', { confidence: 0.95 })] }),
+  });
+  assert.equal(merged.status, 'page-results');
+  assert.equal(merged.items[0].confidence, 0.95);
+  assert.equal(merged.items[0].displayedConfidence, 0.6);
+});
+
+test('SEC-20 decidePage: auto-open needs a >= 0.80 read from displayed bytes', () => {
+  const srcset = { evidence: ['len:8', 'src:srcset-best'] };
+  assert.equal(decidePage(aggregatePage([{ index: 0, prominent: true, warnings: [], candidates: [cand('01234567', srcset)] }]), settings()).status, 'page-results');
+  assert.equal(decidePage(aggregatePage([{ index: 0, prominent: true, warnings: [], candidates: [cand('01234567')] }]), settings()).status, 'auto-open');
+  assert.equal(decidePage(aggregatePage([
+    { index: 0, prominent: true, warnings: [], candidates: [cand('01234567', { confidence: 0.85 })] },
+    { index: 0, prominent: true, warnings: [], candidates: [cand('01234567', { confidence: 0.95, ...srcset })] },
+  ]), settings()).status, 'auto-open', 'displayed 0.85 + srcset 0.95 of the same number');
 });
 
 test('engines are warmed up once, right after discovery found a photo; not for pages without photos', async () => {

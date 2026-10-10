@@ -6,13 +6,15 @@ import { pageImagesProbe } from './pageImagesProbe.js';
 import { validatePageImages, MAX_PAGE_IMAGES, PAGE_MIN_RENDERED, PAGE_MIN_NATURAL } from './probeValidate.js';
 import { scan, getEngines } from './scanner.js';
 import { warmUpBarcodes } from './barcode.js';
-import { aggregatePage, decidePage, isProminent } from '../core/pageAggregate.js';
+import { aggregatePage, decidePage, isProminent, SRCSET_EVIDENCE } from '../core/pageAggregate.js';
+import { DEFAULT_RULES } from '../core/certRules.js';
 import { isRestrictedPage } from '../core/certUrls.js';
 import { raceAbort } from '../shared/raceAbort.js';
 
 export const PAGE_SCAN_IMAGES = 8;
 export const PAGE_SCAN_BUDGET_MS = 30_000;
 export const CAPTURE_MIN_VISIBLE = 0.9;
+const AUTO_OPEN_MIN = DEFAULT_RULES.SCORE.thresholds.autoOpen;
 
 const now = () => performance.now();
 const ms = (x) => Math.round(x);
@@ -102,44 +104,69 @@ export async function scanPage(job, {
       timings.captureMs = ms(now() - t);
     }
 
-    // 3. Per image: acquire (data URL -> extension fetch -> page fetch -> crop), then the existing scanner.
+    // 3. Per image (SEC-20): the DISPLAYED image first (currentSrc: data URL -> extension fetch -> page fetch of that
+    //    URL only -> crop), then the existing scanner. Only when that read has no candidate >= 0.80, the largest
+    //    same-origin srcset candidate is read too; its candidates are marked SRCSET_EVIDENCE: listed, never auto-opened.
+    const isStop = (a) => !a.ok && (a.reason === 'aborted' || a.reason === 'timeout') && sig.aborted;
+    const runScan = (acq, k) => d.scan({ kind: 'blob', blob: acq.blob, method: 'upload' }, {
+      settings: { ...settings, autoOpen: false }, signal: sig, engines, acquire: async () => acq,
+      onProgress: (p) => { try { onImageProgress?.(k, p); } catch { /* UI only */ } },
+    });
     for (let k = 0; k < selected.length; k++) {
       if (sig.aborted) throw sig.reason;
       const im = selected[k];
       progress({ stage: 'page', index: k + 1, total: selected.length });
       const ti = now();
       const imageJob = { v: 1, id: `${job.id}#${k}`, createdAt: job.createdAt, source: 'contextMenu', srcUrl: im.srcUrl, pageUrl: job.pageUrl, frameId: 0, tabId: job.tabId, windowId: job.windowId, mediaType: 'image' };
-      let acq = null;
-      // Largest same-origin srcset candidate first (extension fetch; page fetch already prefers it), else the shown image.
-      if (im.srcsetBest && im.srcsetBest !== im.srcUrl) {
-        acq = await d.acquire({ ...imageJob, srcUrl: im.srcsetBest }, { signal: sig, strategies: ['extension-fetch'], chromeApi });
-        if (!acq.ok && (acq.reason === 'aborted' || acq.reason === 'timeout') && sig.aborted) throw sig.reason;
-        if (!acq.ok) acq = null;
-      }
-      acq ??= await d.acquire(imageJob, { signal: sig, strategies: ['data-url', 'extension-fetch', 'page-fetch'], chromeApi });
-      if (!acq.ok && (acq.reason === 'aborted' || acq.reason === 'timeout') && sig.aborted) throw sig.reason;
+      let acq = await d.acquire(imageJob, { signal: sig, strategies: ['data-url', 'extension-fetch', 'page-fetch'], chromeApi, pageFetch: 'displayed' });
+      if (isStop(acq)) throw sig.reason;
       if (!acq.ok && shot && im.visibleFraction >= CAPTURE_MIN_VISIBLE) {
         const blob = await d.crop(shot, im.rect, found.viewport);
         if (blob) acq = await d.wrap(blob, 'capture', 'screen', imageOriginOf(im.srcUrl), Boolean(acq.canRequestSharper));
       }
-      const acquireMs = ms(now() - ti);
-      if (!acq.ok) {
-        images.push({ index: k, ok: false, reason: acq.reason, acquireMs });
-        continue;
+      const entry = { index: k, ok: false, acquireMs: ms(now() - ti) };
+      let confident = false;
+      if (acq.ok) {
+        try { onImage?.(k, acq.blob, acq.info); } catch { /* preview only */ }
+        const ts = now();
+        const r = await runScan(acq, k);
+        if (r.status === 'error') {
+          if (sig.aborted) throw sig.reason;
+          Object.assign(entry, { reason: r.error?.code ?? 'engine-failed', scanMs: ms(now() - ts) });
+        } else {
+          perImage.push({ index: k, candidates: r.candidates, warnings: r.warnings, prominent: isProminent(im) });
+          Object.assign(entry, { ok: true, method: acq.info.method, resolution: acq.info.resolution, candidates: r.candidates.length, scanMs: ms(now() - ts), timings: r.timings });
+          confident = r.candidates.some((c) => c.confidence >= AUTO_OPEN_MIN);
+        }
+      } else {
+        entry.reason = acq.reason;
       }
-      try { onImage?.(k, acq.blob, acq.info); } catch { /* preview only */ }
-      const ts = now();
-      const r = await d.scan({ kind: 'blob', blob: acq.blob, method: 'upload' }, {
-        settings: { ...settings, autoOpen: false }, signal: sig, engines, acquire: async () => acq,
-        onProgress: (p) => { try { onImageProgress?.(k, p); } catch { /* UI only */ } },
-      });
-      if (r.status === 'error') {
-        if (sig.aborted) throw sig.reason;
-        images.push({ index: k, ok: false, reason: r.error?.code ?? 'engine-failed', acquireMs, scanMs: ms(now() - ts) });
-        continue;
+
+      if (!confident && im.srcsetBest && im.srcsetBest !== im.srcUrl) {
+        const tb = now();
+        let big = await d.acquire({ ...imageJob, srcUrl: im.srcsetBest }, { signal: sig, strategies: ['extension-fetch'], chromeApi });
+        if (isStop(big)) throw sig.reason;
+        if (!big.ok) {
+          big = await d.acquire(imageJob, { signal: sig, strategies: ['page-fetch'], chromeApi, pageFetch: 'srcset' });
+          if (isStop(big)) throw sig.reason;
+        }
+        if (big.ok) {
+          if (!acq.ok) { try { onImage?.(k, big.blob, big.info); } catch { /* preview only */ } }
+          const r2 = await runScan(big, k);
+          if (r2.status === 'error') {
+            if (sig.aborted) throw sig.reason;
+            entry.srcset = { ok: false, reason: r2.error?.code ?? 'engine-failed' };
+          } else {
+            const marked = r2.candidates.map((c) => ({ ...c, evidence: [...(c.evidence ?? []), SRCSET_EVIDENCE] }));
+            perImage.push({ index: k, candidates: marked, warnings: r2.warnings, prominent: isProminent(im) });
+            entry.srcset = { ok: true, method: big.info.method, candidates: marked.length, ms: ms(now() - tb) };
+            if (!entry.ok) Object.assign(entry, { ok: true, method: big.info.method, resolution: big.info.resolution, candidates: marked.length });
+          }
+        } else {
+          entry.srcset = { ok: false, reason: big.reason };
+        }
       }
-      perImage.push({ index: k, candidates: r.candidates, warnings: r.warnings, prominent: isProminent(im) });
-      images.push({ index: k, ok: true, method: acq.info.method, resolution: acq.info.resolution, candidates: r.candidates.length, acquireMs, scanMs: ms(now() - ts), timings: r.timings });
+      images.push(entry);
     }
 
     // 4. Aggregate + route.
@@ -153,7 +180,7 @@ export async function scanPage(job, {
       if (agg.items.length) {
         return finish('page-results', {
           items: agg.items, warnings: agg.warnings, images,
-          partial: { checked: perImage.length, total: selected.length },
+          partial: { checked: new Set(perImage.map((p) => p.index)).size, total: selected.length },
         });
       }
     }

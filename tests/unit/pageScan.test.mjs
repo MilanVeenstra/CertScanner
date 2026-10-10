@@ -161,31 +161,43 @@ test('decidePage: off-site QR in the confident number\'s image blocks auto-open;
 
 // ---------------------------------------------------------------- SEC-13 / SEC-19 / O10 (S8)
 
-/** Fake DOM for pageImagesProbe: images with geometry, CSS visibility, hit-test result and opacity. */
-function withFakeDom({ images, hits = new Map(), styles = new Map() }, fn) {
+/**
+ * Fake DOM for pageImagesProbe. `hits`: element -> [x, y, w, h], in paint order (first = topmost); elementsFromPoint
+ * lists only these (like Chrome, it never reports pointer-events:none elements). `extra`: further elements that
+ * querySelectorAll('*') returns (e.g. pointer-events:none overlays). `styles`: element -> computed-style overrides,
+ * with optional '::before' / '::after' objects.
+ */
+const BASE_STYLE = { opacity: '1', pointerEvents: 'auto', filter: 'none', clipPath: 'none', clip: 'auto', maskImage: 'none', webkitMaskImage: 'none', mask: 'none', mixBlendMode: 'normal', backgroundImage: 'none', backgroundColor: 'rgba(0, 0, 0, 0)', backdropFilter: 'none', position: 'static', transform: 'none' };
+function withFakeDom({ images, hits = new Map(), styles = new Map(), extra = [], elementCount = null }, fn) {
   const saved = { document: globalThis.document, window: globalThis.window };
+  const all = [...new Set([...images, ...hits.keys(), ...extra])];
   globalThis.document = {
     baseURI: 'https://shop.example/', images,
-    elementsFromPoint: (x, y) => {
-      for (const [el, box] of hits) if (x >= box[0] && x < box[0] + box[2] && y >= box[1] && y < box[1] + box[3]) return [el];
-      return [];
-    },
+    elementsFromPoint: (x, y) => [...hits].filter(([, b]) => x >= b[0] && x < b[0] + b[2] && y >= b[1] && y < b[1] + b[3]).map(([el]) => el),
+    querySelectorAll: () => (elementCount ? Array.from({ length: elementCount }, () => fakeEl([0, 0, 0, 0])) : all),
   };
   globalThis.window = {
     innerWidth: 1280, innerHeight: 900, devicePixelRatio: 1,
-    getComputedStyle: (el) => ({ opacity: '1', pointerEvents: 'auto', ...(styles.get(el) ?? {}) }),
+    getComputedStyle: (el, pseudo) => (pseudo ? { content: 'none', ...BASE_STYLE, ...(styles.get(el)?.[pseudo] ?? {}) } : { ...BASE_STYLE, ...(styles.get(el) ?? {}) }),
   };
   return Promise.resolve().then(fn).finally(() => Object.assign(globalThis, saved));
 }
 const probeFn = () => new Function(`return (${pageImagesProbe.toString()});`)();
-function fakeImg(srcUrl, rect, { natural = [680, 1044], visible = true, parent = null } = {}) {
-  return {
-    currentSrc: srcUrl, src: srcUrl, complete: true, naturalWidth: natural[0], naturalHeight: natural[1],
-    getAttribute: () => null, parentElement: parent ?? { tagName: 'DIV', parentElement: null },
+function fakeEl(rect, { tagName = 'DIV', parent = null, children = [] } = {}) {
+  const el = {
+    tagName, parentElement: parent, namespaceURI: 'http://www.w3.org/1999/xhtml',
     getBoundingClientRect: () => ({ left: rect[0], top: rect[1], width: rect[2], height: rect[3] }),
-    checkVisibility: () => visible,
+    contains: (x) => x === el || children.includes(x),
+    checkVisibility: () => true,
   };
+  return el;
 }
+function fakeImg(srcUrl, rect, { natural = [680, 1044], visible = true, parent = null } = {}) {
+  const img = fakeEl(rect, { tagName: 'IMG', parent: parent ?? { tagName: 'DIV', parentElement: null } });
+  Object.assign(img, { currentSrc: srcUrl, src: srcUrl, complete: true, naturalWidth: natural[0], naturalHeight: natural[1], getAttribute: () => null, checkVisibility: () => visible });
+  return img;
+}
+const topOf = async (env) => withFakeDom(env, async () => (await probeFn()({})).images.map((i) => i.topmostAtCenter));
 
 test('SEC-13 probe: CSS-hidden images are skipped (checkVisibility with opacity and visibility checks)', async () => {
   let opts = null;
@@ -200,34 +212,111 @@ test('SEC-13 probe: CSS-hidden images are skipped (checkVisibility with opacity 
   });
 });
 
-test('SEC-13 probe: topmostAtCenter = the image is hit first at the centre of its visible part and is mostly opaque', async () => {
+test('SEC-13 probe: on top only when the image itself is hit first; covered, off-screen and faint images are not', async () => {
   const top = fakeImg('https://shop.example/top.jpg', [0, 0, 300, 460]);
   const covered = fakeImg('https://shop.example/covered.jpg', [400, 0, 300, 460]);
-  const cover = { contains: () => false };
-  const wrap = { tagName: 'A', parentElement: null, contains: (el) => el === inert };
-  const inert = fakeImg('https://shop.example/inert.jpg', [800, 0, 300, 460], { parent: wrap });
+  const cover = fakeEl([400, 0, 300, 460]);
   const faint = fakeImg('https://shop.example/faint.jpg', [0, 500, 300, 380]);
   const offscreen = fakeImg('https://shop.example/off.jpg', [0, 2000, 300, 460]);
   const partly = fakeImg('https://shop.example/partly.jpg', [1100, 0, 300, 460]); // 180 of 300 px visible
-  const hits = new Map([[top, [0, 0, 300, 460]], [cover, [400, 0, 300, 460]], [wrap, [800, 0, 300, 460]], [faint, [0, 500, 300, 380]], [partly, [1100, 0, 180, 460]]]);
-  const styles = new Map([[inert, { pointerEvents: 'none' }], [faint, { opacity: '0.3' }]]);
-  await withFakeDom({ images: [top, covered, inert, faint, offscreen, partly], hits, styles }, async () => {
+  const hits = new Map([[top, [0, 0, 300, 460]], [cover, [400, 0, 300, 460]], [covered, [400, 0, 300, 460]], [faint, [0, 500, 300, 380]], [partly, [1100, 0, 180, 460]]]);
+  const styles = new Map([[faint, { opacity: '0.3' }]]);
+  await withFakeDom({ images: [top, covered, faint, offscreen, partly], hits, styles }, async () => {
     const r = await probeFn()({});
     const by = Object.fromEntries(r.images.map((i) => [i.srcUrl.split('/').pop(), i.topmostAtCenter]));
-    assert.deepEqual(by, { 'top.jpg': true, 'covered.jpg': false, 'inert.jpg': true, 'faint.jpg': false, 'off.jpg': false, 'partly.jpg': true });
+    assert.deepEqual(by, { 'top.jpg': true, 'covered.jpg': false, 'faint.jpg': false, 'off.jpg': false, 'partly.jpg': true });
     const v = validatePageImages(r);
     assert.equal(v.ok, true);
     assert.equal(v.value.images.find((i) => i.srcUrl.endsWith('covered.jpg')).topmostAtCenter, false);
   });
 });
 
-test('SEC-13 probe: an ancestor hit first does not count when the image itself is hit-testable (pseudo-element cover)', async () => {
-  const wrap = { tagName: 'DIV', parentElement: null, contains: (el) => el === img };
+test('SEC-13/20 probe: an ancestor hit first never counts (pseudo-element cover, or the image has pointer-events:none)', async () => {
+  const wrapCovered = fakeEl([0, 0, 300, 460]);
+  const img = fakeImg('https://shop.example/b.jpg', [0, 0, 300, 460], { parent: wrapCovered });
+  wrapCovered.contains = (x) => x === wrapCovered || x === img;
+  assert.deepEqual(await topOf({ images: [img], hits: new Map([[wrapCovered, [0, 0, 300, 460]], [img, [0, 0, 300, 460]]]) }), [false]);
+  const wrap = fakeEl([0, 0, 300, 460]);
+  const inert = fakeImg('https://shop.example/inert.jpg', [0, 0, 300, 460], { parent: wrap });
+  wrap.contains = (x) => x === wrap || x === inert;
+  assert.deepEqual(await topOf({ images: [inert], hits: new Map([[wrap, [0, 0, 300, 460]]]), styles: new Map([[inert, { pointerEvents: 'none' }]]) }), [false]);
+});
+
+// ---------------------------------------------------------------- SEC-20 (S9)
+
+test('SEC-20 rule 1: filter, clip-path, clip, masks, blend modes on the image or any ancestor -> not prominent', async () => {
+  const cases = [
+    ['filter', { filter: 'opacity(0)' }], ['clip-path', { clipPath: 'inset(49% 49% 49% 49%)' }], ['clip', { clip: 'rect(0px, 2px, 2px, 0px)' }],
+    ['mask-image', { maskImage: 'url("m.png")' }], ['-webkit-mask-image', { webkitMaskImage: 'linear-gradient(black, transparent)' }],
+    ['mask shorthand', { mask: 'url("m.svg") center / contain' }], ['mix-blend-mode', { mixBlendMode: 'multiply' }],
+  ];
+  for (const [name, style] of cases) {
+    for (const where of ['image', 'ancestor']) {
+      const outer = fakeEl([0, 0, 1280, 900]);
+      const img = fakeImg('https://shop.example/b.jpg', [0, 0, 300, 460], { parent: outer });
+      const styles = new Map([[where === 'image' ? img : outer, style]]);
+      assert.deepEqual(await topOf({ images: [img], hits: new Map([[img, [0, 0, 300, 460]]]), styles }), [false], `${name} on the ${where}`);
+    }
+  }
+  const outer = fakeEl([0, 0, 1280, 900]);
+  const img = fakeImg('https://shop.example/b.jpg', [0, 0, 300, 460], { parent: outer });
+  const hits = new Map([[img, [0, 0, 300, 460]]]);
+  assert.deepEqual(await topOf({ images: [img], hits, styles: new Map([[outer, { opacity: '0.85' }]]) }), [false], 'cumulative opacity 0.85');
+  assert.deepEqual(await topOf({ images: [img], hits, styles: new Map([[outer, { opacity: '0.95' }]]) }), [true], 'cumulative opacity 0.95');
+  assert.deepEqual(await topOf({ images: [img], hits, styles: new Map([[outer, { filter: 'none', clipPath: 'none', mask: 'none 0% 0% / auto' }]]) }), [true], 'none values pass');
+});
+
+test('SEC-20 rule 2: the image must be on top at >= 4 of 5 points (centre + 25 %/75 % of the visible part)', async () => {
+  const img = fakeImg('https://shop.example/b.jpg', [0, 0, 400, 400]);
+  const right = fakeEl([250, 0, 150, 400]);   // covers (300,100) and (300,300)
+  const corner = fakeEl([250, 0, 150, 200]);  // covers (300,100) only
+  const window2px = fakeEl([0, 0, 400, 400]); // e.g. an ancestor clip leaving the image visible only around the centre
+  assert.deepEqual(await topOf({ images: [img], hits: new Map([[right, [250, 0, 150, 400]], [img, [0, 0, 400, 400]]]) }), [false], '3 of 5');
+  assert.deepEqual(await topOf({ images: [img], hits: new Map([[corner, [250, 0, 150, 200]], [img, [0, 0, 400, 400]]]) }), [true], '4 of 5');
+  assert.deepEqual(await topOf({ images: [img], hits: new Map([[img, [199, 199, 2, 2]], [window2px, [0, 0, 400, 400]]]) }), [false], '2 px window at the centre');
+});
+
+test('SEC-20 rule 2: painting pointer-events:none elements over the image count as covering (hit tests skip them)', async () => {
+  const img = fakeImg('https://shop.example/b.jpg', [0, 0, 300, 460]);
+  const hits = new Map([[img, [0, 0, 300, 460]]]);
+  const overlay = fakeEl([0, 0, 300, 460]);
+  const run = (style, extra = [overlay]) => topOf({ images: [img], hits, extra, styles: new Map([[overlay, { pointerEvents: 'none', ...style }]]) });
+  assert.deepEqual(await run({ backgroundImage: 'url("slab-a.png")' }), [false], 'background image overlay');
+  assert.deepEqual(await run({ backgroundColor: 'rgb(255, 255, 255)' }), [false], 'opaque colour overlay');
+  assert.deepEqual(await run({ '::after': { content: '""', backgroundImage: 'url("slab-a.png")' } }), [false], 'painted ::after');
+  assert.deepEqual(await run({ backdropFilter: 'opacity(0)' }), [false], 'backdrop-filter');
+  const imgOverlay = fakeEl([0, 0, 300, 460], { tagName: 'IMG' });
+  assert.deepEqual(await topOf({ images: [img], hits, extra: [imgOverlay], styles: new Map([[imgOverlay, { pointerEvents: 'none' }]]) }), [false], '<img> overlay');
+  // Not covering: transparent containers (toast layers), elements away from the sample points, invisible ones.
+  assert.deepEqual(await run({}), [true], 'transparent pointer-events:none container');
+  const badge = fakeEl([0, 0, 40, 20]);
+  assert.deepEqual(await topOf({ images: [img], hits, extra: [badge], styles: new Map([[badge, { pointerEvents: 'none', backgroundColor: 'rgb(200, 0, 0)' }]]) }), [true], 'corner badge');
+  const gone = fakeEl([0, 0, 300, 460]);
+  gone.checkVisibility = () => false;
+  assert.deepEqual(await topOf({ images: [img], hits, extra: [gone], styles: new Map([[gone, { pointerEvents: 'none', backgroundImage: 'url(a)' }]]) }), [true], 'opacity:0 overlay');
+  // The image's own ancestor painting a background below it is not a cover.
+  const wrap = fakeEl([0, 0, 300, 460]);
+  const inner = fakeImg('https://shop.example/c.jpg', [0, 0, 300, 460], { parent: wrap });
+  wrap.contains = (x) => x === wrap || x === inner;
+  assert.deepEqual(await topOf({ images: [inner], hits: new Map([[inner, [0, 0, 300, 460]]]), extra: [wrap], styles: new Map([[wrap, { pointerEvents: 'none', backgroundColor: 'rgb(0, 0, 0)' }]]) }), [true], 'own ancestor');
+});
+
+test('SEC-20 rule 2: a positioned painted pseudo-element of a 0x0 pointer-events:none element covers its containing block', async () => {
+  const wrap = fakeEl([0, 0, 300, 460]);
   const img = fakeImg('https://shop.example/b.jpg', [0, 0, 300, 460], { parent: wrap });
-  await withFakeDom({ images: [img], hits: new Map([[wrap, [0, 0, 300, 460]]]) }, async () => {
-    const r = await probeFn()({});
-    assert.equal(r.images[0].topmostAtCenter, false);
-  });
+  const dot = fakeEl([10, 10, 0, 0], { parent: wrap });
+  wrap.contains = (x) => x === wrap || x === img || x === dot;
+  const hits = new Map([[img, [0, 0, 300, 460]]]);
+  const styles = (pos) => new Map([[wrap, { position: 'relative' }], [dot, { pointerEvents: 'none', '::after': { content: '""', position: pos, backgroundImage: 'url("slab-a.png")' } }]]);
+  assert.deepEqual(await topOf({ images: [img], hits, extra: [wrap, dot], styles: styles('absolute') }), [false], 'absolute ::after');
+  assert.deepEqual(await topOf({ images: [img], hits, extra: [wrap, dot], styles: styles('fixed') }), [false], 'fixed ::after');
+  assert.deepEqual(await topOf({ images: [img], hits, extra: [wrap, dot], styles: styles('static') }), [true], 'in-flow ::after of a 0x0 element paints nothing over the image');
+});
+
+test('SEC-20 rule 2: documents too large to check for pointer-events:none covers are not vouched for', async () => {
+  const img = fakeImg('https://shop.example/b.jpg', [0, 0, 300, 460]);
+  assert.deepEqual(await topOf({ images: [img], hits: new Map([[img, [0, 0, 300, 460]]]), elementCount: 30001 }), [false]);
+  assert.deepEqual(await topOf({ images: [img], hits: new Map([[img, [0, 0, 300, 460]]]), elementCount: 3000 }), [true]);
 });
 
 test('SEC-19 probe + validation: only raster data: images; total counts every qualifying image before the cap', async () => {

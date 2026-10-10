@@ -455,3 +455,68 @@ Same host and session. "Before" is the HEAD build (`03d9589` src), copied from `
 | Prominence rule | A number counts as prominent when **any** image it was read from is prominent, not only its best-scoring image. The user can see that slab; this avoids losing auto-open when a hidden carousel copy scores higher. |
 | Too-large | Too-large still allows the screenshot crop (bounded by the viewport). The brief said "stop trying further strategies"; the crop path was kept deliberately. |
 | Not run | Real toolbar/shortcut gesture, real decode bombs, branded Chrome, GPU raster memory. |
+
+---
+
+## S9 SEC-20: hidden-slab variants of security round 3 (frontend-engineer, 2026-10-10)
+
+**Outcome:** All four round-3 variants (`pointer-events:none` overlay, `filter:opacity(0)`, 2 px `clip-path` window, srcset swap) no longer auto-open slab B.
+- Each now shows the results list instead, with no tab opened.
+- The control page still auto-opens.
+- No change to the right-click (single image) flow.
+- Nothing was committed by FE.
+
+**Source identity:** HEAD `f4e60ae` (the orchestrator's WIP snapshot) plus an uncommitted tree. src-tree sha256 prefix `8f4c5c9c108442eb`. Both manifests unchanged.
+
+**Environment:** Chromium 141.0.7390.37 headless, Playwright 1.56.1, Node 22.22.0.
+
+### Changes
+
+| Rule | Implementation | Files |
+|---|---|---|
+| 1. Image styling | The image is not prominent (`topmostAtCenter:false`; contract unchanged) if the image or **any ancestor** has any of:<br>- `filter` ≠ none<br>- `clip-path` ≠ none, or a legacy `clip:rect()`<br>- `mask-image`, `-webkit-mask-image` or `mask` ≠ none<br>- `mix-blend-mode` ≠ normal<br>Cumulative opacity (image × ancestors) < 0.9 also counts. | `pageImagesProbe.js` |
+| 2. Hit test | Five points: the centre, and 25 % / 75 % of the visible rect. At a point, `elementsFromPoint(x,y)[0]` must be the image itself (an ancestor no longer counts, so an image with `pointer-events:none` is not prominent). At least 4 of 5 points must pass.<br>**Deviation (needed):** `elementsFromPoint` **never lists `pointer-events:none` elements** (observed in Chromium 141). Such elements are therefore found by their boxes and counted as covering when they paint. "Paint" means a replaced or SVG element, a background, a `backdrop-filter`, or a painted `::before`/`::after`. A positioned pseudo-element extends to its containing block, or to the viewport for `fixed`. Z-order is unknown, so this errs towards the list. Open shadow roots are searched, and closed roots of custom elements.<br>**Fail-safe:** a document with more than 30,000 elements cannot be checked, so no image is prominent. | `pageImagesProbe.js` |
+| 3. Page acquisition | Page mode reads the **displayed** image (`currentSrc`) first. Page fetch is limited to that URL (`pageProbe` gains an optional 4th argument; `acquireFromJob` gains the option `pageFetch:'displayed'|'srcset'`). Only if that read has no candidate ≥ 0.80 is `srcsetBest` tried: extension fetch, then page fetch in srcset-only mode. Its candidates carry the evidence code `src:srcset-best`.<br>Aggregation tracks `displayedConfidence`. `decidePage` auto-opens only when the ≥ 0.80 read came from displayed bytes. So a number read only from srcset bytes is listed but never auto-opened, and so is a number seen at 0.6 in the displayed image and 0.95 in the srcset bytes.<br>The right-click `pageProbe` default order is unchanged. | `pageProbe.js`, `acquire.js`, `pageScan.js`, `core/pageAggregate.js` |
+
+### Commands
+
+| Command | Result |
+|---|---|
+| `npm test` | **208/208** (was 199). New tests:<br>- each rule-1 property on the image and on an ancestor;<br>- opacity 0.85 vs 0.95;<br>- 3 vs 4 of 5 points; the 2 px window;<br>- painting `pointer-events:none` covers (background, colour, `::after`, `backdrop-filter`, `<img>`), with no false positive for transparent layers, a corner badge, an invisible layer or the image's own ancestor;<br>- positioned pseudo-element of a 0×0 element (absolute, fixed vs static);<br>- the > 30,000-element fail-safe;<br>- `pageProbe` fetch modes;<br>- displayed first, srcset only when unclear, page fetch in srcset mode;<br>- srcset-only and merged numbers never auto-open;<br>- `decidePage` gate. |
+| `npm run check` | All checks passed. The URL allow-list caught an SVG namespace literal in the probe, now replaced by a suffix test. |
+| `CERTSCANNER_SKIP_BENCH=1 npm run e2e` (QA suite, run only; QA edits in progress) | E2E_S9_PLACEHOLDER |
+
+### Browser evidence (dist-e2e; pages in the scratchpad: slab A shown, `<img>` of slab B)
+
+| Page | Probe (visible fraction, topmost) | Result |
+|---|---|---|
+| `pointer-events:none` overlay showing A over B | 1, false | list (B), **no tab** |
+| A `pointer-events:none` span whose `::after` paints A over B | 1, false | list (B), no tab |
+| B with `filter:opacity(0)` over A | 1, false | list (B), no tab |
+| B with `clip-path:inset(calc(50% - 1px))` over A | 1, false | list (B), no tab |
+| srcset swap `A 270w, B 4000w` (A displayed) | 1, true | **auto-open A** (108114622: the image the user sees). B never opened. |
+| srcset swap, displayed image without a number | 1, true | srcset fallback reads B → list, no tab |
+| Control (B visible) | 1, true | **auto-open B** |
+| S8 variants (opacity 0, hidden, off-screen, covered, faint) | unchanged | none / list, no tab |
+| 12 fixtures via upload | – | **12/12, 0 wrong auto-opens** |
+| Gallery page job | – | list of 6 rows, "Checked 8 of 10 photos.", no tab, no panel errors |
+| Listing page job | – | auto-open of 108114622 exactly once |
+
+### Probe cost (panel → `executeScript` round trip, p50 of 10)
+
+| Page | Before (`5d67884`) | After |
+|---|---|---|
+| gallery.html | 1.8–2.6 ms | 2.3–3.8 ms |
+| Synthetic 24k elements, 12k in view | 1.0 ms | 61.5 ms |
+| Synthetic 40k elements (over the cap, fails closed) | 1.2 ms | 1.5 ms |
+
+### Decisions, limits and residuals
+
+| Item | Note |
+|---|---|
+| Opacity | "Ancestor opacity < 1" was implemented as cumulative opacity < 0.9, as the brief's parenthesis says. |
+| Image with `pointer-events:none` | Now never prominent (rule 2, literal). Sites that set it on photos get the list instead of auto-open. |
+| srcset fallback cost | A photo without a confident displayed read and with a different `srcsetBest` is scanned twice (for example about 2 × 2.3 s for a non-slab photo). The 30 s page budget bounds this. |
+| Residual: closed shadow roots | A closed shadow root on a **standard** element (div, span, …) holding a `pointer-events:none` overlay is not searched. Looking these up costs about 80 ms on a 24k-element page. |
+| Residual: other | Overlays off-screen with a `fixed` pseudo-element; sites with more than 30,000 elements always get the list. |
+| Contract deltas (additive) | `pageProbe(srcUrl, mode, maxBytes, opts?)`; `acquireFromJob` option `pageFetch`; aggregate items gain `displayedConfidence`; evidence code `src:srcset-best`; `scanPage` `images[].srcset`. These need an ADR note; the shared `ScanJob`/`jobContract` are unchanged. |

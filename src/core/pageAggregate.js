@@ -2,6 +2,9 @@
 import { DEFAULT_RULES } from './certRules.js';
 import { isValidCert } from './certUrls.js';
 
+/** SEC-20: evidence code of candidates read from an image's largest srcset candidate instead of the displayed image. */
+export const SRCSET_EVIDENCE = 'src:srcset-best';
+
 /** SEC-13: share of an image that must be inside the viewport for its number to auto-open. */
 export const PROMINENT_MIN_VISIBLE = 0.5;
 
@@ -18,7 +21,8 @@ export function isProminent(image) {
 /**
  * Merge candidates from every scanned image by grader+number (max confidence; the best read's image index is kept
  * for the thumbnail). `seenIn` lists every image the number was read from; `prominent` is true when at least one of
- * them was prominent (see isProminent; a missing flag counts as not prominent).
+ * them was prominent (see isProminent; a missing flag counts as not prominent). `displayedConfidence` is the best
+ * confidence among reads of displayed images (null when the number was only read from srcset bytes, SEC-20).
  * @param {{index:number, candidates:import('./types.js').CertCandidate[], warnings:import('./types.js').ScanWarning[],
  *   prominent?:boolean}[]} perImage
  */
@@ -32,11 +36,12 @@ export function aggregatePage(perImage) {
       if (!c || typeof c.number !== 'string') continue;
       const key = `${c.grader ?? '?'}:${c.number}`;
       const prev = byKey.get(key);
+      const displayed = !(c.evidence ?? []).includes(SRCSET_EVIDENCE);
       if (!prev) {
         byKey.set(key, {
           grader: c.grader, graderOptions: [...(c.graderOptions ?? [])], number: c.number, confidence: c.confidence,
           source: c.source, evidence: [...(c.evidence ?? [])], imageIndex: p.index, seenIn: [p.index], qrUntrusted: qr.length > 0,
-          prominent: p.prominent === true,
+          prominent: p.prominent === true, displayedConfidence: displayed ? c.confidence : null,
         });
         continue;
       }
@@ -44,6 +49,7 @@ export function aggregatePage(perImage) {
       prev.seenIn.sort((a, b) => a - b);
       prev.qrUntrusted ||= qr.length > 0;
       prev.prominent ||= p.prominent === true;
+      if (displayed && !(prev.displayedConfidence >= c.confidence)) prev.displayedConfidence = c.confidence;
       if (c.confidence > prev.confidence) {
         Object.assign(prev, { confidence: c.confidence, source: c.source, evidence: [...(c.evidence ?? [])], imageIndex: p.index, graderOptions: [...(c.graderOptions ?? [])] });
       }
@@ -56,14 +62,16 @@ export function aggregatePage(perImage) {
 /**
  * Page routing (A9): auto-open only when exactly one grader+number is confident (known grader, >= 0.80), no other
  * read from any image scores >= 0.50, its images had no off-site QR, it was read from a prominent image (SEC-13:
- * visible, on top), and autoOpen is on.
+ * visible, on top), the >= 0.80 read came from displayed bytes (SEC-20: never from srcset-only bytes), and autoOpen
+ * is on.
  * @returns {{status:'auto-open'|'page-results'|'none', item:object|null}}
  */
 export function decidePage(agg, settings, rules = DEFAULT_RULES) {
   const items = agg?.items ?? [];
   if (!items.length) return { status: 'none', item: null };
   const T = rules.SCORE.thresholds;
-  const confident = items.filter((i) => i.grader && isValidCert(i.grader, i.number) && i.confidence >= T.autoOpen && i.source !== 'manual');
+  const confident = items.filter((i) => i.grader && isValidCert(i.grader, i.number) && i.confidence >= T.autoOpen && i.source !== 'manual'
+    && typeof i.displayedConfidence === 'number' && i.displayedConfidence >= T.autoOpen);
   const top = confident[0];
   const ok = settings?.autoOpen === true
     && confident.length === 1

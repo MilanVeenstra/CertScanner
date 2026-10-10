@@ -7,8 +7,11 @@
  * @param {string} srcUrl the clicked image URL (info.srcUrl)
  * @param {'inspect'|'capture'} mode inspect = locate + page-context fetch; capture = locate, scroll into view, measure
  * @param {number} maxBytes fetch cap
+ * @param {{fetch?:'srcset-first'|'displayed'|'srcset'}} [opts] which URL(s) inspect mode fetches: the largest srcset
+ *   candidate then srcUrl (default, right-click mode); only srcUrl, the displayed image (page mode, SEC-20); or only
+ *   the srcset candidate (page mode's fallback, never auto-opened).
  */
-export async function pageProbe(srcUrl, mode, maxBytes) {
+export async function pageProbe(srcUrl, mode, maxBytes, opts) {
   const FETCH_TIMEOUT_MS = 8000;
   const out = { v: 1, found: false };
 
@@ -136,8 +139,10 @@ export async function pageProbe(srcUrl, mode, maxBytes) {
     }
   };
 
+  const fetchMode = (opts && opts.fetch) || 'srcset-first';
+  const urls = fetchMode === 'displayed' ? [srcUrl] : fetchMode === 'srcset' ? [out.srcsetBest] : [out.srcsetBest, srcUrl];
   let result = { ok: false, reason: 'cors' };
-  for (const url of [out.srcsetBest, srcUrl]) {
+  for (const url of urls) {
     if (!url) continue;
     result = await fetchOne(url);
     if (result.ok) break;

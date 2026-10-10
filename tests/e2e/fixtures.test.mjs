@@ -77,7 +77,7 @@ test('SEC-13 hostile page: slab A only as a CSS background, slab B the only <img
     assert.equal(v.expected.mustNotAutoOpen, true, `${name}: must not auto-open`);
   }
   assert.deepEqual(Object.entries(hidden.variants).filter(([, v]) => v.asserted).map(([k]) => k).sort(),
-    ['faint', 'none', 'offscreen', 'opacity0', 'overlay', 'visibility'], 'asserted variants: the four hiding techniques of the brief, opacity 0.05, and the control');
+    ['clip-path', 'clipped-parent', 'faint', 'filter-opacity', 'none', 'offscreen', 'opacity0', 'overlay', 'overlay-pe-none', 'visibility'], 'asserted variants: all hiding techniques (SEC-13 + SEC-20) and the control');
 });
 
 test('A9 listing page: assets match their hashes; exactly one discoverable slab; page-text numbers are not cert numbers', () => {

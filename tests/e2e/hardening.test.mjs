@@ -96,7 +96,7 @@ describe('S8 on dist-e2e: SEC-13 hidden-image page, O9 consumed ids after a pane
     await servers?.close();
   });
 
-  test('SEC-13 hostile page: slab A as a CSS background, <img> of slab B hidden (opacity 0, visibility hidden, off-screen, covered, opacity 0.05) → B never auto-opens (none or list), no tab; control (B visible) auto-opens B', T, async () => {
+  test('SEC-13 hostile page: slab A as a CSS background, <img> of slab B hidden (opacity 0, visibility hidden, off-screen, covered, opacity 0.05, filter, pointer-events:none cover, clip-path, clipped parent) → B never auto-opens (none or list), no tab; control (B visible) auto-opens B', T, async () => {
     // Hiding variants first, the control (none) last: a regression fails on the hidden-image auto-open itself.
     const variants = Object.entries(hidden.variants).filter(([, v]) => v.asserted).sort(([a], [b]) => (a === 'none') - (b === 'none'));
     for (const [name, spec] of variants) {
@@ -128,7 +128,7 @@ describe('S8 on dist-e2e: SEC-13 hidden-image page, O9 consumed ids after a pane
     assert.deepEqual(panel.errors.filter((e) => e.startsWith('pageerror')), []);
   });
 
-  test('SEC-13 residual techniques the probe does not model (diagnostic, outcome recorded, not asserted): filter:opacity(0), covering div with pointer-events:none, clip-path, 0 px overflow:hidden parent', T, async () => {
+  test('SEC-13 residual techniques not modelled by the probe (diagnostic; none remain since SEC-20)', T, async () => {
     for (const [name, spec] of Object.entries(hidden.variants).filter(([, v]) => !v.asserted)) {
       await E.closeGraderTabs(env);
       await show(`${servers.A}/${hidden.page}?hide=${encodeURIComponent(name)}`);

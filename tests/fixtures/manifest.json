@@ -1025,9 +1025,9 @@
             "hit": "img-slab-b"
           },
           "expected": {
-            "accept": [
-              "page-results",
-              "none"
+            "status": "page-results",
+            "listed": [
+              "01234567"
             ],
             "mustNotAutoOpen": true,
             "discovered": [
@@ -1045,9 +1045,9 @@
             "hit": "img-slab-b"
           },
           "expected": {
-            "accept": [
-              "page-results",
-              "none"
+            "status": "page-results",
+            "listed": [
+              "01234567"
             ],
             "mustNotAutoOpen": true,
             "discovered": [
@@ -1065,9 +1065,9 @@
             "hit": "spot-b"
           },
           "expected": {
-            "accept": [
-              "page-results",
-              "none"
+            "status": "page-results",
+            "listed": [
+              "01234567"
             ],
             "mustNotAutoOpen": true,
             "discovered": [
@@ -1085,9 +1085,9 @@
             "hit": "row"
           },
           "expected": {
-            "accept": [
-              "page-results",
-              "none"
+            "status": "page-results",
+            "listed": [
+              "01234567"
             ],
             "mustNotAutoOpen": true,
             "discovered": [

@@ -163,6 +163,17 @@
       </select>
     </label>
     <p class="hint switch-hint" data-i18n="setting_ebay_site_hint"></p>
+    <div class="field psa-key">
+      <label for="setting-psa-key" data-i18n="setting_psa_key">PSA API key (optional)</label>
+      <input type="password" id="setting-psa-key" class="cert-field" data-testid="setting-psa-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="psa-key-hint psa-key-status">
+      <div class="actions">
+        <button type="button" class="btn btn-secondary btn-sm" id="psa-key-save" data-testid="psa-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
+        <button type="button" class="link" id="psa-key-remove" data-testid="psa-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
+        <button type="button" class="link" id="psa-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+      <p class="hint" id="psa-key-hint" data-i18n="setting_psa_key_hint"></p>
+      <p class="hint" id="psa-key-status" data-testid="psa-key-status" aria-live="polite"></p>
+    </div>
   </section>
 
   <section class="section" aria-labelledby="history-heading">
@@ -328,6 +339,7 @@
       <span class="price-card-text" data-ref="price-card-text" data-testid="price-card-text"></span>
       <button type="button" class="link" data-ref="price-edit" data-testid="price-edit" aria-expanded="false" aria-controls="price-fields"><span data-i18n="prices_edit">Change</span></button>
     </div>
+    <p class="hint price-set" data-ref="price-set" hidden></p>
     <div class="price-fields" id="price-fields" data-ref="price-fields" hidden>
       <div class="field price-card">
         <label for="price-card" data-i18n="prices_card_label">Card</label>
@@ -339,12 +351,32 @@
       </div>
     </div>
     <p class="field-error" id="price-error" data-ref="price-error" aria-live="polite"></p>
+
+    <div class="price-data" data-ref="price-data" data-testid="price-data" aria-live="polite" aria-busy="false">
+      <div class="price-state" data-ref="price-state" hidden>
+        <p data-ref="price-state-text"></p>
+        <button type="button" class="btn btn-strong btn-sm" data-action="price-allow" data-testid="price-allow" data-ref="price-allow" hidden><span data-i18n="prices_allow">Show prices here</span></button>
+        <button type="button" class="link" data-action="price-retry" data-ref="price-retry" hidden><span data-i18n="retry_button">Try again</span></button>
+      </div>
+      <div class="price-found" data-ref="price-found" hidden>
+        <div class="price-main">
+          <span class="price-main-label" data-ref="pc-label"></span>
+          <span class="price-big" data-ref="pc-price" data-testid="price-current"></span>
+        </div>
+        <ul class="price-grid" data-ref="pc-grid" data-testid="price-grid"></ul>
+        <p class="hint" data-ref="pc-pop" hidden></p>
+        <h4 class="sales-heading" data-ref="pc-sales-heading"></h4>
+        <ol class="sales" data-ref="pc-sales" data-testid="price-sales"></ol>
+        <p class="hint" data-ref="pc-no-sales" hidden></p>
+        <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_open">View on PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+    </div>
+
     <div class="actions">
       <button type="button" class="btn btn-secondary btn-sm" data-testid="price-sold" data-action="price-sold"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_sold">Sold on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="btn btn-secondary btn-sm" data-testid="price-active" data-action="price-active"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_active">For sale on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
     <div class="price-links">
-      <button type="button" class="link" data-testid="price-pricecharting" data-action="price-pricecharting"><span data-i18n="prices_pricecharting">Price per grade</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><span data-i18n="prices_slab">This slab on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>

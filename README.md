@@ -18,6 +18,7 @@ _Version 0.1.0. It is not published on the Chrome Web Store; for now you install
   - Otherwise you get a list ("Cert numbers on this page") with **Open** and **Copy** for each number.
 - **Scan one specific photo.** Right-click a slab photo and choose **Scan slab cert number**.
 - **Grader detected automatically.** PSA, CGC Comics, CGC Cards or BGS follows from the label (brand, grade wording, card or comic wording), the shape of the number and, on listing pages, the photo's alt text and page title. When it is still unclear, the most likely grader is preselected and you only check it.
+- **Prices in the panel.** After you click **Show prices here** once (Chrome asks for access to pricecharting.com), every result shows the card's price for its grade (e.g. *PSA 10: $612.99*), the price for every grade, and the last sales in that grade, read on your device from the card's PriceCharting page. With your own free PSA API key (Settings) a PSA cert also gives the card name, grade and population directly.
 - **Prices for this card.** Under a result you see exactly what is searched, e.g. `PSA 10 · POKEMON CHARIZARD ex 199` (brand, name and card number from the label; year, set codes and rarity words left out because listing titles often omit them). **Sold on eBay** / **For sale on eBay** search that card in that grade without lots; **Change** lets you correct the card or grade. **Price per grade (PriceCharting)**, **Population report** and **This slab on eBay** (cert number) are below. Nothing is fetched until you click.
 - **Fallbacks.** In the side panel you can:
   - drop, paste (Ctrl+V / ⌘V) or upload an image (JPEG, PNG, WebP or AVIF, up to 15 MB);
@@ -60,6 +61,7 @@ Full policy: [`PRIVACY.md`](PRIVACY.md).
 - Of klik met de rechtermuisknop op een slabfoto en kies **Certnummer van slab scannen**.
 - Je kunt in het zijpaneel ook een afbeelding slepen, plakken of uploaden, of het nummer typen.
 - CertScanner herkent zelf of het om PSA, CGC (comics of kaarten) of BGS gaat: aan het label, de vorm van het nummer en op verkooppagina's aan de titel van de foto. Is het nog onduidelijk, dan staat de meest waarschijnlijke grader al geselecteerd.
+- **Prijzen in het paneel:** klik één keer op **Prijzen hier tonen** (Chrome vraagt toegang tot pricecharting.com). Daarna zie je bij elk resultaat de prijs voor de grade van de slab, de prijs per grade en de laatste verkopen in die grade, net als op PriceCharting. Met je eigen gratis PSA API-sleutel (Instellingen) haalt CertScanner bij een PSA-cert ook direct de kaartnaam, grade en populatie op.
 - Onder een resultaat staat **Prijzen van deze kaart**, bijv. `PSA 10 · POKEMON CHARIZARD ex 199`. **Verkocht op eBay** en **Te koop op eBay** zoeken precies die kaart in die grade (zonder lots); met **Wijzig** pas je kaart of grade aan. Daaronder: **Prijs per grade (PriceCharting)**, **Populatierapport** en **Deze slab op eBay**. De eBay-site kies je in Instellingen (standaard ebay.com).
 - Je wijzigt de sneltoets via `chrome://extensions/shortcuts`.
 
@@ -113,7 +115,7 @@ After pulling new code, run `npm run build` again and click the reload button on
 | Scan a saved image | Open the side panel and drop, paste or upload it |
 | Look up a number you know | Type it in the panel (e.g. `PSA 01234567`), choose the grader if asked, then **Open cert page** |
 | Reopen or copy an earlier number | **Recent scans** in the panel |
-| See what this card sells for in its grade | Under a result: **Sold on eBay** (this card, this grade); **Change** to correct the card or grade; **Price per grade (PriceCharting)** for all grades |
+| See what this card sells for in its grade | Under a result: the price for its grade, every grade and the last sales are shown in the panel (allow once); **Change** corrects the card or grade; **Sold on eBay** opens the eBay search |
 
 **Settings** (gear icon in the panel):
 

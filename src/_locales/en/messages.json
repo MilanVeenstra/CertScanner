@@ -1017,7 +1017,7 @@
     "message": "For sale on eBay"
   },
   "prices_note": {
-    "message": "Searches $SITE$ for this card in this grade, without lots. Opens in a new tab only when you click; only the card, grade or cert number is sent.",
+    "message": "Searches $SITE$ for this card in this grade, without lots. Prices and sales above come from PriceCharting (US dollars). Only the card, grade or cert number is sent.",
     "placeholders": {
       "site": {
         "content": "$1",
@@ -1048,9 +1048,6 @@
   },
   "prices_grade_all": {
     "message": "All grades"
-  },
-  "prices_pricecharting": {
-    "message": "Price per grade (PriceCharting)"
   },
   "prices_slab": {
     "message": "This slab on eBay"
@@ -1112,5 +1109,118 @@
   },
   "prices_card_unknown": {
     "message": "Card name not read. Type it to see prices for this card."
+  },
+  "prices_allow": {
+    "message": "Show prices here"
+  },
+  "prices_allow_text": {
+    "message": "See the price per grade and recent sales of this card right here. CertScanner reads this card's PriceCharting page on your device (Chrome asks once)."
+  },
+  "prices_loading": {
+    "message": "Loading prices…"
+  },
+  "prices_not_found": {
+    "message": "No card found on PriceCharting for “$QUERY$”. Use Change to correct the card name.",
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "POKEMON CHARIZARD ex 199"
+      }
+    }
+  },
+  "prices_unreadable": {
+    "message": "Couldn't read the PriceCharting page. Use View on PriceCharting below the eBay buttons, or try again later."
+  },
+  "prices_error": {
+    "message": "Couldn't load prices. Check your connection and try again."
+  },
+  "prices_need_card_data": {
+    "message": "Card name not read from the label. Type it under Change to see its prices."
+  },
+  "prices_set_line": {
+    "message": "Set: $SET$",
+    "placeholders": {
+      "set": {
+        "content": "$1",
+        "example": "Pokemon Scarlet & Violet 151"
+      }
+    }
+  },
+  "prices_current_label": {
+    "message": "$GRADE$ price",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_current_unknown": {
+    "message": "Price for this grade"
+  },
+  "prices_sales_heading": {
+    "message": "Last sold · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_no_sales": {
+    "message": "No recent sales for $GRADE$ on PriceCharting.",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_pop_line": {
+    "message": "PSA population for $GRADE$: $POP$ (higher: $HIGHER$)",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "GEM MT 10"
+      },
+      "pop": {
+        "content": "$2",
+        "example": "1234"
+      },
+      "higher": {
+        "content": "$3",
+        "example": "0"
+      }
+    }
+  },
+  "prices_pc_open": {
+    "message": "View on PriceCharting"
+  },
+  "setting_psa_key": {
+    "message": "PSA API key (optional)"
+  },
+  "setting_psa_key_save": {
+    "message": "Save key"
+  },
+  "setting_psa_key_remove": {
+    "message": "Remove key"
+  },
+  "setting_psa_key_get": {
+    "message": "Get a free key"
+  },
+  "setting_psa_key_hint": {
+    "message": "With your own free PSA API key, CertScanner looks up the card name, grade and population of a PSA cert directly (PSA allows about 100 lookups a day). The key stays on this device."
+  },
+  "setting_psa_key_saved": {
+    "message": "Key saved. PSA cards are now looked up by cert number."
+  },
+  "setting_psa_key_removed": {
+    "message": "Key removed."
+  },
+  "setting_psa_key_invalid": {
+    "message": "That doesn't look like a PSA API key."
+  },
+  "setting_psa_key_denied": {
+    "message": "Not saved: CertScanner needs permission to contact api.psacard.com."
   }
 }

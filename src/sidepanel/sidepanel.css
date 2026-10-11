@@ -271,6 +271,31 @@ legend { padding: 0; margin-block-end: var(--cs-space-1); }
 .price-grade select:focus-visible { outline: 2px solid var(--cs-focus); outline-offset: 2px; }
 .price-links { display: flex; flex-wrap: wrap; gap: var(--cs-space-1) var(--cs-space-3); }
 .prices .hint { margin: 0; }
+.price-set { margin-block-start: calc(-1 * var(--cs-space-1)) !important; }
+/* In-panel prices (PriceCharting): price for the slab's grade, all grades, last sold */
+.price-data { border: var(--cs-line) solid var(--cs-border-subtle); background: var(--cs-surface); padding: var(--cs-space-25) var(--cs-space-3); }
+.price-state { display: flex; flex-direction: column; align-items: flex-start; gap: var(--cs-space-2); }
+.price-state p { margin: 0; font-size: var(--cs-text-sm); }
+.price-data[aria-busy="true"] .price-state p { color: var(--cs-text-muted); }
+.price-found { display: flex; flex-direction: column; gap: var(--cs-space-2); }
+.price-main { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cs-space-2); flex-wrap: wrap; }
+.price-main-label { font-size: var(--cs-text-sm); font-weight: 600; }
+.price-big { font: 700 24px/1.1 var(--cs-font-sans); letter-spacing: -0.01em; }
+.price-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 1px; background: var(--cs-border-subtle); border: 1px solid var(--cs-border-subtle); }
+.price-grid li { display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; background: var(--cs-bg); font-size: var(--cs-text-xs); }
+.price-grid li span { color: var(--cs-text-muted); }
+.price-grid li strong { font-size: 13px; }
+.price-grid li[data-current="true"] { background: var(--cs-text); color: var(--cs-on-text); }
+.price-grid li[data-current="true"] span { color: inherit; }
+.sales-heading { margin: var(--cs-space-1) 0 0; font-size: var(--cs-text-sm); font-weight: 700; }
+.sales { list-style: none; margin: 0; padding: 0; }
+.sales li { display: grid; grid-template-columns: auto auto 1fr; gap: var(--cs-space-2); align-items: baseline; padding: 5px 0; border-block-start: 1px solid var(--cs-row); font-size: var(--cs-text-xs); }
+.sale-date { color: var(--cs-text-muted); white-space: nowrap; }
+.sale-price { font-size: 13px; white-space: nowrap; }
+.sale-title { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cs-text-muted); }
+.psa-key { margin-block-start: var(--cs-space-3); }
+.psa-key .actions { margin-block-start: var(--cs-space-2); }
+.psa-key .hint:empty { display: none; }
 
 /* Candidate rows (confirm with several numbers) */
 .candidates > div { display: flex; flex-direction: column; }

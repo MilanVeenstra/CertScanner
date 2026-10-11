@@ -22,8 +22,15 @@ const OFFICIAL = {
   card1401036622258: 'https://www.cgccards.com/certlookup/1401036622258/',
 };
 
+/**
+ * Prices in the panel (ADR A15): PriceCharting search/product pages, fetched by the panel only with host access to
+ * www.pricecharting.com. dist-e2e has <all_urls> granted, so they appear here; release builds need the user's
+ * "Show prices here" click first (unit: loadPrices -> 'no-permission').
+ */
+const isPriceFetch = (u) => { try { const x = new URL(u); return x.origin === 'https://www.pricecharting.com' && (x.pathname === '/search-products' || x.pathname.startsWith('/game/')); } catch { return false; } };
+
 function checkNetLog(reqs, { allowedOrigins, expectedGrader }) {
-  const ok = (u) => u.startsWith('chrome') || u.startsWith('blob:') || u.startsWith('data:') || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u);
+  const ok = (u) => u.startsWith('chrome') || u.startsWith('blob:') || u.startsWith('data:') || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u) || isPriceFetch(u);
   const renderer = reqs.filter((r) => r.renderer);
   assert.deepEqual(renderer.filter((r) => !ok(r.url)).map((r) => r.url), [], 'renderer/extension traffic only to local origins and official grader pages');
   const grader = reqs.filter((r) => E.isGraderUrl(r.url));
@@ -38,13 +45,16 @@ function checkNetLog(reqs, { allowedOrigins, expectedGrader }) {
   const background = [...new Set(nonLocal.filter((r) => !r.renderer).map((r) => `${E.hostOf(r.url)} [${r.annotationName}]`))];
   // Requests the extension itself initiated (fetches from the panel/worker): only local fixture origins, never elsewhere.
   const byExtension = reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url));
-  assert.deepEqual(byExtension.filter((r) => !allowedOrigins.has(new URL(r.url).origin)).map((r) => r.url), [], 'extension-initiated requests stay on the page/image origins');
+  assert.deepEqual(byExtension.filter((r) => !allowedOrigins.has(new URL(r.url).origin) && !isPriceFetch(r.url)).map((r) => r.url), [], 'extension-initiated requests stay on the page/image origins (and PriceCharting card searches)');
+  for (const r of byExtension.filter((x) => isPriceFetch(x.url) && x.url.includes('/search-products'))) {
+    assert.ok(!/\d{8,}/.test(new URL(r.url).search), `${r.url}: card search terms only, never a cert number`);
+  }
   return { total: reqs.length, renderer: renderer.length, grader: grader.length, background, byExtension: byExtension.length };
 }
 
 function checkPlaywrightLog(env, allowedOrigins) {
   const ok = (u) => u.startsWith(`chrome-extension://${env.extensionId}/`) || u.startsWith('blob:') || u.startsWith('data:')
-    || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u);
+    || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u) || isPriceFetch(u);
   assert.deepEqual(env.net.filter((n) => !ok(n.url)).map((n) => `${n.url} (${n.where})`), [], 'unexpected requests in extension/page contexts');
   assert.ok(env.net.filter((n) => n.where === 'service-worker').every((n) => n.url.startsWith(`chrome-extension://${env.extensionId}/`)),
     'service worker only loads its own files');

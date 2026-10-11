@@ -12,10 +12,10 @@ import { imageOriginOf } from '../pipeline/acquire.js';
 import { createPageJob } from '../shared/jobContract.js';
 import { createUi, graderName } from './ui.js';
 import { createCertField } from './certField.js';
-import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, MAX_IMAGE_MB } from './viewModel.js';
+import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, openedStatusKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, POINT130_URL } from '../core/priceLinks.js';
+import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, POINT130_URL, POP_URLS } from '../core/priceLinks.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
@@ -255,7 +255,15 @@ async function openPrice(makeUrl) {
 function onPriceAction(a) {
   const o = last.opened;
   if (!o) return;
-  if (a === 'price-130') { open130point(); return; }
+  if (a === 'price-130') {
+    const { grader, desc, grade } = ui.priceInput();
+    copyAndOpen(gradeQuery(grader, desc, grade) ?? slabQuery(o.grader, o.number), POINT130_URL, 'prices_130_copied');
+    return;
+  }
+  if (a === 'price-pop') {
+    if (POP_URLS[o.grader]) copyAndOpen(ui.priceInput().desc, POP_URLS[o.grader], 'prices_pop_copied');
+    return;
+  }
   if (a === 'price-slab') {
     const q = slabQuery(o.grader, o.number);
     if (q) openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: true }));
@@ -270,16 +278,13 @@ function onPriceAction(a) {
   else openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: a === 'price-sold' }));
 }
 
-/** 130point has no search link: copy the terms first (still inside the click), then open its sales page. */
-async function open130point() {
-  const o = last.opened;
-  const { grader, desc, grade } = ui.priceInput();
-  const q = gradeQuery(grader, desc, grade) ?? slabQuery(o.grader, o.number);
+/** Pages without a search link (130point, population reports): copy the terms first (still inside the click), then open. */
+async function copyAndOpen(text, url, copiedKey) {
   let copied = false;
-  if (q) { try { await navigator.clipboard.writeText(q); copied = true; } catch { /* still open the page */ } }
+  if (text) { try { await navigator.clipboard.writeText(text); copied = true; } catch { /* still open the page */ } }
   try {
-    await openPriceLink(POINT130_URL, last.job, settings, { windowId });
-    if (copied) ui.announce(t('prices_130_copied'));
+    await openPriceLink(url, last.job, settings, { windowId });
+    if (copied) ui.announce(t(copiedKey));
   } catch {
     ui.showOpenError();
   }
@@ -395,7 +400,7 @@ async function openPageItem(item, i) {
     await openCert({ grader: item.grader, number: item.number, source: item.source }, last.job, settings, { windowId });
     p?.opened.add(i);
     ui.markPageOpened(i);
-    ui.announce(t('status_opened', [graderName(item.grader), item.number]));
+    ui.announce(t(openedStatusKey(item.grader), [graderName(item.grader), item.number]));
   } catch {
     ui.showOpenError();
   }
@@ -594,7 +599,7 @@ async function openAgain() {
   if (!o) return;
   try {
     await openCert({ grader: o.grader, number: o.number, source: o.method === 'edited' ? 'manual' : o.method }, last.job, settings, { windowId });
-    ui.announce(t('status_opened', [graderName(o.grader), o.number]));
+    ui.announce(t(openedStatusKey(o.grader), [graderName(o.grader), o.number]));
   } catch {
     ui.showOpenError();
   }

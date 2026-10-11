@@ -1,6 +1,6 @@
 // Shared contract (ADR-001 §5–§7). JSDoc typedefs only; this module exports nothing at runtime.
 
-/** @typedef {'psa'|'cgc-comics'|'cgc-cards'} Grader */
+/** @typedef {'psa'|'cgc-comics'|'cgc-cards'|'bgs'} Grader */
 
 /** @typedef {'data-url'|'extension-fetch'|'page-fetch'|'capture'|'upload'|'paste'|'drop'} AcquireMethod */
 

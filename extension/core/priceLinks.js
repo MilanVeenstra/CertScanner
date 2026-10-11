@@ -18,9 +18,20 @@ export const POINT130_URL = 'https://130point.com/sales/';
 /** Search pages whose results show a price per grade (PriceCharting) or PSA's own auction prices realized. */
 const PRICECHARTING_HOST = 'www.pricecharting.com';
 const PSA_HOST = 'www.psacard.com';
-export const PRICE_HOSTS = Object.freeze(new Set([...Object.values(EBAY_SITES), '130point.com', PRICECHARTING_HOST, PSA_HOST]));
+/**
+ * Population reports (how many copies exist per grade). None has a documented search link, so the panel copies the
+ * card name and opens the report. Beckett's report has no stable public address and is left out.
+ */
+export const POP_URLS = Object.freeze({
+  psa: 'https://www.psacard.com/pop',
+  'cgc-comics': 'https://www.cgccomics.com/population-report/',
+  'cgc-cards': 'https://www.cgccards.com/population-report/',
+});
+const POP_HREFS = new Set(Object.values(POP_URLS));
+export const PRICE_HOSTS = Object.freeze(new Set([...Object.values(EBAY_SITES), '130point.com', PRICECHARTING_HOST, PSA_HOST,
+  ...Object.values(POP_URLS).map((u) => new URL(u).hostname)]));
 
-const GRADER_SHORT = Object.freeze({ psa: 'PSA', 'cgc-comics': 'CGC', 'cgc-cards': 'CGC' });
+const GRADER_SHORT = Object.freeze({ psa: 'PSA', 'cgc-comics': 'CGC', 'cgc-cards': 'CGC', bgs: 'BGS' });
 const MAX_QUERY = 120;
 const MAX_WORDS = 12;
 const MAX_DESC = 100;
@@ -30,6 +41,7 @@ const halves = (from) => Array.from({ length: from * 2 - 1 }, (_, i) => String(f
 export const GRADE_SCALES = Object.freeze({
   psa: Object.freeze(halves(10).filter((g) => g !== '9.5')),
   'cgc-cards': Object.freeze(halves(10)),
+  bgs: Object.freeze(halves(10)),
   'cgc-comics': Object.freeze(['10', '9.9', '9.8', '9.6', '9.4', '9.2', '9.0', '8.5', '8.0', '7.5', '7.0', '6.5', '6.0', '5.5', '5.0',
     '4.5', '4.0', '3.5', '3.0', '2.5', '2.0', '1.8', '1.5', '1.0', '0.5']),
 });
@@ -56,6 +68,7 @@ export function slabQuery(grader, number) {
 // Label words that describe the slab, not the card; a line made only of these is skipped ("WHITE PAGES", "UNIVERSAL GRADE").
 const SLAB_WORDS = new Set(['UNIVERSAL', 'GRADE', 'CERTIFICATION', 'CERT', '#', 'CERTIFIED', 'GUARANTY', 'COMPANY', 'PSA', 'CGC',
   'PSA/DNA', 'AUTHENTIC', 'WHITE', 'PAGES', 'OFF-WHITE', 'CREAM', 'TO', 'SIGNATURE', 'SERIES', 'QUALIFIED', 'RESTORED', 'CONSERVED',
+  'BECKETT', 'GRADING', 'SERVICES', 'BGS', 'BVG', 'BLACK', 'LABEL',
   // grade words printed apart from the number ("GEM MINT" / "10" on two lines)
   'GEM', 'MINT', 'MT', 'PRISTINE', 'NM-MT', 'NM/MINT', 'NEAR', 'EX-MT', 'EX/NM', 'EXCELLENT', 'VG-EX', 'VG/EX', 'VERY', 'GOOD', 'FAIR', 'POOR']);
 const isBoilerplate = (line) => line.split(' ').every((w) => SLAB_WORDS.has(w.toUpperCase()));
@@ -64,13 +77,16 @@ const JUNK = /[^\p{L}\p{N}#&'\-./:+, ]/gu;
 const PSA_GRADE = /\b(GEM MT|GEM MINT|MINT|NM-MT\+?|NM\+?|EX-MT\+?|EX\+?|VG-EX\+?|VG\+?|GOOD\+?|FR|FAIR|PR|POOR)\s*(10|[1-9](?:\.5)?)\b/i;
 const CGC_CARD_GRADE = /\b(PRISTINE|GEM MINT|MINT\+?|NM\/MINT\+?|NEAR MINT\+?|EX\/NM\+?|EXCELLENT\+?|VG\/EX\+?|VERY GOOD\+?|GOOD\+?|FAIR|POOR)\s*(10|[1-9](?:\.5)?)\b/i;
 const CGC_GRADE = /(?<![\d.])(10(?:\.0)?|[0-9]\.[0-9])(?![\d.])/;
+const SUBGRADES = /\b(CENTERING|CORNERS|EDGES|SURFACE)\b/i;
 
 /** Grade printed on the label ("10", "9.8") or null. */
 export function gradeFromLines(grader, lines) {
   for (const raw of lines) {
     const line = String(raw);
-    if (grader === 'psa' || grader === 'cgc-cards') {
-      const m = (grader === 'psa' ? PSA_GRADE : CGC_CARD_GRADE).exec(line);
+    if (SUBGRADES.test(line)) continue; // BGS "CENTERING 9.5 CORNERS 10 ...": not the overall grade
+    if (grader === 'psa' || grader === 'cgc-cards' || grader === 'bgs') {
+      const m = grader === 'psa' ? PSA_GRADE.exec(line)
+        : CGC_CARD_GRADE.exec(line) ?? (grader === 'bgs' ? PSA_GRADE.exec(line) : null); // BGS also prints "NM-MT+ 8.5"
       if (m) return m[2];
     }
     if (grader !== 'psa' && GRADER_SHORT[grader]) {
@@ -99,14 +115,14 @@ export function cardInfo({ grader, number, lines }) {
   for (const line of clean) {
     if (typeof number === 'string' && number && line.replace(/\D/g, '').includes(number)) continue; // the cert line
     if (/\d{7,}/.test(line.replace(/[\s-]/g, ''))) continue; // other long numbers (barcodes, item ids)
-    if (isBoilerplate(line)) continue;
+    if (isBoilerplate(line) || SUBGRADES.test(line)) continue;
     if ((PSA_GRADE.test(line) || CGC_CARD_GRADE.test(line)) && line.split(' ').length <= 3) continue; // "GEM MT 10" on its own line
     if (grader !== 'psa' && CGC_GRADE.test(line) && line.split(' ').length <= 2) continue; // "9.8" / "CGC 9.8"
     const cardNo = /^#\s?\d{1,4}[A-Za-z]?$/.test(line); // "#199": the card number is worth keeping
     if (!cardNo && (line.match(/\p{L}/gu) ?? []).length < 2) continue; // OCR noise
     for (const w of line.split(' ')) {
       if (w.length < 2 && !/^[\p{N}#]$/u.test(w)) continue;
-      if (/^(PSA|CGC|GC|CG)$/i.test(w)) continue; // brand (also OCR fragments of the CGC logo)
+      if (/^(PSA|CGC|GC|CG|BGS|BECKETT)$/i.test(w)) continue; // brand (also OCR fragments of the CGC logo)
       if (/\p{L}\d+\p{L}/u.test(w) && !/^\p{Lu}{1,3}\d+$/u.test(w)) continue; // OCR noise like "T1TT"
       words.push(w);
       if (words.length >= MAX_WORDS) break;
@@ -164,6 +180,7 @@ export function isPriceUrl(url) {
     const u = new URL(url);
     if (u.protocol !== 'https:' || u.username || u.password || u.port || !PRICE_HOSTS.has(u.hostname)) return false;
     if (u.hostname === '130point.com') return u.href === POINT130_URL;
+    if (POP_HREFS.has(u.href)) return true;
     return u.pathname === (PRICE_PATHS[u.hostname] ?? '/sch/i.html') && !u.hash;
   } catch { return false; }
 }

@@ -1,19 +1,21 @@
 // Shared contract (ADR-001 §7). Changes need an ADR amendment.
 // Pure data: no chrome, no DOM. Imported by the parser, routing, URL builders and unit tests.
 
-export const RULES_VERSION = 1;
+export const RULES_VERSION = 2; // v2: Beckett (BGS) added
 
 /** Valid cert-number lengths per grader. */
 export const GRADERS = Object.freeze({
   psa: Object.freeze({ lengths: Object.freeze([7, 8, 9, 10]) }),
   'cgc-comics': Object.freeze({ lengths: Object.freeze([10]) }),
   'cgc-cards': Object.freeze({ lengths: Object.freeze([10, 13]) }),
+  // Beckett serial numbers: 10 digits, often with leading zeros ("0012345678").
+  bgs: Object.freeze({ lengths: Object.freeze([10]) }),
 });
 
 /** Ranking for ties when the keyword scores cannot separate graders (D4). */
 export const TIE_ORDER = Object.freeze({
-  default: Object.freeze(['psa', 'cgc-comics', 'cgc-cards']),
-  10: Object.freeze(['cgc-comics', 'cgc-cards', 'psa']),
+  default: Object.freeze(['psa', 'cgc-comics', 'cgc-cards', 'bgs']),
+  10: Object.freeze(['cgc-comics', 'cgc-cards', 'psa', 'bgs']),
 });
 
 /**
@@ -28,6 +30,8 @@ export const KEYWORDS = Object.freeze({
     [/\b9\.[2468]\b/, 0.4],
   ],
   'cgc-cards': [['CGC', 0.4], ['CERTIFIED GUARANTY', 0.5], ['GEM MINT', 0.5], ['PRISTINE', 0.6], ['NM/MINT', 0.5], ['MINT+', 0.3]],
+  // BGS labels print the brand and four subgrades.
+  bgs: [['BECKETT', 0.7], ['BGS', 0.7], ['BVG', 0.6], ['BLACK LABEL', 0.4], ['CENTERING', 0.4], ['CORNERS', 0.3], ['EDGES', 0.3], ['SURFACE', 0.3]],
 });
 
 /** "4012345-001" style cert numbers, joined to 10 digits. */
@@ -47,7 +51,7 @@ export const SCORE = Object.freeze({
 });
 
 /** All graders in canonical order. */
-export const GRADER_IDS = Object.freeze(['psa', 'cgc-comics', 'cgc-cards']);
+export const GRADER_IDS = Object.freeze(['psa', 'cgc-comics', 'cgc-cards', 'bgs']);
 
 /** Union of every valid length, sorted. */
 export const ALL_LENGTHS = Object.freeze([...new Set(GRADER_IDS.flatMap((g) => GRADERS[g].lengths))].sort((a, b) => a - b));

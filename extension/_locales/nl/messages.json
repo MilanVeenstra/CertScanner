@@ -4,7 +4,7 @@
     "description": "Extension name. Never translated."
   },
   "ext_description": {
-    "message": "Scant de PSA- en CGC-slabfoto's op een pagina en opent de officiële certpagina. Leest op je apparaat. Niet gelieerd aan PSA of CGC.",
+    "message": "Scant PSA-, CGC- en BGS-slabfoto's op een pagina en opent de officiële certpagina. Leest op je apparaat. Niet gelieerd aan graders.",
     "description": "Web Store / chrome://extensions description, max 132 characters."
   },
   "action_title": {
@@ -141,7 +141,7 @@
     "message": "Vul een certnummer in."
   },
   "err_chars": {
-    "message": "Gebruik cijfers, eventueel na PSA of CGC."
+    "message": "Gebruik cijfers, eventueel na PSA, CGC of BGS."
   },
   "err_length": {
     "message": "Certnummers hebben $MIN$ tot $MAX$ cijfers. Dit nummer heeft er $COUNT$.",
@@ -164,7 +164,7 @@
     "message": "Kies PSA, CGC Comics of CGC Cards."
   },
   "err_link": {
-    "message": "Die link is geen certpagina van PSA of CGC."
+    "message": "Die link is geen certpagina van PSA, CGC of Beckett."
   },
   "warn_length": {
     "message": "Ongebruikelijke lengte voor $GRADER$. Controleer het nummer voordat je opent.",
@@ -380,7 +380,7 @@
     "message": "QR-code linkt naar een andere site"
   },
   "qr_offsite_body": {
-    "message": "Hij verwijst naar $HOST$, niet naar PSA of CGC, en is daarom niet geopend.",
+    "message": "Hij verwijst naar $HOST$, niet naar PSA, CGC of Beckett, en is daarom niet geopend.",
     "description": "Host as plain text, never a link.",
     "placeholders": {
       "host": {
@@ -632,10 +632,10 @@
     "message": "Een certcontrole toont wat de database van de grader over een nummer zegt. Of de slab op een foto echt is, kan die niet zeggen."
   },
   "about_disclaimer": {
-    "message": "Niet gelieerd aan PSA of CGC."
+    "message": "Niet gelieerd aan PSA, CGC of Beckett."
   },
   "about_trademarks": {
-    "message": "PSA en CGC zijn handelsmerken van hun respectieve eigenaren."
+    "message": "PSA, CGC en Beckett zijn handelsmerken van hun respectieve eigenaren."
   },
   "about_language": {
     "message": "De taal volgt je Chrome-instellingen."
@@ -1066,5 +1066,36 @@
   },
   "prices_need_card": {
     "message": "Typ de kaartnaam om op grade te zoeken."
+  },
+  "grader_bgs": {
+    "message": "BGS"
+  },
+  "reason_bgs_lookup": {
+    "message": "Beckett heeft geen directe link per nummer. Openen kopieert het nummer en opent de zoekpagina van Beckett, waar je het plakt."
+  },
+  "result_heading_lookup": {
+    "message": "Beckett-zoekpagina geopend"
+  },
+  "result_lookup_note": {
+    "message": "Het nummer is gekopieerd. Plak het in het zoekformulier van Beckett (Ctrl+V / ⌘V)."
+  },
+  "status_opened_lookup": {
+    "message": "Beckett-zoekpagina geopend. $GRADER$-nummer $NUMBER$ is gekopieerd, plak het daar.",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "BGS"
+      },
+      "number": {
+        "content": "$2",
+        "example": "0012345678"
+      }
+    }
+  },
+  "prices_pop": {
+    "message": "Populatierapport"
+  },
+  "prices_pop_copied": {
+    "message": "Kaartnaam gekopieerd. Plak hem in het zoekveld van het populatierapport."
   }
 }

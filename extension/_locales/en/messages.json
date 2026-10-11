@@ -4,7 +4,7 @@
     "description": "Extension name. Never translated."
   },
   "ext_description": {
-    "message": "Scans the PSA and CGC slab photos on a page and opens the official cert page. Reads on-device. Not affiliated with PSA or CGC.",
+    "message": "Scans PSA, CGC and BGS slab photos on a page and opens the official cert page. Reads on-device. Not affiliated with any grader.",
     "description": "Web Store / chrome://extensions description, max 132 characters."
   },
   "action_title": {
@@ -141,7 +141,7 @@
     "message": "Enter a cert number."
   },
   "err_chars": {
-    "message": "Use digits, optionally after PSA or CGC."
+    "message": "Use digits, optionally after PSA, CGC or BGS."
   },
   "err_length": {
     "message": "Cert numbers have $MIN$ to $MAX$ digits. This one has $COUNT$.",
@@ -164,7 +164,7 @@
     "message": "Choose PSA, CGC Comics or CGC Cards."
   },
   "err_link": {
-    "message": "That link isn't a PSA or CGC cert page."
+    "message": "That link isn't a PSA, CGC or Beckett cert page."
   },
   "warn_length": {
     "message": "Unusual length for $GRADER$. Check the number before opening.",
@@ -380,7 +380,7 @@
     "message": "QR code links to another site"
   },
   "qr_offsite_body": {
-    "message": "It points to $HOST$, not PSA or CGC, so it wasn't opened.",
+    "message": "It points to $HOST$, not PSA, CGC or Beckett, so it wasn't opened.",
     "description": "Host as plain text, never a link.",
     "placeholders": {
       "host": {
@@ -632,10 +632,10 @@
     "message": "A cert lookup shows what the grader's database says about a number. It can't tell whether the slab in a photo is genuine."
   },
   "about_disclaimer": {
-    "message": "Not affiliated with PSA or CGC."
+    "message": "Not affiliated with PSA, CGC or Beckett."
   },
   "about_trademarks": {
-    "message": "PSA and CGC are trademarks of their respective owners."
+    "message": "PSA, CGC and Beckett are trademarks of their respective owners."
   },
   "about_language": {
     "message": "Language follows your Chrome settings."
@@ -1066,5 +1066,36 @@
   },
   "prices_need_card": {
     "message": "Type the card name to search by grade."
+  },
+  "grader_bgs": {
+    "message": "BGS"
+  },
+  "reason_bgs_lookup": {
+    "message": "Beckett has no direct link per number. Open copies the number and opens Beckett's lookup, where you paste it."
+  },
+  "result_heading_lookup": {
+    "message": "Opened Beckett lookup"
+  },
+  "result_lookup_note": {
+    "message": "The number is copied. Paste it into Beckett's lookup form (Ctrl+V / ⌘V)."
+  },
+  "status_opened_lookup": {
+    "message": "Opened Beckett lookup. $GRADER$ number $NUMBER$ is copied, paste it there.",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "BGS"
+      },
+      "number": {
+        "content": "$2",
+        "example": "0012345678"
+      }
+    }
+  },
+  "prices_pop": {
+    "message": "Population report"
+  },
+  "prices_pop_copied": {
+    "message": "Card name copied. Paste it into the population report search."
   }
 }

@@ -1,7 +1,7 @@
 // The only caller of chrome.tabs.create (ADR-001 §8). Decoded/page URLs are never navigated:
 // cert URLs are always rebuilt by buildCertUrl() from a validated grader + digit string, and price links must pass
 // isPriceUrl() (allow-listed eBay/130point search URLs built by priceLinks.js).
-import { buildCertUrl } from '../core/certUrls.js';
+import { buildCertUrl, hasDirectUrl } from '../core/certUrls.js';
 import { isPriceUrl } from '../core/priceLinks.js';
 import { addHistoryEntry, makeEntry } from '../shared/history.js';
 
@@ -13,11 +13,17 @@ import { addHistoryEntry, makeEntry } from '../shared/history.js';
  * @param {{windowId?:number, chromeApi?:typeof chrome, now?:number}} [opts]
  * @returns {Promise<{url:string, tabId:number|undefined, historySaved:boolean}>}
  */
-export async function openCert(candidate, job, settings, { windowId, chromeApi = globalThis.chrome, now = Date.now(), replaceLatest = false } = {}) {
+export async function openCert(candidate, job, settings, { windowId, chromeApi = globalThis.chrome, now = Date.now(), replaceLatest = false,
+  clipboard = globalThis.navigator?.clipboard } = {}) {
   const url = buildCertUrl(candidate.grader, candidate.number); // throws RangeError on bad input
+  // A lookup form (Beckett) can't be linked per number: copy it first, while the click still counts as a user gesture.
+  let copied = false;
+  if (!hasDirectUrl(candidate.grader)) {
+    try { await clipboard.writeText(candidate.number); copied = true; } catch { copied = false; }
+  }
   const { tab, active } = await openNextToSource(url, job, settings, windowId, chromeApi);
   const historySaved = await recordHistory(candidate, job, settings, now, { replace: replaceLatest });
-  return { url, tabId: tab?.id, active, historySaved };
+  return { url, tabId: tab?.id, active, historySaved, copied };
 }
 
 /**

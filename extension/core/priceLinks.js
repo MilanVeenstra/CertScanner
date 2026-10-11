@@ -1,6 +1,7 @@
 // Price & listing links (user request 2026-10-11: "prijsgeschiedenis en eBay listings"). Pure functions only.
-// CertScanner never fetches prices itself: these build search links that open in a new tab when the user clicks.
-// The query is the only thing that reaches the other site, and only on that click.
+// These build search links that open in a new tab on a click, and the card search terms the panel uses to read
+// prices (src/sidepanel/priceData.js). The query is the only thing that reaches the other site.
+import { isPcUrl } from './pricecharting.js';
 
 /** eBay sites the user can pick in Settings (key -> host). */
 export const EBAY_SITES = Object.freeze({
@@ -216,8 +217,16 @@ export function psaAuctionUrl(desc) {
 
 const PRICE_PATHS = Object.freeze({ '130point.com': '/sales/', [PRICECHARTING_HOST]: '/search-products', [PSA_HOST]: '/auctionprices/search' });
 
+/** Card number in search terms ("POKEMON CHARIZARD ex 199" -> "199"), else null. */
+export function cardNoFrom(desc) {
+  const words = String(desc ?? '').trim().split(/\s+/);
+  for (let i = words.length - 1; i >= 0; i--) if (/^#?\d{1,4}[A-Za-z]?$/.test(words[i])) return words[i].replace('#', '');
+  return null;
+}
+
 /** True only for URLs this module builds (allow-listed host and path, https, no credentials or port). */
 export function isPriceUrl(url) {
+  if (isPcUrl(url)) return true; // PriceCharting product/search page shown in the panel
   try {
     const u = new URL(url);
     if (u.protocol !== 'https:' || u.username || u.password || u.port || !PRICE_HOSTS.has(u.hostname)) return false;

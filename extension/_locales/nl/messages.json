@@ -1017,7 +1017,7 @@
     "message": "Te koop op eBay"
   },
   "prices_note": {
-    "message": "Zoekt op $SITE$ naar deze kaart in deze grade, zonder lots. Opent pas als je klikt in een nieuw tabblad; alleen de kaart, grade of het certnummer wordt verstuurd.",
+    "message": "Zoekt op $SITE$ naar deze kaart in deze grade, zonder lots. Prijzen en verkopen hierboven komen van PriceCharting (Amerikaanse dollars). Alleen de kaart, grade of het certnummer wordt verstuurd.",
     "placeholders": {
       "site": {
         "content": "$1",
@@ -1048,9 +1048,6 @@
   },
   "prices_grade_all": {
     "message": "Alle grades"
-  },
-  "prices_pricecharting": {
-    "message": "Prijs per grade (PriceCharting)"
   },
   "prices_slab": {
     "message": "Deze slab op eBay"
@@ -1112,5 +1109,118 @@
   },
   "prices_card_unknown": {
     "message": "Kaartnaam niet gelezen. Typ hem voor prijzen van deze kaart."
+  },
+  "prices_allow": {
+    "message": "Prijzen hier tonen"
+  },
+  "prices_allow_text": {
+    "message": "Zie hier de prijs per grade en de laatste verkopen van deze kaart. CertScanner leest daarvoor de PriceCharting-pagina van deze kaart op je apparaat (Chrome vraagt het één keer)."
+  },
+  "prices_loading": {
+    "message": "Prijzen laden…"
+  },
+  "prices_not_found": {
+    "message": "Geen kaart gevonden op PriceCharting voor “$QUERY$”. Pas de kaartnaam aan met Wijzig.",
+    "placeholders": {
+      "query": {
+        "content": "$1",
+        "example": "POKEMON CHARIZARD ex 199"
+      }
+    }
+  },
+  "prices_unreadable": {
+    "message": "De PriceCharting-pagina kon niet gelezen worden. Probeer het later opnieuw."
+  },
+  "prices_error": {
+    "message": "Prijzen konden niet geladen worden. Controleer je verbinding en probeer het opnieuw."
+  },
+  "prices_need_card_data": {
+    "message": "Kaartnaam niet van het label gelezen. Typ hem bij Wijzig om de prijzen te zien."
+  },
+  "prices_set_line": {
+    "message": "Set: $SET$",
+    "placeholders": {
+      "set": {
+        "content": "$1",
+        "example": "Pokemon Scarlet & Violet 151"
+      }
+    }
+  },
+  "prices_current_label": {
+    "message": "Prijs $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_current_unknown": {
+    "message": "Prijs voor deze grade"
+  },
+  "prices_sales_heading": {
+    "message": "Laatst verkocht · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_no_sales": {
+    "message": "Geen recente verkopen voor $GRADE$ op PriceCharting.",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_pop_line": {
+    "message": "PSA-populatie voor $GRADE$: $POP$ (hoger: $HIGHER$)",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "GEM MT 10"
+      },
+      "pop": {
+        "content": "$2",
+        "example": "1234"
+      },
+      "higher": {
+        "content": "$3",
+        "example": "0"
+      }
+    }
+  },
+  "prices_pc_open": {
+    "message": "Bekijk op PriceCharting"
+  },
+  "setting_psa_key": {
+    "message": "PSA API-sleutel (optioneel)"
+  },
+  "setting_psa_key_save": {
+    "message": "Sleutel opslaan"
+  },
+  "setting_psa_key_remove": {
+    "message": "Sleutel verwijderen"
+  },
+  "setting_psa_key_get": {
+    "message": "Gratis sleutel aanvragen"
+  },
+  "setting_psa_key_hint": {
+    "message": "Met je eigen gratis PSA API-sleutel zoekt CertScanner kaartnaam, grade en populatie van een PSA-cert direct op (PSA staat ongeveer 100 opzoekingen per dag toe). De sleutel blijft op dit apparaat."
+  },
+  "setting_psa_key_saved": {
+    "message": "Sleutel opgeslagen. PSA-kaarten worden nu op certnummer opgezocht."
+  },
+  "setting_psa_key_removed": {
+    "message": "Sleutel verwijderd."
+  },
+  "setting_psa_key_invalid": {
+    "message": "Dat lijkt geen PSA API-sleutel."
+  },
+  "setting_psa_key_denied": {
+    "message": "Niet opgeslagen: CertScanner heeft toestemming nodig om api.psacard.com te bereiken."
   }
 }

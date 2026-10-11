@@ -387,9 +387,9 @@ export function createUi(doc, actions) {
   }
 
   /**
-   * "Prices for this card" under a result. prices: {grader, desc, grade, site}: the card's search terms read from the
-   * label and its grade. A summary line shows exactly what is searched ("PSA 10 · POKEMON CHARIZARD ex 199");
-   * "Change" opens the fields. Nothing is fetched until a link is clicked.
+   * "Prices for this card" under a result. prices: {grader, desc, grade, site}: search terms read from the label (or
+   * from PSA's API) and the slab's grade. The price data area is filled by showPriceData(); "Change" opens the fields,
+   * and a changed card or grade asks main.js for new prices (actions.pricesChanged).
    */
   function renderPrices(prices) {
     priceGrader = null;
@@ -399,8 +399,6 @@ export function createUi(doc, actions) {
     const frag = clone('tpl-prices');
     const input = ref(frag, 'price-card');
     const select = ref(frag, 'price-grade');
-    const chip = ref(frag, 'price-grade-chip');
-    const text = ref(frag, 'price-card-text');
     const fields = ref(frag, 'price-fields');
     const edit = ref(frag, 'price-edit');
     input.value = prices.desc ?? '';
@@ -411,29 +409,129 @@ export function createUi(doc, actions) {
       select.appendChild(o);
     }
     select.value = matchGrade(prices.grader, prices.grade) ?? '';
-    const sync = () => {
-      chip.textContent = select.value ? gradeLabel(prices.grader, select.value) : t('prices_grade_any', [graderShort(prices.grader)]);
-      chip.dataset.unknown = String(!select.value);
-      const card = input.value.trim();
-      text.textContent = card || t('prices_card_unknown');
-      text.classList.toggle('muted', !card);
-    };
-    const setOpen = (open) => {
-      fields.hidden = !open;
-      edit.setAttribute('aria-expanded', String(open));
-    };
-    input.addEventListener('input', () => { showPriceError(''); sync(); });
-    select.addEventListener('change', sync);
+    input.addEventListener('input', () => { showPriceError(''); syncPriceSummary(); });
+    input.addEventListener('change', () => actions.pricesChanged?.());
+    select.addEventListener('change', () => { syncPriceSummary(); actions.pricesChanged?.(); });
     edit.addEventListener('click', () => {
       const open = fields.hidden;
-      setOpen(open);
+      setPriceFields(open);
       if (open) input.focus();
     });
-    setOpen(!prices.desc || !select.value); // card name or grade not read: the fields are shown to fill in
-    sync();
     ref(frag, 'price-pop').hidden = !POP_URLS[prices.grader];
     ref(frag, 'price-note').textContent = t('prices_note', [ebayHostLabel(prices.site)]);
     slot.appendChild(frag);
+    setPriceFields(!prices.desc || !select.value); // card name or grade not read: the fields are shown to fill in
+    syncPriceSummary();
+  }
+
+  function setPriceFields(open) {
+    const fields = ref(body, 'price-fields');
+    if (!fields) return;
+    fields.hidden = !open;
+    ref(body, 'price-edit')?.setAttribute('aria-expanded', String(open));
+  }
+
+  /** Summary line: grade chip + the card (PriceCharting's / PSA's name once known, else the search terms). */
+  function syncPriceSummary(title = null) {
+    const chip = ref(body, 'price-grade-chip');
+    const text = ref(body, 'price-card-text');
+    if (!chip || !text) return;
+    const grade = ref(body, 'price-grade').value;
+    chip.textContent = grade ? gradeLabel(priceGrader, grade) : t('prices_grade_any', [graderShort(priceGrader)]);
+    chip.dataset.unknown = String(!grade);
+    const card = title ?? ref(body, 'price-card').value.trim();
+    text.textContent = card || t('prices_card_unknown');
+    text.classList.toggle('muted', !card);
+  }
+
+  /** Card details from PSA's API (cert lookup): search terms, grade and full title. */
+  function applyCertCard(card) {
+    const input = ref(body, 'price-card');
+    const select = ref(body, 'price-grade');
+    if (!input || !select) return;
+    if (card.query) input.value = card.query;
+    const g = matchGrade(priceGrader, card.grade);
+    if (g) select.value = g;
+    if (input.value && select.value) setPriceFields(false);
+    syncPriceSummary(card.title || null);
+  }
+
+  const money = (n) => new Intl.NumberFormat(t('locale_code') || undefined, { style: 'currency', currency: 'USD' }).format(n);
+  const saleDate = (d) => (/^\d{4}-\d{2}-\d{2}$/.test(d)
+    ? new Intl.DateTimeFormat(t('locale_code') || undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${d}T00:00:00Z`))
+    : d);
+
+  const PRICE_STATE_KEY = {
+    loading: 'prices_loading', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found', unreadable: 'prices_unreadable',
+    error: 'prices_error', 'need-card': 'prices_need_card_data',
+  };
+
+  /**
+   * Price data area. st: {status:'loading'|'no-permission'|'not-found'|'unreadable'|'error'|'need-card'} or the ok result
+   * of priceData.loadPrices() plus {psa} (PSA API card with population).
+   */
+  function showPriceData(st) {
+    const box = ref(body, 'price-data');
+    if (!box) return;
+    const ok = st.status === 'ok';
+    box.setAttribute('aria-busy', String(st.status === 'loading'));
+    box.dataset.status = st.status;
+    ref(box, 'price-state').hidden = ok;
+    ref(box, 'price-found').hidden = !ok;
+    ref(box, 'price-allow').hidden = st.status !== 'no-permission';
+    ref(box, 'price-retry').hidden = st.status !== 'error';
+    if (!ok) {
+      const q = ref(body, 'price-card')?.value.trim() ?? '';
+      ref(box, 'price-state-text').textContent = t(PRICE_STATE_KEY[st.status] ?? 'prices_error', [q]);
+      if (st.status === 'need-card') setPriceFields(true);
+      return;
+    }
+    const set = ref(body, 'price-set');
+    if (st.name) syncPriceSummary(st.name);
+    set.textContent = st.set ? t('prices_set_line', [st.set]) : '';
+    set.hidden = !st.set;
+    const label = st.current?.label ?? st.labels?.[0] ?? '';
+    ref(box, 'pc-label').textContent = label ? t('prices_current_label', [label]) : t('prices_current_unknown');
+    ref(box, 'pc-price').textContent = st.current ? money(st.current.price) : '—';
+    const grid = ref(box, 'pc-grid');
+    while (grid.firstChild) grid.firstChild.remove();
+    for (const p of st.prices) {
+      const li = doc.createElement('li');
+      const l = doc.createElement('span');
+      const v = doc.createElement('strong');
+      l.textContent = p.label;
+      v.textContent = money(p.price);
+      li.append(l, v);
+      if (st.current && p.label === st.current.label) li.dataset.current = 'true';
+      grid.appendChild(li);
+    }
+    const pop = ref(box, 'pc-pop');
+    const psa = st.psa;
+    pop.hidden = !(psa && psa.population != null);
+    const count = (n) => new Intl.NumberFormat(t('locale_code') || undefined).format(n);
+    if (!pop.hidden) pop.textContent = t('prices_pop_line', [psa.gradeText || label, count(psa.population), count(psa.populationHigher ?? 0)]);
+    const list = ref(box, 'pc-sales');
+    while (list.firstChild) list.firstChild.remove();
+    const rows = st.sales?.rows ?? [];
+    ref(box, 'pc-sales-heading').textContent = t('prices_sales_heading', [st.sales?.label ?? label]);
+    for (const r of rows) {
+      const li = doc.createElement('li');
+      const d = doc.createElement('span');
+      const v = doc.createElement('strong');
+      const ti = doc.createElement('span');
+      d.className = 'sale-date';
+      v.className = 'sale-price';
+      ti.className = 'sale-title';
+      d.textContent = saleDate(r.date);
+      v.textContent = money(r.price);
+      ti.textContent = r.title;
+      ti.title = r.title;
+      li.append(d, v, ti);
+      list.appendChild(li);
+    }
+    const none = ref(box, 'pc-no-sales');
+    none.hidden = rows.length > 0;
+    none.textContent = t('prices_no_sales', [label || t('prices_grade_all')]);
   }
 
   /** What the price block searches for: {grader, desc, grade} (grade '' = all grades). */
@@ -839,7 +937,7 @@ export function createUi(doc, actions) {
   return {
     openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
-    showIdle, showScanning, showResult, priceInput, showPriceError, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    showIdle, showScanning, showResult, priceInput, showPriceError, showPriceData, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },

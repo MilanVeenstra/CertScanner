@@ -16,7 +16,10 @@ import { createCertField } from './certField.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, openedStatusKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, pricechartingUrl, POP_URLS } from '../core/priceLinks.js';
+import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, POP_URLS } from '../core/priceLinks.js';
+import { isPcUrl } from '../core/pricecharting.js';
+import { loadPrices, requestPricePermission } from './priceData.js';
+import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
@@ -60,6 +63,7 @@ const tabSites = new Map();
 const ui = createUi(doc, {
   submitTaskForm: () => onTaskFormSubmit(),
   candidatePicked: (c) => { last.picked = c; },
+  pricesChanged: () => refreshPrices({ fromCert: false }),
 });
 
 // ---------------------------------------------------------------- static texts with substitutions
@@ -234,6 +238,38 @@ function showOpened(opened, bodyState, { moveFocus = true, restored = false } = 
   setBody(bodyState, { restored });
   ui.showResult({ opened, thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(opened) }, { moveFocus });
   if (!restored) persist({ task: 'result', body: bodyState, result: last.result, opened });
+  refreshPrices();
+}
+
+// ---------------------------------------------------------------- prices in the panel
+
+let psaToken = null;
+let priceRun = 0;
+let lastPrices = null;
+
+/**
+ * Fill "Prices for this card": first the card from the cert (PSA API, when a key is saved), then PriceCharting's
+ * price per grade and recent sales for that card, read on this device. fromCert=false keeps what the user typed.
+ */
+async function refreshPrices({ fromCert = true } = {}) {
+  const o = last.opened;
+  if (!o) return;
+  const run = ++priceRun;
+  let psa = null;
+  if (fromCert && o.grader === 'psa' && psaToken) {
+    ui.showPriceData({ status: 'loading' });
+    const r = await fetchPsaCert(o.number, { token: psaToken }).catch(() => null);
+    if (run !== priceRun) return;
+    if (r?.ok) { psa = r.card; ui.applyCertCard(r.card); }
+  }
+  const { grader, desc, grade } = ui.priceInput();
+  if (!desc) { ui.showPriceData({ status: 'need-card' }); return; }
+  ui.showPriceData({ status: 'loading' });
+  let res;
+  try { res = await loadPrices({ query: desc, cardNo: cardNoFrom(desc), grader, grade }); } catch { res = { status: 'error' }; }
+  if (run !== priceRun) return;
+  lastPrices = res;
+  ui.showPriceData({ ...res, psa });
 }
 
 /** Price block for an opened cert: the card and grade read from the label (same photo only; empty for typed numbers). */
@@ -252,12 +288,22 @@ async function openPrice(makeUrl) {
 }
 
 /**
- * Price block links. eBay sold/for sale search the card in the chosen grade ("... PSA 10"); PriceCharting and PSA
- * auction prices search the card and list prices per grade; "This slab" searches the cert number.
+ * Price block actions: allow/retry the in-panel prices, open the PriceCharting page that was read, eBay sold/for sale
+ * for the card in the chosen grade ("... PSA 10"), the population report, and "This slab" (cert number) on eBay.
  */
 function onPriceAction(a) {
   const o = last.opened;
   if (!o) return;
+  if (a === 'price-allow') {
+    // permissions.request must be the first call inside the click (user gesture).
+    requestPricePermission().then((granted) => { if (granted) refreshPrices(); }, () => {});
+    return;
+  }
+  if (a === 'price-retry') { refreshPrices({ fromCert: false }); return; }
+  if (a === 'price-pc-open') {
+    if (lastPrices?.url && isPcUrl(lastPrices.url)) openPrice(() => lastPrices.url);
+    return;
+  }
   if (a === 'price-pop') {
     if (POP_URLS[o.grader]) copyAndOpen(ui.priceInput().desc, POP_URLS[o.grader], 'prices_pop_copied');
     return;
@@ -271,8 +317,7 @@ function onPriceAction(a) {
   const q = gradeQuery(grader, desc, grade);
   if (!q) { ui.showPriceError('prices_need_card'); return; }
   ui.showPriceError('');
-  if (a === 'price-pricecharting') openPrice(() => pricechartingUrl(desc));
-  else openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: a === 'price-sold', single: true }));
+  openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: a === 'price-sold', single: true }));
 }
 
 /** Pages without a search link (population reports): copy the terms first (still inside the click), then open. */
@@ -612,6 +657,7 @@ async function openAgain() {
 function cancelEdit() {
   if (!last.opened) return;
   ui.showResult({ opened: last.opened, thumbUrl: last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(last.opened) }, { moveFocus: false });
+  refreshPrices();
   doc.querySelector('#task [data-action="edit"]')?.focus();
 }
 
@@ -762,6 +808,29 @@ $('settings-button').addEventListener('click', () => showView('settings'));
 $('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url: SHORTCUTS_URL }).catch(() => ui.announce(t('err_open_tab'))); });
 $('back-button').addEventListener('click', () => showView('home'));
 
+// PSA API key (optional): card name and population from the cert number. Saving asks for api.psacard.com access.
+function renderPsaKey(status = null) {
+  $('psa-key-remove').hidden = !psaToken;
+  $('psa-key-status').textContent = status ? t(status) : (psaToken ? t('setting_psa_key_saved') : '');
+}
+$('psa-key-save').addEventListener('click', () => {
+  const v = $('setting-psa-key').value.trim();
+  if (!isPsaToken(v)) { renderPsaKey('setting_psa_key_invalid'); return; }
+  chrome.permissions.request({ origins: [PSA_API_PERMISSION] }).then(async (granted) => {
+    if (!granted) { renderPsaKey('setting_psa_key_denied'); return; }
+    await savePsaToken(v);
+    psaToken = v;
+    $('setting-psa-key').value = '';
+    renderPsaKey('setting_psa_key_saved');
+  }, () => renderPsaKey('setting_psa_key_denied'));
+});
+$('psa-key-remove').addEventListener('click', async () => {
+  await clearPsaToken().catch(() => {});
+  psaToken = null;
+  renderPsaKey('setting_psa_key_removed');
+});
+$('psa-key-get').addEventListener('click', () => { chrome.tabs.create({ url: PSA_API_SIGNUP }).catch(() => ui.announce(t('err_open_tab'))); });
+
 $('setting-ebay-site').addEventListener('change', async (e) => {
   try {
     settings = await saveSettings({ ebaySite: e.target.value });
@@ -881,6 +950,8 @@ function restore(saved) {
 
 (async () => {
   try { settings = await loadSettings(); } catch { settings = { ...DEFAULT_SETTINGS }; }
+  psaToken = await loadPsaToken();
+  renderPsaKey();
   try { history = await loadHistory(); } catch { history = { v: 1, entries: [] }; }
   renderRecent();
   refreshShortcut();

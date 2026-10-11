@@ -61,7 +61,8 @@ export async function scanPage(job, {
   const sig = AbortSignal.any([signal, AbortSignal.timeout(budgetMs)].filter(Boolean));
   const stopCode = () => (signal?.aborted ? 'aborted' : 'timeout');
   const progress = (p) => { try { onProgress?.(p); } catch { /* UI only */ } };
-  const base = { jobId: job.id, kind: 'page', items: [], top: null, warnings: [], images: [], discovered: 0, totalFound: 0, partial: null };
+  // labels: label text lines per image index (price links for that card), never persisted.
+  const base = { jobId: job.id, kind: 'page', items: [], top: null, warnings: [], images: [], discovered: 0, totalFound: 0, partial: null, labels: {} };
   const finish = (status, extra = {}) => ({
     ...base, status, ...extra,
     timings: { ...timings, images: images.map(({ index, acquireMs, scanMs }) => ({ index, acquireMs, scanMs })), totalMs: ms(now() - t0) },
@@ -108,8 +109,10 @@ export async function scanPage(job, {
     //    URL only -> crop), then the existing scanner. Only when that read has no candidate >= 0.80, the largest
     //    same-origin srcset candidate is read too; its candidates are marked SRCSET_EVIDENCE: listed, never auto-opened.
     const isStop = (a) => !a.ok && (a.reason === 'aborted' || a.reason === 'timeout') && sig.aborted;
+    // Grader hints: the image's alt text (often the listing title) and the page title.
+    const hintsFor = (im) => [im.alt, found.title].filter(Boolean).join(' | ');
     const runScan = (acq, k) => d.scan({ kind: 'blob', blob: acq.blob, method: 'upload' }, {
-      settings: { ...settings, autoOpen: false }, signal: sig, engines, acquire: async () => acq,
+      settings: { ...settings, autoOpen: false }, signal: sig, engines, acquire: async () => acq, hints: hintsFor(selected[k]),
       onProgress: (p) => { try { onImageProgress?.(k, p); } catch { /* UI only */ } },
     });
     for (let k = 0; k < selected.length; k++) {
@@ -135,6 +138,7 @@ export async function scanPage(job, {
           Object.assign(entry, { reason: r.error?.code ?? 'engine-failed', scanMs: ms(now() - ts) });
         } else {
           perImage.push({ index: k, candidates: r.candidates, warnings: r.warnings, prominent: isProminent(im) });
+          if (r.labelText?.length) base.labels[k] = r.labelText;
           Object.assign(entry, { ok: true, method: acq.info.method, resolution: acq.info.resolution, candidates: r.candidates.length, scanMs: ms(now() - ts), timings: r.timings });
           confident = r.candidates.some((c) => c.confidence >= AUTO_OPEN_MIN);
         }
@@ -159,6 +163,7 @@ export async function scanPage(job, {
           } else {
             const marked = r2.candidates.map((c) => ({ ...c, evidence: [...(c.evidence ?? []), SRCSET_EVIDENCE] }));
             perImage.push({ index: k, candidates: marked, warnings: r2.warnings, prominent: isProminent(im) });
+            if (r2.labelText?.length && !base.labels[k]) base.labels[k] = r2.labelText;
             entry.srcset = { ok: true, method: big.info.method, candidates: marked.length, ms: ms(now() - tb) };
             if (!entry.ok) Object.assign(entry, { ok: true, method: big.info.method, resolution: big.info.resolution, candidates: marked.length });
           }

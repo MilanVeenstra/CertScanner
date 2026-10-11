@@ -10,8 +10,10 @@ const WARN_DELAY_MS = 600;
  * @param {{input:HTMLInputElement, fieldset:HTMLFieldSetElement, errorEl:HTMLElement, previewEl:HTMLElement,
  *   hintEl:HTMLElement, radioName:string, prefill?:{number:string, grader:string|null}, cgcHint?:boolean}} els
  *   cgcHint=false when the task card already shows reason_cgc_both (no duplicate text).
+ *   autoHide=true: the grader buttons stay hidden while the grader follows from what was typed (prefix, length, "00…"),
+ *   and only appear when the number fits several graders.
  */
-export function createCertField({ input, fieldset, errorEl, previewEl, hintEl, radioName, prefill = null, cgcHint = true }) {
+export function createCertField({ input, fieldset, errorEl, previewEl, hintEl, radioName, prefill = null, cgcHint = true, autoHide = false }) {
   const radios = [...fieldset.querySelectorAll('input[type="radio"]')];
   for (const r of radios) r.name = radioName;
   let explicit = prefill?.grader ?? null;
@@ -41,10 +43,17 @@ export function createCertField({ input, fieldset, errorEl, previewEl, hintEl, r
     return isValidCert(r.grader, digits) ? null : [GRADER_NAME[r.grader]];
   }
 
+  function syncVisibility({ a, r }) {
+    if (!autoHide) return;
+    const digits = a.url?.ok ? a.url.number : a.digits;
+    fieldset.hidden = !(explicit || (!r.grader && (submitted || digits.length >= MIN_DIGITS)));
+  }
+
   function refresh({ immediateWarn = false } = {}) {
     const c = current();
     const { a, r } = c;
     setChecked(r.grader);
+    syncVisibility(c);
     hintEl.textContent = r.from === 'inferred' ? t('grader_auto_hint') : (r.cgcBoth && cgcHint ? t('reason_cgc_both') : '');
     const digits = a.url?.ok ? a.url.number : a.digits;
     const p = previewText(r.grader, digits);
@@ -84,6 +93,7 @@ export function createCertField({ input, fieldset, errorEl, previewEl, hintEl, r
     /** Validate for submit; shows the error and moves focus on failure. */
     submit() {
       submitted = true;
+      syncVisibility(current());
       const v = validateCert(input.value, explicit);
       if (!v.ok) {
         showError(v.error, v.subs);

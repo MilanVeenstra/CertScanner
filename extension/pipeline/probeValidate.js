@@ -111,6 +111,11 @@ const MAX_TOTAL = 1_000_000;
  *   images:{srcUrl:string, rect:{x:number,y:number,width:number,height:number}, natural:{width:number,height:number},
  *   srcsetBest:string|null, visibleFraction:number, topmostAtCenter:boolean}[]}} | {ok:false, reason:string}}
  */
+/** Page title / alt text: page-controlled plain text, kept short and only used as a grader hint. */
+export function hintText(v) {
+  return typeof v === 'string' ? v.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200) : '';
+}
+
 export function validatePageImages(raw) {
   if (!isObj(raw)) return fail('shape');
   if (raw.v !== 1) return fail('version');
@@ -138,11 +143,11 @@ export function validatePageImages(raw) {
     seen.add(im.srcUrl);
     images.push({
       srcUrl: im.srcUrl, rect: { x: r.x, y: r.y, width: rs.width, height: rs.height }, natural: nat, srcsetBest,
-      visibleFraction: im.visibleFraction, topmostAtCenter: im.topmostAtCenter === true,
+      visibleFraction: im.visibleFraction, topmostAtCenter: im.topmostAtCenter === true, alt: hintText(im.alt),
     });
   }
   const visibleArea = (i) => i.rect.width * i.rect.height * i.visibleFraction;
   images.sort((a, b) => (visibleArea(b) - visibleArea(a)) || (b.rect.width * b.rect.height - a.rect.width * a.rect.height));
   const total = Number.isInteger(raw.total) && raw.total >= 0 && raw.total <= MAX_TOTAL ? Math.max(raw.total, images.length) : images.length;
-  return { ok: true, value: { v: 1, viewport, dpr: raw.dpr, images: images.slice(0, MAX_PAGE_IMAGES), total } };
+  return { ok: true, value: { v: 1, viewport, dpr: raw.dpr, title: hintText(raw.title), images: images.slice(0, MAX_PAGE_IMAGES), total } };
 }

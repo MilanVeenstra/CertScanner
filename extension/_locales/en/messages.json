@@ -101,7 +101,7 @@
     "message": "Cert number"
   },
   "field_cert_hint": {
-    "message": "For example PSA 01234567 or CGC 4012345001"
+    "message": "For example PSA 01234567, CGC 4012345001 or BGS 0012345678"
   },
   "grader_legend": {
     "message": "Grader"
@@ -119,7 +119,7 @@
     "description": "Grader name. Never translated."
   },
   "grader_auto_hint": {
-    "message": "Selected from what you typed."
+    "message": "Grader detected from the number."
   },
   "open_button": {
     "message": "Open cert page"
@@ -365,7 +365,7 @@
     }
   },
   "reason_cgc_both": {
-    "message": "This number fits both CGC Comics and CGC Cards. Choose one."
+    "message": "This number fits more than one grader. Choose one."
   },
   "reason_grader_unknown": {
     "message": "Couldn't tell which grader this is. Choose one."
@@ -1008,7 +1008,7 @@
     }
   },
   "prices_heading": {
-    "message": "Prices & listings"
+    "message": "Prices for this card"
   },
   "prices_ebay_sold": {
     "message": "Sold on eBay"
@@ -1016,20 +1016,14 @@
   "prices_ebay_active": {
     "message": "For sale on eBay"
   },
-  "prices_130point": {
-    "message": "130point sales"
-  },
   "prices_note": {
-    "message": "Opens $SITE$, PriceCharting, PSA or 130point in a new tab, only when you click. Only the card, grade or cert number is sent. For 130point the search is copied so you can paste it.",
+    "message": "Searches $SITE$ for this card in this grade, without lots. Opens in a new tab only when you click; only the card, grade or cert number is sent.",
     "placeholders": {
       "site": {
         "content": "$1",
         "example": "ebay.com"
       }
     }
-  },
-  "prices_130_copied": {
-    "message": "Search terms copied. Paste them into 130point."
   },
   "page_row_prices": {
     "message": "eBay sold"
@@ -1056,10 +1050,7 @@
     "message": "All grades"
   },
   "prices_pricecharting": {
-    "message": "PriceCharting (price per grade)"
-  },
-  "prices_psa_apr": {
-    "message": "PSA auction prices"
+    "message": "Price per grade (PriceCharting)"
   },
   "prices_slab": {
     "message": "This slab on eBay"
@@ -1097,5 +1088,29 @@
   },
   "prices_pop_copied": {
     "message": "Card name copied. Paste it into the population report search."
+  },
+  "reason_grader_guess": {
+    "message": "Probably $GRADER$: the label doesn't name the grader clearly. Check it, or pick another.",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "CGC Comics"
+      }
+    }
+  },
+  "prices_edit": {
+    "message": "Change"
+  },
+  "prices_grade_any": {
+    "message": "$GRADER$ · any grade",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "PSA"
+      }
+    }
+  },
+  "prices_card_unknown": {
+    "message": "Card name not read. Type it to see prices for this card."
   }
 }

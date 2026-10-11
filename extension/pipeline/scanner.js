@@ -91,7 +91,7 @@ class ScanStop extends Error {
  *   engines?:{ocr:ReturnType<typeof createOcrEngine>, detectBarcodes:typeof defaultDetectBarcodes}}} [opts]
  * @returns {Promise<import('../core/types.js').ScanResult>}
  */
-export async function scan(input, { settings, signal, onProgress, acquire, onImage, engines } = {}) {
+export async function scan(input, { settings, signal, onProgress, acquire, onImage, engines, hints = '' } = {}) {
   const t0 = now();
   const timings = { acquireMs: 0, preprocessMs: 0, barcodeMs: 0, ocrInitMs: 0, ocrMs: 0, totalMs: 0 };
   const timeout = AbortSignal.timeout(SCAN_TIMEOUT_MS);
@@ -150,7 +150,7 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
     const trustedQr = barcodes.some((b) => { const q = parseQrPayload(b.text); return q.kind === 'official' && q.pathMatched; });
     const route = (pages) => {
       progress('parse');
-      const a = analyze({ pages, barcodes });
+      const a = analyze({ pages, barcodes, hints });
       for (const w of a.warnings) warnings.push(w);
       return finish(decide(a.candidates, settings, warnings), { candidates: a.candidates, labelText: labelLines(pages) });
     };

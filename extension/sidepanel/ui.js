@@ -7,7 +7,7 @@ import { createCertField } from './certField.js';
 import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates, openedStatusKey } from './viewModel.js';
 import { pageRowNote } from './pageView.js';
 import { buildCertUrl, hasDirectUrl } from '../core/certUrls.js';
-import { ebayHostLabel, GRADE_SCALES, gradeLabel, matchGrade, POP_URLS } from '../core/priceLinks.js';
+import { ebayHostLabel, GRADE_SCALES, gradeLabel, graderShort, matchGrade, POP_URLS } from '../core/priceLinks.js';
 
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
 export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
@@ -387,8 +387,9 @@ export function createUi(doc, actions) {
   }
 
   /**
-   * Price & listing links under a result. prices: {grader, desc, grade, site}: the card read from the label (editable,
-   * empty when unknown) and its grade preselected ("All grades" when unread). Nothing is fetched until a link is clicked.
+   * "Prices for this card" under a result. prices: {grader, desc, grade, site}: the card's search terms read from the
+   * label and its grade. A summary line shows exactly what is searched ("PSA 10 · POKEMON CHARIZARD ex 199");
+   * "Change" opens the fields. Nothing is fetched until a link is clicked.
    */
   function renderPrices(prices) {
     priceGrader = null;
@@ -397,9 +398,12 @@ export function createUi(doc, actions) {
     priceGrader = prices.grader;
     const frag = clone('tpl-prices');
     const input = ref(frag, 'price-card');
-    input.value = prices.desc ?? '';
-    input.addEventListener('input', () => showPriceError(''));
     const select = ref(frag, 'price-grade');
+    const chip = ref(frag, 'price-grade-chip');
+    const text = ref(frag, 'price-card-text');
+    const fields = ref(frag, 'price-fields');
+    const edit = ref(frag, 'price-edit');
+    input.value = prices.desc ?? '';
     for (const g of ['', ...GRADE_SCALES[prices.grader]]) {
       const o = doc.createElement('option');
       o.value = g;
@@ -407,7 +411,26 @@ export function createUi(doc, actions) {
       select.appendChild(o);
     }
     select.value = matchGrade(prices.grader, prices.grade) ?? '';
-    ref(frag, 'price-psa').hidden = prices.grader !== 'psa';
+    const sync = () => {
+      chip.textContent = select.value ? gradeLabel(prices.grader, select.value) : t('prices_grade_any', [graderShort(prices.grader)]);
+      chip.dataset.unknown = String(!select.value);
+      const card = input.value.trim();
+      text.textContent = card || t('prices_card_unknown');
+      text.classList.toggle('muted', !card);
+    };
+    const setOpen = (open) => {
+      fields.hidden = !open;
+      edit.setAttribute('aria-expanded', String(open));
+    };
+    input.addEventListener('input', () => { showPriceError(''); sync(); });
+    select.addEventListener('change', sync);
+    edit.addEventListener('click', () => {
+      const open = fields.hidden;
+      setOpen(open);
+      if (open) input.focus();
+    });
+    setOpen(!prices.desc || !select.value); // card name or grade not read: the fields are shown to fill in
+    sync();
     ref(frag, 'price-pop').hidden = !POP_URLS[prices.grader];
     ref(frag, 'price-note').textContent = t('prices_note', [ebayHostLabel(prices.site)]);
     slot.appendChild(frag);
@@ -425,6 +448,9 @@ export function createUi(doc, actions) {
     if (!err || !input) return;
     err.textContent = key ? t(key) : '';
     if (key) {
+      const fields = ref(body, 'price-fields');
+      if (fields) fields.hidden = false;
+      ref(body, 'price-edit')?.setAttribute('aria-expanded', 'true');
       input.setAttribute('aria-invalid', 'true');
       input.focus();
     } else {

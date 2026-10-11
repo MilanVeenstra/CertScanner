@@ -170,6 +170,39 @@ function readsFromBarcodes(barcodes, rules, validLengths) {
   return { reads, warnings };
 }
 
+const MAX_HINT_CHARS = 400;
+
+/** Brand families named in (normalized) text. */
+function brandsIn(text, rules) {
+  return Object.keys(rules.BRANDS ?? {}).filter((b) => rules.BRANDS[b].test(text));
+}
+
+/** 'cards' | 'comics' | null from card/comic wording. */
+function typeOf(text, rules) {
+  const score = (list) => (list ?? []).reduce((s, [term, w]) => s + (termRegex(rules, term).test(text) ? w : 0), 0);
+  const cards = score(rules.TYPE_WORDS?.cards);
+  const comics = score(rules.TYPE_WORDS?.comics);
+  if (Math.abs(cards - comics) < 0.2) return null;
+  return cards > comics ? 'cards' : 'comics';
+}
+
+/**
+ * Keyword scores for one number: the label's scores plus the number's shape (BGS "00…" serials), a brand named only
+ * in the page title / image alt text (used when the label shows no brand), and card-vs-comic wording (CGC only).
+ */
+function scoresForNumber(kw, number, ctx, rules) {
+  const out = Object.fromEntries(Object.entries(kw).map(([g, v]) => [g, { score: v.score, terms: [...v.terms] }]));
+  const bump = (g, w, term) => { if (out[g]) out[g] = { score: round2(Math.min(1, out[g].score + w)), terms: [...out[g].terms, term] }; };
+  for (const p of rules.NUMBER_PRIORS ?? []) if (p.re.test(number)) bump(p.grader, p.weight, p.term);
+  if (!ctx.labelBrands.length && ctx.hintBrands.length === 1) {
+    const b = ctx.hintBrands[0];
+    for (const g of rules.BRAND_GRADERS[b]) bump(g, rules.HINT_WEIGHT.brand, `hint:${b}`);
+  }
+  const brands = ctx.labelBrands.length ? ctx.labelBrands : ctx.hintBrands;
+  if (ctx.type && brands.every((b) => b === 'cgc')) bump(ctx.type === 'cards' ? 'cgc-cards' : 'cgc-comics', rules.HINT_WEIGHT.type, `type:${ctx.type}`);
+  return out;
+}
+
 function rankGraders(graders, kw, length, rules) {
   const tie = rules.TIE_ORDER[length] ?? rules.TIE_ORDER.default;
   return [...graders].sort((a, b) => (kw[b].score - kw[a].score) || (tie.indexOf(a) - tie.indexOf(b)));
@@ -177,7 +210,8 @@ function rankGraders(graders, kw, length, rules) {
 
 /**
  * Full analysis: candidates plus warnings derived from the inputs.
- * @param {{pages?:import('./types.js').OcrPage[], barcodes?:import('./types.js').BarcodeRead[]}} input
+ * @param {{pages?:import('./types.js').OcrPage[], barcodes?:import('./types.js').BarcodeRead[], hints?:string}} input
+ *   hints: page title / image alt text (page-controlled; it only helps choose between graders that fit a number)
  * @returns {{candidates:import('./types.js').CertCandidate[], warnings:import('./types.js').ScanWarning[], keywords:Record<string,{score:number,terms:string[]}>}}
  */
 export function analyze(input, rules = DEFAULT_RULES) {
@@ -200,6 +234,13 @@ export function analyze(input, rules = DEFAULT_RULES) {
   const extra = dashSeen ? { [rules.DASH_FORM.grader]: { weight: rules.DASH_FORM.weight, term: 'dash-form' } } : {};
   const kw = keywordScores(allText, rules, extra);
   const maxKw = Math.max(0, ...rules.GRADER_IDS.map((g) => kw[g].score));
+  const hintText = normalizeText(isObj(input) ? str(input.hints).slice(0, MAX_HINT_CHARS) : '');
+  const labelText = normalizeText(allText);
+  const ctx = {
+    labelBrands: brandsIn(labelText, rules),
+    hintBrands: brandsIn(hintText, rules),
+    type: typeOf(`${labelText} ${hintText}`, rules),
+  };
 
   // Merge reads per digit string.
   const byNumber = new Map();
@@ -255,7 +296,8 @@ export function analyze(input, rules = DEFAULT_RULES) {
     } else {
       const F = rules.GRADER_IDS.filter((g) => rules.GRADERS[g].lengths.includes(number.length));
       if (!F.length) continue;
-      graderOptions = rankGraders(F, kw, number.length, rules);
+      const kwN = scoresForNumber(kw, number, ctx, rules);
+      graderOptions = rankGraders(F, kwN, number.length, rules);
       if (F.length === 1) {
         grader = F[0];
         const conflict = rules.GRADER_IDS.some((g) => g !== grader && kw[g].score >= SCORE.resolve.conflictKeyword)
@@ -263,8 +305,8 @@ export function analyze(input, rules = DEFAULT_RULES) {
         if (conflict) { score -= SCORE.penalty.keywordConflict; add('conflict'); } else score += SCORE.bonus.lengthUnique;
       } else {
         const [best, second] = graderOptions;
-        const bestScore = kw[best].score;
-        const secondScore = second ? kw[second].score : 0;
+        const bestScore = kwN[best].score;
+        const secondScore = second ? kwN[second].score : 0;
         if (bestScore >= SCORE.resolve.minKeyword && bestScore - secondScore >= SCORE.resolve.minMargin - 1e-9) {
           grader = best;
           score += SCORE.bonus.keywordResolved;
@@ -272,7 +314,7 @@ export function analyze(input, rules = DEFAULT_RULES) {
           score -= SCORE.penalty.graderUnresolved;
         }
       }
-      if (grader) kw[grader].terms.forEach((t) => add(`kw:${t}`));
+      if (grader) kwN[grader].terms.forEach((t) => add(`kw:${t}`));
     }
 
     // 4. Slab vocabulary

@@ -206,6 +206,8 @@ export async function pageImagesProbe(opts) {
     seen.add(srcUrl);
     out.push({
       srcUrl,
+      // Alt text: on listing pages usually the listing title ("... PSA 10"). Only used to tell graders apart.
+      alt: String(img.alt || img.title || '').replace(/\s+/g, ' ').trim().slice(0, 200),
       rect: { x: r.left, y: r.top, width: r.width, height: r.height },
       natural: { width: img.naturalWidth, height: img.naturalHeight },
       srcsetBest,
@@ -215,5 +217,6 @@ export async function pageImagesProbe(opts) {
   }
   const visibleArea = (i) => i.rect.width * i.rect.height * i.visibleFraction;
   out.sort((a, b) => (visibleArea(b) - visibleArea(a)) || (b.rect.width * b.rect.height - a.rect.width * a.rect.height));
-  return { v: 1, viewport: { width: vw, height: vh }, dpr: window.devicePixelRatio || 1, images: out.slice(0, max), total: out.length };
+  const title = String(document.title || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+  return { v: 1, viewport: { width: vw, height: vh }, dpr: window.devicePixelRatio || 1, title, images: out.slice(0, max), total: out.length };
 }

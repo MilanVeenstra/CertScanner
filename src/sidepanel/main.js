@@ -15,7 +15,7 @@ import { createCertField } from './certField.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardQuery, slabQuery, ebaySearchUrl, POINT130_URL } from '../core/priceLinks.js';
+import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, POINT130_URL } from '../core/priceLinks.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
@@ -233,29 +233,48 @@ function showOpened(opened, bodyState, { moveFocus = true, restored = false } = 
   if (!restored) persist({ task: 'result', body: bodyState, result: last.result, opened });
 }
 
-/** Price-link queries for an opened cert: the card from the scanned label text (same photo only) and the slab's cert. */
+/** Price block for an opened cert: the card and grade read from the label (same photo only; empty for typed numbers). */
 function pricesFor(opened) {
   const lines = opened.method === 'manual' ? null : last.result?.labelText;
-  return {
-    card: cardQuery({ grader: opened.grader, number: opened.number, lines }),
-    slab: slabQuery(opened.grader, opened.number),
-    site: settings.ebaySite,
-  };
+  const { desc, grade } = cardInfo({ grader: opened.grader, number: opened.number, lines });
+  return { grader: opened.grader, desc, grade, site: settings.ebaySite };
 }
 
-async function openPrices(sold) {
-  const q = ui.priceQuery();
-  if (!q) return;
+async function openPrice(makeUrl) {
   try {
-    await openPriceLink(ebaySearchUrl(settings.ebaySite, q, { sold }), last.job, settings, { windowId });
+    await openPriceLink(makeUrl(), last.job, settings, { windowId });
   } catch {
     ui.showOpenError();
   }
 }
 
+/**
+ * Price block links. eBay sold/for sale search the card in the chosen grade ("... PSA 10"); PriceCharting and PSA
+ * auction prices search the card and list prices per grade; "This slab" searches the cert number.
+ */
+function onPriceAction(a) {
+  const o = last.opened;
+  if (!o) return;
+  if (a === 'price-130') { open130point(); return; }
+  if (a === 'price-slab') {
+    const q = slabQuery(o.grader, o.number);
+    if (q) openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: true }));
+    return;
+  }
+  const { grader, desc, grade } = ui.priceInput();
+  const q = gradeQuery(grader, desc, grade);
+  if (!q) { ui.showPriceError('prices_need_card'); return; }
+  ui.showPriceError('');
+  if (a === 'price-pricecharting') openPrice(() => pricechartingUrl(desc));
+  else if (a === 'price-psa') openPrice(() => psaAuctionUrl(desc));
+  else openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: a === 'price-sold' }));
+}
+
 /** 130point has no search link: copy the terms first (still inside the click), then open its sales page. */
 async function open130point() {
-  const q = ui.priceQuery();
+  const o = last.opened;
+  const { grader, desc, grade } = ui.priceInput();
+  const q = gradeQuery(grader, desc, grade) ?? slabQuery(o.grader, o.number);
   let copied = false;
   if (q) { try { await navigator.clipboard.writeText(q); copied = true; } catch { /* still open the page */ } }
   try {
@@ -615,8 +634,7 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'page-scan') onPageScanButton();
   else if (a === 'always-allow') onAlwaysAllow();
   else if (a === 'back-to-page') showPageResultsState();
-  else if (a === 'price-sold' || a === 'price-active') openPrices(a === 'price-sold');
-  else if (a === 'price-130') open130point();
+  else if (a.startsWith('price-')) onPriceAction(a);
 });
 $('choose-image').addEventListener('click', () => $('file-input').click());
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cardQuery, slabQuery, gradeFromLines, ebaySearchUrl, isPriceUrl, POINT130_URL, ebayHostLabel, isEbaySite } from '../../src/core/priceLinks.js';
+import { cardQuery, cardInfo, gradeQuery, matchGrade, GRADE_SCALES, slabQuery, gradeFromLines, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, isPriceUrl, POINT130_URL, ebayHostLabel, isEbaySite } from '../../src/core/priceLinks.js';
 
 test('slab query: grader short name + cert number', () => {
   assert.equal(slabQuery('psa', '01234567'), 'PSA 01234567');
@@ -33,6 +33,36 @@ test('card query from real OCR output (lines out of order, split words, barcode 
   assert.equal(psa, '2023 POKEMON SV 151 CHARIZARD ex #199 PSA 10');
   const cgc = cardQuery({ grader: 'cgc-comics', number: '4012345001', lines: ['CGC', 'UNIVERSAL GRADE', '4012345001', 'Amazing Spider-Man #300', 'Marvel Comics, 5/88', 'WHITE', 'PAGES', '8°'] });
   assert.equal(cgc, 'Amazing Spider-Man #300 Marvel Comics 5/88 CGC');
+});
+
+test('card info splits the card from the grade (CGC cards: grade words and number on separate lines)', () => {
+  assert.deepEqual(cardInfo({ grader: 'cgc-cards', number: '1401036622258', lines: ['CGC', '2022 Pokemon Sword & Shield', 'Pikachu - Holo', 'GEM MINT', '10', '1401036622258'] }),
+    { desc: '2022 Pokemon Sword Shield Pikachu Holo', grade: '10' });
+  assert.deepEqual(cardInfo({ grader: 'psa', number: '108114622', lines: ['1986 FLEER', 'MICHAEL JORDAN', '#57', 'MINT 9', 'PSA', '108114622'] }),
+    { desc: '1986 FLEER MICHAEL JORDAN #57', grade: '9' });
+  assert.deepEqual(cardInfo({ grader: 'psa', number: '1', lines: null }), { desc: null, grade: null });
+});
+
+test('grade scales and grade queries', () => {
+  assert.equal(GRADE_SCALES.psa[0], '10');
+  assert.ok(!GRADE_SCALES.psa.includes('9.5') && GRADE_SCALES.psa.includes('8.5') && GRADE_SCALES.psa.includes('1'));
+  assert.ok(GRADE_SCALES['cgc-cards'].includes('9.5'));
+  assert.equal(matchGrade('cgc-comics', '9'), '9.0');
+  assert.equal(matchGrade('cgc-comics', '10.0'), '10');
+  assert.equal(matchGrade('psa', '9.5'), null);
+  assert.equal(gradeQuery('psa', 'CHARIZARD ex #199', '10'), 'CHARIZARD ex #199 PSA 10');
+  assert.equal(gradeQuery('psa', 'CHARIZARD ex #199', ''), 'CHARIZARD ex #199 PSA', 'all grades');
+  assert.equal(gradeQuery('cgc-comics', 'Amazing Spider-Man #300', '9.8'), 'Amazing Spider-Man #300 CGC 9.8');
+  assert.equal(gradeQuery('psa', '   ', '10'), null);
+});
+
+test('PriceCharting and PSA auction price links', () => {
+  assert.equal(pricechartingUrl('2023 POKEMON SV 151 CHARIZARD ex #199'), 'https://www.pricecharting.com/search-products?q=POKEMON+SV+151+CHARIZARD+ex+%23199&type=prices');
+  assert.equal(psaAuctionUrl('MICHAEL JORDAN #57'), 'https://www.psacard.com/auctionprices/search?q=MICHAEL+JORDAN+%2357');
+  assert.throws(() => pricechartingUrl(' '), RangeError);
+  assert.ok(isPriceUrl(pricechartingUrl('Pikachu')) && isPriceUrl(psaAuctionUrl('Pikachu')));
+  assert.ok(!isPriceUrl('https://www.psacard.com/cert/01234567'), 'cert pages go through openCert, not the price opener');
+  assert.ok(!isPriceUrl('https://www.pricecharting.com/game/x'));
 });
 
 test('card query is null when the label gives too little', () => {

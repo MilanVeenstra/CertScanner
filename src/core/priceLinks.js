@@ -15,11 +15,35 @@ export const EBAY_SITES = Object.freeze({
 export const DEFAULT_EBAY_SITE = 'com';
 /** 130point has no documented search link: the panel copies the query and opens its sales page. */
 export const POINT130_URL = 'https://130point.com/sales/';
-export const PRICE_HOSTS = Object.freeze(new Set([...Object.values(EBAY_SITES), '130point.com']));
+/** Search pages whose results show a price per grade (PriceCharting) or PSA's own auction prices realized. */
+const PRICECHARTING_HOST = 'www.pricecharting.com';
+const PSA_HOST = 'www.psacard.com';
+export const PRICE_HOSTS = Object.freeze(new Set([...Object.values(EBAY_SITES), '130point.com', PRICECHARTING_HOST, PSA_HOST]));
 
 const GRADER_SHORT = Object.freeze({ psa: 'PSA', 'cgc-comics': 'CGC', 'cgc-cards': 'CGC' });
 const MAX_QUERY = 120;
 const MAX_WORDS = 12;
+const MAX_DESC = 100;
+
+const halves = (from) => Array.from({ length: from * 2 - 1 }, (_, i) => String(from - i / 2));
+/** Grades each grader prints on its labels, best first (the panel's grade list). */
+export const GRADE_SCALES = Object.freeze({
+  psa: Object.freeze(halves(10).filter((g) => g !== '9.5')),
+  'cgc-cards': Object.freeze(halves(10)),
+  'cgc-comics': Object.freeze(['10', '9.9', '9.8', '9.6', '9.4', '9.2', '9.0', '8.5', '8.0', '7.5', '7.0', '6.5', '6.0', '5.5', '5.0',
+    '4.5', '4.0', '3.5', '3.0', '2.5', '2.0', '1.8', '1.5', '1.0', '0.5']),
+});
+
+/** The scale entry equal to a read grade ("9" -> "9.0" for comics), or null. */
+export function matchGrade(grader, grade) {
+  const scale = GRADE_SCALES[grader];
+  if (!scale || grade == null || grade === '') return null;
+  const n = Number(grade);
+  return scale.find((g) => Number(g) === n) ?? null;
+}
+
+/** Short grader + grade as sellers write it: "PSA 10", "CGC 9.8". */
+export const gradeLabel = (grader, grade) => (GRADER_SHORT[grader] ? `${GRADER_SHORT[grader]} ${grade}` : String(grade));
 
 export const isEbaySite = (s) => typeof s === 'string' && Object.prototype.hasOwnProperty.call(EBAY_SITES, s);
 
@@ -31,21 +55,25 @@ export function slabQuery(grader, number) {
 
 // Label words that describe the slab, not the card; a line made only of these is skipped ("WHITE PAGES", "UNIVERSAL GRADE").
 const SLAB_WORDS = new Set(['UNIVERSAL', 'GRADE', 'CERTIFICATION', 'CERT', '#', 'CERTIFIED', 'GUARANTY', 'COMPANY', 'PSA', 'CGC',
-  'PSA/DNA', 'AUTHENTIC', 'WHITE', 'PAGES', 'OFF-WHITE', 'CREAM', 'TO', 'SIGNATURE', 'SERIES', 'QUALIFIED', 'RESTORED', 'CONSERVED']);
+  'PSA/DNA', 'AUTHENTIC', 'WHITE', 'PAGES', 'OFF-WHITE', 'CREAM', 'TO', 'SIGNATURE', 'SERIES', 'QUALIFIED', 'RESTORED', 'CONSERVED',
+  // grade words printed apart from the number ("GEM MINT" / "10" on two lines)
+  'GEM', 'MINT', 'MT', 'PRISTINE', 'NM-MT', 'NM/MINT', 'NEAR', 'EX-MT', 'EX/NM', 'EXCELLENT', 'VG-EX', 'VG/EX', 'VERY', 'GOOD', 'FAIR', 'POOR']);
 const isBoilerplate = (line) => line.split(' ').every((w) => SLAB_WORDS.has(w.toUpperCase()));
 // Characters a label line normally has; several others ("$$", "——") mean OCR read a barcode or artwork as text.
 const JUNK = /[^\p{L}\p{N}#&'\-./:+, ]/gu;
 const PSA_GRADE = /\b(GEM MT|GEM MINT|MINT|NM-MT\+?|NM\+?|EX-MT\+?|EX\+?|VG-EX\+?|VG\+?|GOOD\+?|FR|FAIR|PR|POOR)\s*(10|[1-9](?:\.5)?)\b/i;
+const CGC_CARD_GRADE = /\b(PRISTINE|GEM MINT|MINT\+?|NM\/MINT\+?|NEAR MINT\+?|EX\/NM\+?|EXCELLENT\+?|VG\/EX\+?|VERY GOOD\+?|GOOD\+?|FAIR|POOR)\s*(10|[1-9](?:\.5)?)\b/i;
 const CGC_GRADE = /(?<![\d.])(10(?:\.0)?|[0-9]\.[0-9])(?![\d.])/;
 
 /** Grade printed on the label ("10", "9.8") or null. */
 export function gradeFromLines(grader, lines) {
   for (const raw of lines) {
     const line = String(raw);
-    if (grader === 'psa') {
-      const m = PSA_GRADE.exec(line);
+    if (grader === 'psa' || grader === 'cgc-cards') {
+      const m = (grader === 'psa' ? PSA_GRADE : CGC_CARD_GRADE).exec(line);
       if (m) return m[2];
-    } else if (GRADER_SHORT[grader]) {
+    }
+    if (grader !== 'psa' && GRADER_SHORT[grader]) {
       const m = CGC_GRADE.exec(line);
       if (m && Number(m[1]) <= 10) return m[1];
     }
@@ -54,12 +82,12 @@ export function gradeFromLines(grader, lines) {
 }
 
 /**
- * Card description from the label text read by OCR, e.g. "2023 POKEMON SV 151 CHARIZARD ex #199 PSA 10".
- * Returns null when the label gives too little to search for (then the slab query is used).
+ * Card and grade from the label text read by OCR: {desc: "2023 POKEMON SV 151 CHARIZARD ex #199", grade: "10"}.
+ * desc is null when the label gives too little to search for; grade is null when no grade was read.
  * @param {{grader:string, number:string, lines:unknown}} p
  */
-export function cardQuery({ grader, number, lines }) {
-  if (!GRADER_SHORT[grader] || !Array.isArray(lines)) return null;
+export function cardInfo({ grader, number, lines }) {
+  if (!GRADER_SHORT[grader] || !Array.isArray(lines)) return { desc: null, grade: null };
   const clean = lines
     .filter((l) => typeof l === 'string')
     .slice(0, 24)
@@ -72,22 +100,34 @@ export function cardQuery({ grader, number, lines }) {
     if (typeof number === 'string' && number && line.replace(/\D/g, '').includes(number)) continue; // the cert line
     if (/\d{7,}/.test(line.replace(/[\s-]/g, ''))) continue; // other long numbers (barcodes, item ids)
     if (isBoilerplate(line)) continue;
-    if (PSA_GRADE.test(line) && line.split(' ').length <= 3) continue; // "GEM MT 10" on its own line
+    if ((PSA_GRADE.test(line) || CGC_CARD_GRADE.test(line)) && line.split(' ').length <= 3) continue; // "GEM MT 10" on its own line
     if (grader !== 'psa' && CGC_GRADE.test(line) && line.split(' ').length <= 2) continue; // "9.8" / "CGC 9.8"
     const cardNo = /^#\s?\d{1,4}[A-Za-z]?$/.test(line); // "#199": the card number is worth keeping
     if (!cardNo && (line.match(/\p{L}/gu) ?? []).length < 2) continue; // OCR noise
     for (const w of line.split(' ')) {
       if (w.length < 2 && !/^[\p{N}#]$/u.test(w)) continue;
-      if (/^(PSA|CGC)$/i.test(w)) continue;
+      if (/^(PSA|CGC|GC|CG)$/i.test(w)) continue; // brand (also OCR fragments of the CGC logo)
       if (/\p{L}\d+\p{L}/u.test(w) && !/^\p{Lu}{1,3}\d+$/u.test(w)) continue; // OCR noise like "T1TT"
       words.push(w);
       if (words.length >= MAX_WORDS) break;
     }
     if (words.length >= MAX_WORDS) break;
   }
-  if (words.filter((w) => /\p{L}{3,}/u.test(w)).length < 2) return null;
-  const q = [...words, GRADER_SHORT[grader], grade].filter(Boolean).join(' ');
-  return q.slice(0, MAX_QUERY).trim();
+  const desc = words.filter((w) => /\p{L}{3,}/u.test(w)).length < 2 ? null : words.join(' ').slice(0, MAX_DESC).trim();
+  return { desc, grade: matchGrade(grader, grade) };
+}
+
+/** Card + grade as one search, e.g. "2023 POKEMON SV 151 CHARIZARD ex #199 PSA 10" (null without a card description). */
+export function cardQuery(p) {
+  const { desc, grade } = cardInfo(p);
+  return desc ? gradeQuery(p.grader, desc, grade) : null;
+}
+
+/** "<card> PSA 10"; without a grade "<card> PSA" (all grades). Null when the card is empty. */
+export function gradeQuery(grader, desc, grade) {
+  const d = normQuery(desc).slice(0, MAX_DESC).trim();
+  if (!d || !GRADER_SHORT[grader]) return null;
+  return [d, GRADER_SHORT[grader], matchGrade(grader, grade)].filter(Boolean).join(' ');
 }
 
 const normQuery = (q) => (typeof q === 'string' ? q.replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY) : '');
@@ -102,12 +142,29 @@ export function ebaySearchUrl(site, query, { sold = false } = {}) {
   return `https://${host}/sch/i.html?${params.toString()}`;
 }
 
-/** True only for URLs this module builds (allow-listed host, https, no credentials or port). */
+/** PriceCharting search: its product pages list the price per grade (ungraded ... PSA 10). The year is left out. */
+export function pricechartingUrl(desc) {
+  const q = normQuery(desc).replace(/\b(19|20)\d\d\b/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!q) throw new RangeError('empty query');
+  return `https://${PRICECHARTING_HOST}/search-products?${new URLSearchParams({ q, type: 'prices' }).toString()}`;
+}
+
+/** PSA Auction Prices Realized search (PSA-graded sales by grade; PSA may ask the user to sign in). */
+export function psaAuctionUrl(desc) {
+  const q = normQuery(desc);
+  if (!q) throw new RangeError('empty query');
+  return `https://${PSA_HOST}/auctionprices/search?${new URLSearchParams({ q }).toString()}`;
+}
+
+const PRICE_PATHS = Object.freeze({ '130point.com': '/sales/', [PRICECHARTING_HOST]: '/search-products', [PSA_HOST]: '/auctionprices/search' });
+
+/** True only for URLs this module builds (allow-listed host and path, https, no credentials or port). */
 export function isPriceUrl(url) {
   try {
     const u = new URL(url);
-    return u.protocol === 'https:' && !u.username && !u.password && !u.port && PRICE_HOSTS.has(u.hostname)
-      && (u.hostname === '130point.com' ? u.href === POINT130_URL : u.pathname === '/sch/i.html');
+    if (u.protocol !== 'https:' || u.username || u.password || u.port || !PRICE_HOSTS.has(u.hostname)) return false;
+    if (u.hostname === '130point.com') return u.href === POINT130_URL;
+    return u.pathname === (PRICE_PATHS[u.hostname] ?? '/sch/i.html') && !u.hash;
   } catch { return false; }
 }
 

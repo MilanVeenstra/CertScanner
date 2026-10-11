@@ -74,7 +74,7 @@ const EXPECTED_VERSIONS = { 'tesseract.js': '7.0.0', 'tesseract.js-core': /^7\./
 const ALLOWED_URL_HOSTS = new Set([
   'www.psacard.com', 'psacard.com', 'www.cgccomics.com', 'cgccomics.com', 'www.cgccards.com', 'cgccards.com', 'www.cgccards.uk', 'cgccards.uk',
   // Price & listing links (src/core/priceLinks.js): opened only on a user click, never fetched.
-  '130point.com', 'www.ebay.com', 'www.ebay.co.uk', 'www.ebay.de', 'www.ebay.nl', 'www.ebay.fr', 'www.ebay.ca', 'www.ebay.com.au',
+  '130point.com', 'www.pricecharting.com', 'www.ebay.com', 'www.ebay.co.uk', 'www.ebay.de', 'www.ebay.nl', 'www.ebay.fr', 'www.ebay.ca', 'www.ebay.com.au',
 ]);
 const REQUIRED_PERMISSIONS = ['contextMenus', 'activeTab', 'scripting', 'storage', 'sidePanel'];
 const RELEASE_CSP = "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'";

@@ -256,7 +256,17 @@ legend { padding: 0; margin-block-end: var(--cs-space-1); }
 /* Price & listing links under a result: search links only, nothing is fetched */
 .prices { display: flex; flex-direction: column; gap: var(--cs-space-2); border-block-start: 1px solid var(--cs-row); padding-block-start: var(--cs-space-3); }
 .prices h3 { margin: 0; }
+.price-fields { display: flex; flex-wrap: wrap; gap: var(--cs-space-2); }
+.price-fields .field { margin: 0; }
+.price-card { flex: 1 1 180px; min-inline-size: 0; }
+.price-grade { flex: 0 1 120px; }
 .price-query { block-size: 36px; font: 14px/1.2 var(--cs-font-sans); letter-spacing: 0; }
+.price-grade select {
+  block-size: 36px; inline-size: 100%; padding: 0 8px; border: var(--cs-line) solid var(--cs-border-control); border-radius: 0;
+  background: var(--cs-bg); color: var(--cs-text); font: inherit; font-size: 14px;
+}
+.price-grade select:focus-visible { outline: 2px solid var(--cs-focus); outline-offset: 2px; }
+.price-links { display: flex; flex-wrap: wrap; gap: var(--cs-space-1) var(--cs-space-3); }
 .prices .hint { margin: 0; }
 
 /* Candidate rows (confirm with several numbers) */

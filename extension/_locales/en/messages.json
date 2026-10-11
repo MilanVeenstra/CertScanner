@@ -1147,7 +1147,7 @@
     }
   },
   "prices_current_label": {
-    "message": "$GRADE$ price",
+    "message": "Current price · $GRADE$",
     "placeholders": {
       "grade": {
         "content": "$1",
@@ -1159,7 +1159,7 @@
     "message": "Price for this grade"
   },
   "prices_sales_heading": {
-    "message": "Last sold · $GRADE$",
+    "message": "Recent sales · $GRADE$",
     "placeholders": {
       "grade": {
         "content": "$1",
@@ -1222,5 +1222,41 @@
   },
   "setting_psa_key_denied": {
     "message": "Not saved: CertScanner needs permission to contact api.psacard.com."
+  },
+  "prices_checking": {
+    "message": "PriceCharting is checking the browser (a tab opens briefly in the background)…"
+  },
+  "prices_challenge": {
+    "message": "PriceCharting wants to check your browser first. Open PriceCharting, wait until the page shows, then click Try again."
+  },
+  "prices_pc_search": {
+    "message": "Open PriceCharting"
+  },
+  "prices_last_sold_label": {
+    "message": "Last sold · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_no_recent": {
+    "message": "no recent sale"
+  },
+  "result_heading_found": {
+    "message": "$GRADER$ number read",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "BGS"
+      }
+    }
+  },
+  "result_lookup_pending": {
+    "message": "Beckett has no page per number, so nothing was opened. Open Beckett lookup copies the number; paste it into Beckett's form."
+  },
+  "open_lookup": {
+    "message": "Open Beckett lookup"
   }
 }

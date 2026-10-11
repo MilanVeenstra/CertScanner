@@ -13,11 +13,12 @@ import { hintText } from '../pipeline/probeValidate.js';
 import { createPageJob } from '../shared/jobContract.js';
 import { createUi, graderName } from './ui.js';
 import { createCertField } from './certField.js';
+import { decide } from '../core/routing.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, openedStatusKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, POP_URLS } from '../core/priceLinks.js';
-import { isPcUrl } from '../core/pricecharting.js';
+import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrade, POP_URLS } from '../core/priceLinks.js';
+import { isPcUrl, searchUrl as pcSearchUrl } from '../core/pricecharting.js';
 import { loadPrices, requestPricePermission } from './priceData.js';
 import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
 import { wireInputs } from './inputs.js';
@@ -203,6 +204,12 @@ async function handleResult(result, openKey) {
     return;
   }
   const top = result.candidates[0];
+  // BGS read clearly: Beckett has no page per number, so nothing opens; the result (number + prices) shows at once
+  // and "Open Beckett lookup" copies the number and opens the form.
+  if (result.status === 'confirm' && top?.grader === 'bgs' && decide(result.candidates, settings, result.warnings ?? [], undefined, { lookupOk: true }) === 'auto-open') {
+    showOpened({ grader: top.grader, number: top.number, method: top.source, url: buildCertUrl(top.grader, top.number), lookupPending: true }, 'opened');
+    return;
+  }
   // SEC-06: at most one automatic tab per context-menu job (a Sharper-scans re-run keeps the job id).
   if (result.status === 'auto-open' && !autoOpened.has(openKey)) {
     autoOpened.add(openKey);
@@ -266,7 +273,13 @@ async function refreshPrices({ fromCert = true } = {}) {
   if (!desc) { ui.showPriceData({ status: 'need-card' }); return; }
   ui.showPriceData({ status: 'loading' });
   let res;
-  try { res = await loadPrices({ query: desc, cardNo: cardNoFrom(desc), grader, grade }); } catch { res = { status: 'error' }; }
+  try {
+    const read = pricesFor(o);
+    res = await loadPrices({
+      query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null, windowId: windowId ?? undefined,
+      onStage: (s) => { if (run === priceRun && s === 'check') ui.showPriceData({ status: 'check' }); },
+    });
+  } catch { res = { status: 'error' }; }
   if (run !== priceRun) return;
   lastPrices = res;
   ui.showPriceData({ ...res, psa });
@@ -276,7 +289,7 @@ async function refreshPrices({ fromCert = true } = {}) {
 function pricesFor(opened) {
   const lines = opened.method === 'manual' ? null : last.result?.labelText;
   const { desc, grade } = cardInfo({ grader: opened.grader, number: opened.number, lines });
-  return { grader: opened.grader, desc, grade, site: settings.ebaySite };
+  return { grader: opened.grader, desc, grade, special: specialGrade(opened.grader, lines), site: settings.ebaySite };
 }
 
 async function openPrice(makeUrl) {
@@ -302,6 +315,12 @@ function onPriceAction(a) {
   if (a === 'price-retry') { refreshPrices({ fromCert: false }); return; }
   if (a === 'price-pc-open') {
     if (lastPrices?.url && isPcUrl(lastPrices.url)) openPrice(() => lastPrices.url);
+    return;
+  }
+  if (a === 'price-pc-search') {
+    // Opening PriceCharting in a normal tab also lets the browser pass PriceCharting's bot check; then "Try again".
+    const { desc } = ui.priceInput();
+    openPrice(() => (lastPrices?.url && isPcUrl(lastPrices.url) ? lastPrices.url : pcSearchUrl(desc || slabQuery(o.grader, o.number))));
     return;
   }
   if (a === 'price-pop') {

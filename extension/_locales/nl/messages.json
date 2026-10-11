@@ -258,15 +258,6 @@
   "status_scan_cancelled": {
     "message": "Scan geannuleerd."
   },
-  "result_heading": {
-    "message": "Certpagina van $GRADER$ geopend",
-    "placeholders": {
-      "grader": {
-        "content": "$1",
-        "example": "PSA"
-      }
-    }
-  },
   "result_bg_note": {
     "message": "De pagina staat op een tabblad op de achtergrond."
   },
@@ -626,7 +617,7 @@
     "message": "Over"
   },
   "about_privacy": {
-    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Een certnummer verlaat je apparaat pas als de pagina van de grader opent."
+    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Het certnummer gaat naar de grader als de pagina opent, en naar PSA als je een PSA-sleutel hebt toegevoegd. Kaartnaam en grade gaan naar PriceCharting voor de waarde. eBay krijgt alleen wat je zoekt als je een eBay-link opent."
   },
   "about_lookup": {
     "message": "Een certcontrole toont wat de database van de grader over een nummer zegt. Of de slab op een foto echt is, kan die niet zeggen."
@@ -681,26 +672,6 @@
   },
   "page_scan_lead": {
     "message": "Zoekt de slabfoto's op de pagina die je bekijkt en leest hun certnummers."
-  },
-  "right_click_hint": {
-    "message": "Of klik met rechts op een slabfoto en kies ‘$MENU$’.",
-    "description": "MENU is the context menu title.",
-    "placeholders": {
-      "menu": {
-        "content": "$1",
-        "example": "Scan slab cert number"
-      }
-    }
-  },
-  "shortcut_hint": {
-    "message": "Sneltoets: $KEYS$, of klik op het CertScanner-icoon.",
-    "description": "KEYS is the keyboard shortcut set in Chrome.",
-    "placeholders": {
-      "keys": {
-        "content": "$1",
-        "example": "Alt+Shift+S"
-      }
-    }
   },
   "shortcut_none": {
     "message": "Klik op het CertScanner-icoon om de pagina die je bekijkt te scannen.",
@@ -845,16 +816,6 @@
   "setting_shortcut_button": {
     "message": "Sneltoets wijzigen",
     "description": "Opens chrome://extensions/shortcuts in a new tab."
-  },
-  "shortcut_hint_keys_only": {
-    "message": "Sneltoets: $KEYS$.",
-    "description": "Shown when the toolbar button only opens the panel.",
-    "placeholders": {
-      "keys": {
-        "content": "$1",
-        "example": "Alt+Shift+S"
-      }
-    }
   },
   "page_access_body_keys_only": {
     "message": "Druk op $KEYS$ om deze pagina te scannen.",
@@ -1007,23 +968,11 @@
       }
     }
   },
-  "prices_heading": {
-    "message": "Prijzen van deze kaart"
-  },
   "prices_ebay_sold": {
     "message": "Verkocht op eBay"
   },
   "prices_ebay_active": {
     "message": "Te koop op eBay"
-  },
-  "prices_note": {
-    "message": "Zoekt op $SITE$ naar deze kaart in deze grade, zonder lots. Prijzen en verkopen hierboven komen van PriceCharting (Amerikaanse dollars). Alleen de kaart, grade of het certnummer wordt verstuurd.",
-    "placeholders": {
-      "site": {
-        "content": "$1",
-        "example": "ebay.com"
-      }
-    }
   },
   "page_row_prices": {
     "message": "eBay verkocht"
@@ -1035,7 +984,7 @@
     "message": "eBay-site"
   },
   "setting_ebay_site_hint": {
-    "message": "Voor de links Verkocht op eBay en Te koop op eBay. CertScanner haalt zelf nooit prijzen op."
+    "message": "Voor de links Verkocht op eBay en Te koop op eBay. Waarden in het paneel komen van PriceCharting (Amerikaanse dollars)."
   },
   "prices_card_label": {
     "message": "Kaart"
@@ -1061,9 +1010,6 @@
   "reason_bgs_lookup": {
     "message": "Beckett heeft geen directe link per nummer. Openen kopieert het nummer en opent de zoekpagina van Beckett, waar je het plakt."
   },
-  "result_heading_lookup": {
-    "message": "Beckett-zoekpagina geopend"
-  },
   "result_lookup_note": {
     "message": "Het nummer is gekopieerd. Plak het in het zoekformulier van Beckett (Ctrl+V / ⌘V)."
   },
@@ -1081,7 +1027,7 @@
     }
   },
   "prices_pop": {
-    "message": "Populatierapport"
+    "message": "Populatierapport (kopieert de naam)"
   },
   "prices_pop_copied": {
     "message": "Kaartnaam gekopieerd. Plak hem in het zoekveld van het populatierapport."
@@ -1095,9 +1041,6 @@
       }
     }
   },
-  "prices_edit": {
-    "message": "Wijzig"
-  },
   "prices_grade_any": {
     "message": "$GRADER$ · alle grades",
     "placeholders": {
@@ -1107,9 +1050,6 @@
       }
     }
   },
-  "prices_card_unknown": {
-    "message": "Kaartnaam niet gelezen. Typ hem voor prijzen van deze kaart."
-  },
   "prices_allow": {
     "message": "Prijzen hier tonen"
   },
@@ -1117,10 +1057,10 @@
     "message": "Zie hier de prijs per grade en de laatste verkopen van deze kaart. CertScanner leest daarvoor de PriceCharting-pagina van deze kaart op je apparaat (Chrome vraagt het één keer)."
   },
   "prices_loading": {
-    "message": "Prijzen laden…"
+    "message": "Waarde opzoeken op PriceCharting…"
   },
   "prices_not_found": {
-    "message": "Geen kaart gevonden op PriceCharting voor “$QUERY$”. Pas de kaartnaam aan met Wijzig.",
+    "message": "Geen resultaat op PriceCharting voor ‘$QUERY$’. Pas de naam aan en probeer het opnieuw.",
     "placeholders": {
       "query": {
         "content": "$1",
@@ -1129,13 +1069,13 @@
     }
   },
   "prices_unreadable": {
-    "message": "De PriceCharting-pagina kon niet gelezen worden. Probeer het later opnieuw."
+    "message": "De PriceCharting-pagina kon niet gelezen worden. Open hem zelf of probeer het later opnieuw."
   },
   "prices_error": {
     "message": "Prijzen konden niet geladen worden. Controleer je verbinding en probeer het opnieuw."
   },
   "prices_need_card_data": {
-    "message": "Kaartnaam niet van het label gelezen. Typ hem bij Wijzig om de prijzen te zien."
+    "message": "Kaartnaam onbekend. Typ hem om de waarde te zien."
   },
   "prices_set_line": {
     "message": "Set: $SET$",
@@ -1244,22 +1184,161 @@
   "prices_no_recent": {
     "message": "geen recente verkoop"
   },
-  "result_heading_found": {
-    "message": "$GRADER$-nummer gelezen",
-    "placeholders": {
-      "grader": {
-        "content": "$1",
-        "example": "BGS"
-      }
-    }
-  },
-  "result_lookup_pending": {
-    "message": "Beckett heeft geen pagina per nummer, dus er is niets geopend. Beckett-zoekpagina openen kopieert het nummer; plak het in het formulier van Beckett."
-  },
   "open_lookup": {
     "message": "Beckett-zoekpagina openen"
   },
   "prices_reading": {
     "message": "Kaartnaam van het label lezen…"
+  },
+  "confirm_scan_other": {
+    "message": "Iets anders scannen"
+  },
+  "reason_uncertain": {
+    "message": "Het nummer is niet met zekerheid gelezen. Vergelijk het met het label."
+  },
+  "url_preview_auto": {
+    "message": "De grader wordt herkend aan het nummer."
+  },
+  "verify_heading": {
+    "message": "Certcontrole"
+  },
+  "value_heading": {
+    "message": "Waarde"
+  },
+  "market_heading": {
+    "message": "Markt"
+  },
+  "grades_heading": {
+    "message": "Prijs per grade"
+  },
+  "ebay_heading": {
+    "message": "Zoeken op eBay"
+  },
+  "verify_opened": {
+    "message": "Geopend"
+  },
+  "verify_not_opened_bgs": {
+    "message": "Nog niet geopend: Beckett heeft geen pagina per nummer."
+  },
+  "lookup_preview": {
+    "message": "Kopieert het nummer en opent dan"
+  },
+  "identity_fallback": {
+    "message": "$GRADER$ $NUMBER$",
+    "placeholders": {
+      "grader": {
+        "content": "$1"
+      },
+      "number": {
+        "content": "$2"
+      }
+    }
+  },
+  "identity_card_unknown": {
+    "message": "Kaartnaam onbekend"
+  },
+  "identity_title_unknown": {
+    "message": "Titel onbekend"
+  },
+  "identity_grade_unknown": {
+    "message": "Grade niet gelezen"
+  },
+  "value_source": {
+    "message": "PriceCharting · Amerikaanse dollars"
+  },
+  "value_match": {
+    "message": "Voor:"
+  },
+  "value_change": {
+    "message": "Verkeerde kaart of grade? Wijzigen"
+  },
+  "value_show": {
+    "message": "Waarde tonen"
+  },
+  "value_pick_grade": {
+    "message": "grade niet gelezen: kies hem met Wijzigen"
+  },
+  "value_column": {
+    "message": "kolom ‘$LABEL$’",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      }
+    }
+  },
+  "grid_current_sr": {
+    "message": "(grade van deze slab)"
+  },
+  "status_value": {
+    "message": "$CARD$, $GRADE$: huidige prijs $PRICE$, laatst verkocht $LAST$.",
+    "placeholders": {
+      "card": {
+        "content": "$1"
+      },
+      "grade": {
+        "content": "$2"
+      },
+      "price": {
+        "content": "$3"
+      },
+      "last": {
+        "content": "$4"
+      }
+    }
+  },
+  "status_value_no_sale": {
+    "message": "$CARD$, $GRADE$: huidige prijs $PRICE$, geen recente verkoop.",
+    "placeholders": {
+      "card": {
+        "content": "$1"
+      },
+      "grade": {
+        "content": "$2"
+      },
+      "price": {
+        "content": "$3"
+      }
+    }
+  },
+  "find_note": {
+    "message": "Zoekt op $SITE$ naar dezelfde kaart of titel in deze grade, zonder lots. Alleen de naam, grade of het certnummer wordt verstuurd.",
+    "placeholders": {
+      "site": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_title_label": {
+    "message": "Titel"
+  },
+  "prices_need_title": {
+    "message": "Typ de titel om op grade te zoeken."
+  },
+  "prices_need_title_data": {
+    "message": "Titel onbekend. Typ hem om de waarde te zien."
+  },
+  "idle_icon_hint": {
+    "message": "Of klik op een pagina op het CertScanner-icoon."
+  },
+  "right_click_tip": {
+    "message": "Klik op een pagina met rechts op een slabfoto en kies ‘$MENU$’.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "confirm_open_guess": {
+    "message": "Certpagina van $GRADER$ openen",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "CGC Cards"
+      }
+    }
+  },
+  "value_change_comic": {
+    "message": "Verkeerde titel of grade? Wijzigen"
   }
 }

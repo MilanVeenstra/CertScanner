@@ -29,11 +29,16 @@ const WILDCARDS = new Set(['https://*/*', '<all_urls>', '*://*/*', 'http://*/*']
 
 /**
  * Hosts granted through "Sharper scans", plus any wildcard grant (SEC-11: shown as an "All sites" row).
+ * Install-time hosts from the manifest (PriceCharting) can't be removed and are left out, as are the `exclude`
+ * patterns that have their own control (the PSA API origin belongs to the PSA key).
  * @returns {Promise<{hosts:string[], allSites:string[]}>}
  */
-export async function listGrantedSites(chromeApi = globalThis.chrome) {
+export async function listGrantedSites(chromeApi = globalThis.chrome, { exclude = [] } = {}) {
   const all = await chromeApi.permissions.getAll();
-  const origins = Array.isArray(all?.origins) ? all.origins : [];
+  let required = [];
+  try { required = chromeApi.runtime?.getManifest?.().host_permissions ?? []; } catch { /* not in an extension page */ }
+  const skip = new Set([...required, ...exclude]);
+  const origins = (Array.isArray(all?.origins) ? all.origins : []).filter((o) => !skip.has(o));
   return {
     hosts: origins.map((o) => SITE_RE.exec(o)?.[1]).filter((h) => h && h !== '*').sort(),
     allSites: origins.filter((o) => WILDCARDS.has(o)),

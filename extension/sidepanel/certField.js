@@ -57,7 +57,9 @@ export function createCertField({ input, fieldset, errorEl, previewEl, hintEl, r
     hintEl.textContent = r.from === 'inferred' ? t('grader_auto_hint') : (r.cgcBoth && cgcHint ? t('reason_cgc_both') : '');
     const digits = a.url?.ok ? a.url.number : a.digits;
     const p = previewText(r.grader, digits);
-    previewEl.textContent = p ? t(p.key, p.subs) : '';
+    // Grader buttons still hidden: the grader comes from the number, so don't ask the user to choose one (D7).
+    const key = p?.key === 'url_preview_pending' && fieldset.hidden ? 'url_preview_auto' : p?.key;
+    previewEl.textContent = p ? t(key, p.subs) : '';
     clearTimeout(warnTimer);
     if (submitted) {
       const v = validateCert(input.value, explicit);

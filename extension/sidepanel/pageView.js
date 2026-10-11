@@ -65,8 +65,9 @@ export function noAccessBody({ scanOnClick, shortcut }) {
 
 /** Idle hint under "Scan this page"; null when neither the icon nor a shortcut scans. */
 export function idleShortcutHint({ scanOnClick, shortcut }) {
-  if (scanOnClick) return shortcut ? { key: 'shortcut_hint', subs: [shortcut] } : { key: 'shortcut_none', subs: [] };
-  return shortcut ? { key: 'shortcut_hint_keys_only', subs: [shortcut] } : null;
+  // The shortcut itself is printed on the Scan this page button; the hint only adds the toolbar icon (D7).
+  if (scanOnClick) return shortcut ? { key: 'idle_icon_hint', subs: [] } : { key: 'shortcut_none', subs: [] };
+  return null;
 }
 
 /**

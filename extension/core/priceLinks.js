@@ -82,12 +82,25 @@ const PSA_GRADE = /\b(GEM MT|GEM MINT|MINT|NM-MT\+?|NM\+?|EX-MT\+?|EX\+?|VG-EX\+
 const CGC_CARD_GRADE = /\b(PRISTINE|GEM MINT|MINT\+?|NM\/MINT\+?|NEAR MINT\+?|EX\/NM\+?|EXCELLENT\+?|VG\/EX\+?|VERY GOOD\+?|GOOD\+?|FAIR|POOR)\s*(10|[1-9](?:\.5)?)\b/i;
 const CGC_GRADE = /(?<![\d.])(10(?:\.0)?|[0-9]\.[0-9])(?![\d.])/;
 const SUBGRADES = /\b(CENTERING|CORNERS|EDGES|SURFACE)\b/i;
+// "CENTERING 9.5": a BGS subgrade pair. OCR often puts it on the same line as the card name or the overall grade,
+// so the pair is cut out of the line instead of dropping the whole line.
+const SUBGRADE_PAIR = /\b(CENTERING|CORNERS|EDGES|SURFACE)\b\s*:?\s*(10(?:\.0)?|\d(?:\.5)?)?/gi;
+const withoutSubgrades = (line) => String(line).replace(SUBGRADE_PAIR, ' ').replace(/\s+/g, ' ').trim();
+
+/** BGS subgrades printed on the label: {CENTERING:'10', CORNERS:'9.5', ...} (only pairs with a value). */
+export function subgradesFrom(lines) {
+  const out = {};
+  for (const raw of Array.isArray(lines) ? lines : []) {
+    for (const m of String(raw).matchAll(SUBGRADE_PAIR)) if (m[2]) out[m[1].toUpperCase()] = m[2].replace(/\.0$/, '');
+  }
+  return out;
+}
 
 /** Grade printed on the label ("10", "9.8") or null. */
 export function gradeFromLines(grader, lines) {
   for (const raw of lines) {
-    const line = String(raw);
-    if (SUBGRADES.test(line)) continue; // BGS "CENTERING 9.5 CORNERS 10 ...": not the overall grade
+    const line = withoutSubgrades(raw); // BGS "CENTERING 9.5 CORNERS 10 ...": not the overall grade
+    if (!line) continue;
     if (grader === 'psa' || grader === 'cgc-cards' || grader === 'bgs') {
       const m = grader === 'psa' ? PSA_GRADE.exec(line)
         : CGC_CARD_GRADE.exec(line) ?? (grader === 'bgs' ? PSA_GRADE.exec(line) : null); // BGS also prints "NM-MT+ 8.5"
@@ -127,7 +140,7 @@ export function cardInfo({ grader, number, lines }) {
     .filter((l) => typeof l === 'string')
     .slice(0, 24)
     .filter((l) => (l.match(JUNK) ?? []).length < 2)
-    .map((l) => l.replace(/[^\p{L}\p{N}#&'\-./:+ ]/gu, ' ').replace(/\s+/g, ' ').trim())
+    .map((l) => withoutSubgrades(l.replace(/[^\p{L}\p{N}#&'\-./:+ ]/gu, ' ')))
     .filter(Boolean);
   const grade = gradeFromLines(grader, clean);
   let brand = null;
@@ -138,7 +151,7 @@ export function cardInfo({ grader, number, lines }) {
   for (const line of clean) {
     if (typeof number === 'string' && number && line.replace(/\D/g, '').includes(number)) continue; // the cert line
     if (/\d{7,}/.test(line.replace(/[\s-]/g, ''))) continue; // other long numbers (barcodes, item ids)
-    if (isBoilerplate(line) || SUBGRADES.test(line)) continue;
+    if (isBoilerplate(line)) continue;
     if ((PSA_GRADE.test(line) || CGC_CARD_GRADE.test(line)) && line.split(' ').length <= 3) continue; // "GEM MT 10"
     if (grader !== 'psa' && CGC_GRADE.test(line) && line.split(' ').length <= 2) continue; // "9.8" / "CGC 9.8"
     const no = CARD_NO.exec(line);
@@ -174,6 +187,11 @@ export function specialGrade(grader, lines) {
   const text = Array.isArray(lines) ? lines.filter((l) => typeof l === 'string').join(' ').toUpperCase() : '';
   if (grader === 'cgc-cards' && /\bPRISTINE\s*10\b/.test(text)) return 'Pristine';
   if (grader === 'bgs' && /\bBLACK\s*LABEL\b/.test(text)) return 'Black';
+  // A BGS Pristine 10 with all four subgrades 10 is the Black Label (printed in gold on black; the words are not).
+  if (grader === 'bgs' && /\bPRISTINE\b/.test(text)) {
+    const subs = Object.values(subgradesFrom(lines));
+    if (subs.length === 4 && subs.every((v) => v === '10')) return 'Black';
+  }
   return null;
 }
 

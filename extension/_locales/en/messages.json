@@ -1010,17 +1010,6 @@
   "prices_heading": {
     "message": "Prices & listings"
   },
-  "prices_mode_card": {
-    "message": "This card",
-    "description": "Search for the card and grade read from the label."
-  },
-  "prices_mode_slab": {
-    "message": "This slab",
-    "description": "Search for this exact slab by its cert number."
-  },
-  "prices_query_label": {
-    "message": "Search terms"
-  },
   "prices_ebay_sold": {
     "message": "Sold on eBay"
   },
@@ -1031,7 +1020,7 @@
     "message": "130point sales"
   },
   "prices_note": {
-    "message": "Opens $SITE$ or 130point in a new tab. Only these search terms are sent, and only when you click. For 130point the terms are copied so you can paste them.",
+    "message": "Opens $SITE$, PriceCharting, PSA or 130point in a new tab, only when you click. Only the card, grade or cert number is sent. For 130point the search is copied so you can paste it.",
     "placeholders": {
       "site": {
         "content": "$1",
@@ -1053,5 +1042,29 @@
   },
   "setting_ebay_site_hint": {
     "message": "Used by the Sold on eBay and For sale on eBay links. CertScanner never fetches prices itself."
+  },
+  "prices_card_label": {
+    "message": "Card"
+  },
+  "prices_card_placeholder": {
+    "message": "e.g. Charizard ex 151 #199"
+  },
+  "prices_grade_label": {
+    "message": "Grade"
+  },
+  "prices_grade_all": {
+    "message": "All grades"
+  },
+  "prices_pricecharting": {
+    "message": "PriceCharting (price per grade)"
+  },
+  "prices_psa_apr": {
+    "message": "PSA auction prices"
+  },
+  "prices_slab": {
+    "message": "This slab on eBay"
+  },
+  "prices_need_card": {
+    "message": "Type the card name to search by grade."
   }
 }

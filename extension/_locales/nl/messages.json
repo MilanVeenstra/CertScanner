@@ -1010,17 +1010,6 @@
   "prices_heading": {
     "message": "Prijzen & listings"
   },
-  "prices_mode_card": {
-    "message": "Deze kaart",
-    "description": "Search for the card and grade read from the label."
-  },
-  "prices_mode_slab": {
-    "message": "Deze slab",
-    "description": "Search for this exact slab by its cert number."
-  },
-  "prices_query_label": {
-    "message": "Zoektermen"
-  },
   "prices_ebay_sold": {
     "message": "Verkocht op eBay"
   },
@@ -1031,7 +1020,7 @@
     "message": "130point-verkopen"
   },
   "prices_note": {
-    "message": "Opent $SITE$ of 130point in een nieuw tabblad. Alleen deze zoektermen worden verstuurd, en pas als je klikt. Voor 130point worden ze gekopieerd zodat je ze kunt plakken.",
+    "message": "Opent $SITE$, PriceCharting, PSA of 130point in een nieuw tabblad, pas als je klikt. Alleen de kaart, grade of het certnummer wordt verstuurd. Voor 130point wordt de zoekopdracht gekopieerd zodat je hem kunt plakken.",
     "placeholders": {
       "site": {
         "content": "$1",
@@ -1053,5 +1042,29 @@
   },
   "setting_ebay_site_hint": {
     "message": "Voor de links Verkocht op eBay en Te koop op eBay. CertScanner haalt zelf nooit prijzen op."
+  },
+  "prices_card_label": {
+    "message": "Kaart"
+  },
+  "prices_card_placeholder": {
+    "message": "bijv. Charizard ex 151 #199"
+  },
+  "prices_grade_label": {
+    "message": "Grade"
+  },
+  "prices_grade_all": {
+    "message": "Alle grades"
+  },
+  "prices_pricecharting": {
+    "message": "PriceCharting (prijs per grade)"
+  },
+  "prices_psa_apr": {
+    "message": "PSA-veilingprijzen"
+  },
+  "prices_slab": {
+    "message": "Deze slab op eBay"
+  },
+  "prices_need_card": {
+    "message": "Typ de kaartnaam om op grade te zoeken."
   }
 }

@@ -7,7 +7,7 @@ import { createCertField } from './certField.js';
 import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates } from './viewModel.js';
 import { pageRowNote } from './pageView.js';
 import { buildCertUrl } from '../core/certUrls.js';
-import { ebayHostLabel } from '../core/priceLinks.js';
+import { ebayHostLabel, GRADE_SCALES, gradeLabel, matchGrade } from '../core/priceLinks.js';
 
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
 export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
@@ -45,8 +45,8 @@ export function createUi(doc, actions) {
   let largeUrl = null;
   let recentExpanded = false;
   let currentCandidates = [];
-  /** Queries behind the "This card" / "This slab" switch of the shown result. */
-  let priceQueries = null;
+  /** Grader of the shown price block (its grade list). */
+  let priceGrader = null;
 
   applyI18n(parking);
   const otherWays = $('other-ways');
@@ -385,32 +385,48 @@ export function createUi(doc, actions) {
   }
 
   /**
-   * Price & listing links under a result. prices: {card, slab, site}. The search terms stay editable; nothing is
-   * fetched until the user clicks a link.
+   * Price & listing links under a result. prices: {grader, desc, grade, site}: the card read from the label (editable,
+   * empty when unknown) and its grade preselected ("All grades" when unread). Nothing is fetched until a link is clicked.
    */
   function renderPrices(prices) {
-    priceQueries = null;
+    priceGrader = null;
     const slot = ref(body, 'prices-slot');
-    if (!slot || !prices || (!prices.card && !prices.slab)) return;
-    priceQueries = { card: prices.card, slab: prices.slab };
+    if (!slot || !prices || !GRADE_SCALES[prices.grader]) return;
+    priceGrader = prices.grader;
     const frag = clone('tpl-prices');
-    const input = ref(frag, 'price-query');
-    const modes = ref(frag, 'price-mode');
-    const start = prices.card ? 'card' : 'slab';
-    modes.hidden = !(prices.card && prices.slab);
-    for (const r of modes.querySelectorAll('input')) {
-      r.checked = r.value === start;
-      r.addEventListener('change', () => { if (r.checked) input.value = priceQueries?.[r.value] ?? ''; });
+    const input = ref(frag, 'price-card');
+    input.value = prices.desc ?? '';
+    input.addEventListener('input', () => showPriceError(''));
+    const select = ref(frag, 'price-grade');
+    for (const g of ['', ...GRADE_SCALES[prices.grader]]) {
+      const o = doc.createElement('option');
+      o.value = g;
+      o.textContent = g ? gradeLabel(prices.grader, g) : t('prices_grade_all');
+      select.appendChild(o);
     }
-    input.value = priceQueries[start];
+    select.value = matchGrade(prices.grader, prices.grade) ?? '';
+    ref(frag, 'price-psa').hidden = prices.grader !== 'psa';
     ref(frag, 'price-note').textContent = t('prices_note', [ebayHostLabel(prices.site)]);
     slot.appendChild(frag);
   }
 
-  /** The search terms in the price block (the slab query when the field was cleared). */
-  function priceQuery() {
-    const v = (ref(body, 'price-query')?.value ?? '').trim();
-    return v || priceQueries?.slab || priceQueries?.card || '';
+  /** What the price block searches for: {grader, desc, grade} (grade '' = all grades). */
+  function priceInput() {
+    return { grader: priceGrader, desc: (ref(body, 'price-card')?.value ?? '').trim(), grade: ref(body, 'price-grade')?.value ?? '' };
+  }
+
+  /** Error under the card field, focus on the field; an empty key clears it. */
+  function showPriceError(key) {
+    const err = ref(body, 'price-error');
+    const input = ref(body, 'price-card');
+    if (!err || !input) return;
+    err.textContent = key ? t(key) : '';
+    if (key) {
+      input.setAttribute('aria-invalid', 'true');
+      input.focus();
+    } else {
+      input.removeAttribute('aria-invalid');
+    }
   }
 
   function showOpenError() {
@@ -794,7 +810,7 @@ export function createUi(doc, actions) {
   return {
     openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
-    showIdle, showScanning, showResult, priceQuery, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    showIdle, showScanning, showResult, priceInput, showPriceError, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },

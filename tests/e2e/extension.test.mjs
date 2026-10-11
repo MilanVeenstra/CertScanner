@@ -249,23 +249,19 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     assert.ok(!(await E.allTabs(env)).some((t) => t.url.includes('evil.example')));
   });
 
-  test('J5 ambiguous 10 digits: confirm with grader unresolved, no tab; user picks CGC Comics → opens rebuilt URL', T, async () => {
+  test('J5 ambiguous 10 digits: confirm with the best guess preselected, no tab; the user can switch grader → opens rebuilt URL', T, async () => {
     await E.closeGraderTabs(env);
     const { result, opened } = await runJob({ srcUrl: `${servers.A}/ambiguous-10digit.png`, settle: 2000 });
     assert.equal(result.state, 'confirm');
     assert.equal(result.number, '5012345678');
-    assert.equal(result.grader, null, 'grader not pre-selected');
+    assert.equal(result.grader, 'cgc-comics', 'most likely grader preselected (no keywords: tie order)');
     assert.equal(opened.length, 0, 'no automatic tab');
-    // Opening without a grader must not open anything.
     const beforeTabs = await E.graderTabs(env);
-    await panel.page.locator(tid('open-button')).click();
-    await E.sleep(800);
-    assert.equal((await newGraderTabsSince(beforeTabs)).length, 0, 'no tab without a grader');
-    await chooseGrader(panel.page, 'cgc-comics');
+    await chooseGrader(panel.page, 'cgc-cards');
     await panel.page.locator(tid('open-button')).click();
     await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'tab after confirm' });
     const [t] = await newGraderTabsSince(beforeTabs);
-    assert.equal(t.url, 'https://www.cgccomics.com/certlookup/5012345678/');
+    assert.equal(t.url, 'https://www.cgccards.com/certlookup/5012345678/');
     await E.poll(async () => (await panel.page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'state opened' });
   });
 

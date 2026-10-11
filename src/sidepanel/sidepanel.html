@@ -52,13 +52,14 @@
 
 <main id="home">
   <section id="task" class="task-card" data-state="idle" aria-labelledby="task-heading">
-    <h2 id="task-heading" class="task-heading" tabindex="-1"><svg class="icon state-icon" aria-hidden="true" focusable="false" hidden><use href="#i-circle-check"/></svg><span id="task-heading-text" data-i18n="idle_heading">Scan a slab</span></h2>
+    <h2 id="task-heading" class="task-heading" tabindex="-1"><svg class="icon state-icon" aria-hidden="true" focusable="false" hidden><use href="#i-circle-check"/></svg><span class="chip heading-badge" id="task-heading-badge" data-testid="price-grade-chip" hidden></span><span id="task-heading-text" data-i18n="idle_heading">Scan a slab</span></h2>
     <div id="task-body"></div>
   </section>
 
   <section id="other-ways" class="section disclosure" data-open="true" aria-labelledby="other-heading">
   <h2 class="disclosure-heading"><button type="button" class="disclosure-toggle" id="other-toggle" data-testid="other-ways-toggle" aria-expanded="true" aria-controls="other-ways-body"><span id="other-heading" data-i18n="other_ways_heading">Other ways to scan</span><svg class="icon disclosure-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></button></h2>
   <div class="disclosure-body" id="other-ways-body">
+  <p class="muted other-tip" id="right-click-tip"></p>
   <section id="image-input" class="subsection" aria-labelledby="input-heading">
     <h3 id="input-heading" data-i18n="input_heading">Scan an image</h3>
     <div id="drop-zone" class="drop-zone">
@@ -192,6 +193,7 @@
     <h3 id="sites-heading" tabindex="-1" data-i18n="settings_sites_heading">Sharper scans</h3>
     <p class="hint" id="sites-body" data-i18n="settings_sites_body"></p>
     <ul id="sites-list" class="sites-list" aria-labelledby="sites-heading"></ul>
+    <p class="field-error" id="sites-error"></p>
     <p class="hint" id="sites-empty" data-i18n="settings_sites_empty"></p>
   </section>
 
@@ -217,7 +219,6 @@
 <template id="tpl-idle">
   <p data-i18n="page_scan_lead"></p>
   <div class="actions"><span data-slot="pagescan"></span></div>
-  <p class="muted" data-ref="right-click-hint"></p>
   <p class="muted" data-ref="shortcut-hint"></p>
 </template>
 
@@ -231,22 +232,29 @@
 </template>
 
 <template id="tpl-result">
-  <div class="media-row"><span data-slot="thumb"></span><span data-slot="read"></span></div>
-  <div class="note" data-ref="bg-note" hidden>
-    <p class="muted" data-i18n="result_bg_note"></p>
-    <button type="button" class="btn btn-secondary" data-action="go-to-tab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tab"/></svg><span data-i18n="go_to_tab"></span></button>
-  </div>
-  <div class="alert alert-info" data-ref="lookup-note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><p data-i18n="result_lookup_note"></p></div>
-  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
-  <div class="actions">
-    <span data-slot="copy"></span>
-    <button type="button" class="btn btn-secondary" data-testid="open-again-button" data-action="open-again"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_again"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-  </div>
-  <p class="field-error" data-ref="copy-error" aria-live="polite"></p>
-  <button type="button" class="link" data-testid="edit-button" data-action="edit"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="edit_link"></span></button>
-  <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
-  <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
-  <div data-ref="prices-slot"></div>
+  <!-- Layout A (docs/design/ui-candidates.md §3): identity → Value → Cert check → Market. -->
+  <div class="media-row identity"><span data-slot="thumb"></span><div class="identity-text"><span data-slot="read"></span><p class="muted identity-set" data-ref="price-set" hidden></p></div></div>
+  <div data-ref="value-slot"></div>
+  <section class="verify" aria-labelledby="verify-heading">
+    <h3 id="verify-heading" data-i18n="verify_heading">Cert check</h3>
+    <p class="verify-line" data-ref="verify-line"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-ref="verify-text"></span></p>
+    <p class="verify-url" data-ref="verify-url"><span class="muted" data-ref="verify-url-prefix" hidden></span></p>
+    <div class="note" data-ref="bg-note" hidden>
+      <p class="muted" data-i18n="result_bg_note"></p>
+      <button type="button" class="btn btn-secondary" data-action="go-to-tab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tab"/></svg><span data-i18n="go_to_tab"></span></button>
+    </div>
+    <div class="alert alert-info" data-ref="lookup-note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><p data-i18n="result_lookup_note"></p></div>
+    <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+    <div class="actions">
+      <button type="button" class="btn btn-secondary" data-testid="open-again-button" data-action="open-again" data-ref="open-again"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-again-label" data-i18n="open_again"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <span data-slot="copy"></span>
+    </div>
+    <p class="field-error" data-ref="copy-error" aria-live="polite"></p>
+    <button type="button" class="link" data-testid="edit-button" data-action="edit"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="edit_link"></span></button>
+    <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
+    <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
+  </section>
+  <div data-ref="market-slot"></div>
 </template>
 
 <template id="tpl-edit">
@@ -271,6 +279,7 @@
   <div data-ref="lowres-slot"></div>
   <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
+  <button type="button" class="link" data-testid="scan-other" data-action="scan-other"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="confirm_scan_other"></span></button>
 </template>
 
 <template id="tpl-candidate">
@@ -331,63 +340,68 @@
   <li class="site-row"><span class="site-host" dir="ltr" data-ref="host"></span><button type="button" class="link" data-ref="remove"><span data-ref="remove-label" data-i18n="remove_button"></span></button></li>
 </template>
 
-<template id="tpl-prices">
-  <section class="prices" aria-labelledby="prices-heading">
-    <h3 id="prices-heading" data-i18n="prices_heading">Prices for this card</h3>
-    <div class="price-summary">
-      <span class="chip" data-ref="price-grade-chip" data-testid="price-grade-chip"></span>
-      <span class="price-card-text" data-ref="price-card-text" data-testid="price-card-text"></span>
-      <button type="button" class="link" data-ref="price-edit" data-testid="price-edit" aria-expanded="false" aria-controls="price-fields"><span data-i18n="prices_edit">Change</span></button>
+<template id="tpl-value">
+  <section class="value" aria-labelledby="value-heading">
+    <h3 id="value-heading" data-i18n="value_heading">Value</h3>
+    <!-- No aria-live here: one value summary is announced through #status (D6). -->
+    <div class="price-data" data-ref="price-data" data-testid="price-data" aria-busy="false">
+      <div class="price-state" data-ref="price-state" hidden>
+        <p data-ref="price-state-text"></p>
+        <div class="price-links">
+          <button type="button" class="btn btn-strong btn-sm" data-action="price-allow" data-testid="price-allow" data-ref="price-allow" hidden><span data-i18n="prices_allow">Show prices here</span></button>
+          <button type="button" class="link" data-action="price-retry" data-ref="price-retry" hidden><span data-i18n="retry_button">Try again</span></button>
+          <button type="button" class="link" data-action="price-pc-search" data-ref="price-pc-search" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_search">Open PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+        </div>
+      </div>
+      <div class="price-stats" data-ref="price-found" hidden>
+        <div class="price-stat">
+          <span class="price-stat-label" data-ref="pc-label"></span>
+          <strong class="price-big" data-ref="pc-price" data-testid="price-current"></strong>
+        </div>
+        <div class="price-stat">
+          <span class="price-stat-label" data-ref="pc-last-label"></span>
+          <strong class="price-big" data-ref="pc-last" data-testid="price-last-sold"></strong>
+          <span class="price-stat-sub" data-ref="pc-last-date"></span>
+        </div>
+      </div>
     </div>
-    <p class="hint price-set" data-ref="price-set" hidden></p>
-    <div class="price-fields" id="price-fields" data-ref="price-fields" hidden>
+    <p class="value-meta muted"><span data-i18n="value_source"></span><span data-ref="pc-col"></span></p>
+    <p class="value-match" data-ref="value-match"><span class="muted" data-i18n="value_match"></span> <span class="price-card-text" data-ref="price-card-text" data-testid="price-card-text"></span></p>
+    <button type="button" class="link" data-ref="price-edit" data-testid="price-edit" aria-expanded="false" aria-controls="price-fields"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="value_change"></span></button>
+    <form class="price-fields" id="price-fields" data-ref="price-fields" novalidate hidden>
       <div class="field price-card">
-        <label for="price-card" data-i18n="prices_card_label">Card</label>
+        <label for="price-card" data-ref="price-card-label" data-i18n="prices_card_label">Card</label>
         <input type="text" id="price-card" class="cert-field price-query" data-testid="price-card" data-ref="price-card" maxlength="100" autocomplete="off" spellcheck="false" dir="auto" aria-describedby="price-error" data-i18n-attr="placeholder:prices_card_placeholder">
       </div>
       <div class="field price-grade">
         <label for="price-grade" data-i18n="prices_grade_label">Grade</label>
         <select id="price-grade" data-testid="price-grade" data-ref="price-grade"></select>
       </div>
-    </div>
+      <button type="submit" class="btn btn-strong btn-sm price-show" data-testid="price-show"><span data-i18n="value_show"></span></button>
+    </form>
     <p class="field-error" id="price-error" data-ref="price-error" aria-live="polite"></p>
+  </section>
+</template>
 
-    <div class="price-data" data-ref="price-data" data-testid="price-data" aria-live="polite" aria-busy="false">
-      <div class="price-state" data-ref="price-state" hidden>
-        <p data-ref="price-state-text"></p>
-        <button type="button" class="btn btn-strong btn-sm" data-action="price-allow" data-testid="price-allow" data-ref="price-allow" hidden><span data-i18n="prices_allow">Show prices here</span></button>
-        <button type="button" class="link" data-action="price-retry" data-ref="price-retry" hidden><span data-i18n="retry_button">Try again</span></button>
-        <button type="button" class="link" data-action="price-pc-search" data-ref="price-pc-search" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_search">Open PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      </div>
-      <div class="price-found" data-ref="price-found" hidden>
-        <div class="price-stats">
-          <div class="price-stat">
-            <span class="price-stat-label" data-ref="pc-label"></span>
-            <strong class="price-big" data-ref="pc-price" data-testid="price-current"></strong>
-          </div>
-          <div class="price-stat">
-            <span class="price-stat-label" data-ref="pc-last-label"></span>
-            <strong class="price-big" data-ref="pc-last" data-testid="price-last-sold"></strong>
-            <span class="price-stat-sub" data-ref="pc-last-date"></span>
-          </div>
-        </div>
-        <ul class="price-grid" data-ref="pc-grid" data-testid="price-grid"></ul>
-        <p class="hint" data-ref="pc-pop" hidden></p>
-        <h4 class="sales-heading" data-ref="pc-sales-heading"></h4>
-        <ol class="sales" data-ref="pc-sales" data-testid="price-sales"></ol>
-        <p class="hint" data-ref="pc-no-sales" hidden></p>
-        <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_open">View on PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      </div>
+<template id="tpl-market">
+  <section class="market" aria-labelledby="market-heading">
+    <h3 id="market-heading" data-i18n="market_heading">Market</h3>
+    <div class="market-data" data-ref="market-data" hidden>
+      <h4 data-i18n="grades_heading">Price per grade</h4>
+      <ul class="price-grid" data-ref="pc-grid" data-testid="price-grid"></ul>
+      <h4 class="sales-heading" data-ref="pc-sales-heading"></h4>
+      <ol class="sales" data-ref="pc-sales" data-testid="price-sales"></ol>
+      <p class="hint" data-ref="pc-no-sales" hidden></p>
+      <p class="hint" data-ref="pc-pop" hidden></p>
+      <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_open">View on PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
-
+    <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <h4 data-i18n="ebay_heading">Search eBay</h4>
     <div class="actions">
       <button type="button" class="btn btn-secondary btn-sm" data-testid="price-sold" data-action="price-sold"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_sold">Sold on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="btn btn-secondary btn-sm" data-testid="price-active" data-action="price-active"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_active">For sale on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
-    <div class="price-links">
-      <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><span data-i18n="prices_slab">This slab on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-    </div>
+    <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_slab">This slab on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     <p class="hint" data-ref="price-note"></p>
   </section>
 </template>
@@ -481,7 +495,7 @@
       <p class="hint grader-hint" data-ref="grader-hint"></p>
     </fieldset>
     <div class="actions" data-ref="form-actions">
-      <button type="submit" class="btn btn-primary" data-testid="open-button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_button"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="submit" class="btn btn-primary" data-testid="open-button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-label" data-i18n="open_button"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <span data-ref="form-copy-slot"></span>
       <button type="button" class="btn btn-secondary" data-action="edit-cancel" data-testid="edit-cancel" data-ref="form-cancel" hidden><span data-i18n="cancel_button"></span></button>
     </div>

@@ -24,7 +24,7 @@ const ms = (x) => Math.round(x);
 /** Text lines of the full-image OCR pass (in memory only; feeds the price & listing search terms). */
 const LABEL_WORD_CONF = 60;
 function labelLines(pages) {
-  const page = pages.find((p) => p && p.pass === 'text' && !p.rotation) ?? pages.find((p) => p && p.pass === 'text');
+  const page = pages.find((p) => p?.labelPass && p.pass === 'text') ?? pages.find((p) => p && p.pass === 'text' && !p.rotation) ?? pages.find((p) => p && p.pass === 'text');
   if (!page) return [];
   // Words with their line ids: keep only words OCR is fairly sure of (artwork below the label reads as "lf yr rr").
   if (Array.isArray(page.words) && page.words.length) {
@@ -47,25 +47,38 @@ function labelLines(pages) {
  * @param {Blob} blob the scanned photo
  * @returns {Promise<string[]>}
  */
-export async function readLabel(blob, { signal, engines, accept = (lines) => lines.length > 0 } = {}) {
+export async function readLabel(blob, { signal, engines, accept = (lines) => lines.length > 0, decimalGrade = false } = {}) {
   if (!(blob instanceof Blob)) return [];
   const eng = engines ?? getEngines();
+  const sig = signal ?? new AbortController().signal;
   const bitmap = await createImageBitmap(blob);
   try {
     let best = [];
+    let bestImg = null;
     for (const which of ['top', 'bottom']) {
       signal?.throwIfAborted();
       const img = await labelImage(bitmap, { which });
-      const page = await raceAbort(eng.ocr.recognizeText(img, { signal }), signal ?? new AbortController().signal);
+      const page = await raceAbort(eng.ocr.recognizeText(img, { signal }), sig);
       const lines = labelLines([page]);
-      if (accept(lines)) return lines;
-      if (lines.length > best.length) best = lines;
+      if (accept(lines)) { best = lines; bestImg = img; break; }
+      if (lines.length > best.length) { best = lines; bestImg = img; }
+    }
+    // CGC/BGS grades are decimals in a big box ("9.8") that the text pass often misreads: one digits-only pass with
+    // '.' allowed adds the grade as its own line when the text pass found none.
+    if (decimalGrade && bestImg && !best.some((l) => DECIMAL_GRADE.test(l))) {
+      const page = await raceAbort(eng.ocr.recognizeDigits(bestImg, { psm: PSM.SPARSE_TEXT, whitelist: '0123456789.', signal }), sig);
+      const g = String(page.text ?? '').split(/\s+/).map((t) => DECIMAL_GRADE.exec(t)?.[1]).find((v) => v && Number(v) <= 10);
+      if (g) best = [...best, g];
     }
     return best;
   } finally {
     try { bitmap.close(); } catch { /* closed */ }
   }
 }
+
+/** Width of the black/white label image in scan(): smaller than readLabel's, since only the big print matters here. */
+const LABEL_PASS_WIDTH = 1100;
+const DECIMAL_GRADE = /(?<![\d.])(10\.0|\d\.\d)(?![\d.])/;
 
 let defaultEngines = null;
 /** Lazily created engines shared by every scan in this panel. */
@@ -238,8 +251,19 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
         }
       }
     };
+    // Label pass: when the full-image passes found no number or can't tell the grader (small, low-contrast or coloured
+    // labels such as BGS gold), read the label itself black/white. The digits pass runs first; the slower text pass
+    // (grader words) only when the grader is still unknown. A read that only needs a higher score is left to confirm.
+    const unresolved = () => { const top = analyze({ pages, barcodes, hints }).candidates[0]; return !top || top.grader === null; };
+    const labelPass = async () => {
+      if (!can() || !bitmap) return;
+      const img = await labelImage(bitmap, { which: 'top', binarize: true, width: LABEL_PASS_WIDTH });
+      (await recognize(() => eng.ocr.recognizeDigits(img, { psm: PSM.SPARSE_TEXT, signal: sig }))).labelPass = true;
+      if (can() && hasValidRun(pages) && unresolved()) (await recognize(() => eng.ocr.recognizeText(img, { signal: sig }))).labelPass = true;
+    };
     try {
       await passesFor(prep);
+      if (unresolved()) await labelPass();
       if (!hasValidRun(pages) && prep.width > LANDSCAPE_RATIO * prep.height) {
         for (const deg of [90, 270]) {
           if (!can()) break;

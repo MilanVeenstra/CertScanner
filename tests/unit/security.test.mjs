@@ -256,6 +256,14 @@ test('listGrantedSites reports wildcard grants as allSites', async () => {
   assert.deepEqual(await listGrantedSites(api(undefined)), { hosts: [], allSites: [] });
 });
 
+test('listGrantedSites leaves out install-time hosts and origins with their own control', async () => {
+  const api = {
+    permissions: { getAll: async () => ({ origins: ['https://www.pricecharting.com/*', 'https://api.psacard.com/*', 'https://i.ebayimg.com/*'] }) },
+    runtime: { getManifest: () => ({ host_permissions: ['https://www.pricecharting.com/*'] }) },
+  };
+  assert.deepEqual(await listGrantedSites(api, { exclude: ['https://api.psacard.com/*'] }), { hosts: ['i.ebayimg.com'], allSites: [] });
+});
+
 // ---------------------------------------------------------------- SEC-17 removal announcement from the resolved result
 test('SEC-17: "Removed" is announced only when Chrome resolved true; otherwise "Couldn\'t remove"', async () => {
   assert.deepEqual(removalStatus(true, 'i.ebayimg.com'), { key: 'status_site_removed', subs: ['i.ebayimg.com'] });

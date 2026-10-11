@@ -171,8 +171,8 @@ export function createOcrEngine({
       return run(image, { tessedit_pageseg_mode: PSM.SPARSE_TEXT, tessedit_char_whitelist: '' }, { ...opts, pass: 'text' });
     },
     /** Digits pass: single line by default, whitelist 0-9 and '-'. */
-    recognizeDigits(image, { psm = PSM.SINGLE_LINE, ...opts } = {}) {
-      return run(image, { tessedit_pageseg_mode: psm, tessedit_char_whitelist: DIGIT_WHITELIST }, { ...opts, pass: 'digits' });
+    recognizeDigits(image, { psm = PSM.SINGLE_LINE, whitelist = DIGIT_WHITELIST, ...opts } = {}) {
+      return run(image, { tessedit_pageseg_mode: psm, tessedit_char_whitelist: whitelist }, { ...opts, pass: 'digits' });
     },
   };
 }

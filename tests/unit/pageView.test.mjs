@@ -49,9 +49,9 @@ test('accessBody and idleShortcutHint follow the toolbar setting and the shortcu
   assert.deepEqual(accessBody({ scanOnClick: true, shortcut: '' }), { key: 'page_access_body', subs: [] });
   assert.deepEqual(accessBody({ scanOnClick: false, shortcut: 'Alt+Shift+S' }), { key: 'page_access_body_keys_only', subs: ['Alt+Shift+S'] });
   assert.deepEqual(accessBody({ scanOnClick: false, shortcut: '' }), { key: 'page_access_body_none', subs: [] });
-  assert.deepEqual(idleShortcutHint({ scanOnClick: true, shortcut: 'Alt+Shift+S' }), { key: 'shortcut_hint', subs: ['Alt+Shift+S'] });
+  assert.deepEqual(idleShortcutHint({ scanOnClick: true, shortcut: 'Alt+Shift+S' }), { key: 'idle_icon_hint', subs: [] }, 'keys are on the button, not repeated');
   assert.deepEqual(idleShortcutHint({ scanOnClick: true, shortcut: '' }), { key: 'shortcut_none', subs: [] });
-  assert.deepEqual(idleShortcutHint({ scanOnClick: false, shortcut: 'Alt+Shift+S' }), { key: 'shortcut_hint_keys_only', subs: ['Alt+Shift+S'] });
+  assert.equal(idleShortcutHint({ scanOnClick: false, shortcut: 'Alt+Shift+S' }), null);
   assert.equal(idleShortcutHint({ scanOnClick: false, shortcut: '' }), null);
 });
 

@@ -10,7 +10,7 @@ import { BENCH, FIXTURES } from './lib/env.mjs';
 const sha = (p) => createHash('sha256').update(readFileSync(p)).digest('hex');
 const main = JSON.parse(readFileSync(path.join(FIXTURES, 'manifest.json'), 'utf8'));
 const bench = JSON.parse(readFileSync(path.join(BENCH, 'bench-manifest.json'), 'utf8'));
-const VALID_LEN = { psa: [7, 8, 9, 10], 'cgc-comics': [10], 'cgc-cards': [10, 13] };
+const VALID_LEN = { psa: [7, 8, 9, 10], 'cgc-comics': [10], 'cgc-cards': [10, 13], bgs: [10] };
 
 test('main fixtures match manifest.json (sha256, bytes)', () => {
   for (const f of main.fixtures) {

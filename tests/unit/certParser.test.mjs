@@ -283,3 +283,13 @@ test('automatic grader: BGS serial shape, CGC comic/card wording, page hints', (
   assert.equal(unsure.grader, null, 'card wording alone does not decide');
   assert.equal(unsure.graderOptions[0], 'cgc-cards', '... but ranks CGC Cards first (best guess)');
 });
+
+test('a number read only by the label pass is never auto-opened (two reads of one crop)', () => {
+  const label = ['BGS', 'BECKETT GRADING SERVICES', 'CENTERING 9.5', '0012345678'];
+  const page = { ...ocrPage(label), labelPass: true };
+  const digits = { ...digitsPage('2901234567'), labelPass: true };
+  const cands = parseCandidates({ pages: [ocrPage(['CGC', 'GEM MINT 10', 'Sea Dragon - Holo']), { ...ocrPage(['2901234567']), labelPass: true }, digits] });
+  assert.ok(cands[0].confidence < 0.8 && cands[0].evidence.includes('label-pass'));
+  assert.equal(decide(cands, settings(), []), 'confirm');
+  assert.ok(parseCandidates({ pages: [page] }).every((c) => c.confidence < 0.8));
+});

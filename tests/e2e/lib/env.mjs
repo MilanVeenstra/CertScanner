@@ -27,11 +27,12 @@ export const CHROME = process.env.CERTSCANNER_CHROMIUM
   || (existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined);
 
 export const GRADER_HOSTS = Object.freeze(['psacard.com', 'www.psacard.com', 'cgccomics.com', 'www.cgccomics.com',
-  'cgccards.com', 'www.cgccards.com', 'cgccards.uk', 'www.cgccards.uk']);
+  'cgccards.com', 'www.cgccards.com', 'cgccards.uk', 'www.cgccards.uk', 'beckett.com', 'www.beckett.com']);
 export const CERT_URL = Object.freeze({
   psa: (n) => `https://www.psacard.com/cert/${n}`,
   'cgc-comics': (n) => `https://www.cgccomics.com/certlookup/${n}/`,
   'cgc-cards': (n) => `https://www.cgccards.com/certlookup/${n}/`,
+  bgs: () => 'https://www.beckett.com/grading/card-lookup', // lookup form; the number is copied, never in the URL
 });
 // A9 adds 'page-results' (page scan with a list of numbers). 'idle' is where a cancelled scan ends.
 export const TERMINAL_STATES = Object.freeze(['idle', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
@@ -388,7 +389,9 @@ export async function readResult(page) {
     }
     // Result views without the grader control (auto-open / opened) show the official URL (result-url).
     const urlText = visible(q('result-url')) ? q('result-url').textContent : '';
-    if (!grader && urlText) grader = /psacard\./.test(urlText) ? 'psa' : /cgccomics\./.test(urlText) ? 'cgc-comics' : /cgccards\./.test(urlText) ? 'cgc-cards' : null;
+    if (!grader && urlText) grader = /psacard\./.test(urlText) ? 'psa' : /cgccomics\./.test(urlText) ? 'cgc-comics' : /cgccards\./.test(urlText) ? 'cgc-cards' : /beckett\./.test(urlText) ? 'bgs' : null;
+    // BGS has no per-number page: before the lookup opens, the grader chip is the only place the grader shows.
+    if (!grader && visible(q('result-grader'))) grader = q('result-grader').dataset.grader || null;
     const numberText = q('result-number')?.textContent ?? '';
     const err = q('error-message');
     return {

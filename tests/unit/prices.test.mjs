@@ -82,3 +82,13 @@ test('labels from the real page markup: header and tab text', async () => {
   assert.equal(labelOf('PSA 10 (3)'), 'PSA 10');
   assert.equal(labelOf('Box Only Price'), 'Box Only');
 });
+
+test('BGS: subgrades are cut out of a line (name kept), Black Label from four 10 subgrades', async () => {
+  const { cardInfo: info, subgradesFrom, specialGrade: special } = await import('../../src/core/priceLinks.js');
+  const lines = ['BGS BECKETT GRADING SERVICES', '2023 SV 151 CENTERING 9.5', 'FIRE LIZARD ex #199 CORNERS 9.5', 'GEM MINT EDGES 10', '9.5 SURFACE 9.5', '0012345678'];
+  assert.deepEqual(info({ grader: 'bgs', number: '0012345678', lines }), { desc: 'FIRE LIZARD ex 199', grade: '9.5' });
+  assert.deepEqual(subgradesFrom(lines), { CENTERING: '9.5', CORNERS: '9.5', EDGES: '10', SURFACE: '9.5' });
+  const black = ['BGS', 'PRISTINE', '10', 'CENTERING 10', 'CORNERS 10', 'EDGES 10', 'SURFACE 10'];
+  assert.equal(special('bgs', black), 'Black');
+  assert.equal(special('bgs', ['BGS', 'PRISTINE', '10', 'CENTERING 10', 'CORNERS 10', 'EDGES 10', 'SURFACE 9.5']), null, 'gold Pristine 10');
+});

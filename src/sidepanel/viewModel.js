@@ -53,7 +53,10 @@ export function confirmReasons(result, settings, rules = DEFAULT_RULES) {
   }
   if (top.grader === 'bgs') out.push({ key: 'reason_bgs_lookup', subs: [] });
   const lowRes = result.imageInfo?.resolution === 'screen' || (result.warnings ?? []).some((w) => w.code === 'low-resolution');
-  if (top.confidence < rules.SCORE.thresholds.autoOpen || lowRes) out.push({ key: 'reason_unclear', subs: [] });
+  // "Small or unclear" only for screen-size images; a low score with an unknown grader is explained by the grader
+  // reason above (QA P2-7: a clean photo was called unclear).
+  if (lowRes) out.push({ key: 'reason_unclear', subs: [] });
+  else if (top.confidence < rules.SCORE.thresholds.autoOpen && top.grader !== null) out.push({ key: 'reason_uncertain', subs: [] });
   if (settings?.autoOpen === false && decide(cands, { ...settings, autoOpen: true }, result.warnings ?? [], rules) === 'auto-open') {
     out.push({ key: 'reason_always_ask', subs: [] });
   }

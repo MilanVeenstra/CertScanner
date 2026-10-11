@@ -40,7 +40,7 @@ _Version 0.1.0. It is not published on the Chrome Web Store; for now you install
 CertScanner reads a page only when you click its icon, press the shortcut or right-click a photo. It never scans by itself.
 - **What it reads:** image addresses, sizes and positions, plus the page title and photo alt text (only to tell PSA, CGC and BGS apart, on your device). No other page text. Images are processed on your device and never uploaded.
 - **What it stores:** settings sync through Chrome; recent scans (grader, number, method and time) stay on this device, and you can turn history off or clear it; the last result is kept in Chrome's session storage for up to 12 hours.
-- **What leaves your device:** the cert number, only when the grader's official page opens in a tab, and the card, grade or cert number of a price link you click (eBay, PriceCharting or a population report). The only other request is reloading a photo from the site that already shows it, sent without cookies when CertScanner makes it. There is no server, no account, no analytics and no ads.
+- **What leaves your device:** the cert number, when the grader's official page opens in a tab (and to PSA's API if you saved your own PSA key); the card name and grade, which the panel sends to PriceCharting to show the value; and the card, grade or cert number of a price link you click (eBay, PriceCharting or a population report). The only other request is reloading a photo from the site that already shows it, sent without cookies when CertScanner makes it. There is no server, no account, no analytics and no ads.
 - **Incognito:** the extension does not run in incognito windows.
 
 Full policy: [`PRIVACY.md`](PRIVACY.md).

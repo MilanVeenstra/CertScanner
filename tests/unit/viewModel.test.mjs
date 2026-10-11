@@ -36,10 +36,10 @@ test('methodKey maps sources and edits', () => {
 
 test('confirmReasons: priority order, at most two', () => {
   const two = result({ candidates: [cand({ number: '01234567', confidence: 0.79 }), cand({ number: '87654321', confidence: 0.79 })] });
-  assert.deepEqual(confirmReasons(two, settings()).map((r) => r.key), ['reason_multiple', 'reason_unclear']);
+  assert.deepEqual(confirmReasons(two, settings()).map((r) => r.key), ['reason_multiple', 'reason_uncertain']);
   assert.deepEqual(confirmReasons(two, settings())[0].subs, ['2']);
   const cgc = result({ candidates: [cand({ grader: null, graderOptions: ['cgc-comics', 'cgc-cards', 'psa'], number: '5012345678', confidence: 0.44 })] });
-  assert.deepEqual(confirmReasons(cgc, settings()).map((r) => r.key), ['reason_grader_guess', 'reason_unclear']);
+  assert.deepEqual(confirmReasons(cgc, settings()).map((r) => r.key), ['reason_grader_guess']);
   assert.deepEqual(confirmReasons(cgc, settings())[0].subs, ['CGC Comics'], 'best guess named and preselected');
   const unknown = result({ candidates: [cand({ grader: null, graderOptions: ['psa'], number: '12345678', confidence: 0.9 })] });
   assert.deepEqual(confirmReasons(unknown, settings()).map((r) => r.key), ['reason_grader_guess']);
@@ -51,7 +51,7 @@ test('confirmReasons: priority order, at most two', () => {
   assert.deepEqual(confirmReasons(screen, settings({ autoOpen: false })).map((r) => r.key), ['reason_unclear', 'reason_always_ask']);
   // Off-site QR is its own warning block, not a reason; low confidence still explains it.
   const qr = result({ candidates: [cand({ source: 'barcode', confidence: 0.35, number: '12345678' })], warnings: [{ code: 'qr-untrusted-host', detail: 'evil.example' }] });
-  assert.deepEqual(confirmReasons(qr, settings()).map((r) => r.key), ['reason_unclear']);
+  assert.deepEqual(confirmReasons(qr, settings()).map((r) => r.key), ['reason_uncertain']);
 });
 
 test('errorView maps scan errors to the spec E-states', () => {

@@ -265,6 +265,27 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     await E.poll(async () => (await panel.page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'state opened' });
   });
 
+  test('J5b confirm → "Scan something else" returns to Idle without a tab; typed number → focus on the result heading', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    const { result } = await runJob({ srcUrl: `${servers.A}/ambiguous-10digit.png`, settle: 2000 });
+    assert.equal(result.state, 'confirm');
+    const beforeTabs = await E.graderTabs(env);
+    await page.locator(tid('scan-other')).click();
+    await E.poll(async () => (await page.evaluate(() => document.body.dataset.state)) === 'idle', { message: 'back to idle' });
+    assert.equal((await newGraderTabsSince(beforeTabs)).length, 0, 'nothing opened');
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    assert.equal(await page.evaluate(() => document.body.dataset.state), 'idle', 'the dropped read is not restored');
+    await expandOtherWays(page);
+    await page.fill('#cert-input', '12345678');
+    await page.click('#manual-submit');
+    await E.poll(async () => (await page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'state opened' });
+    const v = await page.evaluate(() => ({ focus: document.activeElement?.id, live: document.querySelector('[data-testid="price-data"]')?.getAttribute('aria-live') ?? null }));
+    assert.equal(v.focus, 'task-heading', 'focus on the result heading, not lost with the folded form');
+    assert.equal(v.live, null, 'the price box is not a live region');
+  });
+
   test('J6 no number: non-slab image → none, no tab, upload and manual entry offered', T, async () => {
     await E.closeGraderTabs(env);
     const { result, opened } = await runJob({ srcUrl: `${servers.A}/non-slab.png`, settle: 1500 });

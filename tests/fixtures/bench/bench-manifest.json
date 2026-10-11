@@ -23,13 +23,169 @@
   },
   "evaluation": "A run passes a fixture when the observed status is in (accept ?? [expected.status]); when expected.number is non-null the top candidate must equal it exactly (string compare, leading zeros kept); when expected.grader is non-null the routed grader must equal it (a confirm result with an unresolved grader is reported separately, an auto-open with a different grader is a wrong auto-open); when graderUnresolved is true no grader may be pre-selected; mustNotAutoOpen fixtures must never auto-open; mustNotOpen URLs/hosts must never be navigated to or requested.",
   "counts": {
-    "total": 57,
-    "clean": 18,
+    "total": 65,
+    "clean": 21,
     "negative": 3,
-    "degraded": 36
+    "degraded": 41
   },
-  "totalBytes": 4141607,
+  "totalBytes": 4731982,
   "fixtures": [
+    {
+      "id": "bgs-c21",
+      "file": "bgs-c21.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "BGS-style gold label, serial 0012345678, \"GEM MINT 9.5\" with subgrades.",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "gold"
+      ],
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 150
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 864,
+      "bytes": 123292,
+      "sha256": "8db06ddfa69c51aabc6cb602ed2461f4eff7640fdedb4f5c0d5b28bf36fcbf96"
+    },
+    {
+      "id": "bgs-c22",
+      "file": "bgs-c22.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "BGS-style silver label, serial 0011873452, \"MINT 9\" with subgrades.",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0011873452"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "silver"
+      ],
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 150
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 864,
+      "bytes": 123368,
+      "sha256": "e0a0359411d455cb1eedc6f1813d62955343164ec5309577cd7d3c45373270ee"
+    },
+    {
+      "id": "bgs-c23",
+      "file": "bgs-c23.png",
+      "category": "clean",
+      "degradations": [],
+      "description": "BGS-style black label, serial 0009876543, \"PRISTINE 10\" with subgrades. Black label.",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0009876543"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "black"
+      ],
+      "labelText": [
+        "BGS",
+        "PRISTINE",
+        "10",
+        "BECKETT GRADING SERVICES",
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO #2",
+        "0009876543",
+        "CENTERING",
+        "10",
+        "CORNERS",
+        "10",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "10"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 150
+      },
+      "barcode": null,
+      "mimeType": "image/png",
+      "width": 544,
+      "height": 864,
+      "bytes": 116927,
+      "sha256": "d7fb364907f823a0ede45a0cf7fc6ca289a3a79fbbc9f628bfb5ed507f6f29eb"
+    },
     {
       "id": "psa-c01",
       "file": "psa-c01.png",
@@ -2853,6 +3009,335 @@
       "height": 626,
       "bytes": 13853,
       "sha256": "29e0011e96983e6d9a817dcd257113bf18b340c10eef1fee586e6502aa717f4a"
+    },
+    {
+      "id": "bgs-c21-jpeg40",
+      "file": "bgs-c21-jpeg40.jpg",
+      "category": "degraded",
+      "degradations": [
+        "jpeg-q40"
+      ],
+      "description": "bgs-c21 (BGS-style gold label, serial 0012345678, \"GEM MINT 9) with JPEG quality 0.40.",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "gold",
+        "derived",
+        "jpeg-q40"
+      ],
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 150
+      },
+      "barcode": null,
+      "derivedFrom": "bgs-c21",
+      "ops": [],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.4
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 864,
+      "bytes": 26218,
+      "sha256": "eeb283b953b6dc33fae002876ea285ad4d24644fd0e074e09701b8a0b081415c"
+    },
+    {
+      "id": "bgs-c22-half",
+      "file": "bgs-c22-half.png",
+      "category": "degraded",
+      "degradations": [
+        "scale-0.5"
+      ],
+      "description": "bgs-c22 (BGS-style silver label, serial 0011873452, \"MINT 9\" with subgrades) with 0.5x downscale (high-quality resample).",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0011873452"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "silver",
+        "derived",
+        "scale-0.5"
+      ],
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9"
+      ],
+      "labelBox": {
+        "x": 22,
+        "y": 21,
+        "width": 228,
+        "height": 75
+      },
+      "barcode": null,
+      "derivedFrom": "bgs-c22",
+      "ops": [
+        {
+          "op": "scale",
+          "factor": 0.5
+        }
+      ],
+      "encode": {
+        "format": "image/png"
+      },
+      "mimeType": "image/png",
+      "width": 272,
+      "height": 432,
+      "bytes": 58322,
+      "sha256": "a82d18959e40192fe4610a90d2e270c28e4870d38eae0a6489e54c4708f727cb"
+    },
+    {
+      "id": "bgs-c21-blur1",
+      "file": "bgs-c21-blur1.jpg",
+      "category": "degraded",
+      "degradations": [
+        "blur-1px"
+      ],
+      "description": "bgs-c21 (BGS-style gold label, serial 0012345678, \"GEM MINT 9) with Gaussian blur 1 px, saved as JPEG q88.",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "gold",
+        "derived",
+        "blur-1px"
+      ],
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 150
+      },
+      "barcode": null,
+      "derivedFrom": "bgs-c21",
+      "ops": [
+        {
+          "op": "blur",
+          "px": 1
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 864,
+      "bytes": 38917,
+      "sha256": "5f455b1136e44e9e08ca5408eced595fa9f4a45fc5a924ffe2d23fd536308a79"
+    },
+    {
+      "id": "bgs-c23-glare",
+      "file": "bgs-c23-glare.jpg",
+      "category": "degraded",
+      "degradations": [
+        "glare"
+      ],
+      "description": "bgs-c23 (BGS-style black label, serial 0009876543, \"PRISTINE 10\" with subgrades) with white radial glare over the left part of the label, saved as JPEG q88.",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0009876543"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "black",
+        "derived",
+        "glare"
+      ],
+      "labelText": [
+        "BGS",
+        "PRISTINE",
+        "10",
+        "BECKETT GRADING SERVICES",
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO #2",
+        "0009876543",
+        "CENTERING",
+        "10",
+        "CORNERS",
+        "10",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "10"
+      ],
+      "labelBox": {
+        "x": 44,
+        "y": 42,
+        "width": 456,
+        "height": 150
+      },
+      "barcode": null,
+      "derivedFrom": "bgs-c23",
+      "ops": [
+        {
+          "op": "glare",
+          "cx": 0.3,
+          "cy": 0.12,
+          "r": 0.42,
+          "alpha": 0.78
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 544,
+      "height": 864,
+      "bytes": 47607,
+      "sha256": "df9033a5fdbbc880ce981f39941c7bf684cb5cd6a271a2a92e020297215c407c"
+    },
+    {
+      "id": "bgs-c22-rot-3",
+      "file": "bgs-c22-rot-3.jpg",
+      "category": "degraded",
+      "degradations": [
+        "rotate:-3"
+      ],
+      "description": "bgs-c22 (BGS-style silver label, serial 0011873452, \"MINT 9\" with subgrades) with rotated -3 degrees, saved as JPEG q88.",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0011873452"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "tags": [
+        "bgs",
+        "len:10",
+        "leading-zero",
+        "silver",
+        "derived",
+        "rotate:-3"
+      ],
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9"
+      ],
+      "labelBox": null,
+      "barcode": null,
+      "derivedFrom": "bgs-c22",
+      "ops": [
+        {
+          "op": "rotate",
+          "degrees": -3,
+          "background": "#e6e3dc",
+          "margin": 8
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.88
+      },
+      "mimeType": "image/jpeg",
+      "width": 605,
+      "height": 908,
+      "bytes": 55724,
+      "sha256": "6b9588670caf8d57222bbc96bb9718dc137d86cdb5cf5bca901a813d4b07bb47"
     }
   ]
 }

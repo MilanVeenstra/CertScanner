@@ -202,6 +202,20 @@ body{font-family:${LABEL_FONT};color:#111;-webkit-font-smoothing:antialiased}
 .cgcc-right .word{font-weight:700;font-size:16px;white-space:nowrap}
 .cgcc-right .num{font-weight:700;font-size:44px;line-height:1}
 
+/* BGS-style label (synthetic): gold / silver / black label, plain-text "BGS" and "BECKETT GRADING SERVICES",
+   four subgrades, overall grade, 10-digit zero-padded serial. */
+.bgs-label{height:150px;background:linear-gradient(#e2c06a,#c9a03f);border:3px solid #8a6a1c;display:flex;gap:10px;padding:10px 12px;color:#111}
+.bgs-label.silver{background:linear-gradient(#eceef0,#c9cdd1);border-color:#7d858c}
+.bgs-label.black{background:#141414;color:#f0cf6b;border-color:#000}
+.bgs-left{width:112px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.bgs-brand{font-weight:700;font-size:28px;letter-spacing:2px;line-height:1}
+.bgs-word{font-weight:700;font-size:13px;white-space:nowrap}
+.bgs-grade{font-weight:700;font-size:40px;line-height:1}
+.bgs-mid{flex:1;display:flex;flex-direction:column;justify-content:space-between;font-weight:700;font-size:15px;min-width:0;white-space:nowrap}
+.bgs-mid .house{font-size:12px;letter-spacing:1px}
+.bgs-mid .serial{font-size:19px;letter-spacing:1.5px}
+.bgs-subs{flex:none;display:grid;grid-template-columns:auto auto;gap:3px 8px;font-size:12px;font-weight:700;align-content:center;white-space:nowrap}
+
 /* Neutral labels. */
 .plain-label{height:136px;border:4px solid #8d949b;display:flex;align-items:center;justify-content:center}
 .plain-label .num{font-weight:700;font-size:26px;letter-spacing:2px}
@@ -303,6 +317,14 @@ function cgcCardLabel({ lines, gradeWord, gradeNum, cert }) {
   <div class="cgcc-brand">CGC</div>
   <div class="cgcc-mid">${lines.map((l) => `<div>${esc(l)}</div>`).join('')}<div class="cert">${esc(cert)}</div></div>
   <div class="cgcc-right"><div class="word">${esc(gradeWord)}</div><div class="num">${esc(gradeNum)}</div></div>
+</div>`;
+}
+
+function bgsLabel({ lines, gradeWord, grade, subs, serial, tone = 'gold' }) {
+  return `<div class="label bgs-label ${tone}">
+  <div class="bgs-left"><div class="bgs-brand">BGS</div><div class="bgs-word">${esc(gradeWord)}</div><div class="bgs-grade">${esc(grade)}</div></div>
+  <div class="bgs-mid"><div class="house">BECKETT GRADING SERVICES</div>${lines.map((l) => `<div>${esc(l)}</div>`).join('')}<div class="serial">${esc(serial)}</div></div>
+  <div class="bgs-subs">${subs.map(([k, v]) => `<span>${esc(k)}</span><span>${esc(v)}</span>`).join('')}</div>
 </div>`;
 }
 
@@ -579,7 +601,20 @@ function benchSpecs(codes) {
     labelText: ['CGC', ...lines, gradeWord, gradeNum, cert], barcode: null,
   });
 
+  // Beckett: no page per number, so a clear read shows the result without opening anything ('opened', never a tab).
+  const bgs = (id, { lines, gradeWord, grade, subs, serial, tone, art, desc }) => ({
+    id, file: `${id}.png`, html: benchPage(cardSlab(bgsLabel({ lines, gradeWord, grade, subs, serial, tone }), cardFront(ART[art]))),
+    category: 'clean', degradations: [], description: `BGS-style ${tone} label, serial ${serial}, "${gradeWord} ${grade}" with subgrades. ${desc ?? ''}`.trim(),
+    expected: { status: 'opened', grader: 'bgs', number: serial }, accept: ['opened', 'confirm'], mustNotAutoOpen: true,
+    tags: ['bgs', `len:${serial.length}`, 'leading-zero', tone],
+    labelText: ['BGS', gradeWord, grade, 'BECKETT GRADING SERVICES', ...lines, serial, ...subs.flat()], barcode: null,
+  });
+  const SUBS = (c, co, e, s) => [['CENTERING', c], ['CORNERS', co], ['EDGES', e], ['SURFACE', s]];
+
   const clean = [
+    bgs('bgs-c21', { lines: ['2023 SV 151', 'FIRE LIZARD ex #199'], gradeWord: 'GEM MINT', grade: '9.5', subs: SUBS('9.5', '9.5', '10', '9.5'), serial: '0012345678', tone: 'gold', art: 'red' }),
+    bgs('bgs-c22', { lines: ['2018 PRIZM', 'POINT GUARD #280'], gradeWord: 'MINT', grade: '9', subs: SUBS('9', '9.5', '9', '9'), serial: '0011873452', tone: 'silver', art: 'white' }),
+    bgs('bgs-c23', { lines: ['1999 BASE SET', 'WATER TURTLE-HOLO #2'], gradeWord: 'PRISTINE', grade: '10', subs: SUBS('10', '10', '10', '10'), serial: '0009876543', tone: 'black', art: 'blue', desc: 'Black label.' }),
     psa('psa-c01', { lines: ['2021 CHROME SERIES', 'ROOKIE SLUGGER', '#27'], grade: 'GEM MT 10', cert: '04718263', art: 'gold' }),
     psa('psa-c02', { lines: ['1999 BASE SET', 'WATER TURTLE-HOLO', '#2'], grade: 'NM-MT 8', cert: '72910483', art: 'blue' }),
     psa('psa-c03', { lines: ['2018 PRIZM', 'POINT GUARD', '#280'], grade: 'MINT 9', cert: '109876543', art: 'white' }),
@@ -734,6 +769,11 @@ function benchSpecs(codes) {
     derive('psa-b01', 'jpeg40', ['jpeg-q40'], [], JPEG40),
     derive('cgcd-c14', 'rot-4-jpeg60', ['rotate:-4', 'jpeg-q60'], [rot(-4)], { format: 'image/jpeg', quality: 0.6 }),
     derive('neg-c20', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('bgs-c21', 'jpeg40', ['jpeg-q40'], [], JPEG40),
+    derive('bgs-c22', 'half', ['scale-0.5'], [{ op: 'scale', factor: 0.5 }], PNG),
+    derive('bgs-c21', 'blur1', ['blur-1px'], [{ op: 'blur', px: 1 }], JPEG88),
+    derive('bgs-c23', 'glare', ['glare'], [GLARE_CARD], JPEG88),
+    derive('bgs-c22', 'rot-3', ['rotate:-3'], [rot(-3)], JPEG88),
   ];
   return [...clean, ...busy, ...degraded];
 }

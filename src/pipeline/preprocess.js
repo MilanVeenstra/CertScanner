@@ -95,6 +95,41 @@ function drawRotated(source, sw, sh, rotation, scale) {
   return canvas;
 }
 
+/**
+ * Local (mean - C) threshold in place, via an integral image: a pixel is ink when it is darker than its
+ * neighbourhood. Unlike one global threshold it keeps dark print on a coloured or unevenly lit label.
+ * Light print on a dark field (e.g. a BGS black label) is inverted first, so the result is dark text on white.
+ */
+export function adaptiveThreshold(gray, width, height, win = 41, C = 12) {
+  let sum = 0;
+  for (let i = 0; i < gray.length; i++) sum += gray[i];
+  if (sum / gray.length < 110) for (let i = 0; i < gray.length; i++) gray[i] = 255 - gray[i]; // mostly dark: invert
+  const W = width + 1;
+  const integral = new Float64Array(W * (height + 1));
+  for (let y = 0; y < height; y++) {
+    let row = 0;
+    for (let x = 0; x < width; x++) {
+      row += gray[y * width + x];
+      integral[(y + 1) * W + x + 1] = integral[y * W + x + 1] + row;
+    }
+  }
+  const r = win >> 1;
+  const out = new Uint8ClampedArray(gray.length);
+  for (let y = 0; y < height; y++) {
+    const y0 = Math.max(0, y - r);
+    const y1 = Math.min(height, y + r + 1);
+    for (let x = 0; x < width; x++) {
+      const x0 = Math.max(0, x - r);
+      const x1 = Math.min(width, x + r + 1);
+      const area = (y1 - y0) * (x1 - x0);
+      const s = integral[y1 * W + x1] - integral[y0 * W + x1] - integral[y1 * W + x0] + integral[y0 * W + x0];
+      out[y * width + x] = gray[y * width + x] < s / area - C ? 0 : 255;
+    }
+  }
+  gray.set(out);
+  return gray;
+}
+
 export const LABEL_WIDTH = 2400;
 export const LABEL_MAX_UPSCALE = 3;
 export const LABEL_FRACTION = 0.32;
@@ -107,10 +142,10 @@ export const LABEL_FRACTION = 0.32;
  * @param {{which?:'top'|'bottom', rotation?:0|90|180|270}} [opts]
  * @returns {Promise<Blob>}
  */
-export async function labelImage(bitmap, { which = 'top', rotation = 0 } = {}) {
+export async function labelImage(bitmap, { which = 'top', rotation = 0, binarize = false, width = LABEL_WIDTH } = {}) {
   const swap = rotation === 90 || rotation === 270;
   const w0 = swap ? bitmap.height : bitmap.width;
-  const scale = Math.min(LABEL_MAX_UPSCALE, LABEL_WIDTH / Math.max(1, w0));
+  const scale = Math.min(LABEL_MAX_UPSCALE, width / Math.max(1, w0));
   const full = drawRotated(bitmap, bitmap.width, bitmap.height, rotation, scale);
   const bandH = Math.max(1, Math.round(full.height * LABEL_FRACTION));
   const out = new OffscreenCanvas(full.width, bandH);
@@ -119,6 +154,7 @@ export async function labelImage(bitmap, { which = 'top', rotation = 0 } = {}) {
   ctx.drawImage(full, 0, which === 'bottom' ? full.height - bandH : 0, full.width, bandH, 0, 0, full.width, bandH);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const gray = stretchContrast(toLuma(ctx.getImageData(0, 0, full.width, bandH).data));
+  if (binarize) adaptiveThreshold(gray, full.width, bandH); // coloured labels (BGS gold, CGC blue): print stays dark
   ctx.putImageData(grayToImageData(gray, full.width, bandH), 0, 0);
   return out.convertToBlob({ type: 'image/png' });
 }

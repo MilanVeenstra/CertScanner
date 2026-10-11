@@ -69,6 +69,7 @@ const ui = createUi(doc, {
 
 // ---------------------------------------------------------------- static texts with substitutions
 const isMac = /mac/i.test(navigator.userAgentData?.platform ?? navigator.platform ?? '');
+$('right-click-tip').textContent = t('right_click_tip', [t('context_menu_scan')]);
 $('paste-hint').textContent = t('paste_hint', [t(isMac ? 'shortcut_paste_mac' : 'shortcut_paste_other')]);
 $('drop-formats').textContent = t('drop_formats', [t('size_mb', [String(MAX_IMAGE_MB)])]);
 $('hint-history').textContent = t('setting_history_hint', [String(MAX_HISTORY)]);
@@ -178,6 +179,13 @@ async function startScan(input) {
   await handleResult(result, autoOpenKey(input, id));
 }
 
+/** Confirm → Idle without opening anything (the read is dropped and not restored). */
+function scanOther() {
+  last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
+  showIdleCard({ focus: true });
+  if (windowId !== null) clearLastResult(windowId);
+}
+
 function showCancelled() {
   ui.thumbnail(null);
   showIdleCard({ focus: true });
@@ -275,7 +283,7 @@ async function refreshPrices({ fromCert = true } = {}) {
     last.labelFor = o;
     ui.showPriceData({ status: 'reading' });
     const ok = (lines) => cardInfo({ grader: o.grader, number: o.number, lines }).desc !== null;
-    const lines = await readLabel(last.fullBlob, { accept: ok }).catch(() => []);
+    const lines = await readLabel(last.fullBlob, { accept: ok, decimalGrade: o.grader !== 'psa' }).catch(() => []);
     if (run !== priceRun) return;
     const info = cardInfo({ grader: o.grader, number: o.number, lines });
     last.labelLines = lines;
@@ -684,6 +692,12 @@ async function openAgain() {
   if (!o) return;
   try {
     await openCert({ grader: o.grader, number: o.number, source: o.method === 'edited' ? 'manual' : o.method }, last.job, settings, { windowId });
+    if (o.lookupPending) {
+      // Beckett: the lookup is open now; Cert check updates in place and focus stays on the button (AC10).
+      last.opened = { ...o, lookupPending: false };
+      ui.markLookupOpened(last.opened);
+      persist({ task: 'result', body: doc.body.dataset.state, result: last.result, opened: last.opened });
+    }
     ui.announce(t(openedStatusKey(o.grader), [graderName(o.grader), o.number]));
   } catch {
     ui.showOpenError();
@@ -725,6 +739,7 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'page-scan') onPageScanButton();
   else if (a === 'always-allow') onAlwaysAllow();
   else if (a === 'back-to-page') showPageResultsState();
+  else if (a === 'scan-other') scanOther();
   else if (a.startsWith('price-')) onPriceAction(a);
 });
 $('choose-image').addEventListener('click', () => $('file-input').click());
@@ -787,9 +802,10 @@ $('manual-form').addEventListener('submit', async (e) => {
   try {
     const r = await openCert({ grader: v.grader, number: v.number, source: 'manual' }, null, settings, { windowId });
     manualField.reset();
-    $('cert-input').focus(); // F5: focus stays in the cleared input
+    // The form collapses with "Other ways to scan" in the result: focus moves to the result heading (QA P2-4).
+    if (doc.activeElement instanceof HTMLElement) doc.activeElement.blur();
     last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
-    showOpened({ grader: v.grader, number: v.number, method: 'manual', url: r.url, background: !r.active, tabId: r.tabId }, 'opened', { moveFocus: false });
+    showOpened({ grader: v.grader, number: v.number, method: 'manual', url: r.url, background: !r.active, tabId: r.tabId }, 'opened');
   } catch {
     $('cert-error').textContent = t('err_open_tab');
   }
@@ -862,6 +878,7 @@ $('psa-key-save').addEventListener('click', () => {
 });
 $('psa-key-remove').addEventListener('click', async () => {
   await clearPsaToken().catch(() => {});
+  chrome.permissions.remove({ origins: [PSA_API_PERMISSION] }).catch(() => {}); // the key was the only reason for it
   psaToken = null;
   renderPsaKey('setting_psa_key_removed');
 });
@@ -906,17 +923,19 @@ $('clear-history').addEventListener('click', async () => {
 
 async function refreshSites({ focusAfterRemove = null } = {}) {
   let granted = { hosts: [], allSites: [] };
-  try { granted = await listGrantedSites(); } catch { /* keep empty */ }
+  try { granted = await listGrantedSites(chrome, { exclude: [PSA_API_PERMISSION] }); } catch { /* keep empty */ }
   ui.renderSites(granted, {
     // SEC-17: announce what Chrome actually did (remove() resolves false when nothing was removed).
     onRemove: async (host, index) => {
       const s = removalStatus(await removeSite(host).catch(() => false), host);
       ui.announce(t(s.key, s.subs));
+      $('sites-error').textContent = s.key === 'status_site_not_removed' ? t(s.key, s.subs) : '';
       refreshSites({ focusAfterRemove: index });
     },
     onRemoveAll: async () => {
       const s = removalStatus(await removeAllSites(granted.allSites), t('settings_sites_all'));
       ui.announce(t(s.key, s.subs));
+      $('sites-error').textContent = s.key === 'status_site_not_removed' ? t(s.key, s.subs) : '';
       refreshSites({ focusAfterRemove: 0 });
     },
   });
@@ -946,7 +965,8 @@ doc.addEventListener('keydown', (e) => {
   if (inputs.dragging) { inputs.clearDrag(); return; }
   if (!$('settings').hidden) { e.preventDefault(); showView('home'); return; }
   if (current) { e.preventDefault(); current.controller.abort(); return; }
-  if (ui.taskState === 'edit') { e.preventDefault(); cancelEdit(); }
+  if (ui.taskState === 'edit') { e.preventDefault(); cancelEdit(); return; }
+  if (ui.taskState === 'confirm' && doc.activeElement?.id !== 'cert-input') { e.preventDefault(); scanOther(); }
 });
 
 window.addEventListener('online', () => doc.querySelectorAll('#task [data-ref="offline"]').forEach((el) => { el.hidden = true; }));

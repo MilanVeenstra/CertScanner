@@ -118,6 +118,7 @@ function dashRegex(rules) {
 /** Extract reads from one OcrPage. */
 function readsFromPage(page, rules, validLengths) {
   const pass = page.pass === 'digits' ? 'digits' : 'text';
+  const label = page.labelPass === true; // read from the enlarged label pass (scanner.js), not the full image
   const reads = [];
   let dashSeen = false;
   for (const line of pageLines(page, rules)) {
@@ -128,7 +129,7 @@ function readsFromPage(page, rules, validLengths) {
       const end = start + m[0].length;
       covered.push([start, end]);
       const c = confFor(line, start, end);
-      reads.push({ number: m[1] + m[2], kind: 'ocr', key: `ocr:${pass}`, pass, conf: c.conf, fixed: c.fixed, certLabel, dash: true });
+      reads.push({ number: m[1] + m[2], kind: 'ocr', key: `ocr:${pass}${label ? ':label' : ''}`, pass, label, conf: c.conf, fixed: c.fixed, certLabel, dash: true });
       dashSeen = true;
     }
     for (const m of line.text.matchAll(/\d+/g)) {
@@ -137,7 +138,7 @@ function readsFromPage(page, rules, validLengths) {
       if (covered.some(([a, b]) => start < b && end > a)) continue;
       if (!validLengths.has(m[0].length)) continue;
       const c = confFor(line, start, end);
-      reads.push({ number: m[0], kind: 'ocr', key: `ocr:${pass}`, pass, conf: c.conf, fixed: c.fixed, certLabel, dash: false });
+      reads.push({ number: m[0], kind: 'ocr', key: `ocr:${pass}${label ? ':label' : ''}`, pass, label, conf: c.conf, fixed: c.fixed, certLabel, dash: false });
     }
   }
   return { reads, dashSeen };
@@ -321,6 +322,10 @@ export function analyze(input, rules = DEFAULT_RULES) {
     if (source !== 'qr-url' && maxKw < SCORE.resolve.slabVocabularyMin) score -= SCORE.penalty.noSlabVocabulary;
 
     if (allUntrusted) score = Math.min(score, SCORE.thresholds.untrustedQrCap);
+    // Read only by the label pass (a retry on images the full-image passes could not read): never enough to open a
+    // page by itself, since its two reads come from the same crop.
+    const labelOnly = ocrReads.length > 0 && !qrReads.length && !bcReads.length && ocrReads.every((r) => r.label);
+    if (labelOnly) { score = Math.min(score, SCORE.thresholds.autoOpen - 0.01); add('label-pass'); }
     scored.push({ grader, graderOptions, number, pre: score, source, evidence, allUntrusted });
   }
 

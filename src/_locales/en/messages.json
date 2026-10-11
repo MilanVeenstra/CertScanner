@@ -258,15 +258,6 @@
   "status_scan_cancelled": {
     "message": "Scan cancelled."
   },
-  "result_heading": {
-    "message": "Opened $GRADER$ cert page",
-    "placeholders": {
-      "grader": {
-        "content": "$1",
-        "example": "PSA"
-      }
-    }
-  },
   "result_bg_note": {
     "message": "The page is in a background tab."
   },
@@ -626,7 +617,7 @@
     "message": "About"
   },
   "about_privacy": {
-    "message": "Images are processed on this device and never uploaded. A cert number only leaves your device when the grader's page opens."
+    "message": "Images are processed on this device and never uploaded. The cert number goes to the grader when its page opens, and to PSA if you added a PSA key. The card name and grade go to PriceCharting for the value. eBay only gets what you search for when you open an eBay link."
   },
   "about_lookup": {
     "message": "A cert lookup shows what the grader's database says about a number. It can't tell whether the slab in a photo is genuine."
@@ -681,26 +672,6 @@
   },
   "page_scan_lead": {
     "message": "Finds the slab photos on the page you're viewing and reads their cert numbers."
-  },
-  "right_click_hint": {
-    "message": "Or right-click a slab photo and choose “$MENU$”.",
-    "description": "MENU is the context menu title.",
-    "placeholders": {
-      "menu": {
-        "content": "$1",
-        "example": "Scan slab cert number"
-      }
-    }
-  },
-  "shortcut_hint": {
-    "message": "Shortcut: $KEYS$, or click the CertScanner icon.",
-    "description": "KEYS is the keyboard shortcut set in Chrome.",
-    "placeholders": {
-      "keys": {
-        "content": "$1",
-        "example": "Alt+Shift+S"
-      }
-    }
   },
   "shortcut_none": {
     "message": "Click the CertScanner icon to scan the page you're viewing.",
@@ -845,16 +816,6 @@
   "setting_shortcut_button": {
     "message": "Change shortcut",
     "description": "Opens chrome://extensions/shortcuts in a new tab."
-  },
-  "shortcut_hint_keys_only": {
-    "message": "Shortcut: $KEYS$.",
-    "description": "Shown when the toolbar button only opens the panel.",
-    "placeholders": {
-      "keys": {
-        "content": "$1",
-        "example": "Alt+Shift+S"
-      }
-    }
   },
   "page_access_body_keys_only": {
     "message": "Press $KEYS$ to scan this page.",
@@ -1007,23 +968,11 @@
       }
     }
   },
-  "prices_heading": {
-    "message": "Prices for this card"
-  },
   "prices_ebay_sold": {
     "message": "Sold on eBay"
   },
   "prices_ebay_active": {
     "message": "For sale on eBay"
-  },
-  "prices_note": {
-    "message": "Searches $SITE$ for this card in this grade, without lots. Prices and sales above come from PriceCharting (US dollars). Only the card, grade or cert number is sent.",
-    "placeholders": {
-      "site": {
-        "content": "$1",
-        "example": "ebay.com"
-      }
-    }
   },
   "page_row_prices": {
     "message": "eBay sold"
@@ -1035,7 +984,7 @@
     "message": "eBay site"
   },
   "setting_ebay_site_hint": {
-    "message": "Used by the Sold on eBay and For sale on eBay links. CertScanner never fetches prices itself."
+    "message": "Used by the Sold on eBay and For sale on eBay links. Values shown in the panel come from PriceCharting (US dollars)."
   },
   "prices_card_label": {
     "message": "Card"
@@ -1061,9 +1010,6 @@
   "reason_bgs_lookup": {
     "message": "Beckett has no direct link per number. Open copies the number and opens Beckett's lookup, where you paste it."
   },
-  "result_heading_lookup": {
-    "message": "Opened Beckett lookup"
-  },
   "result_lookup_note": {
     "message": "The number is copied. Paste it into Beckett's lookup form (Ctrl+V / ⌘V)."
   },
@@ -1081,7 +1027,7 @@
     }
   },
   "prices_pop": {
-    "message": "Population report"
+    "message": "Population report (copies the name)"
   },
   "prices_pop_copied": {
     "message": "Card name copied. Paste it into the population report search."
@@ -1095,9 +1041,6 @@
       }
     }
   },
-  "prices_edit": {
-    "message": "Change"
-  },
   "prices_grade_any": {
     "message": "$GRADER$ · any grade",
     "placeholders": {
@@ -1107,9 +1050,6 @@
       }
     }
   },
-  "prices_card_unknown": {
-    "message": "Card name not read. Type it to see prices for this card."
-  },
   "prices_allow": {
     "message": "Show prices here"
   },
@@ -1117,10 +1057,10 @@
     "message": "See the price per grade and recent sales of this card right here. CertScanner reads this card's PriceCharting page on your device (Chrome asks once)."
   },
   "prices_loading": {
-    "message": "Loading prices…"
+    "message": "Looking up the value on PriceCharting…"
   },
   "prices_not_found": {
-    "message": "No card found on PriceCharting for “$QUERY$”. Use Change to correct the card name.",
+    "message": "No match on PriceCharting for “$QUERY$”. Change the name and try again.",
     "placeholders": {
       "query": {
         "content": "$1",
@@ -1129,13 +1069,13 @@
     }
   },
   "prices_unreadable": {
-    "message": "Couldn't read the PriceCharting page. Use View on PriceCharting below the eBay buttons, or try again later."
+    "message": "Couldn't read the PriceCharting page. Open it yourself, or try again later."
   },
   "prices_error": {
     "message": "Couldn't load prices. Check your connection and try again."
   },
   "prices_need_card_data": {
-    "message": "Card name not read from the label. Type it under Change to see its prices."
+    "message": "Card name unknown. Type it to see the value."
   },
   "prices_set_line": {
     "message": "Set: $SET$",
@@ -1244,22 +1184,161 @@
   "prices_no_recent": {
     "message": "no recent sale"
   },
-  "result_heading_found": {
-    "message": "$GRADER$ number read",
-    "placeholders": {
-      "grader": {
-        "content": "$1",
-        "example": "BGS"
-      }
-    }
-  },
-  "result_lookup_pending": {
-    "message": "Beckett has no page per number, so nothing was opened. Open Beckett lookup copies the number; paste it into Beckett's form."
-  },
   "open_lookup": {
     "message": "Open Beckett lookup"
   },
   "prices_reading": {
     "message": "Reading the card name from the label…"
+  },
+  "confirm_scan_other": {
+    "message": "Scan something else"
+  },
+  "reason_uncertain": {
+    "message": "The number wasn't read with full certainty. Compare it with the label."
+  },
+  "url_preview_auto": {
+    "message": "The grader is detected from the number."
+  },
+  "verify_heading": {
+    "message": "Cert check"
+  },
+  "value_heading": {
+    "message": "Value"
+  },
+  "market_heading": {
+    "message": "Market"
+  },
+  "grades_heading": {
+    "message": "Price per grade"
+  },
+  "ebay_heading": {
+    "message": "Search eBay"
+  },
+  "verify_opened": {
+    "message": "Opened"
+  },
+  "verify_not_opened_bgs": {
+    "message": "Not opened yet: Beckett has no page per number."
+  },
+  "lookup_preview": {
+    "message": "Copies the number, then opens"
+  },
+  "identity_fallback": {
+    "message": "$GRADER$ $NUMBER$",
+    "placeholders": {
+      "grader": {
+        "content": "$1"
+      },
+      "number": {
+        "content": "$2"
+      }
+    }
+  },
+  "identity_card_unknown": {
+    "message": "Card name unknown"
+  },
+  "identity_title_unknown": {
+    "message": "Title unknown"
+  },
+  "identity_grade_unknown": {
+    "message": "Grade not read"
+  },
+  "value_source": {
+    "message": "PriceCharting · US dollars"
+  },
+  "value_match": {
+    "message": "For:"
+  },
+  "value_change": {
+    "message": "Wrong card or grade? Change"
+  },
+  "value_show": {
+    "message": "Show value"
+  },
+  "value_pick_grade": {
+    "message": "grade not read: choose it with Change"
+  },
+  "value_column": {
+    "message": "column “$LABEL$”",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      }
+    }
+  },
+  "grid_current_sr": {
+    "message": "(this slab's grade)"
+  },
+  "status_value": {
+    "message": "$CARD$, $GRADE$: current price $PRICE$, last sold $LAST$.",
+    "placeholders": {
+      "card": {
+        "content": "$1"
+      },
+      "grade": {
+        "content": "$2"
+      },
+      "price": {
+        "content": "$3"
+      },
+      "last": {
+        "content": "$4"
+      }
+    }
+  },
+  "status_value_no_sale": {
+    "message": "$CARD$, $GRADE$: current price $PRICE$, no recent sale.",
+    "placeholders": {
+      "card": {
+        "content": "$1"
+      },
+      "grade": {
+        "content": "$2"
+      },
+      "price": {
+        "content": "$3"
+      }
+    }
+  },
+  "find_note": {
+    "message": "Searches $SITE$ for the same card or title in this grade, without lots. Only the name, grade or cert number is sent.",
+    "placeholders": {
+      "site": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_title_label": {
+    "message": "Title"
+  },
+  "prices_need_title": {
+    "message": "Type the title to search by grade."
+  },
+  "prices_need_title_data": {
+    "message": "Title unknown. Type it to see the value."
+  },
+  "idle_icon_hint": {
+    "message": "Or click the CertScanner icon on any page."
+  },
+  "right_click_tip": {
+    "message": "Right-click a slab photo on any page and choose “$MENU$”.",
+    "placeholders": {
+      "menu": {
+        "content": "$1",
+        "example": "Scan slab cert number"
+      }
+    }
+  },
+  "confirm_open_guess": {
+    "message": "Open $GRADER$ cert page",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "CGC Cards"
+      }
+    }
+  },
+  "value_change_comic": {
+    "message": "Wrong title or grade? Change"
   }
 }

@@ -31,11 +31,12 @@ export function parseManualEntry(input, rules = DEFAULT_RULES) {
   }
 
   const tokens = text.toUpperCase().replace(/[:,]/g, ' ').replace(/#/g, ' # ').split(/\s+/).filter(Boolean);
-  let brand = null; // 'psa' | 'cgc'
+  let brand = null; // 'psa' | 'cgc' | 'bgs'
   let kind = null;  // 'cards' | 'comics'
   const rest = [];
   for (const t of tokens) {
     if (t === 'PSA' || t === 'PSA/DNA') brand = 'psa';
+    else if (t === 'BGS' || t === 'BECKETT') brand = 'bgs';
     else if (t === 'CGC') brand ??= 'cgc';
     else if (/^(CARDS?|TCG)$/.test(t)) kind = 'cards';
     else if (/^(COMICS?|MAGAZINES?)$/.test(t)) kind = 'comics';
@@ -54,6 +55,7 @@ export function parseManualEntry(input, rules = DEFAULT_RULES) {
 
   let allowed = rules.GRADER_IDS;
   if (brand === 'psa') allowed = ['psa'];
+  else if (brand === 'bgs') allowed = ['bgs'];
   else if (brand === 'cgc') allowed = kind === 'cards' ? ['cgc-cards'] : kind === 'comics' ? ['cgc-comics'] : ['cgc-comics', 'cgc-cards'];
   else if (kind === 'cards') allowed = ['cgc-cards', 'psa'];
   else if (kind === 'comics') allowed = ['cgc-comics'];

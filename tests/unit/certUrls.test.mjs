@@ -24,9 +24,14 @@ test('buildCertUrl rejects bad lengths, non-digits and unknown graders with Rang
 });
 
 test('CERT_URL and QR_HOSTS tables match ADR §8', () => {
-  assert.deepEqual(Object.keys(CERT_URL).sort(), ['cgc-cards', 'cgc-comics', 'psa']);
+  assert.deepEqual(Object.keys(CERT_URL).sort(), ['bgs', 'cgc-cards', 'cgc-comics', 'psa']);
   assert.equal(QR_HOSTS.get('cgccards.uk'), 'cgc-cards');
-  assert.equal(QR_HOSTS.size, 8);
+  assert.equal(QR_HOSTS.get('www.beckett.com'), 'bgs');
+  assert.equal(QR_HOSTS.size, 10);
+  // Beckett: the lookup form (no per-number link), only for a valid 10-digit serial
+  assert.equal(buildCertUrl('bgs', '0012345678'), 'https://www.beckett.com/grading/card-lookup');
+  assert.throws(() => buildCertUrl('bgs', '12345678'), RangeError);
+  assert.equal(parseQrPayload('https://www.beckett.com/grading/card-lookup?item_id=0012345678').number, '0012345678');
 });
 
 test('parseQrPayload: allow-listed hosts with matching paths', () => {

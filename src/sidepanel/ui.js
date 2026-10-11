@@ -4,10 +4,10 @@
 // so every id exists exactly once at all times.
 import { t, applyI18n } from '../shared/i18n.js';
 import { createCertField } from './certField.js';
-import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates } from './viewModel.js';
+import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates, openedStatusKey } from './viewModel.js';
 import { pageRowNote } from './pageView.js';
-import { buildCertUrl } from '../core/certUrls.js';
-import { ebayHostLabel, GRADE_SCALES, gradeLabel, matchGrade } from '../core/priceLinks.js';
+import { buildCertUrl, hasDirectUrl } from '../core/certUrls.js';
+import { ebayHostLabel, GRADE_SCALES, gradeLabel, matchGrade, POP_URLS } from '../core/priceLinks.js';
 
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
 export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
@@ -369,9 +369,11 @@ export function createUi(doc, actions) {
   function showResult(view, { moveFocus = true } = {}) {
     setTaskState('result');
     const o = view.opened;
-    setHeading(t('result_heading', [graderName(o.grader)]), 'success');
+    const lookup = !hasDirectUrl(o.grader);
+    setHeading(lookup ? t('result_heading_lookup') : t('result_heading', [graderName(o.grader)]), 'success');
     const frag = clone('tpl-result');
     ref(frag, 'bg-note').hidden = !(o.background && Number.isInteger(o.tabId));
+    ref(frag, 'lookup-note').hidden = !lookup;
     body.appendChild(frag);
     fillRead({ grader: o.grader, number: o.number, method: o.method }, { path: displayUrl(o.url ?? buildCertUrl(o.grader, o.number)) });
     // The (parked) grader control mirrors the opened grader so §13 readers see the routed grader in S2 too.
@@ -381,7 +383,7 @@ export function createUi(doc, actions) {
     resetCopyLabel();
     offline(body);
     renderPrices(view.prices);
-    settle(t('status_opened', [graderName(o.grader), o.number]), { moveFocus });
+    settle(t(openedStatusKey(o.grader), [graderName(o.grader), o.number]), { moveFocus });
   }
 
   /**
@@ -406,6 +408,7 @@ export function createUi(doc, actions) {
     }
     select.value = matchGrade(prices.grader, prices.grade) ?? '';
     ref(frag, 'price-psa').hidden = prices.grader !== 'psa';
+    ref(frag, 'price-pop').hidden = !POP_URLS[prices.grader];
     ref(frag, 'price-note').textContent = t('prices_note', [ebayHostLabel(prices.site)]);
     slot.appendChild(frag);
   }

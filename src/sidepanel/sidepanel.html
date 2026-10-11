@@ -88,6 +88,7 @@
           <label class="segment"><input type="radio" name="manual-grader" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa">PSA</span></label>
           <label class="segment"><input type="radio" name="manual-grader" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics">CGC Comics</span></label>
           <label class="segment"><input type="radio" name="manual-grader" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards">CGC Cards</span></label>
+          <label class="segment"><input type="radio" name="manual-grader" value="bgs"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_bgs">BGS</span></label>
         </div>
         <p class="hint grader-hint" id="manual-grader-hint"></p>
       </fieldset>
@@ -196,7 +197,7 @@
 </main>
 
 <footer class="app-footer">
-  <p><span data-i18n="about_disclaimer">Not affiliated with PSA or CGC.</span> · <span data-i18n="footer_local">Images stay on this device</span></p>
+  <p><span data-i18n="about_disclaimer">Not affiliated with PSA, CGC or Beckett.</span> · <span data-i18n="footer_local">Images stay on this device</span></p>
 </footer>
 
 <!-- ============================ task-card templates (UX spec §3) ============================
@@ -224,6 +225,7 @@
     <p class="muted" data-i18n="result_bg_note"></p>
     <button type="button" class="btn btn-secondary" data-action="go-to-tab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tab"/></svg><span data-i18n="go_to_tab"></span></button>
   </div>
+  <div class="alert alert-info" data-ref="lookup-note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><p data-i18n="result_lookup_note"></p></div>
   <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="actions">
     <span data-slot="copy"></span>
@@ -339,6 +341,7 @@
     <div class="price-links">
       <button type="button" class="link" data-testid="price-pricecharting" data-action="price-pricecharting"><span data-i18n="prices_pricecharting">PriceCharting (price per grade)</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-psa" data-action="price-psa" data-ref="price-psa"><span data-i18n="prices_psa_apr">PSA auction prices</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-130" data-action="price-130"><span data-i18n="prices_130point">130point sales</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><span data-i18n="prices_slab">This slab on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
@@ -430,6 +433,7 @@
         <label class="segment"><input type="radio" name="task-grader" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa"></span></label>
         <label class="segment"><input type="radio" name="task-grader" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics"></span></label>
         <label class="segment"><input type="radio" name="task-grader" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards"></span></label>
+        <label class="segment"><input type="radio" name="task-grader" value="bgs"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_bgs"></span></label>
       </div>
       <p class="hint grader-hint" data-ref="grader-hint"></p>
     </fieldset>

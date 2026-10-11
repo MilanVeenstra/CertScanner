@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cardQuery, cardInfo, gradeQuery, matchGrade, GRADE_SCALES, slabQuery, gradeFromLines, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, isPriceUrl, POINT130_URL, ebayHostLabel, isEbaySite } from '../../src/core/priceLinks.js';
+import { POP_URLS, cardQuery, cardInfo, gradeQuery, matchGrade, GRADE_SCALES, slabQuery, gradeFromLines, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, isPriceUrl, POINT130_URL, ebayHostLabel, isEbaySite } from '../../src/core/priceLinks.js';
 
 test('slab query: grader short name + cert number', () => {
   assert.equal(slabQuery('psa', '01234567'), 'PSA 01234567');
@@ -99,4 +99,17 @@ test('site helpers', () => {
   assert.equal(ebayHostLabel('nope'), 'ebay.com');
   assert.ok(isEbaySite('com.au'));
   assert.ok(!isEbaySite('__proto__'));
+});
+
+test('BGS: grade from the label (not the subgrades), card without brand or subgrades', () => {
+  const lines = ['BECKETT GRADING SERVICES', '2023 POKEMON SV 151', 'CHARIZARD EX #199', 'GEM MINT 9.5', 'CENTERING 10 CORNERS 9.5 EDGES 9.5 SURFACE 9', '0012345678'];
+  assert.deepEqual(cardInfo({ grader: 'bgs', number: '0012345678', lines }), { desc: '2023 POKEMON SV 151 CHARIZARD EX #199', grade: '9.5' });
+  assert.equal(slabQuery('bgs', '0012345678'), 'BGS 0012345678');
+  assert.equal(gradeQuery('bgs', 'CHARIZARD EX #199', '10'), 'CHARIZARD EX #199 BGS 10');
+});
+
+test('population report links are allow-listed exactly', () => {
+  for (const u of Object.values(POP_URLS)) assert.ok(isPriceUrl(u), u);
+  assert.ok(!isPriceUrl('https://www.psacard.com/pop/other'));
+  assert.equal(POP_URLS.bgs, undefined);
 });

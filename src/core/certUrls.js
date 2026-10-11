@@ -6,19 +6,27 @@ export const CERT_URL = Object.freeze({
   psa: (n) => `https://www.psacard.com/cert/${n}`,
   'cgc-comics': (n) => `https://www.cgccomics.com/certlookup/${n}/`,
   'cgc-cards': (n) => `https://www.cgccards.com/certlookup/${n}/`,
+  // Beckett has no documented link per serial number: its lookup form opens and the panel copies the number.
+  bgs: () => 'https://www.beckett.com/grading/card-lookup',
 });
+
+/** Graders whose official page shows the cert directly; the others open a lookup form (never auto-opened). */
+export const hasDirectUrl = (grader) => grader !== 'bgs';
 
 export const QR_HOSTS = new Map([
   ['psacard.com', 'psa'], ['www.psacard.com', 'psa'],
   ['cgccomics.com', 'cgc-comics'], ['www.cgccomics.com', 'cgc-comics'],
   ['cgccards.com', 'cgc-cards'], ['www.cgccards.com', 'cgc-cards'],
   ['cgccards.uk', 'cgc-cards'], ['www.cgccards.uk', 'cgc-cards'],
+  ['beckett.com', 'bgs'], ['www.beckett.com', 'bgs'],
 ]);
 
 export const QR_PATHS = Object.freeze({
   psa: /^\/cert\/(\d{7,10})(?:\/|$)/i,
   'cgc-comics': /^\/certlookup\/(\d{10})(?:\/|$)/i,
   'cgc-cards': /^\/certlookup\/(\d{10}|\d{13})(?:\/|$)/i,
+  // Path of the QR on 2026 BGS labels is not documented; a single 10-digit run elsewhere in the URL is used instead.
+  bgs: /^\/grading\/card-lookup\/(\d{10})(?:\/|$)/i,
 });
 
 const MAX_QR_CHARS = 4096;

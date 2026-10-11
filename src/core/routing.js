@@ -1,6 +1,6 @@
 // Pure routing decision (ADR-001 §7 "Auto-open"). No chrome, no DOM.
 import { DEFAULT_RULES } from './certRules.js';
-import { isValidCert } from './certUrls.js';
+import { isValidCert, hasDirectUrl } from './certUrls.js';
 
 /**
  * @param {import('./types.js').CertCandidate[]} candidates
@@ -18,6 +18,7 @@ export function decide(candidates, settings, warnings, rules = DEFAULT_RULES) {
   const competitor = sorted.some((c) => c !== top && c.number !== top.number && c.confidence >= T.competitor);
   const ok = settings?.autoOpen === true
     && top.grader != null
+    && hasDirectUrl(top.grader) // a lookup form (BGS) needs a click: the number is copied for pasting
     && isValidCert(top.grader, top.number)
     && typeof top.confidence === 'number' && top.confidence >= T.autoOpen
     && !competitor

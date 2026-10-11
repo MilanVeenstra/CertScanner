@@ -1,10 +1,10 @@
 # CertScanner
 
-**Automatic cert scanner for PSA and CGC slabs: a Chrome extension (Manifest V3).**
+**Automatic cert scanner for PSA, CGC and BGS slabs: a Chrome extension (Manifest V3).**
 
-CertScanner reads the certification number from photos of PSA and CGC graded slabs and opens that grader's official cert lookup page. You don't have to retype a 7- to 13-digit number from a small listing photo.
+CertScanner reads the certification number from photos of PSA, CGC and BGS (Beckett) graded slabs and opens that grader's official cert lookup page. You don't have to retype a 7- to 13-digit number from a small listing photo.
 
-> **Not affiliated with PSA or CGC.** PSA and CGC are trademarks of their respective owners.
+> **Not affiliated with PSA, CGC or Beckett.** PSA, CGC and Beckett are trademarks of their respective owners.
 > **A cert lookup does not prove a slab is genuine.** It shows what the grader's database says about a number. Always check that the cert page matches the slab in the photo.
 
 _Version 0.1.0. It is not published on the Chrome Web Store; for now you install it from source. See [`docs/release/release-report.md`](docs/release/release-report.md) for release status._
@@ -17,7 +17,7 @@ _Version 0.1.0. It is not published on the Chrome Web Store; for now you install
   - If exactly one number is read clearly, its official cert page opens right away.
   - Otherwise you get a list ("Cert numbers on this page") with **Open** and **Copy** for each number.
 - **Scan one specific photo.** Right-click a slab photo and choose **Scan slab cert number**.
-- **Prices & listings.** Under a result you see the card and grade read from the label (e.g. *2023 POKEMON SV 151 CHARIZARD ex #199* · *PSA 10*); both can be changed. **Sold on eBay** / **For sale on eBay** search that card in that grade, so you see what PSA 10 copies sell for. **PriceCharting (price per grade)** and **PSA auction prices** show prices per grade, **This slab on eBay** searches the cert number, and **130point sales** copies the search. Nothing is fetched until you click. Each row in a results list has an **eBay sold** link too.
+- **Prices, population & listings.** Under a result you see the card and grade read from the label (e.g. *2023 POKEMON SV 151 CHARIZARD ex #199* · *PSA 10*); both can be changed. **Sold on eBay** / **For sale on eBay** search that card in that grade, so you see what PSA 10 copies sell for. **PriceCharting (price per grade)** and **PSA auction prices** show prices per grade, **This slab on eBay** searches the cert number, and **130point sales** copies the search. **Population report** copies the card name and opens the PSA or CGC population report (how many copies exist per grade). Nothing is fetched until you click. Each row in a results list has an **eBay sold** link too.
 - **Fallbacks.** In the side panel you can:
   - drop, paste (Ctrl+V / ⌘V) or upload an image (JPEG, PNG, WebP or AVIF, up to 15 MB);
   - type a number such as `PSA 01234567` or `CGC 4012345001`.
@@ -30,6 +30,7 @@ _Version 0.1.0. It is not published on the Chrome Web Store; for now you install
 | PSA | `https://www.psacard.com/cert/<number>` |
 | CGC Comics | `https://www.cgccomics.com/certlookup/<number>/` |
 | CGC Cards | `https://www.cgccards.com/certlookup/<number>/` |
+| BGS (Beckett) | `https://www.beckett.com/grading/card-lookup`: Beckett has no link per number, so the number is copied and you paste it into the form. Never opened automatically. |
 
 ## Privacy in one paragraph
 
@@ -60,7 +61,7 @@ Full policy: [`PRIVACY.md`](PRIVACY.md).
 - Onder een resultaat staat **Prijzen & listings** met de kaart en grade van het label (bijv. *PSA 10*, aan te passen). **Verkocht op eBay** laat zien waarvoor exemplaren in die grade verkocht zijn; **PriceCharting** en **PSA-veilingprijzen** tonen prijzen per grade; **Deze slab op eBay** zoekt op het certnummer. De eBay-site kies je in Instellingen (standaard ebay.com).
 - Je wijzigt de sneltoets via `chrome://extensions/shortcuts`.
 
-CertScanner is niet gelieerd aan PSA of CGC. Een certcontrole bewijst niet dat een slab echt is; controleer altijd of de certpagina bij de slab op de foto past. De taal van de extensie volgt je Chrome-instellingen (Nederlands of Engels).
+CertScanner is niet gelieerd aan PSA, CGC of Beckett. BGS-slabs worden ook herkend: omdat Beckett geen directe link per nummer heeft, kopieert CertScanner het nummer en opent de zoekpagina van Beckett, waar je het plakt. Een certcontrole bewijst niet dat een slab echt is; controleer altijd of de certpagina bij de slab op de foto past. De taal van de extensie volgt je Chrome-instellingen (Nederlands of Engels).
 
 ---
 

@@ -1,13 +1,16 @@
 // Pure view logic for the side panel (UX spec §3, §4, §6). No chrome, no DOM: unit-tested in Node.
 import { DEFAULT_RULES } from '../core/certRules.js';
-import { buildCertUrl, isValidCert, parseQrPayload } from '../core/certUrls.js';
+import { buildCertUrl, isValidCert, parseQrPayload, hasDirectUrl } from '../core/certUrls.js';
 import { decide } from '../core/routing.js';
 import { MAX_IMAGE_BYTES } from '../pipeline/acquire.js';
 
 export const MIN_DIGITS = Math.min(...DEFAULT_RULES.ALL_LENGTHS);
 export const MAX_DIGITS = Math.max(...DEFAULT_RULES.ALL_LENGTHS);
 export const MAX_IMAGE_MB = Math.round(MAX_IMAGE_BYTES / (1024 * 1024));
-export const GRADER_LABEL = Object.freeze({ psa: 'grader_psa', 'cgc-comics': 'grader_cgc_comics', 'cgc-cards': 'grader_cgc_cards' });
+/** Status after opening: a lookup form (BGS) says the number was copied for pasting. */
+export const openedStatusKey = (grader) => (hasDirectUrl(grader) ? 'status_opened' : 'status_opened_lookup');
+
+export const GRADER_LABEL = Object.freeze({ psa: 'grader_psa', 'cgc-comics': 'grader_cgc_comics', 'cgc-cards': 'grader_cgc_cards', bgs: 'grader_bgs' });
 
 /** "https://www.psacard.com/cert/01234567" -> "psacard.com/cert/01234567" (exact path kept). */
 export function displayUrl(url) {
@@ -48,6 +51,7 @@ export function confirmReasons(result, settings, rules = DEFAULT_RULES) {
     if (opts.includes('cgc-comics') && opts.includes('cgc-cards')) out.push({ key: 'reason_cgc_both', subs: [] });
     else out.push({ key: 'reason_grader_unknown', subs: [] });
   }
+  if (top.grader === 'bgs') out.push({ key: 'reason_bgs_lookup', subs: [] });
   const lowRes = result.imageInfo?.resolution === 'screen' || (result.warnings ?? []).some((w) => w.code === 'low-resolution');
   if (top.confidence < rules.SCORE.thresholds.autoOpen || lowRes) out.push({ key: 'reason_unclear', subs: [] });
   if (settings?.autoOpen === false && decide(cands, { ...settings, autoOpen: true }, result.warnings ?? [], rules) === 'auto-open') {
@@ -101,6 +105,7 @@ const PREFIXES = [
   [/^cgc\s+comics?\b\s*/i, 'cgc-comics'],
   [/^cgc\s+cards?\b\s*/i, 'cgc-cards'],
   [/^psa\b\s*/i, 'psa'],
+  [/^(bgs|beckett)\b\s*/i, 'bgs'],
   [/^cgc\b\s*/i, 'cgc'],
 ];
 const FILLER_RE = /(^|\s)(cert|no\.|nr\.|#)(?=\s|$|\d)/gi;
@@ -109,7 +114,7 @@ const MAX_INPUT = 64;
 
 /**
  * Live analysis of a cert field value.
- * @returns {{empty:boolean, url:{ok:true, grader:string, number:string}|{ok:false}|null, prefix:null|'psa'|'cgc'|'cgc-comics'|'cgc-cards',
+ * @returns {{empty:boolean, url:{ok:true, grader:string, number:string}|{ok:false}|null, prefix:null|'psa'|'cgc'|'cgc-comics'|'cgc-cards'|'bgs',
  *   digits:string, badChars:boolean, dash:boolean}}
  */
 export function analyzeCertInput(text) {
@@ -184,7 +189,7 @@ export function validateCert(text, explicit = null, rules = DEFAULT_RULES) {
 }
 
 /** Grader display names are never translated (spec §6 rules). */
-export const GRADER_NAME = Object.freeze({ psa: 'PSA', 'cgc-comics': 'CGC Comics', 'cgc-cards': 'CGC Cards' });
+export const GRADER_NAME = Object.freeze({ psa: 'PSA', 'cgc-comics': 'CGC Comics', 'cgc-cards': 'CGC Cards', bgs: 'BGS' });
 
 // ---------------------------------------------------------------- scanning steps (S1)
 

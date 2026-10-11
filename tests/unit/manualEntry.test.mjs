@@ -30,11 +30,13 @@ test('number only: length decides when unique, else options', () => {
   assert.equal(ok('1401234567890').grader, 'cgc-cards');
   const ten = ok('5012345678');
   assert.equal(ten.grader, null);
-  assert.deepEqual(ten.graderOptions, ['cgc-comics', 'cgc-cards', 'psa']);
+  assert.deepEqual(ten.graderOptions, ['cgc-comics', 'cgc-cards', 'psa', 'bgs']);
   const cgc10 = ok('CGC 5012345678');
   assert.equal(cgc10.grader, null);
   assert.deepEqual(cgc10.graderOptions, ['cgc-comics', 'cgc-cards']);
   assert.equal(ok('CGC 1401234567890').grader, 'cgc-cards');
+  assert.equal(ok('BGS 0012345678').grader, 'bgs');
+  assert.equal(ok('Beckett 0012345678').grader, 'bgs');
 });
 
 test('dash form joins to 10 digits and means CGC comics', () => {

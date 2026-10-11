@@ -72,11 +72,11 @@ test('full CGC comic label (brand, 9.8, WHITE PAGES) resolves cgc-comics', () =>
   assert.ok(cands[0].evidence.includes('kw:UNIVERSAL GRADE'));
 });
 
-test('J5: 10 digits, no keywords -> .435, grader null, options comics/cards/psa, confirm', () => {
+test('J5: 10 digits, no keywords -> .435, grader null, options comics/cards/psa/bgs, confirm', () => {
   const cands = parseCandidates({ pages: [ocrPage(['5012345678']), digitsPage('5012345678')] });
   assert.equal(cands.length, 1);
   assert.equal(cands[0].grader, null);
-  assert.deepEqual(cands[0].graderOptions, ['cgc-comics', 'cgc-cards', 'psa']);
+  assert.deepEqual(cands[0].graderOptions, ['cgc-comics', 'cgc-cards', 'psa', 'bgs']);
   assert.equal(cands[0].confidence, 0.44); // .835 - .20 - .20 = .435
   assert.equal(decide(cands, settings(), []), 'confirm');
 });
@@ -84,7 +84,17 @@ test('J5: 10 digits, no keywords -> .435, grader null, options comics/cards/psa,
 test('10 digits with only "CGC" stays unresolved between comics and cards (D4)', () => {
   const cands = parseCandidates({ pages: [ocrPage(['CGC', '5012345678']), digitsPage('5012345678')] });
   assert.equal(cands[0].grader, null);
-  assert.deepEqual(cands[0].graderOptions, ['cgc-comics', 'cgc-cards', 'psa']);
+  assert.deepEqual(cands[0].graderOptions, ['cgc-comics', 'cgc-cards', 'psa', 'bgs']);
+  assert.equal(decide(cands, settings(), []), 'confirm');
+});
+
+test('BGS label: brand and subgrades resolve bgs, but the lookup form is never auto-opened', () => {
+  const label = ['BECKETT GRADING SERVICES', '2023 POKEMON SV 151', 'CHARIZARD EX #199', 'GEM MINT 9.5',
+    'CENTERING 9.5 CORNERS 9.5 EDGES 10 SURFACE 9.5', '0012345678'];
+  const cands = parseCandidates({ pages: [ocrPage(label), digitsPage('0012345678')] });
+  assert.equal(cands[0].grader, 'bgs');
+  assert.equal(cands[0].number, '0012345678', 'leading zeros kept');
+  assert.ok(cands[0].confidence >= 0.8);
   assert.equal(decide(cands, settings(), []), 'confirm');
 });
 

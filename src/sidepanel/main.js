@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS, loadSettings, saveSettings, onSettingsChanged } from 
 import { loadHistory, clearHistory, onHistoryChanged, MAX_HISTORY } from '../shared/history.js';
 import { saveLastResult, loadLastResult, clearLastResult, clearAllLastResults } from '../shared/lastResult.js';
 import { buildCertUrl, isValidCert } from '../core/certUrls.js';
-import { scan, disposeEngines } from '../pipeline/scanner.js';
+import { scan, readLabel, disposeEngines } from '../pipeline/scanner.js';
 import { scanPage } from '../pipeline/pageScan.js';
 import { imageOriginOf } from '../pipeline/acquire.js';
 import { hintText } from '../pipeline/probeValidate.js';
@@ -42,7 +42,7 @@ let history = { v: 1, entries: [] };
 let current = null;
 /** Last completed scan context: what Try again / Scan again / Copy / Edit act on. `page`: the A9 results list. */
 /** thumbUrl: small preview (<= 240 px); fullBlob: the original image, decoded only for "Show larger" (perf rec. 1). */
-const blankLast = () => ({ input: null, job: null, result: null, opened: null, thumbUrl: null, fullBlob: null, thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null, page: null });
+const blankLast = () => ({ input: null, job: null, result: null, opened: null, thumbUrl: null, fullBlob: null, thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null, page: null, labelLines: null, labelFor: null });
 let last = blankLast();
 const autoOpened = new Set();
 const declined = new Set(); // hosts where "Sharper scans" was denied or dismissed this session
@@ -269,6 +269,22 @@ async function refreshPrices({ fromCert = true } = {}) {
     if (run !== priceRun) return;
     if (r?.ok) { psa = r.card; ui.applyCertCard(r.card); }
   }
+  // Card name from the label itself, read at text size (the full-image pass reads it poorly on small photos, and a
+  // QR/barcode read skips OCR altogether). Runs once per result, before the prices are looked up.
+  if (fromCert && !psa && o.method !== 'manual' && last.fullBlob && last.labelFor !== o) {
+    last.labelFor = o;
+    ui.showPriceData({ status: 'reading' });
+    const ok = (lines) => cardInfo({ grader: o.grader, number: o.number, lines }).desc !== null;
+    const lines = await readLabel(last.fullBlob, { accept: ok }).catch(() => []);
+    if (run !== priceRun) return;
+    const info = cardInfo({ grader: o.grader, number: o.number, lines });
+    last.labelLines = lines;
+    // Keep the scan's own reading when it has the card number and this pass lost it (small photos).
+    const prev = ui.priceInput().desc;
+    const better = info.desc && (cardNoFrom(info.desc) || !cardNoFrom(prev));
+    if (better) ui.applyCertCard({ query: info.desc, grade: info.grade ?? ui.priceInput().grade, title: null });
+    else if (info.grade && !ui.priceInput().grade) ui.applyCertCard({ query: '', grade: info.grade, title: null });
+  }
   const { grader, desc, grade } = ui.priceInput();
   if (!desc) { ui.showPriceData({ status: 'need-card' }); return; }
   ui.showPriceData({ status: 'loading' });
@@ -289,7 +305,8 @@ async function refreshPrices({ fromCert = true } = {}) {
 function pricesFor(opened) {
   const lines = opened.method === 'manual' ? null : last.result?.labelText;
   const { desc, grade } = cardInfo({ grader: opened.grader, number: opened.number, lines });
-  return { grader: opened.grader, desc, grade, special: specialGrade(opened.grader, lines), site: settings.ebaySite };
+  const special = specialGrade(opened.grader, lines) ?? specialGrade(opened.grader, last.labelLines);
+  return { grader: opened.grader, desc, grade, special, site: settings.ebaySite };
 }
 
 async function openPrice(makeUrl) {

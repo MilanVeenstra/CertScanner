@@ -50,7 +50,7 @@ describe('Prices for this card', { concurrency: false }, () => {
     sales: [...document.querySelectorAll('[data-testid="price-sales"] li')].map((li) => li.textContent),
     pop: document.querySelector('[data-ref="pc-pop"]')?.hidden ? null : document.querySelector('[data-ref="pc-pop"]')?.textContent,
   }));
-  const settled = () => E.poll(async () => { const s = (await read()).status; return s && s !== 'loading' && s !== 'check'; }, { message: 'prices settled', timeout: 45000 });
+  const settled = () => E.poll(async () => { const s = (await read()).status; return s && !['loading', 'reading', 'check'].includes(s); }, { message: 'prices settled', timeout: 45000 });
 
   test('scanned slab: current price and last sold for its grade, all grades, recent sales', T, async () => {
     const r = await pasteImage(page, await readFile(path.join(E.FIXTURES, 'psa-8digit-leading-zero.png')));
@@ -125,5 +125,14 @@ describe('Prices for this card', { concurrency: false }, () => {
     assert.equal(r.last, 625);
     assert.ok(r.log.some((l) => l.startsWith('tab background')), 'read in a background tab');
     assert.equal(r.open, 0, 'every tab it opened is closed');
+  });
+
+  test('number from a QR code: the card name is still read from the label (text-size pass)', T, async () => {
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    const r = await pasteImage(page, await readFile(path.join(E.FIXTURES, 'cgc-comic-qr.png')));
+    assert.equal(r.number, '4012347003');
+    await settled();
+    assert.ok(hits.some((h) => h.url === 'https://www.pricecharting.com/search-products?q=Amazing+Spider-Man+300&type=prices'), 'searched by the name read from the label');
   });
 });

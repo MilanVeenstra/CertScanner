@@ -147,6 +147,23 @@
     <p class="hint switch-hint" id="hint-background" data-i18n="setting_background_hint"></p>
   </section>
 
+  <section class="section" aria-labelledby="prices-settings-heading">
+    <h3 id="prices-settings-heading" data-i18n="settings_prices_heading">Prices &amp; listings</h3>
+    <label class="select-row" for="setting-ebay-site">
+      <span class="switch-text" data-i18n="setting_ebay_site">eBay site</span>
+      <select id="setting-ebay-site" data-testid="setting-ebaySite">
+        <option value="com">ebay.com</option>
+        <option value="co.uk">ebay.co.uk</option>
+        <option value="de">ebay.de</option>
+        <option value="nl">ebay.nl</option>
+        <option value="fr">ebay.fr</option>
+        <option value="ca">ebay.ca</option>
+        <option value="com.au">ebay.com.au</option>
+      </select>
+    </label>
+    <p class="hint switch-hint" data-i18n="setting_ebay_site_hint"></p>
+  </section>
+
   <section class="section" aria-labelledby="history-heading">
     <h3 id="history-heading" data-i18n="settings_history_heading">Scan history</h3>
     <label class="switch-row" for="setting-history">
@@ -216,6 +233,7 @@
   <button type="button" class="link" data-testid="edit-button" data-action="edit"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="edit_link"></span></button>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
   <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
+  <div data-ref="prices-slot"></div>
 </template>
 
 <template id="tpl-edit">
@@ -300,6 +318,24 @@
   <li class="site-row"><span class="site-host" dir="ltr" data-ref="host"></span><button type="button" class="link" data-ref="remove"><span data-ref="remove-label" data-i18n="remove_button"></span></button></li>
 </template>
 
+<template id="tpl-prices">
+  <section class="prices" aria-labelledby="prices-heading">
+    <h3 id="prices-heading" data-i18n="prices_heading">Prices &amp; listings</h3>
+    <div class="segments prices-mode" role="radiogroup" data-ref="price-mode" aria-labelledby="prices-heading">
+      <label class="segment"><input type="radio" name="price-mode" value="card"><span data-i18n="prices_mode_card">This card</span></label>
+      <label class="segment"><input type="radio" name="price-mode" value="slab"><span data-i18n="prices_mode_slab">This slab</span></label>
+    </div>
+    <label class="visually-hidden" for="price-query" data-i18n="prices_query_label">Search terms</label>
+    <input type="text" id="price-query" class="cert-field price-query" data-testid="price-query" data-ref="price-query" maxlength="120" autocomplete="off" spellcheck="false" dir="auto">
+    <div class="actions">
+      <button type="button" class="btn btn-secondary btn-sm" data-testid="price-sold" data-action="price-sold"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_sold">Sold on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="btn btn-secondary btn-sm" data-testid="price-active" data-action="price-active"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_active">For sale on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-testid="price-130" data-action="price-130"><span data-i18n="prices_130point">130point</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    </div>
+    <p class="hint" data-ref="price-note"></p>
+  </section>
+</template>
+
 <template id="tpl-page-results">
   <div data-ref="summary"></div>
   <div data-ref="qr-slot"></div>
@@ -322,6 +358,7 @@
         <button type="button" class="btn btn-strong btn-sm" data-ref="open"><span data-ref="open-label" data-i18n="recent_open"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
         <button type="button" class="btn btn-strong btn-sm" data-ref="choose" hidden><span data-ref="choose-label" data-i18n="page_result_choose"></span></button>
         <button type="button" class="link" data-ref="copy"><span data-ref="copy-label" data-i18n="recent_copy"></span></button>
+        <button type="button" class="link" data-ref="prices"><span data-ref="prices-label" data-i18n="page_row_prices">eBay sold</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       </div>
     </div>
   </li>

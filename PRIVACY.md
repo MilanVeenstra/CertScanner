@@ -1,11 +1,11 @@
 # CertScanner privacy policy
 
-**Effective date:** 10 October 2026 · **Applies to:** CertScanner for Chrome, version 0.1.0 and later until this policy is updated.
+**Effective date:** 11 October 2026 · **Applies to:** CertScanner for Chrome, version 0.1.0 and later until this policy is updated.
 **Contact:** `<maintainer contact>`
 
 CertScanner is a browser extension. It reads the certification number from a photo of a PSA or CGC graded slab and opens that grader's official cert page. This policy covers what the extension handles, where that data goes, and how you can remove it.
 
-> **Short version.** CertScanner reads images on your own device and never uploads them. It has no server, no account, no analytics and no ads. A cert number leaves your device only when the grader's official page opens in a tab. Your settings sync through Chrome. Your recent scans stay on this device, and you can delete them at any time.
+> **Short version.** CertScanner reads images on your own device and never uploads them. It has no server, no account, no analytics and no ads. A cert number leaves your device only when the grader's official page opens in a tab, or when you click a price link. Your settings sync through Chrome. Your recent scans stay on this device, and you can delete them at any time.
 
 ---
 
@@ -21,14 +21,14 @@ CertScanner only reads a page when you ask it to. You do that by clicking the Ce
 | **Scan hand-off details.** These are the address of the page you scan (site and path only; the query string and anything after `#` are removed), the right-clicked image's address if there is one, and Chrome's internal tab and window numbers. | During a scan | Passed from the toolbar, shortcut or right-click menu to the panel. Used to load the image, to check that Chrome allows reading the page, and to make sure the tab hasn't changed during the scan. | Chrome session storage. Deleted as soon as the panel picks up the scan. If the panel never does, it is ignored after 2 minutes and deleted when the window or Chrome closes. |
 | **The last result in each window:** up to 5 cert numbers that were read, the grader, how each was read, what the panel showed (for example "opened" or an error code) and one host name. That host name is the image's host for a photo you right-clicked, or the page's host for a page scan or when the image's address is unknown. There is none for uploads, pastes and typed numbers. If a QR code pointed to another site, that site's host name is kept too. | After a scan | Restores the result if you close and reopen the panel. Lists of page-scan results are not restored. | Chrome session storage. Replaced by the next result, ignored after 12 hours, and deleted when you use **Clear history**, turn off **Keep scan history**, close the window, or close Chrome. **No images, page addresses or image addresses.** |
 | **Recent scans:** grader, cert number, how it was read (barcode, QR code, text, typed or corrected) and time. | When a cert page is opened or a number is copied, if **Keep scan history** is on (the default) | Shown under **Recent scans** so you can reopen or copy a number. | On this device only (`chrome.storage.local`), last 25 entries. **No images, page or image addresses, or site names are stored.** |
-| **Settings:** four on/off choices. These are *Toolbar button scans the page*, *Always ask before opening*, *Open in a background tab* and *Keep scan history*. | When you change them | Applied to how the extension behaves. | `chrome.storage.sync`. If Chrome sync is on, Chrome copies them to your other signed-in devices. |
+| **Settings:** four on/off choices and one list choice. These are *Toolbar button scans the page*, *Always ask before opening*, *Open in a background tab*, *Keep scan history* and *eBay site*. | When you change them | Applied to how the extension behaves. | `chrome.storage.sync`. If Chrome sync is on, Chrome copies them to your other signed-in devices. |
 | **IDs of scans already handled in each window** (random IDs, at most 20; no addresses or numbers). | After a scan | Prevents the same scan from running or opening a page twice after the panel reloads. | Chrome session storage; deleted when the window or Chrome closes. |
 | **Sites where you chose "Not now" or refused access** after the **Sharper scans on ‹site›** offer. | When you dismiss the offer | Stops the same offer from appearing again in this session. | Chrome session storage; cleared when Chrome closes. |
 | **Clipboard.** | Only when you paste into the panel, or click **Copy** | Reads the image or text you paste. Writes the cert number when you click Copy. | Not stored by CertScanner. |
 
 ## 2. What leaves your device
 
-CertScanner itself operates **no server** and receives **no data** from you. Two kinds of network request can happen.
+CertScanner itself operates **no server** and receives **no data** from you. Three kinds of network request can happen.
 
 1. **Opening the official cert page.** CertScanner opens a new tab at the grader's official address, which contains the cert number:
    - `https://www.psacard.com/cert/<number>`
@@ -37,6 +37,8 @@ CertScanner itself operates **no server** and receives **no data** from you. Two
 
    This happens by itself only when exactly one number was read clearly and you haven't turned on *Always ask before opening*. Otherwise it happens when you click **Open**. Your browser then visits that site like any other page you open. The visit is covered by that grader's own privacy policy. CertScanner is not affiliated with PSA or CGC.
 2. **Loading the image you scan.** To read a photo at full resolution, CertScanner may download it again from the website that already shows it to you. When CertScanner downloads the image itself, it sends no cookies and no referrer. In some cases it asks the page to load the image instead, just as the page loads its own images (often straight from the browser cache).
+
+3. **Price & listing links, only when you click one.** Under a result, *Sold on eBay* and *For sale on eBay* open an eBay search (on the eBay site you pick in Settings, `ebay.com` by default) in a new tab, and *130point sales* opens `https://130point.com/sales/`. The search terms shown in the box are the only thing sent: a card description read from the label (for example "2023 POKEMON SV 151 CHARIZARD ex #199 PSA 10") or "PSA" / "CGC" with the cert number. You can edit them before clicking. For 130point the terms are copied to your clipboard so you can paste them there. CertScanner never fetches prices or listings itself. The visit is covered by eBay's or 130point's own privacy policy; CertScanner is not affiliated with either.
 
 A web address found inside a QR code is never opened. Only the number in it is used, and the official address is always built by CertScanner itself.
 
@@ -72,7 +74,7 @@ A web address found inside a QR code is never opened. Only the number in it is u
 - **Last result:** it is session data, kept apart from Recent scans. It is replaced by your next result, ignored after 12 hours, and deleted by **Clear history**, by turning off **Keep scan history**, when the window closes, or when Chrome closes.
 - **Always ask before opening:** Settings → **Always ask before opening**. Nothing opens until you click **Open**.
 - **Stop the toolbar button from scanning:** Settings → **Toolbar button scans the page** (off). Clicking the icon then only opens the panel. The keyboard shortcut still scans; you can remove it at `chrome://extensions/shortcuts`.
-- **Remove everything:** uninstall CertScanner. Chrome deletes its scan history, session data and site access. The four settings may stay in your Chrome sync data until you reset sync.
+- **Remove everything:** uninstall CertScanner. Chrome deletes its scan history, session data and site access. The settings may stay in your Chrome sync data until you reset sync.
 
 ## 6. Security
 
@@ -105,9 +107,9 @@ _Deze samenvatting is ter informatie. Bij verschillen geldt de Engelse tekst hie
 - **Op je apparaat:** foto's worden op je eigen apparaat gelezen, in het geheugen, en nooit geüpload.
   - Bij een paginascan kijkt CertScanner alleen naar de adressen, afmetingen en posities van de afbeeldingen, of ze door de pagina verborgen zijn en of ze bovenaan liggen (zodat verborgen of afgedekte foto's nooit automatisch een certpagina openen), niet naar tekst of andere inhoud van de pagina.
   - Kan een afbeelding niet direct geladen worden, dan wordt een schermafbeelding van het zichtbare deel van het tabblad gemaakt. Die wordt in het geheugen bijgesneden tot de foto en daarna weggegooid.
-- **Wat je apparaat verlaat:** alleen het openen van de officiële certpagina met het certnummer (psacard.com, cgccomics.com of cgccards.com). Daarnaast kan de afbeelding opnieuw worden gedownload van de website die haar al toont; CertScanner stuurt daarbij geen cookies of referrer mee. CertScanner heeft zelf geen server en ontvangt niets.
+- **Wat je apparaat verlaat:** alleen het openen van de officiële certpagina met het certnummer (psacard.com, cgccomics.com of cgccards.com). Daarnaast kan de afbeelding opnieuw worden gedownload van de website die haar al toont; CertScanner stuurt daarbij geen cookies of referrer mee. Klik je onder een resultaat op een prijslink (*Verkocht op eBay*, *Te koop op eBay* of *130point-verkopen*), dan gaan alleen de zoektermen uit het vak naar eBay of 130point (voor 130point worden ze naar je klembord gekopieerd). CertScanner haalt zelf nooit prijzen op. CertScanner heeft zelf geen server en ontvangt niets.
 - **Wat wordt bewaard:**
-  - De instellingen gaan via Chrome-synchronisatie. Het zijn vier aan/uit-keuzes: *Werkbalkknop scant de pagina*, *Altijd vragen voor het openen*, *Openen op een achtergrondtabblad* en *Scangeschiedenis bewaren*.
+  - De instellingen gaan via Chrome-synchronisatie. Het zijn vier aan/uit-keuzes (*Werkbalkknop scant de pagina*, *Altijd vragen voor het openen*, *Openen op een achtergrondtabblad* en *Scangeschiedenis bewaren*) en de keuze voor de *eBay-site*.
   - Recente scans (grader, nummer, manier van lezen, tijd; maximaal 25) blijven alleen op dit apparaat. Er worden geen afbeeldingen, webadressen of sitenamen bewaard.
   - Het laatste resultaat per venster (certnummers, grader, manier van lezen en één hostnaam: die van de afbeelding of, bij een paginascan, die van de pagina) staat in het sessiegeheugen van Chrome. Het wordt vervangen door het volgende resultaat, na 12 uur genegeerd en gewist bij **Geschiedenis wissen**, als je **Scangeschiedenis bewaren** uitzet, als het venster sluit of als Chrome sluit.
   - Gegevens van de lopende scan en de ID's van al afgehandelde scans (maximaal 20, zonder adressen of nummers) staan alleen in het sessiegeheugen van Chrome en verdwijnen als het venster of Chrome sluit.

@@ -1006,5 +1006,52 @@
         "example": "i.ebayimg.com"
       }
     }
+  },
+  "prices_heading": {
+    "message": "Prices & listings"
+  },
+  "prices_mode_card": {
+    "message": "This card",
+    "description": "Search for the card and grade read from the label."
+  },
+  "prices_mode_slab": {
+    "message": "This slab",
+    "description": "Search for this exact slab by its cert number."
+  },
+  "prices_query_label": {
+    "message": "Search terms"
+  },
+  "prices_ebay_sold": {
+    "message": "Sold on eBay"
+  },
+  "prices_ebay_active": {
+    "message": "For sale on eBay"
+  },
+  "prices_130point": {
+    "message": "130point sales"
+  },
+  "prices_note": {
+    "message": "Opens $SITE$ or 130point in a new tab. Only these search terms are sent, and only when you click. For 130point the terms are copied so you can paste them.",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "ebay.com"
+      }
+    }
+  },
+  "prices_130_copied": {
+    "message": "Search terms copied. Paste them into 130point."
+  },
+  "page_row_prices": {
+    "message": "eBay sold"
+  },
+  "settings_prices_heading": {
+    "message": "Prices & listings"
+  },
+  "setting_ebay_site": {
+    "message": "eBay site"
+  },
+  "setting_ebay_site_hint": {
+    "message": "Used by the Sold on eBay and For sale on eBay links. CertScanner never fetches prices itself."
   }
 }

@@ -21,6 +21,13 @@ const digitLikeCount = (s) => (String(s).match(DIGIT_LIKE_RE) ?? []).length;
 const now = () => performance.now();
 const ms = (x) => Math.round(x);
 
+/** Text lines of the full-image OCR pass (in memory only; feeds the price & listing search terms). */
+function labelLines(pages) {
+  const page = pages.find((p) => p && p.pass === 'text' && !p.rotation) ?? pages.find((p) => p && p.pass === 'text');
+  if (!page || typeof page.text !== 'string') return [];
+  return page.text.split('\n').map((l) => l.trim().slice(0, 80)).filter(Boolean).slice(0, 24);
+}
+
 let defaultEngines = null;
 /** Lazily created engines shared by every scan in this panel. */
 export function getEngines() {
@@ -145,7 +152,7 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
       progress('parse');
       const a = analyze({ pages, barcodes });
       for (const w of a.warnings) warnings.push(w);
-      return finish(decide(a.candidates, settings, warnings), { candidates: a.candidates });
+      return finish(decide(a.candidates, settings, warnings), { candidates: a.candidates, labelText: labelLines(pages) });
     };
     if (trustedQr) return route([]);
 

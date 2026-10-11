@@ -1,6 +1,8 @@
 // The only caller of chrome.tabs.create (ADR-001 §8). Decoded/page URLs are never navigated:
-// the URL is always rebuilt by buildCertUrl() from a validated grader + digit string.
+// cert URLs are always rebuilt by buildCertUrl() from a validated grader + digit string, and price links must pass
+// isPriceUrl() (allow-listed eBay/130point search URLs built by priceLinks.js).
 import { buildCertUrl } from '../core/certUrls.js';
+import { isPriceUrl } from '../core/priceLinks.js';
 import { addHistoryEntry, makeEntry } from '../shared/history.js';
 
 /**
@@ -13,6 +15,22 @@ import { addHistoryEntry, makeEntry } from '../shared/history.js';
  */
 export async function openCert(candidate, job, settings, { windowId, chromeApi = globalThis.chrome, now = Date.now(), replaceLatest = false } = {}) {
   const url = buildCertUrl(candidate.grader, candidate.number); // throws RangeError on bad input
+  const { tab, active } = await openNextToSource(url, job, settings, windowId, chromeApi);
+  const historySaved = await recordHistory(candidate, job, settings, now, { replace: replaceLatest });
+  return { url, tabId: tab?.id, active, historySaved };
+}
+
+/**
+ * Open a price/listing search (eBay, 130point) next to the source tab. Only links built by priceLinks.js pass, and
+ * nothing is added to the scan history (these are searches, not cert pages).
+ */
+export async function openPriceLink(url, job, settings, { windowId, chromeApi = globalThis.chrome } = {}) {
+  if (!isPriceUrl(url)) throw new RangeError('not a price link');
+  const { tab } = await openNextToSource(url, job, settings, windowId, chromeApi);
+  return { url, tabId: tab?.id };
+}
+
+async function openNextToSource(url, job, settings, windowId, chromeApi) {
   let src = null;
   if (job && Number.isInteger(job.tabId)) {
     try { src = await chromeApi.tabs.get(job.tabId); } catch { src = null; }
@@ -32,8 +50,7 @@ export async function openCert(candidate, job, settings, { windowId, chromeApi =
     // Window gone (e.g. popup fallback outlived it): open in the current window instead.
     tab = await chromeApi.tabs.create({ url, active: props.active });
   }
-  const historySaved = await recordHistory(candidate, job, settings, now, { replace: replaceLatest });
-  return { url, tabId: tab?.id, active: props.active, historySaved };
+  return { tab, active: props.active };
 }
 
 /** History is written when a cert is opened or copied, only if saveHistory is on (ADR §9). */

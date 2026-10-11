@@ -1006,5 +1006,52 @@
         "example": "i.ebayimg.com"
       }
     }
+  },
+  "prices_heading": {
+    "message": "Prijzen & listings"
+  },
+  "prices_mode_card": {
+    "message": "Deze kaart",
+    "description": "Search for the card and grade read from the label."
+  },
+  "prices_mode_slab": {
+    "message": "Deze slab",
+    "description": "Search for this exact slab by its cert number."
+  },
+  "prices_query_label": {
+    "message": "Zoektermen"
+  },
+  "prices_ebay_sold": {
+    "message": "Verkocht op eBay"
+  },
+  "prices_ebay_active": {
+    "message": "Te koop op eBay"
+  },
+  "prices_130point": {
+    "message": "130point-verkopen"
+  },
+  "prices_note": {
+    "message": "Opent $SITE$ of 130point in een nieuw tabblad. Alleen deze zoektermen worden verstuurd, en pas als je klikt. Voor 130point worden ze gekopieerd zodat je ze kunt plakken.",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "ebay.com"
+      }
+    }
+  },
+  "prices_130_copied": {
+    "message": "Zoektermen gekopieerd. Plak ze in 130point."
+  },
+  "page_row_prices": {
+    "message": "eBay verkocht"
+  },
+  "settings_prices_heading": {
+    "message": "Prijzen & listings"
+  },
+  "setting_ebay_site": {
+    "message": "eBay-site"
+  },
+  "setting_ebay_site_hint": {
+    "message": "Voor de links Verkocht op eBay en Te koop op eBay. CertScanner haalt zelf nooit prijzen op."
   }
 }

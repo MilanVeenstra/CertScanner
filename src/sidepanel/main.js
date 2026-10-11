@@ -14,7 +14,8 @@ import { createUi, graderName } from './ui.js';
 import { createCertField } from './certField.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
-import { openCert, recordHistory } from './opener.js';
+import { openCert, openPriceLink, recordHistory } from './opener.js';
+import { cardQuery, slabQuery, ebaySearchUrl, POINT130_URL } from '../core/priceLinks.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
@@ -228,8 +229,41 @@ function showConfirmState(result, { openFailed = false, moveFocus = true, restor
 function showOpened(opened, bodyState, { moveFocus = true, restored = false } = {}) {
   last.opened = opened;
   setBody(bodyState, { restored });
-  ui.showResult({ opened, thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt }, { moveFocus });
+  ui.showResult({ opened, thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(opened) }, { moveFocus });
   if (!restored) persist({ task: 'result', body: bodyState, result: last.result, opened });
+}
+
+/** Price-link queries for an opened cert: the card from the scanned label text (same photo only) and the slab's cert. */
+function pricesFor(opened) {
+  const lines = opened.method === 'manual' ? null : last.result?.labelText;
+  return {
+    card: cardQuery({ grader: opened.grader, number: opened.number, lines }),
+    slab: slabQuery(opened.grader, opened.number),
+    site: settings.ebaySite,
+  };
+}
+
+async function openPrices(sold) {
+  const q = ui.priceQuery();
+  if (!q) return;
+  try {
+    await openPriceLink(ebaySearchUrl(settings.ebaySite, q, { sold }), last.job, settings, { windowId });
+  } catch {
+    ui.showOpenError();
+  }
+}
+
+/** 130point has no search link: copy the terms first (still inside the click), then open its sales page. */
+async function open130point() {
+  const q = ui.priceQuery();
+  let copied = false;
+  if (q) { try { await navigator.clipboard.writeText(q); copied = true; } catch { /* still open the page */ } }
+  try {
+    await openPriceLink(POINT130_URL, last.job, settings, { windowId });
+    if (copied) ui.announce(t('prices_130_copied'));
+  } catch {
+    ui.showOpenError();
+  }
 }
 
 function canRetry(code) {
@@ -331,7 +365,7 @@ function showPageResultsState({ openFailed = false, moveFocus = true } = {}) {
   ui.showPageResults({
     items: p.result.items, thumbs: p.thumbs, qrHost: p.qrHost, qrNumberUsed: p.qrNumberUsed,
     summary: pageSummary(p.result), opened: p.opened,
-  }, { onOpen: openPageItem, onChoose: choosePageItem, onCopy: copyPageItem }, { moveFocus });
+  }, { onOpen: openPageItem, onChoose: choosePageItem, onCopy: copyPageItem, onPrices: pricesPageItem }, { moveFocus });
   if (openFailed) ui.showOpenError();
   if (windowId !== null) clearLastResult(windowId); // results lists are not restored (they need the thumbnails)
 }
@@ -343,6 +377,17 @@ async function openPageItem(item, i) {
     p?.opened.add(i);
     ui.markPageOpened(i);
     ui.announce(t('status_opened', [graderName(item.grader), item.number]));
+  } catch {
+    ui.showOpenError();
+  }
+}
+
+/** "eBay sold" on a results row: past sales and listings of that exact slab. */
+async function pricesPageItem(item) {
+  const q = slabQuery(item.grader, item.number);
+  if (!q) return;
+  try {
+    await openPriceLink(ebaySearchUrl(settings.ebaySite, q, { sold: true }), last.job, settings, { windowId });
   } catch {
     ui.showOpenError();
   }
@@ -538,7 +583,7 @@ async function openAgain() {
 
 function cancelEdit() {
   if (!last.opened) return;
-  ui.showResult({ opened: last.opened, thumbUrl: last.thumbUrl, thumbAlt: last.thumbAlt }, { moveFocus: false });
+  ui.showResult({ opened: last.opened, thumbUrl: last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(last.opened) }, { moveFocus: false });
   doc.querySelector('#task [data-action="edit"]')?.focus();
 }
 
@@ -570,6 +615,8 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'page-scan') onPageScanButton();
   else if (a === 'always-allow') onAlwaysAllow();
   else if (a === 'back-to-page') showPageResultsState();
+  else if (a === 'price-sold' || a === 'price-active') openPrices(a === 'price-sold');
+  else if (a === 'price-130') open130point();
 });
 $('choose-image').addEventListener('click', () => $('file-input').click());
 
@@ -687,6 +734,14 @@ $('settings-button').addEventListener('click', () => showView('settings'));
 // Extensions can't link to chrome:// pages, but tabs.create may open the shortcut editor.
 $('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url: SHORTCUTS_URL }).catch(() => ui.announce(t('err_open_tab'))); });
 $('back-button').addEventListener('click', () => showView('home'));
+
+$('setting-ebay-site').addEventListener('change', async (e) => {
+  try {
+    settings = await saveSettings({ ebaySite: e.target.value });
+  } catch {
+    ui.renderSettings(settings, { historyCount: history.entries.length }); // revert the choice
+  }
+});
 
 for (const box of doc.querySelectorAll('[data-setting]')) {
   box.addEventListener('change', async () => {

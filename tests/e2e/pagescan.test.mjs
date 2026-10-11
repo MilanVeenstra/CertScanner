@@ -671,7 +671,7 @@ describe('A9 Dutch UI smoke (--lang=nl, dist-e2e): idle, toolbar title and page-
     const idle = await readPage(p.page);
     assert.equal(idle.lang, 'nl');
     assert.equal(idle.heading, nl.idle_heading.message);
-    assert.equal((await p.page.locator(tid('page-scan-button')).textContent()).trim(), nl.page_scan_button.message);
+    assert.equal((await p.page.locator(`${tid('page-scan-button')} [data-i18n="page_scan_button"]`).textContent()).trim(), nl.page_scan_button.message);
     const mark = await E.logMark(p.page);
     await E.writePageJob(env, { windowId: tab.windowId, tabId: tab.id, pageUrl: tab.url });
     await E.waitForScanEnd(p.page, mark, { timeout: 60000 });

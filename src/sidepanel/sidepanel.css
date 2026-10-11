@@ -253,6 +253,12 @@ legend { padding: 0; margin-block-end: var(--cs-space-1); }
 .grader-hint { margin: var(--cs-space-1) 0 0; }
 .grader-hint:empty { display: none; }
 
+/* Price & listing links under a result: search links only, nothing is fetched */
+.prices { display: flex; flex-direction: column; gap: var(--cs-space-2); border-block-start: 1px solid var(--cs-row); padding-block-start: var(--cs-space-3); }
+.prices h3 { margin: 0; }
+.price-query { block-size: 36px; font: 14px/1.2 var(--cs-font-sans); letter-spacing: 0; }
+.prices .hint { margin: 0; }
+
 /* Candidate rows (confirm with several numbers) */
 .candidates > div { display: flex; flex-direction: column; }
 .candidate { display: flex; gap: var(--cs-space-25); align-items: flex-start; padding: 10px 0; border-block-start: 1px solid var(--cs-row); cursor: pointer; }
@@ -335,6 +341,13 @@ body.is-dragover .drop-zone { border-color: var(--cs-text); background: var(--cs
 #settings .section { padding-block: 14px; }
 #settings .section h3 { margin-block-end: var(--cs-space-1); }
 .about p { font-size: var(--cs-text-xs); color: var(--cs-text-muted); }
+/* Settings select (eBay site) */
+.select-row { display: flex; align-items: center; gap: var(--cs-space-3); min-block-size: 32px; padding-block-start: 6px; }
+.select-row select {
+  flex: none; block-size: 32px; padding: 0 8px; border: var(--cs-line) solid var(--cs-border-control); border-radius: 0;
+  background: var(--cs-bg); color: var(--cs-text); font: inherit; font-size: var(--cs-text-sm);
+}
+.select-row select:focus-visible { outline: 2px solid var(--cs-focus); outline-offset: 2px; }
 /* Square toggle 38x22 */
 .switch-row { display: flex; align-items: center; gap: var(--cs-space-3); min-block-size: 32px; padding-block-start: 6px; cursor: pointer; position: relative; }
 .switch-text { flex: 1 1 auto; min-inline-size: 0; font-size: 13.5px; }

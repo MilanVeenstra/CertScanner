@@ -61,7 +61,7 @@ The text-recognition engine runs inside this panel, so the panel must stay open 
 
 ### `storage`
 Holds three kinds of data:
-- **`chrome.storage.sync`:** four on/off settings: "Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history".
+- **`chrome.storage.sync`:** four on/off settings ("Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history") and the eBay site used by the price links. The price links (eBay search, 130point sales page) open in a new tab only on a click and need no extra permission.
 - **`chrome.storage.local`:** an optional list of recent scans on this device. Each entry holds grader, cert number, how it was read and time; the list keeps at most 25. Users can switch it off or clear it ("Clear history").
 - **`chrome.storage.session`:** short-lived data, cleared when Chrome closes: the toolbar/shortcut/menu → panel hand-off (page address without query or fragment, image address, tab and window ids); the last result per window (cert numbers, grader, method and one image or page host name, at most 12 hours); and the sites where the user dismissed "Sharper scans on ‹site›".
 

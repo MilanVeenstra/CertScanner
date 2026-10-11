@@ -17,6 +17,7 @@ _Version 0.1.0. It is not published on the Chrome Web Store; for now you install
   - If exactly one number is read clearly, its official cert page opens right away.
   - Otherwise you get a list ("Cert numbers on this page") with **Open** and **Copy** for each number.
 - **Scan one specific photo.** Right-click a slab photo and choose **Scan slab cert number**.
+- **Prices & listings.** Under a result, **Sold on eBay**, **For sale on eBay** and **130point sales** open a search for *this card* (description and grade read from the label) or *this slab* (its cert number). The search terms are editable; nothing is fetched until you click. Each row in a results list has an **eBay sold** link too.
 - **Fallbacks.** In the side panel you can:
   - drop, paste (Ctrl+V / ⌘V) or upload an image (JPEG, PNG, WebP or AVIF, up to 15 MB);
   - type a number such as `PSA 01234567` or `CGC 4012345001`.
@@ -35,7 +36,7 @@ _Version 0.1.0. It is not published on the Chrome Web Store; for now you install
 CertScanner reads a page only when you click its icon, press the shortcut or right-click a photo. It never scans by itself.
 - **What it reads:** image addresses, sizes and positions, never page text. Images are processed on your device and never uploaded.
 - **What it stores:** settings sync through Chrome; recent scans (grader, number, method and time) stay on this device, and you can turn history off or clear it; the last result is kept in Chrome's session storage for up to 12 hours.
-- **What leaves your device:** the cert number, only when the grader's official page opens in a tab. The only other request is reloading a photo from the site that already shows it, sent without cookies when CertScanner makes it. There is no server, no account, no analytics and no ads.
+- **What leaves your device:** the cert number, only when the grader's official page opens in a tab, and the search terms of a price link you click (eBay or 130point). The only other request is reloading a photo from the site that already shows it, sent without cookies when CertScanner makes it. There is no server, no account, no analytics and no ads.
 - **Incognito:** the extension does not run in incognito windows.
 
 Full policy: [`PRIVACY.md`](PRIVACY.md).
@@ -56,6 +57,7 @@ Full policy: [`PRIVACY.md`](PRIVACY.md).
 - Klik op het CertScanner-icoon of druk op **Alt+Shift+S** (Mac: Option+Shift+S). De slabfoto's op de pagina worden gescand.
 - Of klik met de rechtermuisknop op een slabfoto en kies **Certnummer van slab scannen**.
 - Je kunt in het zijpaneel ook een afbeelding slepen, plakken of uploaden, of het nummer typen.
+- Onder een resultaat staat **Prijzen & listings**: **Verkocht op eBay**, **Te koop op eBay** en **130point-verkopen** zoeken naar *deze kaart* (omschrijving en grade van het label) of *deze slab* (het certnummer). De eBay-site kies je in Instellingen (standaard ebay.com).
 - Je wijzigt de sneltoets via `chrome://extensions/shortcuts`.
 
 CertScanner is niet gelieerd aan PSA of CGC. Een certcontrole bewijst niet dat een slab echt is; controleer altijd of de certpagina bij de slab op de foto past. De taal van de extensie volgt je Chrome-instellingen (Nederlands of Engels).
@@ -108,6 +110,7 @@ After pulling new code, run `npm run build` again and click the reload button on
 | Scan a saved image | Open the side panel and drop, paste or upload it |
 | Look up a number you know | Type it in the panel (e.g. `PSA 01234567`), choose the grader if asked, then **Open cert page** |
 | Reopen or copy an earlier number | **Recent scans** in the panel |
+| See prices and listings | Under a result: **Sold on eBay**, **For sale on eBay** or **130point sales** (the terms are copied; paste them on 130point) |
 
 **Settings** (gear icon in the panel):
 
@@ -116,6 +119,7 @@ After pulling new code, run `npm run build` again and click the reload button on
 | Toolbar button and shortcut | **Toolbar button scans the page** | on | When off, clicking the icon only opens the panel (tooltip "Open CertScanner"). The shortcut still scans. **Change shortcut** opens `chrome://extensions/shortcuts`. |
 | Opening cert pages | **Always ask before opening** | off | When on, nothing opens until you click **Open** |
 | Opening cert pages | **Open in a background tab** | off | Keeps you on the page you're viewing |
+| Prices & listings | **eBay site** | ebay.com | Which eBay the price links search (ebay.com, .co.uk, .de, .nl, .fr, .ca, .com.au) |
 | Scan history | **Keep scan history** | on | Keeps the last 25 numbers on this device only; turning it off deletes them. **Clear history** empties the list. |
 
 Under **Sites with full access**, Settings lists the sites you allowed through **Sharper scans on ‹site›** or **Always allow on ‹site›**, each with a **Remove** button. An **All sites** row appears if broader access was granted in Chrome.

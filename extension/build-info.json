@@ -1,9 +1,9 @@
 {
   "name": "CertScanner",
   "version": "0.1.0",
-  "gitCommit": "ba5ca8a0f5fff6cdd3ae2214d02e9479fe824ece",
+  "gitCommit": "36552ec44d29143d9b7e5b97b5deff6e7ceaa41c",
   "gitDirty": false,
-  "builtAt": "2026-10-10T11:19:49.000Z",
+  "builtAt": "2026-10-11T11:18:50.000Z",
   "target": "release",
   "e2eHarness": false,
   "vendor": [

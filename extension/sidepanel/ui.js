@@ -7,6 +7,7 @@ import { createCertField } from './certField.js';
 import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates } from './viewModel.js';
 import { pageRowNote } from './pageView.js';
 import { buildCertUrl } from '../core/certUrls.js';
+import { ebayHostLabel } from '../core/priceLinks.js';
 
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
 export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
@@ -44,6 +45,8 @@ export function createUi(doc, actions) {
   let largeUrl = null;
   let recentExpanded = false;
   let currentCandidates = [];
+  /** Queries behind the "This card" / "This slab" switch of the shown result. */
+  let priceQueries = null;
 
   applyI18n(parking);
   const otherWays = $('other-ways');
@@ -377,7 +380,37 @@ export function createUi(doc, actions) {
     setThumb(view);
     resetCopyLabel();
     offline(body);
+    renderPrices(view.prices);
     settle(t('status_opened', [graderName(o.grader), o.number]), { moveFocus });
+  }
+
+  /**
+   * Price & listing links under a result. prices: {card, slab, site}. The search terms stay editable; nothing is
+   * fetched until the user clicks a link.
+   */
+  function renderPrices(prices) {
+    priceQueries = null;
+    const slot = ref(body, 'prices-slot');
+    if (!slot || !prices || (!prices.card && !prices.slab)) return;
+    priceQueries = { card: prices.card, slab: prices.slab };
+    const frag = clone('tpl-prices');
+    const input = ref(frag, 'price-query');
+    const modes = ref(frag, 'price-mode');
+    const start = prices.card ? 'card' : 'slab';
+    modes.hidden = !(prices.card && prices.slab);
+    for (const r of modes.querySelectorAll('input')) {
+      r.checked = r.value === start;
+      r.addEventListener('change', () => { if (r.checked) input.value = priceQueries?.[r.value] ?? ''; });
+    }
+    input.value = priceQueries[start];
+    ref(frag, 'price-note').textContent = t('prices_note', [ebayHostLabel(prices.site)]);
+    slot.appendChild(frag);
+  }
+
+  /** The search terms in the price block (the slab query when the field was cleared). */
+  function priceQuery() {
+    const v = (ref(body, 'price-query')?.value ?? '').trim();
+    return v || priceQueries?.slab || priceQueries?.card || '';
   }
 
   function showOpenError() {
@@ -508,7 +541,7 @@ export function createUi(doc, actions) {
 
   /**
    * A9 results list. view: {items, thumbs:string[], qrHost, qrNumberUsed, summary:[{key,subs}], opened:Set<number>};
-   * handlers: {onOpen, onChoose, onCopy}. Each row shows the number, grader, how it was read and the exact URL
+   * handlers: {onOpen, onChoose, onCopy, onPrices}. Each row shows the number, grader, how it was read and the exact URL
    * that Open will load.
    */
   function showPageResults(view, handlers, { moveFocus = true } = {}) {
@@ -573,6 +606,14 @@ export function createUi(doc, actions) {
       copy.setAttribute('aria-labelledby', `${ids('copy')} ${ids('number')}`);
       copy.title = `${t('recent_copy')} ${item.number}`;
       copy.addEventListener('click', () => handlers.onCopy(item, i));
+      const prices = ref(row, 'prices');
+      ref(row, 'prices-label').id = ids('prices');
+      if (item.grader && handlers.onPrices) {
+        prices.setAttribute('aria-labelledby', `${ids('prices')} ${ids('chip')} ${ids('number')}`);
+        prices.addEventListener('click', () => handlers.onPrices(item, i));
+      } else {
+        prices.hidden = true;
+      }
       singles.pageresults.appendChild(row);
       if (view.opened?.has(i)) markPageOpened(i);
     });
@@ -720,6 +761,7 @@ export function createUi(doc, actions) {
     $('setting-always-ask').checked = !s.autoOpen;
     $('setting-background').checked = Boolean(s.openInBackground);
     $('setting-history').checked = Boolean(s.saveHistory);
+    $('setting-ebay-site').value = s.ebaySite ?? 'com';
     const clear = $('clear-history');
     const empty = historyCount === 0;
     if (empty) clear.setAttribute('aria-disabled', 'true'); else clear.removeAttribute('aria-disabled');
@@ -752,7 +794,7 @@ export function createUi(doc, actions) {
   return {
     openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
-    showIdle, showScanning, showResult, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    showIdle, showScanning, showResult, priceQuery, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },

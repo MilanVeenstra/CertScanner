@@ -68,7 +68,7 @@ YOU STAY IN CONTROL
 PRIVATE BY DESIGN
 • Images are read on your device and never uploaded. No account, no analytics, no ads.
 • A cert number only leaves your device when the grader's official page opens in a tab.
-• CertScanner only reads a page when you click the icon, press the shortcut or right-click a photo. It looks at image addresses and positions, not at page text.
+• CertScanner only reads a page when you click the icon, press the shortcut or right-click a photo. It looks at image addresses and positions (and the page title and photo alt text, to tell PSA, CGC and BGS apart), not at other page text.
 • Optional site access ("Sharper scans on <site>") is requested for one site at a time, only when it helps, and can be removed in Settings under "Sites with full access".
 • Does not run in incognito windows.
 
@@ -103,7 +103,7 @@ JIJ HOUDT DE CONTROLE
 PRIVACY
 • Afbeeldingen worden op je apparaat gelezen en nooit geüpload. Geen account, geen analytics, geen advertenties.
 • Een certnummer verlaat je apparaat alleen als de officiële pagina van de grader opent in een tabblad.
-• CertScanner leest een pagina alleen als jij op het icoon klikt, de sneltoets gebruikt of met rechts op een foto klikt. Het kijkt naar adressen en posities van afbeeldingen, niet naar tekst op de pagina.
+• CertScanner leest een pagina alleen als jij op het icoon klikt, de sneltoets gebruikt of met rechts op een foto klikt. Het kijkt naar adressen en posities van afbeeldingen (en de paginatitel en alt-tekst van foto's, om PSA, CGC en BGS uit elkaar te houden), niet naar andere tekst op de pagina.
 • Optionele toegang per site ('Scherpere scans op <site>') wordt alleen gevraagd als het helpt, en kun je in Instellingen onder 'Sites met volledige toegang' weer verwijderen.
 • Werkt niet in incognitovensters.
 

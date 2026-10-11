@@ -9,13 +9,14 @@ import { buildCertUrl, isValidCert } from '../core/certUrls.js';
 import { scan, disposeEngines } from '../pipeline/scanner.js';
 import { scanPage } from '../pipeline/pageScan.js';
 import { imageOriginOf } from '../pipeline/acquire.js';
+import { hintText } from '../pipeline/probeValidate.js';
 import { createPageJob } from '../shared/jobContract.js';
 import { createUi, graderName } from './ui.js';
 import { createCertField } from './certField.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, openedStatusKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, POINT130_URL, POP_URLS } from '../core/priceLinks.js';
+import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, pricechartingUrl, POP_URLS } from '../core/priceLinks.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
@@ -148,8 +149,10 @@ async function startScan(input) {
   setBody('scanning');
   ui.showScanning({ caption: d.caption, thumbUrl: null, thumbAlt: d.alt });
   let thumbDone = Promise.resolve();
+  const hints = job ? await tabTitle(job.tabId) : '';
   const result = await scan(input, {
     settings,
+    hints,
     signal: controller.signal,
     onProgress: (p) => { if (isCurrent()) ui.progress(p.stage); },
     onImage: (blob, info) => {
@@ -220,7 +223,7 @@ function showConfirmState(result, { openFailed = false, moveFocus = true, restor
     result, candidates: result.candidates, reasons: confirmReasons(result, settings),
     thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, caption: restored ? '' : last.caption,
     qrHost, qrNumberUsed, lowres: restored ? null : last.lowres,
-    prefill: { number: top.number, grader: top.grader }, backToPage,
+    prefill: { number: top.number, grader: top.grader ?? top.graderOptions?.[0] ?? null }, backToPage,
   }, { moveFocus });
   if (openFailed) ui.showOpenError();
   if (!restored) persist({ task: 'confirm', body: 'confirm', result, opened: null });
@@ -255,11 +258,6 @@ async function openPrice(makeUrl) {
 function onPriceAction(a) {
   const o = last.opened;
   if (!o) return;
-  if (a === 'price-130') {
-    const { grader, desc, grade } = ui.priceInput();
-    copyAndOpen(gradeQuery(grader, desc, grade) ?? slabQuery(o.grader, o.number), POINT130_URL, 'prices_130_copied');
-    return;
-  }
   if (a === 'price-pop') {
     if (POP_URLS[o.grader]) copyAndOpen(ui.priceInput().desc, POP_URLS[o.grader], 'prices_pop_copied');
     return;
@@ -274,11 +272,10 @@ function onPriceAction(a) {
   if (!q) { ui.showPriceError('prices_need_card'); return; }
   ui.showPriceError('');
   if (a === 'price-pricecharting') openPrice(() => pricechartingUrl(desc));
-  else if (a === 'price-psa') openPrice(() => psaAuctionUrl(desc));
-  else openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: a === 'price-sold' }));
+  else openPrice(() => ebaySearchUrl(settings.ebaySite, q, { sold: a === 'price-sold', single: true }));
 }
 
-/** Pages without a search link (130point, population reports): copy the terms first (still inside the click), then open. */
+/** Pages without a search link (population reports): copy the terms first (still inside the click), then open. */
 async function copyAndOpen(text, url, copiedKey) {
   let copied = false;
   if (text) { try { await navigator.clipboard.writeText(text); copied = true; } catch { /* still open the page */ } }
@@ -365,7 +362,7 @@ async function handlePageResult(result, openKey) {
   if (result.status === 'auto-open' && result.top && !autoOpened.has(openKey)) {
     autoOpened.add(openKey);
     const top = result.top;
-    last.result = { status: 'auto-open', ...persistablePage(result) };
+    last.result = { status: 'auto-open', ...persistablePage(result), labelText: result.labels?.[top.imageIndex] };
     last.thumbUrl = pageThumbs[top.imageIndex] ?? null;
     last.fullBlob = pageBlobs[top.imageIndex] ?? null;
     last.thumbAlt = t('page_result_photo', [String(top.imageIndex + 1)]);
@@ -406,12 +403,14 @@ async function openPageItem(item, i) {
   }
 }
 
-/** "eBay sold" on a results row: past sales and listings of that exact slab. */
+/** "eBay sold" on a results row: sales of that card in that grade (read from its photo), else of that exact slab. */
 async function pricesPageItem(item) {
-  const q = slabQuery(item.grader, item.number);
+  const { desc, grade } = cardInfo({ grader: item.grader, number: item.number, lines: last.page?.result.labels?.[item.imageIndex] });
+  const card = desc ? gradeQuery(item.grader, desc, grade) : null;
+  const q = card ?? slabQuery(item.grader, item.number);
   if (!q) return;
   try {
-    await openPriceLink(ebaySearchUrl(settings.ebaySite, q, { sold: true }), last.job, settings, { windowId });
+    await openPriceLink(ebaySearchUrl(settings.ebaySite, q, { sold: true, single: Boolean(card) }), last.job, settings, { windowId });
   } catch {
     ui.showOpenError();
   }
@@ -422,7 +421,7 @@ function choosePageItem(item) {
   const p = last.page;
   if (!p) return;
   const cand = { grader: item.grader, graderOptions: item.graderOptions, number: item.number, confidence: item.confidence, source: item.source, evidence: item.evidence };
-  last.result = { status: 'confirm', candidates: [cand], warnings: p.result.warnings, imageInfo: null };
+  last.result = { status: 'confirm', candidates: [cand], warnings: p.result.warnings, imageInfo: null, labelText: p.result.labels?.[item.imageIndex] };
   last.thumbUrl = p.thumbs[item.imageIndex] ?? null;
   last.fullBlob = p.blobs?.[item.imageIndex] ?? null;
   last.thumbAlt = t('page_result_photo', [String(item.imageIndex + 1)]);
@@ -438,6 +437,11 @@ async function copyPageItem(item) {
   } catch {
     ui.announce(t('copy_failed'));
   }
+}
+
+/** Tab title of a right-clicked photo's page (readable through activeTab): a grader hint such as "... PSA 10". */
+async function tabTitle(tabId) {
+  try { return hintText((await chrome.tabs.get(tabId))?.title); } catch { return ''; }
 }
 
 /** Injected only to learn why a tab is unreadable (its error text); reads and changes nothing. */
@@ -690,7 +694,7 @@ function onNotNow() {
 
 const manualField = createCertField({
   input: $('cert-input'), fieldset: $('grader-group'), errorEl: $('cert-error'), previewEl: $('url-preview'),
-  hintEl: $('manual-grader-hint'), radioName: 'manual-grader',
+  hintEl: $('manual-grader-hint'), radioName: 'manual-grader', autoHide: true,
 });
 $('manual-form').addEventListener('submit', async (e) => {
   e.preventDefault();

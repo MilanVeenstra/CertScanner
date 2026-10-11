@@ -322,8 +322,13 @@
 
 <template id="tpl-prices">
   <section class="prices" aria-labelledby="prices-heading">
-    <h3 id="prices-heading" data-i18n="prices_heading">Prices &amp; listings</h3>
-    <div class="price-fields">
+    <h3 id="prices-heading" data-i18n="prices_heading">Prices for this card</h3>
+    <div class="price-summary">
+      <span class="chip" data-ref="price-grade-chip" data-testid="price-grade-chip"></span>
+      <span class="price-card-text" data-ref="price-card-text" data-testid="price-card-text"></span>
+      <button type="button" class="link" data-ref="price-edit" data-testid="price-edit" aria-expanded="false" aria-controls="price-fields"><span data-i18n="prices_edit">Change</span></button>
+    </div>
+    <div class="price-fields" id="price-fields" data-ref="price-fields" hidden>
       <div class="field price-card">
         <label for="price-card" data-i18n="prices_card_label">Card</label>
         <input type="text" id="price-card" class="cert-field price-query" data-testid="price-card" data-ref="price-card" maxlength="100" autocomplete="off" spellcheck="false" dir="auto" aria-describedby="price-error" data-i18n-attr="placeholder:prices_card_placeholder">
@@ -339,10 +344,8 @@
       <button type="button" class="btn btn-secondary btn-sm" data-testid="price-active" data-action="price-active"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_active">For sale on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
     <div class="price-links">
-      <button type="button" class="link" data-testid="price-pricecharting" data-action="price-pricecharting"><span data-i18n="prices_pricecharting">PriceCharting (price per grade)</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      <button type="button" class="link" data-testid="price-psa" data-action="price-psa" data-ref="price-psa"><span data-i18n="prices_psa_apr">PSA auction prices</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-testid="price-pricecharting" data-action="price-pricecharting"><span data-i18n="prices_pricecharting">Price per grade</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      <button type="button" class="link" data-testid="price-130" data-action="price-130"><span data-i18n="prices_130point">130point sales</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><span data-i18n="prices_slab">This slab on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
     <p class="hint" data-ref="price-note"></p>

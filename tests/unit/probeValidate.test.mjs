@@ -93,3 +93,10 @@ test('data: and blob: clicked images validate their fetch URL against srcUrl', (
     fetch: { ok: true, dataUrl: 'data:image/png;base64,iVBORw0KGgo=', url: blobSrc } }, { srcUrl: blobSrc, maxBytes: MAX });
   assert.equal(r.ok, true);
 });
+
+test('page title and alt text: short plain-text grader hints', async () => {
+  const { hintText } = await import('../../src/pipeline/probeValidate.js');
+  assert.equal(hintText('Charizard ex #199\u0000 PSA 10\n | eBay'), 'Charizard ex #199 PSA 10 | eBay');
+  assert.equal(hintText('x'.repeat(500)).length, 200);
+  assert.equal(hintText(42), '');
+});

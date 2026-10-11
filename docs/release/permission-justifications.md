@@ -43,7 +43,7 @@ The access is used to find the slab photos on that page and read their pixels. C
 - lists the images on the page, with their address, size and on-screen position (page scan); or
 - finds the one image the user right-clicked and, if needed, loads it in the page context.
 
-It returns that data and exits. No listeners or code stay on the page. It does not read page text, form fields or cookies. There are no declared content scripts.
+It returns that data and exits. No listeners or code stay on the page. It does not read page text (apart from the page title and each image's alt text, used on-device as a grader hint), form fields or cookies. There are no declared content scripts.
 
 When the user presses the panel's "Scan this page" button, a trivial function (`return true`) is first injected only to test whether CertScanner may read that tab; it reads nothing.
 

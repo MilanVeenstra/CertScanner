@@ -1,7 +1,7 @@
 // Shared contract (ADR-001 §7). Changes need an ADR amendment.
 // Pure data: no chrome, no DOM. Imported by the parser, routing, URL builders and unit tests.
 
-export const RULES_VERSION = 2; // v2: Beckett (BGS) added
+export const RULES_VERSION = 3; // v2: Beckett (BGS) added; v3: number priors, card/comic wording, page hints
 
 /** Valid cert-number lengths per grader. */
 export const GRADERS = Object.freeze({
@@ -34,6 +34,28 @@ export const KEYWORDS = Object.freeze({
   bgs: [['BECKETT', 0.7], ['BGS', 0.7], ['BVG', 0.6], ['BLACK LABEL', 0.4], ['CENTERING', 0.4], ['CORNERS', 0.3], ['EDGES', 0.3], ['SURFACE', 0.3]],
 });
 
+/** Brand words per grader family (label text and page hints). */
+export const BRANDS = Object.freeze({ psa: /\bPSA\b/, cgc: /\b(CGC|CERTIFIED GUARANTY)\b/, bgs: /\b(BECKETT|BGS|BVG)\b/ });
+export const BRAND_GRADERS = Object.freeze({ psa: ['psa'], cgc: ['cgc-comics', 'cgc-cards'], bgs: ['bgs'] });
+
+/**
+ * Card vs comic wording. Only splits CGC Comics from CGC Cards (or guesses CGC's type when no brand is read):
+ * it never competes with a PSA or Beckett brand on the label.
+ */
+export const TYPE_WORDS = Object.freeze({
+  cards: [['POKEMON', 0.3], ['POKÉMON', 0.3], ['TCG', 0.3], ['HOLO', 0.2], ['YU-GI-OH', 0.3], ['ONE PIECE', 0.3], ['LORCANA', 0.3],
+    ['MAGIC', 0.2], ['TOPPS', 0.2], ['PANINI', 0.2], ['BOWMAN', 0.2], ['UPPER DECK', 0.2], ['FLEER', 0.2], ['PRIZM', 0.2], ['ROOKIE', 0.2]],
+  comics: [['COMICS', 0.4], ['COMIC', 0.3], ['MARVEL', 0.3], ['PAGES', 0.3], [/\b(?:1[0-2]|0?[1-9])\/\d{2}(?!\d)/, 0.2]],
+});
+
+/** Grader preference from the number's shape: ranks graders and breaks ties; never creates a candidate. */
+export const NUMBER_PRIORS = Object.freeze([
+  Object.freeze({ re: /^00\d{8}$/, grader: 'bgs', weight: 0.4, term: 'serial:00' }), // Beckett serials are zero-padded
+]);
+
+/** Weights for a brand found only in the page title / image alt text, and for card-vs-comic wording. */
+export const HINT_WEIGHT = Object.freeze({ brand: 0.5, type: 0.3 });
+
 /** "4012345-001" style cert numbers, joined to 10 digits. */
 export const DASH_FORM = Object.freeze({ re: /(?<!\d)(\d{7})-(\d{3})(?!\d)/, grader: 'cgc-comics', weight: 0.4 });
 
@@ -58,4 +80,5 @@ export const ALL_LENGTHS = Object.freeze([...new Set(GRADER_IDS.flatMap((g) => G
 
 export const DEFAULT_RULES = Object.freeze({
   RULES_VERSION, GRADERS, TIE_ORDER, KEYWORDS, DASH_FORM, OCR_FIXUPS, CERT_LABEL_RE, SCORE, GRADER_IDS, ALL_LENGTHS,
+  BRANDS, BRAND_GRADERS, TYPE_WORDS, NUMBER_PRIORS, HINT_WEIGHT,
 });

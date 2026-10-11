@@ -269,3 +269,16 @@ test('Hostile inputs are tolerated', () => {
   const evil = { text: null, confidence: NaN, words: [{ text: 12345678, confidence: 'x', bbox: null, lineText: undefined }] };
   assert.doesNotThrow(() => parseCandidates({ pages: [evil, null, 'x'], barcodes: [null, { text: 5 }, { format: 'QRCode', text: 'x'.repeat(100000) }] }));
 });
+
+test('automatic grader: BGS serial shape, CGC comic/card wording, page hints', () => {
+  const p = (lines, number, hints) => parseCandidates({ pages: [ocrPage([...lines, number]), digitsPage(number)], hints })[0];
+  assert.equal(p([], '0012345678').grader, 'bgs', 'zero-padded 10-digit serial -> Beckett');
+  assert.equal(p(['CGC', 'Marvel Comics, 5/88'], '4012345001').grader, 'cgc-comics');
+  assert.equal(p(['CGC', '2022 Pokemon Sword & Shield', 'Pikachu'], '4340250002').grader, 'cgc-cards');
+  assert.equal(p([], '5012345678', 'Charizard ex #199 PSA 10 | eBay').grader, 'psa', 'brand from the page title');
+  assert.equal(p([], '5012345678', 'Amazing Spider-Man #300 CGC 9.8 Marvel Comics').grader, 'cgc-comics');
+  assert.equal(p(['CGC', 'UNIVERSAL GRADE'], '4012345001', 'PSA 10 BGS 9.5 lot').grader, 'cgc-comics', 'the label brand wins over hints');
+  const unsure = p(['Pikachu Pokemon'], '5012345678');
+  assert.equal(unsure.grader, null, 'card wording alone does not decide');
+  assert.equal(unsure.graderOptions[0], 'cgc-cards', '... but ranks CGC Cards first (best guess)');
+});

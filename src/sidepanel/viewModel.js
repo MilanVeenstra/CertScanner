@@ -24,7 +24,7 @@ export function displayUrl(url) {
 
 /** URL preview line under Open: {key, subs} or null when the grader/number pair can't be opened. */
 export function previewText(grader, number) {
-  if (!grader) return { key: 'url_preview_pending', subs: [] };
+  if (!grader) return number ? { key: 'url_preview_pending', subs: [] } : null; // empty field: no text
   if (!isValidCert(grader, number)) return null;
   return { key: 'url_preview', subs: [displayUrl(buildCertUrl(grader, number))] };
 }
@@ -47,9 +47,9 @@ export function confirmReasons(result, settings, rules = DEFAULT_RULES) {
   const numbers = new Set(cands.map((c) => c.number));
   if (numbers.size >= 2) out.push({ key: 'reason_multiple', subs: [String(numbers.size)] });
   if (top.grader === null) {
-    const opts = top.graderOptions ?? [];
-    if (opts.includes('cgc-comics') && opts.includes('cgc-cards')) out.push({ key: 'reason_cgc_both', subs: [] });
-    else out.push({ key: 'reason_grader_unknown', subs: [] });
+    // The best guess is preselected (ranked by label wording, number shape and page hints); the user only checks it.
+    const guess = (top.graderOptions ?? [])[0];
+    out.push(guess ? { key: 'reason_grader_guess', subs: [GRADER_NAME[guess]] } : { key: 'reason_grader_unknown', subs: [] });
   }
   if (top.grader === 'bgs') out.push({ key: 'reason_bgs_lookup', subs: [] });
   const lowRes = result.imageInfo?.resolution === 'screen' || (result.warnings ?? []).some((w) => w.code === 'low-resolution');
@@ -150,7 +150,9 @@ function inferFrom(digits, dash, family, rules) {
   if (!digits) return null;
   if (dash && (!family || family.includes(rules.DASH_FORM.grader))) return rules.DASH_FORM.grader;
   const fit = (family ?? rules.GRADER_IDS).filter((g) => rules.GRADERS[g].lengths.includes(digits.length));
-  return fit.length === 1 ? fit[0] : null;
+  if (fit.length === 1) return fit[0];
+  const prior = (rules.NUMBER_PRIORS ?? []).find((p) => p.re.test(digits) && fit.includes(p.grader)); // "00…" -> BGS
+  return prior ? prior.grader : null;
 }
 
 /**

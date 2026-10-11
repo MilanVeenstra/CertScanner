@@ -101,7 +101,7 @@
     "message": "Certnummer"
   },
   "field_cert_hint": {
-    "message": "Bijvoorbeeld PSA 01234567 of CGC 4012345001"
+    "message": "Bijvoorbeeld PSA 01234567, CGC 4012345001 of BGS 0012345678"
   },
   "grader_legend": {
     "message": "Grader"
@@ -119,7 +119,7 @@
     "description": "Grader name. Never translated."
   },
   "grader_auto_hint": {
-    "message": "Gekozen op basis van wat je typte."
+    "message": "Grader herkend aan het nummer."
   },
   "open_button": {
     "message": "Certpagina openen"
@@ -365,7 +365,7 @@
     }
   },
   "reason_cgc_both": {
-    "message": "Dit nummer past bij zowel CGC Comics als CGC Cards. Kies er een."
+    "message": "Dit nummer past bij meer dan één grader. Kies er een."
   },
   "reason_grader_unknown": {
     "message": "Niet duidelijk welke grader dit is. Kies er een."
@@ -1008,7 +1008,7 @@
     }
   },
   "prices_heading": {
-    "message": "Prijzen & listings"
+    "message": "Prijzen van deze kaart"
   },
   "prices_ebay_sold": {
     "message": "Verkocht op eBay"
@@ -1016,20 +1016,14 @@
   "prices_ebay_active": {
     "message": "Te koop op eBay"
   },
-  "prices_130point": {
-    "message": "130point-verkopen"
-  },
   "prices_note": {
-    "message": "Opent $SITE$, PriceCharting, PSA of 130point in een nieuw tabblad, pas als je klikt. Alleen de kaart, grade of het certnummer wordt verstuurd. Voor 130point wordt de zoekopdracht gekopieerd zodat je hem kunt plakken.",
+    "message": "Zoekt op $SITE$ naar deze kaart in deze grade, zonder lots. Opent pas als je klikt in een nieuw tabblad; alleen de kaart, grade of het certnummer wordt verstuurd.",
     "placeholders": {
       "site": {
         "content": "$1",
         "example": "ebay.com"
       }
     }
-  },
-  "prices_130_copied": {
-    "message": "Zoektermen gekopieerd. Plak ze in 130point."
   },
   "page_row_prices": {
     "message": "eBay verkocht"
@@ -1056,10 +1050,7 @@
     "message": "Alle grades"
   },
   "prices_pricecharting": {
-    "message": "PriceCharting (prijs per grade)"
-  },
-  "prices_psa_apr": {
-    "message": "PSA-veilingprijzen"
+    "message": "Prijs per grade (PriceCharting)"
   },
   "prices_slab": {
     "message": "Deze slab op eBay"
@@ -1097,5 +1088,29 @@
   },
   "prices_pop_copied": {
     "message": "Kaartnaam gekopieerd. Plak hem in het zoekveld van het populatierapport."
+  },
+  "reason_grader_guess": {
+    "message": "Waarschijnlijk $GRADER$: het label noemt de grader niet duidelijk. Controleer het of kies een andere.",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "CGC Comics"
+      }
+    }
+  },
+  "prices_edit": {
+    "message": "Wijzig"
+  },
+  "prices_grade_any": {
+    "message": "$GRADER$ · alle grades",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "PSA"
+      }
+    }
+  },
+  "prices_card_unknown": {
+    "message": "Kaartnaam niet gelezen. Typ hem voor prijzen van deze kaart."
   }
 }

@@ -54,6 +54,9 @@ export function matchGrade(grader, grade) {
   return scale.find((g) => Number(g) === n) ?? null;
 }
 
+/** "PSA" / "CGC" / "BGS". */
+export const graderShort = (grader) => GRADER_SHORT[grader] ?? '';
+
 /** Short grader + grade as sellers write it: "PSA 10", "CGC 9.8". */
 export const gradeLabel = (grader, grade) => (GRADER_SHORT[grader] ? `${GRADER_SHORT[grader]} ${grade}` : String(grade));
 
@@ -97,10 +100,25 @@ export function gradeFromLines(grader, lines) {
   return null;
 }
 
+const YEAR_START = /^(?:19|20)\d{2}\b\s*/;
+const CARD_NO = /#\s?(\d{1,4}[A-Za-z]?)\b/;
+const PUBLISHER_LINE = /\bCOMICS?\b|\b(?:1[0-2]|0?[1-9])\/\d{2}(?!\d)/i; // "Marvel Comics, 5/88"
+const VARIETY = /\b(1ST EDITION|SHADOWLESS)\b/i; // changes the price a lot, so it stays in the search
+// Rarity wording that sellers abbreviate ("SIR"); with a card number it only narrows the search too much.
+const RARITY = new Set(['RARE', 'SPECIAL', 'ILLUSTRATION', 'ULTRA', 'SECRET', 'HYPER', 'DOUBLE']);
+const MAX_NAME_WORDS = 6;
+
+const okWord = (w) => !(w.length < 2 && !/^\p{N}$/u.test(w))
+  && !/^(PSA|CGC|GC|CG|BGS|BECKETT)$/i.test(w) // brand (also OCR fragments of the CGC logo)
+  && !(/\p{L}\d+\p{L}/u.test(w) && !/^\p{Lu}{1,3}\d+$/u.test(w)); // OCR noise like "T1TT"
+
 /**
- * Card and grade from the label text read by OCR: {desc: "2023 POKEMON SV 151 CHARIZARD ex #199", grade: "10"}.
- * desc is null when the label gives too little to search for; grade is null when no grade was read.
+ * Search terms for THIS card from the label text read by OCR: brand + name + card number (+ 1st Edition / Shadowless),
+ * e.g. "POKEMON CHARIZARD ex 199", "FLEER MICHAEL JORDAN 57", "Amazing Spider-Man 300", and the grade ("10", "9.8").
+ * Year, set codes and rarity words are left out because listing titles often omit them; without a card number the
+ * set name is kept instead. desc is null when the label gives too little to search for.
  * @param {{grader:string, number:string, lines:unknown}} p
+ * @returns {{desc:string|null, grade:string|null}}
  */
 export function cardInfo({ grader, number, lines }) {
   if (!GRADER_SHORT[grader] || !Array.isArray(lines)) return { desc: null, grade: null };
@@ -111,25 +129,42 @@ export function cardInfo({ grader, number, lines }) {
     .map((l) => l.replace(/[^\p{L}\p{N}#&'\-./:+ ]/gu, ' ').replace(/\s+/g, ' ').trim())
     .filter(Boolean);
   const grade = gradeFromLines(grader, clean);
-  const words = [];
+  let brand = null;
+  let cardNo = null;
+  const setWords = [];
+  const variety = [];
+  const name = [];
   for (const line of clean) {
     if (typeof number === 'string' && number && line.replace(/\D/g, '').includes(number)) continue; // the cert line
     if (/\d{7,}/.test(line.replace(/[\s-]/g, ''))) continue; // other long numbers (barcodes, item ids)
     if (isBoilerplate(line) || SUBGRADES.test(line)) continue;
-    if ((PSA_GRADE.test(line) || CGC_CARD_GRADE.test(line)) && line.split(' ').length <= 3) continue; // "GEM MT 10" on its own line
+    if ((PSA_GRADE.test(line) || CGC_CARD_GRADE.test(line)) && line.split(' ').length <= 3) continue; // "GEM MT 10"
     if (grader !== 'psa' && CGC_GRADE.test(line) && line.split(' ').length <= 2) continue; // "9.8" / "CGC 9.8"
-    const cardNo = /^#\s?\d{1,4}[A-Za-z]?$/.test(line); // "#199": the card number is worth keeping
-    if (!cardNo && (line.match(/\p{L}/gu) ?? []).length < 2) continue; // OCR noise
-    for (const w of line.split(' ')) {
-      if (w.length < 2 && !/^[\p{N}#]$/u.test(w)) continue;
-      if (/^(PSA|CGC|GC|CG|BGS|BECKETT)$/i.test(w)) continue; // brand (also OCR fragments of the CGC logo)
-      if (/\p{L}\d+\p{L}/u.test(w) && !/^\p{Lu}{1,3}\d+$/u.test(w)) continue; // OCR noise like "T1TT"
-      words.push(w);
-      if (words.length >= MAX_WORDS) break;
+    const no = CARD_NO.exec(line);
+    if (no && !cardNo) cardNo = no[1];
+    const v = VARIETY.exec(line);
+    if (v && !variety.includes(v[1].toUpperCase())) variety.push(v[1].toUpperCase());
+    const rest = line.replace(CARD_NO, ' ').replace(VARIETY, ' ').replace(/\s+/g, ' ').trim();
+    if (YEAR_START.test(rest)) { // set line: "2023 POKEMON SV 151" -> brand "POKEMON"
+      const words = rest.replace(YEAR_START, '').split(' ').filter((w) => okWord(w) && !SLAB_WORDS.has(w.toUpperCase()));
+      const first = words.find((w) => /^\p{L}{3,}$/u.test(w));
+      if (first && !brand) brand = first;
+      for (const w of words) if (w !== first && !/^\p{Lu}{1,2}$/u.test(w)) setWords.push(w); // "SV" set codes dropped
+      continue;
     }
-    if (words.length >= MAX_WORDS) break;
+    if (PUBLISHER_LINE.test(rest)) continue;
+    if ((rest.match(/\p{L}/gu) ?? []).length < 2) continue; // OCR noise
+    for (const w of rest.split(' ')) {
+      if (name.length >= MAX_NAME_WORDS) break;
+      if (okWord(w) && !SLAB_WORDS.has(w.toUpperCase())) name.push(w);
+    }
   }
-  const desc = words.filter((w) => /\p{L}{3,}/u.test(w)).length < 2 ? null : words.join(' ').slice(0, MAX_DESC).trim();
+  const named = name.filter((w) => /\p{L}{3,}/u.test(w));
+  if (!named.length || (named.length + (brand ? 1 : 0) < 2 && !cardNo)) return { desc: null, grade: matchGrade(grader, grade) };
+  const words = cardNo
+    ? [brand, ...name.filter((w) => !RARITY.has(w.toUpperCase())), cardNo, ...variety]
+    : [brand, ...setWords, ...name, ...variety];
+  const desc = words.filter(Boolean).join(' ').slice(0, MAX_DESC).trim();
   return { desc, grade: matchGrade(grader, grade) };
 }
 
@@ -148,10 +183,17 @@ export function gradeQuery(grader, desc, grade) {
 
 const normQuery = (q) => (typeof q === 'string' ? q.replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY) : '');
 
-/** eBay search; sold=true shows sold and completed listings (eBay may ask the user to sign in for those). */
-export function ebaySearchUrl(site, query, { sold = false } = {}) {
-  const q = normQuery(query);
-  if (!q) throw new RangeError('empty query');
+/** Leaves out lots and proxies so a card search lists single copies of this card only. */
+const CARD_EXCLUDE = ' -lot -proxy';
+
+/**
+ * eBay search; sold=true shows sold and completed listings (eBay may ask the user to sign in for those).
+ * single=true adds CARD_EXCLUDE (card searches; not needed for a cert-number search).
+ */
+export function ebaySearchUrl(site, query, { sold = false, single = false } = {}) {
+  const base = normQuery(query);
+  if (!base) throw new RangeError('empty query');
+  const q = single ? `${base}${CARD_EXCLUDE}` : base;
   const host = EBAY_SITES[isEbaySite(site) ? site : DEFAULT_EBAY_SITE];
   const params = new URLSearchParams({ _nkw: q });
   if (sold) { params.set('LH_Sold', '1'); params.set('LH_Complete', '1'); }

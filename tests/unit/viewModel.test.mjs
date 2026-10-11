@@ -39,9 +39,12 @@ test('confirmReasons: priority order, at most two', () => {
   assert.deepEqual(confirmReasons(two, settings()).map((r) => r.key), ['reason_multiple', 'reason_unclear']);
   assert.deepEqual(confirmReasons(two, settings())[0].subs, ['2']);
   const cgc = result({ candidates: [cand({ grader: null, graderOptions: ['cgc-comics', 'cgc-cards', 'psa'], number: '5012345678', confidence: 0.44 })] });
-  assert.deepEqual(confirmReasons(cgc, settings()).map((r) => r.key), ['reason_cgc_both', 'reason_unclear']);
+  assert.deepEqual(confirmReasons(cgc, settings()).map((r) => r.key), ['reason_grader_guess', 'reason_unclear']);
+  assert.deepEqual(confirmReasons(cgc, settings())[0].subs, ['CGC Comics'], 'best guess named and preselected');
   const unknown = result({ candidates: [cand({ grader: null, graderOptions: ['psa'], number: '12345678', confidence: 0.9 })] });
-  assert.deepEqual(confirmReasons(unknown, settings()).map((r) => r.key), ['reason_grader_unknown']);
+  assert.deepEqual(confirmReasons(unknown, settings()).map((r) => r.key), ['reason_grader_guess']);
+  const none = result({ candidates: [cand({ grader: null, graderOptions: [], number: '12345678', confidence: 0.9 })] });
+  assert.deepEqual(confirmReasons(none, settings()).map((r) => r.key), ['reason_grader_unknown']);
   const ask = result({ candidates: [cand()] });
   assert.deepEqual(confirmReasons(ask, settings({ autoOpen: false })).map((r) => r.key), ['reason_always_ask']);
   const screen = result({ candidates: [cand({ confidence: 0.9 })], imageInfo: { method: 'capture', resolution: 'screen', width: 270, height: 422, origin: 'https://i.ebayimg.com', canRequestSharper: true } });

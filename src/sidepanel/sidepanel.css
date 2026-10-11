@@ -256,6 +256,9 @@ legend { padding: 0; margin-block-end: var(--cs-space-1); }
 /* Price & listing links under a result: search links only, nothing is fetched */
 .prices { display: flex; flex-direction: column; gap: var(--cs-space-2); border-block-start: 1px solid var(--cs-row); padding-block-start: var(--cs-space-3); }
 .prices h3 { margin: 0; }
+.price-summary { display: flex; align-items: baseline; gap: var(--cs-space-2); flex-wrap: wrap; }
+.price-card-text { flex: 1 1 140px; min-inline-size: 0; font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.price-card-text.muted { font-weight: 400; font-size: var(--cs-text-sm); }
 .price-fields { display: flex; flex-wrap: wrap; gap: var(--cs-space-2); }
 .price-fields .field { margin: 0; }
 .price-card { flex: 1 1 180px; min-inline-size: 0; }

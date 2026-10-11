@@ -2,15 +2,17 @@
 // Pure functions over a parsed Document (DOMParser in the side panel): nothing here fetches, and nothing from the page
 // is ever inserted as HTML; only short text values leave this module.
 // PriceCharting has no public sales API (its paid API only has current values), so the panel reads the same public
-// product page a user would open. The markup is not documented: parsing is defensive and returns what it can.
+// product page a user would open. PriceCharting sits behind Cloudflare's bot check: requests need the browser's
+// cookies, and the first visit may need a real tab (sidepanel/priceData.js). The markup is undocumented; the selectors
+// below follow a saved real page (tests/fixtures/pricecharting) and parsing stays defensive.
 
 export const PC_ORIGIN = 'https://www.pricecharting.com';
 export const PC_HOST = 'www.pricecharting.com';
 export const PC_PERMISSION = `${PC_ORIGIN}/*`;
 
 const MAX_TEXT = 140;
-const MAX_SALES = 6;
-const MAX_PRICES = 16;
+const MAX_SALES = 8;
+const MAX_PRICES = 20;
 
 /** Price cells of the main price table: id -> label (cards; comics and other categories use their own headers). */
 const PRICE_IDS = Object.freeze({
@@ -59,10 +61,12 @@ export function isPcUrl(url) {
 const isProductUrl = (url) => { try { return /^\/game\//.test(new URL(url).pathname); } catch { return false; } };
 
 /** Label a grade for PriceCharting ("PSA 10", "BGS 10", "CGC 10", "Grade 9.5", "9.8"), best first. */
-export function gradeLabels(grader, grade) {
+export function gradeLabels(grader, grade, special = null) {
   if (grade == null || grade === '') return [];
   const n = Number(grade);
   if (!Number.isFinite(n)) return [];
+  if (n === 10 && special === 'Pristine' && grader === 'cgc-cards') return ['CGC 10 Pristine', ...gradeLabels(grader, grade)];
+  if (n === 10 && special === 'Black' && grader === 'bgs') return ['BGS 10 Black', ...gradeLabels(grader, grade)];
   const brand = { psa: 'PSA', bgs: 'BGS', 'cgc-cards': 'CGC', 'cgc-comics': 'CGC' }[grader];
   const g = Number.isInteger(n) ? String(n) : String(n);
   const out = [];
@@ -109,7 +113,25 @@ export function bestSearchResult(doc, query, cardNo = null) {
   return best && best.score > 0 ? best.href : null;
 }
 
-/** Product page -> {name, set, prices:[{label, price, text}], sales:{label: [{date, title, price, text}]}}. */
+/** "Loose<span> Price</span>" -> "Loose"; "PSA 10 Sold Listings (25)" -> "PSA 10"; "Grade 9 (4)" -> "Grade 9". */
+export function labelOf(text) {
+  return clean(text).replace(/\s*\(\d[\d,]*\)\s*$/, '').replace(/\s+sold listings$/i, '').replace(/\s+price$/i, '').trim();
+}
+
+/** True for Cloudflare's bot check page (shown instead of PriceCharting until the browser passed it). */
+export function isChallengePage(doc) {
+  const title = clean(doc?.title);
+  return /just a moment|attention required|verify you are human/i.test(title)
+    || Boolean(doc?.querySelector?.('#challenge-form, #challenge-running, #cf-challenge-running, .cf-turnstile, script[src*="challenge-platform"]'));
+}
+
+/**
+ * Product page -> {name, set, prices:[{label, price, text}], sales:{label: [{date, title, price, source}]}}.
+ * Markup (verified against a saved PriceCharting page, see tests): h1#product_name ("Name <a>Set</a>"),
+ * #full-prices table rows "label | td.price", #price_data (th labels over td#used_price ... .price),
+ * sold listings in div.completed-auctions-<key>:not(.tab) > table > tbody > tr (td.date, td.title a, td.numeric .js-price),
+ * key labels in select#completed-auctions-condition options or div.tab.completed-auctions-<key>.
+ */
 export function parseProduct(doc) {
   const h1 = doc.querySelector('h1#product_name, h1.chart_title, h1');
   let name = '';
@@ -123,61 +145,70 @@ export function parseProduct(doc) {
 
   const prices = [];
   const add = (label, text) => {
-    const l = clean(label);
+    const l = labelOf(label);
     const price = parsePrice(text);
     if (!l || price === null || l.length > 30 || prices.some((p) => sameLabel(p.label, l))) return;
     prices.push({ label: l, price, text: clean(PRICE_RE.exec(text)?.[0] ?? '') });
   };
   const priceText = (el) => el.querySelector('.price, .js-price')?.textContent ?? el.textContent;
-  // 1. Main price table: header labels aligned with the price cells (cards: Ungraded, Grade 7 ... PSA 10).
-  const used = new Set();
+  // 1. Full price guide: every grade with its own label (cards: Ungraded, Grade 1 ... Grade 9.5, PSA 10, BGS 10, CGC 10 ...).
+  for (const tr of doc.querySelectorAll('#full-prices tr')) {
+    const tds = tr.querySelectorAll('td');
+    if (tds.length >= 2) add(tds[0].textContent, priceText(tds[1]));
+  }
+  // 2. Main price table: header labels over the price cells.
   const table = doc.querySelector('#price_data');
   if (table) {
-    const heads = [...table.querySelectorAll('th')].map((th) => clean(th.textContent));
-    const row = [...table.querySelectorAll('tr')].find((tr) => tr.querySelector('td'));
-    [...(row?.querySelectorAll('td') ?? [])].forEach((td, i) => {
-      add(heads[i] || PRICE_IDS[td.id], priceText(td));
-      if (td.id) used.add(td.id);
-    });
+    const heads = [...table.querySelectorAll('thead th')].map((th) => labelOf(th.textContent));
+    const row = table.querySelector('tbody tr');
+    [...(row?.querySelectorAll('td') ?? [])].forEach((td, i) => add(heads[i] || PRICE_IDS[td.id], priceText(td)));
   }
+  // 3. Fallbacks: known cell ids, then any "grade label | price" row.
   for (const [id, label] of Object.entries(PRICE_IDS)) {
     const el = doc.getElementById(id);
-    if (el && !used.has(id)) add(label, priceText(el));
+    if (el && !prices.length) add(label, priceText(el));
   }
-  // 2. Any "label | price" rows with a grade label (full price guide: BGS 10, CGC 10, SGC 10, Grade 1-6 ...).
-  for (const tr of doc.querySelectorAll('tr')) {
-    const cells = [...tr.querySelectorAll('td, th')];
-    if (cells.length < 2 || !GRADE_LABEL_RE.test(clean(cells[0].textContent))) continue;
-    const priced = cells.slice(1).find((c) => parsePrice(c.textContent) !== null);
-    if (priced) add(cells[0].textContent, priceText(priced));
+  if (!prices.length) {
+    for (const tr of doc.querySelectorAll('tr')) {
+      const cells = [...tr.querySelectorAll('td, th')];
+      if (cells.length < 2 || !GRADE_LABEL_RE.test(clean(cells[0].textContent))) continue;
+      const priced = cells.slice(1).find((c) => parsePrice(c.textContent) !== null);
+      if (priced) add(cells[0].textContent, priceText(priced));
+    }
   }
 
-  // 3. Sold listings, per grade section.
+  // 4. Sold listings per grade: key -> label from the condition picker or the tab, then each section's rows.
+  const keyLabel = {};
+  for (const o of doc.querySelectorAll('#completed-auctions-condition option')) {
+    const key = /^completed-auctions-(.+)$/.exec(o.getAttribute('value') ?? '')?.[1];
+    if (key && labelOf(o.textContent)) keyLabel[key] = labelOf(o.textContent);
+  }
+  const keyOf = (el) => [...el.classList].find((c) => /^completed-auctions-./.test(c))?.slice('completed-auctions-'.length);
+  for (const tab of doc.querySelectorAll('.tab[class*="completed-auctions-"]')) {
+    const key = keyOf(tab);
+    if (key && !keyLabel[key] && labelOf(tab.textContent)) keyLabel[key] = labelOf(tab.textContent);
+  }
   const sales = {};
-  for (const sec of doc.querySelectorAll('[class*="completed-auctions-"]')) {
-    if (!sec.querySelector('tr')) continue; // a tab, not a section
-    const key = [...sec.classList].find((c) => c.startsWith('completed-auctions-'))?.slice('completed-auctions-'.length);
+  for (const sec of doc.querySelectorAll('div[class*="completed-auctions-"]:not(.tab)')) {
+    const key = keyOf(sec);
     if (!key) continue;
-    const tab = [...doc.querySelectorAll(`[class~="completed-auctions-${CSS_ESCAPE(key)}"]`)].find((el) => el !== sec && !el.querySelector('tr'));
-    const label = clean(tab?.textContent) || SALES_KEYS[key] || key;
+    const label = keyLabel[key] || SALES_KEYS[key] || key;
     const rows = [];
-    for (const tr of sec.querySelectorAll('tr')) {
-      const text = clean(tr.textContent);
-      const date = DATE_RE.exec(tr.querySelector('.date')?.textContent ?? text)?.[1];
-      const priceCell = tr.querySelector('.js-price, .numeric, .price') ?? tr;
-      const price = parsePrice(priceCell.textContent);
+    for (const tr of sec.querySelectorAll('tbody tr')) {
+      const date = DATE_RE.exec(clean(tr.querySelector('td.date')?.textContent))?.[1];
+      const priceEl = tr.querySelector('td.numeric .js-price') ?? tr.querySelector('.js-price');
+      const price = priceEl ? parsePrice(priceEl.textContent) : null;
       if (!date || price === null) continue;
-      const title = clean(tr.querySelector('.title a, .title, a')?.textContent ?? '');
-      rows.push({ date, title, price, text: clean(PRICE_RE.exec(priceCell.textContent)?.[0] ?? '') });
+      const titleCell = tr.querySelector('td.title');
+      const title = clean(titleCell?.querySelector('a')?.textContent ?? titleCell?.textContent ?? '').replace(/\s*\[[^\]]+\]\s*$/, '');
+      const source = /^([a-z]+)-/.exec(tr.id ?? '')?.[1] ?? (/\[([^\]]+)\]/.exec(titleCell?.textContent ?? '')?.[1]?.toLowerCase() ?? null);
+      rows.push({ date, title, price, source });
       if (rows.length >= MAX_SALES) break;
     }
     if (rows.length && !sales[label]) sales[label] = rows;
   }
   return { name, set, prices: prices.slice(0, MAX_PRICES), sales };
 }
-
-// CSS.escape is not in every test runtime; class keys are plain words and dashes.
-const CSS_ESCAPE = (s) => String(s).replace(/[^\w-]/g, '');
 
 /** Sales for the first matching grade label, else null (never another grade's sales). */
 export function pickSales(sales, labels) {

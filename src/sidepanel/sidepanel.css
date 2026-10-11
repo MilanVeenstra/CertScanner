@@ -278,9 +278,11 @@ legend { padding: 0; margin-block-end: var(--cs-space-1); }
 .price-state p { margin: 0; font-size: var(--cs-text-sm); }
 .price-data[aria-busy="true"] .price-state p { color: var(--cs-text-muted); }
 .price-found { display: flex; flex-direction: column; gap: var(--cs-space-2); }
-.price-main { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cs-space-2); flex-wrap: wrap; }
-.price-main-label { font-size: var(--cs-text-sm); font-weight: 600; }
-.price-big { font: 700 24px/1.1 var(--cs-font-sans); letter-spacing: -0.01em; }
+.price-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--cs-space-2); }
+.price-stat { display: flex; flex-direction: column; gap: 2px; padding: var(--cs-space-2) var(--cs-space-25); background: var(--cs-bg); border: 1px solid var(--cs-border-subtle); }
+.price-stat-label { font-size: var(--cs-text-xs); font-weight: 600; color: var(--cs-text-muted); }
+.price-stat-sub { font-size: var(--cs-text-xs); color: var(--cs-text-muted); }
+.price-big { font: 700 22px/1.15 var(--cs-font-sans); letter-spacing: -0.01em; }
 .price-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 1px; background: var(--cs-border-subtle); border: 1px solid var(--cs-border-subtle); }
 .price-grid li { display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; background: var(--cs-bg); font-size: var(--cs-text-xs); }
 .price-grid li span { color: var(--cs-text-muted); }

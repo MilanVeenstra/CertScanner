@@ -8,7 +8,7 @@ import { isValidCert, hasDirectUrl } from './certUrls.js';
  * @param {import('./types.js').ScanWarning[]} warnings
  * @returns {'auto-open'|'confirm'|'none'}
  */
-export function decide(candidates, settings, warnings, rules = DEFAULT_RULES) {
+export function decide(candidates, settings, warnings, rules = DEFAULT_RULES, { lookupOk = false } = {}) {
   const list = Array.isArray(candidates) ? candidates.filter((c) => c && typeof c === 'object') : [];
   if (!list.length) return 'none';
   const sorted = [...list].sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0));
@@ -18,7 +18,7 @@ export function decide(candidates, settings, warnings, rules = DEFAULT_RULES) {
   const competitor = sorted.some((c) => c !== top && c.number !== top.number && c.confidence >= T.competitor);
   const ok = settings?.autoOpen === true
     && top.grader != null
-    && hasDirectUrl(top.grader) // a lookup form (BGS) needs a click: the number is copied for pasting
+    && (lookupOk || hasDirectUrl(top.grader)) // a lookup form (BGS) needs a click: the number is copied for pasting
     && isValidCert(top.grader, top.number)
     && typeof top.confidence === 'number' && top.confidence >= T.autoOpen
     && !competitor

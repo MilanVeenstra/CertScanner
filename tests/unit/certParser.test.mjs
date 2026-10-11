@@ -96,6 +96,7 @@ test('BGS label: brand and subgrades resolve bgs, but the lookup form is never a
   assert.equal(cands[0].number, '0012345678', 'leading zeros kept');
   assert.ok(cands[0].confidence >= 0.8);
   assert.equal(decide(cands, settings(), []), 'confirm');
+  assert.equal(decide(cands, settings(), [], undefined, { lookupOk: true }), 'auto-open', 'clear BGS read: the panel shows the result and prices at once');
 });
 
 test('10 digits with card wording resolves cgc-cards', () => {

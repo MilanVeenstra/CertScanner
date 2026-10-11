@@ -110,7 +110,7 @@ describe('J11 privacy on dist-e2e: jobs + upload', { concurrency: false }, () =>
   });
 });
 
-describe('J11 privacy on the release build (no host access): upload + A9 panel button without access', { concurrency: false }, () => {
+describe('J11 privacy on the release build (PriceCharting access only): upload + A9 panel button without page access', { concurrency: false }, () => {
   let env;
   let servers;
   let dir;
@@ -126,9 +126,9 @@ describe('J11 privacy on the release build (no host access): upload + A9 panel b
       identity = `dist/ (release, ${rel.gitCommit?.slice(0, 7)}${rel.gitDirty ? '+dirty' : ''}, built ${rel.builtAt})`;
     } else {
       // dist/ and dist-e2e/ differ only in manifest host_permissions + build-info (security review round 1).
-      variant = await E.makeVariant((m) => { delete m.host_permissions; });
+      variant = await E.makeVariant((m) => { m.host_permissions = ['https://www.pricecharting.com/*']; });
       releaseDir = variant.dir;
-      identity = `release-equivalent copy of dist-e2e with host_permissions removed (dist/ missing or from another source state)`;
+      identity = `release-equivalent copy of dist-e2e with the release host_permissions (dist/ missing or from another source state)`;
     }
     dir = await mkdtemp(path.join(os.tmpdir(), 'certscanner-netlog-rel-'));
     servers = await E.startServers();
@@ -141,12 +141,12 @@ describe('J11 privacy on the release build (no host access): upload + A9 panel b
     await variant?.cleanup();
   });
 
-  test('release manifest has no host access; panel page scan without access reads nothing; uploads request nothing but the opened official pages', T, async () => {
+  test('release manifest: only PriceCharting access; panel page scan without page access reads nothing; uploads request nothing but the opened official pages and PriceCharting card searches', T, async () => {
     console.log(`# J11 release build under test: ${identity}`);
     const perms = await env.sw.evaluate(() => chrome.permissions.getAll());
-    assert.deepEqual(perms.origins, [], 'no host access at install');
+    assert.deepEqual(perms.origins, ['https://www.pricecharting.com/*'], 'only PriceCharting access at install (ADR A16)');
     const manifest = await env.sw.evaluate(() => chrome.runtime.getManifest());
-    assert.equal(manifest.host_permissions, undefined);
+    assert.deepEqual(manifest.host_permissions, ['https://www.pricecharting.com/*']);
     const windowId = await env.sw.evaluate(async () => (await chrome.windows.getAll())[0].id);
     // A9: a web page is open; the panel's "Scan this page" without access → page-access state, nothing is read.
     const page0 = env.context.pages()[0];
@@ -169,7 +169,7 @@ describe('J11 privacy on the release build (no host access): upload + A9 panel b
     await env.close();
     const reqs = E.parseNetLog(await readFile(path.join(dir, 'netlog.json'), 'utf8'));
     const summary = checkNetLog(reqs, { allowedOrigins: local, expectedGrader: [OFFICIAL.psa01234567, OFFICIAL.comicQr4012347003] });
-    assert.equal(summary.byExtension, 0, 'release build: the extension initiated no http(s) request at all');
+    assert.deepEqual(reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url) && !isPriceFetch(r.url)).map((r) => r.url), [], 'release build: the extension initiated no http(s) request other than PriceCharting card searches');
     console.log(`# J11 release NetLog: ${summary.total} URL requests, renderer ${summary.renderer}, extension-initiated ${summary.byExtension}, grader navigations ${summary.grader}; Chromium background services (not extension, all DNS-blocked): ${summary.background.join(', ') || 'none'}`);
   });
 });

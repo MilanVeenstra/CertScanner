@@ -357,11 +357,19 @@
         <p data-ref="price-state-text"></p>
         <button type="button" class="btn btn-strong btn-sm" data-action="price-allow" data-testid="price-allow" data-ref="price-allow" hidden><span data-i18n="prices_allow">Show prices here</span></button>
         <button type="button" class="link" data-action="price-retry" data-ref="price-retry" hidden><span data-i18n="retry_button">Try again</span></button>
+        <button type="button" class="link" data-action="price-pc-search" data-ref="price-pc-search" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_search">Open PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       </div>
       <div class="price-found" data-ref="price-found" hidden>
-        <div class="price-main">
-          <span class="price-main-label" data-ref="pc-label"></span>
-          <span class="price-big" data-ref="pc-price" data-testid="price-current"></span>
+        <div class="price-stats">
+          <div class="price-stat">
+            <span class="price-stat-label" data-ref="pc-label"></span>
+            <strong class="price-big" data-ref="pc-price" data-testid="price-current"></strong>
+          </div>
+          <div class="price-stat">
+            <span class="price-stat-label" data-ref="pc-last-label"></span>
+            <strong class="price-big" data-ref="pc-last" data-testid="price-last-sold"></strong>
+            <span class="price-stat-sub" data-ref="pc-last-date"></span>
+          </div>
         </div>
         <ul class="price-grid" data-ref="pc-grid" data-testid="price-grid"></ul>
         <p class="hint" data-ref="pc-pop" hidden></p>

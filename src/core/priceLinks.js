@@ -169,6 +169,14 @@ export function cardInfo({ grader, number, lines }) {
   return { desc, grade: matchGrade(grader, grade) };
 }
 
+/** "Pristine" (CGC 10 Pristine) or "Black" (BGS 10 Black Label) when the label says so: PriceCharting prices them apart. */
+export function specialGrade(grader, lines) {
+  const text = Array.isArray(lines) ? lines.filter((l) => typeof l === 'string').join(' ').toUpperCase() : '';
+  if (grader === 'cgc-cards' && /\bPRISTINE\s*10\b/.test(text)) return 'Pristine';
+  if (grader === 'bgs' && /\bBLACK\s*LABEL\b/.test(text)) return 'Black';
+  return null;
+}
+
 /** Card + grade as one search, e.g. "2023 POKEMON SV 151 CHARIZARD ex #199 PSA 10" (null without a card description). */
 export function cardQuery(p) {
   const { desc, grade } = cardInfo(p);

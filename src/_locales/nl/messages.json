@@ -1147,7 +1147,7 @@
     }
   },
   "prices_current_label": {
-    "message": "Prijs $GRADE$",
+    "message": "Huidige prijs · $GRADE$",
     "placeholders": {
       "grade": {
         "content": "$1",
@@ -1159,7 +1159,7 @@
     "message": "Prijs voor deze grade"
   },
   "prices_sales_heading": {
-    "message": "Laatst verkocht · $GRADE$",
+    "message": "Recente verkopen · $GRADE$",
     "placeholders": {
       "grade": {
         "content": "$1",
@@ -1222,5 +1222,41 @@
   },
   "setting_psa_key_denied": {
     "message": "Niet opgeslagen: CertScanner heeft toestemming nodig om api.psacard.com te bereiken."
+  },
+  "prices_checking": {
+    "message": "PriceCharting controleert de browser (er opent kort een tabblad op de achtergrond)…"
+  },
+  "prices_challenge": {
+    "message": "PriceCharting wil eerst je browser controleren. Open PriceCharting, wacht tot de pagina verschijnt en klik dan op Opnieuw."
+  },
+  "prices_pc_search": {
+    "message": "PriceCharting openen"
+  },
+  "prices_last_sold_label": {
+    "message": "Laatst verkocht · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "PSA 10"
+      }
+    }
+  },
+  "prices_no_recent": {
+    "message": "geen recente verkoop"
+  },
+  "result_heading_found": {
+    "message": "$GRADER$-nummer gelezen",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "BGS"
+      }
+    }
+  },
+  "result_lookup_pending": {
+    "message": "Beckett heeft geen pagina per nummer, dus er is niets geopend. Beckett-zoekpagina openen kopieert het nummer; plak het in het formulier van Beckett."
+  },
+  "open_lookup": {
+    "message": "Beckett-zoekpagina openen"
   }
 }

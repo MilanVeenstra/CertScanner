@@ -370,10 +370,15 @@ export function createUi(doc, actions) {
     setTaskState('result');
     const o = view.opened;
     const lookup = !hasDirectUrl(o.grader);
-    setHeading(lookup ? t('result_heading_lookup') : t('result_heading', [graderName(o.grader)]), 'success');
+    setHeading(o.lookupPending ? t('result_heading_found', [graderName(o.grader)]) : lookup ? t('result_heading_lookup') : t('result_heading', [graderName(o.grader)]), 'success');
     const frag = clone('tpl-result');
     ref(frag, 'bg-note').hidden = !(o.background && Number.isInteger(o.tabId));
     ref(frag, 'lookup-note').hidden = !lookup;
+    if (o.lookupPending) {
+      ref(frag, 'lookup-note').querySelector('p').textContent = t('result_lookup_pending');
+      const again = frag.querySelector('[data-action="open-again"] span[data-i18n="open_again"]');
+      if (again) again.textContent = t('open_lookup');
+    }
     body.appendChild(frag);
     fillRead({ grader: o.grader, number: o.number, method: o.method }, { path: displayUrl(o.url ?? buildCertUrl(o.grader, o.number)) });
     // The (parked) grader control mirrors the opened grader so §13 readers see the routed grader in S2 too.
@@ -462,8 +467,8 @@ export function createUi(doc, actions) {
     : d);
 
   const PRICE_STATE_KEY = {
-    loading: 'prices_loading', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found', unreadable: 'prices_unreadable',
-    error: 'prices_error', 'need-card': 'prices_need_card_data',
+    loading: 'prices_loading', check: 'prices_checking', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
+    unreadable: 'prices_unreadable', error: 'prices_error', challenge: 'prices_challenge', 'need-card': 'prices_need_card_data',
   };
 
   /**
@@ -474,12 +479,13 @@ export function createUi(doc, actions) {
     const box = ref(body, 'price-data');
     if (!box) return;
     const ok = st.status === 'ok';
-    box.setAttribute('aria-busy', String(st.status === 'loading'));
+    box.setAttribute('aria-busy', String(st.status === 'loading' || st.status === 'check'));
     box.dataset.status = st.status;
     ref(box, 'price-state').hidden = ok;
     ref(box, 'price-found').hidden = !ok;
     ref(box, 'price-allow').hidden = st.status !== 'no-permission';
-    ref(box, 'price-retry').hidden = st.status !== 'error';
+    ref(box, 'price-retry').hidden = !['error', 'challenge', 'unreadable'].includes(st.status);
+    ref(box, 'price-pc-search').hidden = !['challenge', 'unreadable', 'not-found'].includes(st.status);
     if (!ok) {
       const q = ref(body, 'price-card')?.value.trim() ?? '';
       ref(box, 'price-state-text').textContent = t(PRICE_STATE_KEY[st.status] ?? 'prices_error', [q]);
@@ -493,6 +499,9 @@ export function createUi(doc, actions) {
     const label = st.current?.label ?? st.labels?.[0] ?? '';
     ref(box, 'pc-label').textContent = label ? t('prices_current_label', [label]) : t('prices_current_unknown');
     ref(box, 'pc-price').textContent = st.current ? money(st.current.price) : '—';
+    ref(box, 'pc-last-label').textContent = t('prices_last_sold_label', [st.sales?.label ?? label ?? '']);
+    ref(box, 'pc-last').textContent = st.lastSold ? money(st.lastSold.price) : '—';
+    ref(box, 'pc-last-date').textContent = st.lastSold ? saleDate(st.lastSold.date) : t('prices_no_recent');
     const grid = ref(box, 'pc-grid');
     while (grid.firstChild) grid.firstChild.remove();
     for (const p of st.prices) {

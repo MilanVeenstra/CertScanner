@@ -8,6 +8,7 @@ _The Developer Dashboard lists the permissions found in the uploaded package. Ch
 
 ```json
 "permissions": ["contextMenus", "activeTab", "scripting", "storage", "sidePanel"],
+"host_permissions": ["https://www.pricecharting.com/*"],
 "optional_host_permissions": ["https://*/*"],
 "commands": { "scan-page": { "suggested_key": { "default": "Alt+Shift+S" } } },
 "incognito": "not_allowed",
@@ -15,7 +16,7 @@ _The Developer Dashboard lists the permissions found in the uploaded package. Ch
 ```
 
 **Deliberately not requested:**
-- `host_permissions` and `<all_urls>`
+- `host_permissions` beyond `www.pricecharting.com`, and `<all_urls>`
 - `content_scripts`
 - `tabs`, `webRequest`, `downloads`, `offscreen`, `clipboardRead`, `clipboardWrite`
 - `web_accessible_resources` and `externally_connectable`
@@ -61,7 +62,8 @@ The text-recognition engine runs inside this panel, so the panel must stay open 
 
 ### `storage`
 Holds three kinds of data:
-- **Optional `https://www.pricecharting.com/*` and `https://api.psacard.com/*`** (within the declared optional `https://*/*`): requested only from the **Show prices here** click and when the user saves their own PSA API key. Used to read the scanned card's PriceCharting page (prices and recent sales, shown in the panel) and to look up a PSA cert with the user's key. No cookies are sent; nothing is stored.
+- **`host_permissions: https://www.pricecharting.com/*`:** the panel reads the scanned card's public PriceCharting search and product page (current price, price per grade, last sales) right after a scan. The user's PriceCharting cookies go along, as on a normal visit, because PriceCharting is behind Cloudflare's bot check; when the check still has to run, the page is opened once in an inactive tab, read with `scripting.executeScript` and closed. Nothing is stored.
+- **Optional `https://api.psacard.com/*`** (within the declared optional `https://*/*`): requested only when the user saves their own PSA API key, to look up a PSA cert's name, grade and population.
 - **`chrome.storage.sync`:** four on/off settings ("Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history") and the eBay site used by the price links. The price links (eBay search, 130point sales page) open in a new tab only on a click and need no extra permission.
 - **`chrome.storage.local`:** an optional list of recent scans on this device. Each entry holds grader, cert number, how it was read and time; the list keeps at most 25. Users can switch it off or clear it ("Clear history").
 - **`chrome.storage.session`:** short-lived data, cleared when Chrome closes: the toolbar/shortcut/menu → panel hand-off (page address without query or fragment, image address, tab and window ids); the last result per window (cert numbers, grader, method and one image or page host name, at most 12 hours); and the sites where the user dismissed "Sharper scans on ‹site›".

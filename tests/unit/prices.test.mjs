@@ -64,3 +64,21 @@ test('PSA lookup needs a saved key and api.psacard.com access', async () => {
   assert.deepEqual(await fetchPsaCert('81234567', { token: 'test-token-1234567890', fetchImpl, chromeApi: { permissions: { contains: async () => false } } }), { ok: false, reason: 'no-permission' });
   assert.equal(fetched, 0);
 });
+
+test('special grades: CGC 10 Pristine and BGS 10 Black Label are priced apart', async () => {
+  const { specialGrade } = await import('../../src/core/priceLinks.js');
+  assert.equal(specialGrade('cgc-cards', ['CGC', 'PRISTINE 10', 'Pikachu']), 'Pristine');
+  assert.equal(specialGrade('bgs', ['BECKETT', 'BLACK LABEL', 'PRISTINE 10']), 'Black');
+  assert.equal(specialGrade('psa', ['GEM MT 10']), null);
+  assert.deepEqual(gradeLabels('cgc-cards', '10', 'Pristine').slice(0, 2), ['CGC 10 Pristine', 'CGC 10']);
+  assert.equal(gradeLabels('bgs', '10', 'Black')[0], 'BGS 10 Black');
+});
+
+test('labels from the real page markup: header and tab text', async () => {
+  const { labelOf } = await import('../../src/core/pricecharting.js');
+  assert.equal(labelOf('Loose Price'), 'Loose');
+  assert.equal(labelOf('PSA 10 Price'), 'PSA 10');
+  assert.equal(labelOf('Ungraded Sold Listings (31)'), 'Ungraded');
+  assert.equal(labelOf('PSA 10 (3)'), 'PSA 10');
+  assert.equal(labelOf('Box Only Price'), 'Box Only');
+});

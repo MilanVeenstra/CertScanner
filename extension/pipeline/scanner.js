@@ -1,7 +1,7 @@
 // Scan orchestrator (ADR-001 §6): acquire -> preprocess -> barcodes -> OCR passes -> parse -> route.
 // The only composing module. Checks the abort signal between stages; results after an abort are discarded.
 import { acquireFromBlob, acquireFromJob } from './acquire.js';
-import { preprocess } from './preprocess.js';
+import { preprocess, labelImage } from './preprocess.js';
 import { detectBarcodes as defaultDetectBarcodes } from './barcode.js';
 import { createOcrEngine, PSM } from './ocr.js';
 import { analyze, hasValidRun } from '../core/certParser.js';
@@ -22,10 +22,49 @@ const now = () => performance.now();
 const ms = (x) => Math.round(x);
 
 /** Text lines of the full-image OCR pass (in memory only; feeds the price & listing search terms). */
+const LABEL_WORD_CONF = 60;
 function labelLines(pages) {
   const page = pages.find((p) => p && p.pass === 'text' && !p.rotation) ?? pages.find((p) => p && p.pass === 'text');
-  if (!page || typeof page.text !== 'string') return [];
+  if (!page) return [];
+  // Words with their line ids: keep only words OCR is fairly sure of (artwork below the label reads as "lf yr rr").
+  if (Array.isArray(page.words) && page.words.length) {
+    const lines = new Map();
+    for (const w of page.words) {
+      if (!w || typeof w.text !== 'string' || !(w.confidence >= LABEL_WORD_CONF)) continue;
+      if (!lines.has(w.lineId)) lines.set(w.lineId, []);
+      lines.get(w.lineId).push(w.text);
+    }
+    return [...lines.values()].map((ws) => ws.join(' ').trim().slice(0, 80)).filter(Boolean).slice(0, 24);
+  }
+  if (typeof page.text !== 'string') return [];
   return page.text.split('\n').map((l) => l.trim().slice(0, 80)).filter(Boolean).slice(0, 24);
+}
+
+/**
+ * Card name pass (runs after a result, in the background): OCR of the label at text size, top band first and the
+ * bottom band turned around when the top gives no text. Returns label text lines (in memory only).
+ * Also used when the number came from a QR code or barcode, where scan() skips OCR.
+ * @param {Blob} blob the scanned photo
+ * @returns {Promise<string[]>}
+ */
+export async function readLabel(blob, { signal, engines, accept = (lines) => lines.length > 0 } = {}) {
+  if (!(blob instanceof Blob)) return [];
+  const eng = engines ?? getEngines();
+  const bitmap = await createImageBitmap(blob);
+  try {
+    let best = [];
+    for (const which of ['top', 'bottom']) {
+      signal?.throwIfAborted();
+      const img = await labelImage(bitmap, { which });
+      const page = await raceAbort(eng.ocr.recognizeText(img, { signal }), signal ?? new AbortController().signal);
+      const lines = labelLines([page]);
+      if (accept(lines)) return lines;
+      if (lines.length > best.length) best = lines;
+    }
+    return best;
+  } finally {
+    try { bitmap.close(); } catch { /* closed */ }
+  }
 }
 
 let defaultEngines = null;

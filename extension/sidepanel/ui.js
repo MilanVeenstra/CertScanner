@@ -467,7 +467,7 @@ export function createUi(doc, actions) {
     : d);
 
   const PRICE_STATE_KEY = {
-    loading: 'prices_loading', check: 'prices_checking', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
+    loading: 'prices_loading', reading: 'prices_reading', check: 'prices_checking', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
     unreadable: 'prices_unreadable', error: 'prices_error', challenge: 'prices_challenge', 'need-card': 'prices_need_card_data',
   };
 
@@ -479,7 +479,7 @@ export function createUi(doc, actions) {
     const box = ref(body, 'price-data');
     if (!box) return;
     const ok = st.status === 'ok';
-    box.setAttribute('aria-busy', String(st.status === 'loading' || st.status === 'check'));
+    box.setAttribute('aria-busy', String(['loading', 'reading', 'check'].includes(st.status)));
     box.dataset.status = st.status;
     ref(box, 'price-state').hidden = ok;
     ref(box, 'price-found').hidden = !ok;

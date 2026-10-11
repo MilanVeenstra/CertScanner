@@ -95,6 +95,34 @@ function drawRotated(source, sw, sh, rotation, scale) {
   return canvas;
 }
 
+export const LABEL_WIDTH = 2400;
+export const LABEL_MAX_UPSCALE = 3;
+export const LABEL_FRACTION = 0.32;
+
+/**
+ * The slab label at text-reading size: the top (or, upside down, the bottom) part of the photo, scaled so the label is
+ * about 2400 px wide (upscaling <= 3x), grayscale with stretched contrast. Used to read the card name, which is printed
+ * smaller than the cert number and is lost in the full-image pass on small photos.
+ * @param {ImageBitmap} bitmap
+ * @param {{which?:'top'|'bottom', rotation?:0|90|180|270}} [opts]
+ * @returns {Promise<Blob>}
+ */
+export async function labelImage(bitmap, { which = 'top', rotation = 0 } = {}) {
+  const swap = rotation === 90 || rotation === 270;
+  const w0 = swap ? bitmap.height : bitmap.width;
+  const scale = Math.min(LABEL_MAX_UPSCALE, LABEL_WIDTH / Math.max(1, w0));
+  const full = drawRotated(bitmap, bitmap.width, bitmap.height, rotation, scale);
+  const bandH = Math.max(1, Math.round(full.height * LABEL_FRACTION));
+  const out = new OffscreenCanvas(full.width, bandH);
+  const ctx = out.getContext('2d', { willReadFrequently: true });
+  if (which === 'bottom') { ctx.translate(full.width, bandH); ctx.rotate(Math.PI); } // upside-down photo
+  ctx.drawImage(full, 0, which === 'bottom' ? full.height - bandH : 0, full.width, bandH, 0, 0, full.width, bandH);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const gray = stretchContrast(toLuma(ctx.getImageData(0, 0, full.width, bandH).data));
+  ctx.putImageData(grayToImageData(gray, full.width, bandH), 0, 0);
+  return out.convertToBlob({ type: 'image/png' });
+}
+
 /**
  * @typedef {{left:number, top:number, width:number, height:number}} Rect
  * @typedef {{width:number, height:number, scale:number, rotation:number, ocrBlob:Blob, imageData:ImageData|null,

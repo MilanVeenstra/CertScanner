@@ -1258,5 +1258,8 @@
   },
   "open_lookup": {
     "message": "Beckett-zoekpagina openen"
+  },
+  "prices_reading": {
+    "message": "Kaartnaam van het label lezen…"
   }
 }

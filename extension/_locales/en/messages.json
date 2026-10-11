@@ -1258,5 +1258,8 @@
   },
   "open_lookup": {
     "message": "Open Beckett lookup"
+  },
+  "prices_reading": {
+    "message": "Reading the card name from the label…"
   }
 }

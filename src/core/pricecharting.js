@@ -207,6 +207,9 @@ export function parseProduct(doc) {
     }
     if (rows.length && !sales[label]) sales[label] = rows;
   }
+  // Lowest grade first: Ungraded, Grade 1 ... Grade 9.5, then the 10s in page order (stable sort).
+  const rank = (l) => (/^ungraded$/i.test(l) ? -1 : Number(/(\d{1,2}(?:\.\d)?)/.exec(l)?.[1] ?? 99) + (/^grade\b/i.test(l) ? 0 : 0.01));
+  prices.sort((a, b) => rank(a.label) - rank(b.label));
   return { name, set, prices: prices.slice(0, MAX_PRICES), sales };
 }
 

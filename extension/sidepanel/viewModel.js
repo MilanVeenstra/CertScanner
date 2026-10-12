@@ -45,8 +45,11 @@ export function confirmReasons(result, settings, rules = DEFAULT_RULES) {
   if (!top) return [];
   const out = [];
   const numbers = new Set(cands.map((c) => c.number));
+  // A20: the label names a grader that can't take a number of this length: most likely digits are missing.
+  const incomplete = top.grader === null && (top.evidence ?? []).includes('incomplete') && GRADER_NAME[(top.graderOptions ?? [])[0]];
+  if (incomplete) out.push({ key: 'reason_number_incomplete', subs: [GRADER_NAME[top.graderOptions[0]]] });
   if (numbers.size >= 2) out.push({ key: 'reason_multiple', subs: [String(numbers.size)] });
-  if (top.grader === null) {
+  if (top.grader === null && !incomplete) {
     // The best guess is preselected (ranked by label wording, number shape and page hints); the user only checks it.
     const guess = (top.graderOptions ?? [])[0];
     out.push(guess ? { key: 'reason_grader_guess', subs: [GRADER_NAME[guess]] } : { key: 'reason_grader_unknown', subs: [] });

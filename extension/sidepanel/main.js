@@ -25,6 +25,7 @@ import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken, t
 import { isPokemon, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
+import { reportData, reportFileName, imageExtension, zipStore } from './scanReport.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
 import {
   SHORTCUTS_URL, scanShortcut, panelScanPlan, alwaysAllowHost, accessBody, noAccessBody, idleShortcutHint, pageSummary,
@@ -210,7 +211,7 @@ async function handleResult(result, openKey) {
   last.lowres = offer ? { host: offer, state: 'offer', origin: result.imageInfo.origin } : null;
   if (result.status === 'none') {
     setBody('none');
-    ui.showNone({ thumbUrl: last.thumbUrl, thumbAlt: last.thumbAlt, qrHost, lowres: last.lowres, ocrUnavailable: result.warnings.some((w) => w.code === 'ocr-unavailable') });
+    ui.showNone({ thumbUrl: last.thumbUrl, thumbAlt: last.thumbAlt, qrHost, lowres: last.lowres, ocrUnavailable: result.warnings.some((w) => w.code === 'ocr-unavailable'), report: canReport() });
     persist({ task: 'none', body: 'none', result, opened: null });
     return;
   }
@@ -246,6 +247,7 @@ function showConfirmState(result, { openFailed = false, moveFocus = true, restor
     thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, caption: restored ? '' : last.caption,
     qrHost, qrNumberUsed, lowres: restored ? null : last.lowres,
     prefill: { number: top.number, grader: top.grader ?? top.graderOptions?.[0] ?? null }, backToPage,
+    report: !restored && canReport(),
   }, { moveFocus });
   if (openFailed) ui.showOpenError();
   if (!restored) persist({ task: 'confirm', body: 'confirm', result, opened: null });
@@ -254,9 +256,46 @@ function showConfirmState(result, { openFailed = false, moveFocus = true, restor
 function showOpened(opened, bodyState, { moveFocus = true, restored = false } = {}) {
   last.opened = opened;
   setBody(bodyState, { restored });
-  ui.showResult({ opened, thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(opened) }, { moveFocus });
+  ui.showResult({ opened, thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(opened), report: !restored && canReport() }, { moveFocus });
   if (!restored) persist({ task: 'result', body: bodyState, result: last.result, opened });
   refreshPrices();
+}
+
+// ---------------------------------------------------------------- "This went wrong" (A20)
+
+/** A report needs the scan's own photo and result in memory: a single-image scan of this panel session. */
+function canReport() {
+  return last.fullBlob instanceof Blob && Boolean(last.result?.status) && last.result.status !== 'error';
+}
+
+/**
+ * One .zip (the JSON of what was read + the photo) through the browser's own download: an <a download> link to an
+ * object URL, so no permission is needed and nothing leaves this computer.
+ */
+async function saveReport() {
+  if (!canReport()) return;
+  const img = last.fullBlob;
+  const now = new Date();
+  const file = `scan-image.${imageExtension(img.type)}`;
+  const data = reportData(last.result, {
+    version: chrome.runtime.getManifest().version, createdAt: now.toISOString(), language: chrome.i18n.getUILanguage(),
+    image: { file, type: img.type, bytes: img.size },
+  });
+  const zip = zipStore([
+    { name: 'scan-report.json', data: new TextEncoder().encode(`${JSON.stringify(data, null, 2)}\n`), date: now },
+    { name: file, data: new Uint8Array(await img.arrayBuffer()), date: now },
+  ]);
+  const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
+  const name = reportFileName(now);
+  const a = doc.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.hidden = true;
+  doc.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  ui.reportSaved(name);
 }
 
 // ---------------------------------------------------------------- prices in the panel
@@ -778,6 +817,7 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'always-allow') onAlwaysAllow();
   else if (a === 'back-to-page') showPageResultsState();
   else if (a === 'scan-other') scanOther();
+  else if (a === 'report') saveReport();
   else if (a.startsWith('price-')) onPriceAction(a);
 });
 $('choose-image').addEventListener('click', () => $('file-input').click());

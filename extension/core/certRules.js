@@ -1,7 +1,9 @@
 // Shared contract (ADR-001 §7). Changes need an ADR amendment.
 // Pure data: no chrome, no DOM. Imported by the parser, routing, URL builders and unit tests.
 
-export const RULES_VERSION = 3; // v2: Beckett (BGS) added; v3: number priors, card/comic wording, page hints
+export const RULES_VERSION = 4; // v2: Beckett (BGS) added; v3: number priors, card/comic wording, page hints;
+// v4 (ADR A20): read-confidence floor, label-only reads need a second differently binarised read, near-duplicate
+// merge, incomplete numbers stay grader-less, second-opinion reads
 
 /** Valid cert-number lengths per grader. */
 export const GRADERS = Object.freeze({
@@ -70,7 +72,13 @@ export const SCORE = Object.freeze({
   penalty: { ocrFixup: 0.15, keywordConflict: 0.15, graderUnresolved: 0.20, noSlabVocabulary: 0.20, competitor: 0.10 },
   resolve: { minKeyword: 0.4, minMargin: 0.3, slabVocabularyMin: 0.3, conflictKeyword: 0.6 },
   thresholds: { autoOpen: 0.80, show: 0.30, competitor: 0.50, maxCandidates: 5, untrustedQrCap: 0.50 },
+  // A20: an OCR word below `minConf` is a whitelist fall-back ("2023 SV 151" -> 2023151 at 0): it neither stands
+  // alone nor counts as a second read.
+  read: { minConf: 20 },
+  // A20: one number read twice with <= 2 digits different is one number: the stronger read absorbs a single weaker read.
+  nearDup: { maxDiff: 2, hostConf: 85, margin: 10 },
 });
+
 
 /** All graders in canonical order. */
 export const GRADER_IDS = Object.freeze(['psa', 'cgc-comics', 'cgc-cards', 'bgs']);

@@ -3,14 +3,20 @@
 import { acquireFromBlob, acquireFromJob } from './acquire.js';
 import { preprocess, labelImage } from './preprocess.js';
 import { detectBarcodes as defaultDetectBarcodes } from './barcode.js';
-import { createOcrEngine, PSM } from './ocr.js';
-import { analyze, hasValidRun } from '../core/certParser.js';
+import { createOcrEngine, PSM, THRESHOLDING } from './ocr.js';
+import { analyze } from '../core/certParser.js';
+import { DEFAULT_RULES } from '../core/certRules.js';
 import { parseQrPayload } from '../core/certUrls.js';
 import { decide } from '../core/routing.js';
 import { raceAbort } from '../shared/raceAbort.js';
 
 export const SCAN_TIMEOUT_MS = 25_000;
-export const MAX_RECOGNIZE_CALLS = 8;
+// 10 (A20, was 8): room for the orientation probe and a second opinion; only weak or sideways photos get near it.
+export const MAX_RECOGNIZE_CALLS = 10;
+/** Second opinions (A20) start only while the OCR time of this scan is below this: noisy photos are slow already. */
+export const SECOND_OPINION_MAX_MS = 1200;
+/** Orientation probe: words the engine reads with at least this confidence count towards an orientation's score. */
+const PROBE_WORD_CONF = 60;
 export const MAX_DIGIT_BOXES = 4;
 export const MIN_DIGIT_LIKE = 5;
 export const LANDSCAPE_RATIO = 1.15;
@@ -76,8 +82,41 @@ export async function readLabel(blob, { signal, engines, accept = (lines) => lin
   }
 }
 
-/** Width of the black/white label image in scan(): smaller than readLabel's, since only the big print matters here. */
+/** Width of the label images in scan(): smaller than readLabel's, since only the big print matters here. */
 const LABEL_PASS_WIDTH = 1100;
+/**
+ * The second label read: the plain (gray) label image, binarised by Tesseract's Sauvola. On 131 fixtures it agreed
+ * with the black/white digits read on 100 right numbers and on 4 wrong ones (the same image read as text: 14 wrong).
+ */
+const LABEL_PLAIN_PARAMS = Object.freeze({ thresholding_method: THRESHOLDING.sauvola });
+
+/** Second opinions (A20): the full image binarised differently inside Tesseract; `variant` keys the reads apart. */
+const SECOND_OPINION_ORDER = Object.freeze([
+  Object.freeze({ variant: 'sauvola', method: THRESHOLDING.sauvola }),
+  Object.freeze({ variant: 'leptonica', method: THRESHOLDING.leptonicaOtsu }),
+]);
+
+/** Sum of the confidences of the words read fairly surely: ranks the 90° and 270° probes of a sideways photo. */
+export function probeScore(page) {
+  return (page?.words ?? []).reduce((acc, w) => acc + (w?.confidence >= PROBE_WORD_CONF ? w.confidence : 0), 0);
+}
+/**
+ * What each recognize call read (A20): kept in memory with the result for the panel's "This went wrong" report, never
+ * stored. Text is cut to 200 characters per pass.
+ */
+function passSummary(pages) {
+  return pages.slice(0, MAX_RECOGNIZE_CALLS).map((p) => ({
+    pass: p.pass, variant: p.variant ?? null, label: p.labelPass === true, rotation: p.rotation ?? 0, ms: p.ms ?? null,
+    confidence: Math.round(Number(p.confidence) || 0), text: String(p.text ?? '').replace(/\s+/g, ' ').trim().slice(0, 200),
+  }));
+}
+
+/** A valid-length digit run in a word the engine is not guessing at (not a whitelist fall-back). */
+function hasSolidRun(page) {
+  const minConf = DEFAULT_RULES.SCORE.read.minConf;
+  return (page?.words ?? []).some((w) => w?.confidence >= minConf && (String(w.text).match(/\d+/g) ?? []).some((d) => DEFAULT_RULES.ALL_LENGTHS.includes(d.length)));
+}
+const overlaps = (a, b) => a.left < b.left + b.width && b.left < a.left + a.width && a.top < b.top + b.height && b.top < a.top + a.height;
 const DECIMAL_GRADE = /(?<![\d.])(10\.0|\d\.\d)(?![\d.])/;
 
 let defaultEngines = null;
@@ -204,7 +243,7 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
       progress('parse');
       const a = analyze({ pages, barcodes, hints });
       for (const w of a.warnings) warnings.push(w);
-      return finish(decide(a.candidates, settings, warnings), { candidates: a.candidates, labelText: labelLines(pages) });
+      return finish(decide(a.candidates, settings, warnings), { candidates: a.candidates, labelText: labelLines(pages), passes: passSummary(pages) });
     };
     if (trustedQr) return route([]);
 
@@ -221,29 +260,35 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
 
     progress('ocr', 0);
     t = now();
+    const ocrStart = t;
     const pages = [];
     let calls = 0;
-    const can = () => calls < MAX_RECOGNIZE_CALLS;
+    /** `reserve`: calls kept for later steps (the label pass needs two to show a number). */
+    const can = (reserve = 0) => calls + reserve < MAX_RECOGNIZE_CALLS;
     const step = () => progress('ocr', Math.min(1, calls / MAX_RECOGNIZE_CALLS));
-    const recognize = async (fn) => {
+    const recognize = async (fn, tags = null) => {
       calls++;
+      const started = now();
       const page = await raceAbort(fn(), sig);
       check();
+      page.ms = ms(now() - started);
+      if (tags) Object.assign(page, tags);
       pages.push(page);
       step();
       return page;
     };
-    const passesFor = async (p) => {
-      if (!can()) return;
-      const text = await recognize(() => eng.ocr.recognizeText(p.ocrBlob, { signal: sig, rotation: p.rotation }));
-      const boxes = digitBoxes(text);
+    const cropped = [];
+    /** `onlyNew`: crops only, of boxes not cropped before (second opinions, orientation probes): no whole-band pass. */
+    const digitPassesFor = async (p, text, { reserve = 0, onlyNew = false } = {}) => {
+      const boxes = digitBoxes(text).filter((b) => !onlyNew || !cropped.some((c) => c.rotation === p.rotation && overlaps(c, b)));
       if (boxes.length) {
         for (const box of boxes) {
-          if (!can()) break;
+          if (!can(reserve)) break;
+          cropped.push({ ...box, rotation: p.rotation });
           const crop = await p.cropForDigits(box);
           await recognize(() => eng.ocr.recognizeDigits(crop, { signal: sig, rotation: p.rotation }));
         }
-      } else {
+      } else if (!onlyNew) {
         if (can()) await recognize(() => eng.ocr.recognizeDigits(p.ocrBlob, { psm: PSM.SPARSE_TEXT, rectangle: p.bands.top, signal: sig, rotation: p.rotation }));
         if (can()) {
           const bottom = await p.bandBlob('bottom', true);
@@ -251,26 +296,108 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
         }
       }
     };
-    // Label pass: when the full-image passes found no number or can't tell the grader (small, low-contrast or coloured
-    // labels such as BGS gold), read the label itself black/white. The digits pass runs first; the slower text pass
-    // (grader words) only when the grader is still unknown. A read that only needs a higher score is left to confirm.
-    const unresolved = () => { const top = analyze({ pages, barcodes, hints }).candidates[0]; return !top || top.grader === null; };
-    const labelPass = async () => {
+    const analysis = () => analyze({ pages, barcodes, hints });
+    /** Second-opinion pages run so far (A20), in order. */
+    const opinions = [];
+    const opinion = async (p, o) => {
+      const page = await recognize(() => eng.ocr.recognizeText(p.ocrBlob, { signal: sig, rotation: p.rotation, params: { thresholding_method: o.method } }), { variant: o.variant });
+      opinions.push(page);
+      return page;
+    };
+    const AUTO_OPEN = DEFAULT_RULES.SCORE.thresholds.autoOpen;
+    /** No number, or the grader is unknown: the label pass may still settle it. */
+    const unresolved = () => { const top = analysis().candidates[0]; return !top || top.grader === null; };
+    /** Nothing the panel could open by itself yet. */
+    const weak = () => { const top = analysis().candidates[0]; return !top || top.grader === null || top.confidence < AUTO_OPEN; };
+    /**
+     * Worth a second opinion: the photo shows slab words or a barcode. A number without any slab word can't open a
+     * page anyway (no-vocabulary penalty), so a document or a plain number gets none (the label pass still looks for
+     * the words).
+     */
+    const slabEvidence = () => analysis().signals.maxKeyword >= DEFAULT_RULES.SCORE.resolve.slabVocabularyMin || barcodes.length > 0;
+    // Label pass: when the passes so far found no number or can't tell the grader (small, low-contrast or coloured
+    // labels such as BGS gold), read the label band itself: black/white (adaptive threshold) digits, then text for the
+    // grader words. A number only the label pass reads is shown only when two differently binarised images of the
+    // label agree on it (certParser, A20), and never opens a page by itself.
+    const labelPass = async (rotation) => {
       if (!can() || !bitmap) return;
-      const img = await labelImage(bitmap, { which: 'top', binarize: true, width: LABEL_PASS_WIDTH });
-      (await recognize(() => eng.ocr.recognizeDigits(img, { psm: PSM.SPARSE_TEXT, signal: sig }))).labelPass = true;
-      if (can() && hasValidRun(pages) && unresolved()) (await recognize(() => eng.ocr.recognizeText(img, { signal: sig }))).labelPass = true;
+      const bin = await labelImage(bitmap, { which: 'top', binarize: true, width: LABEL_PASS_WIDTH, rotation });
+      const binPage = await recognize(() => eng.ocr.recognizeDigits(bin, { psm: PSM.SPARSE_TEXT, signal: sig }), { labelPass: true, variant: 'bin' });
+      const plainText = async () => {
+        const plain = await labelImage(bitmap, { which: 'top', width: LABEL_PASS_WIDTH, rotation });
+        await recognize(() => eng.ocr.recognizeText(plain, { signal: sig, params: LABEL_PLAIN_PARAMS }), { labelPass: true, variant: 'plain' });
+      };
+      if (!can()) return;
+      if (analysis().candidates.length) {
+        // A number is read; only the grader words are missing. The black/white image as text reads them through
+        // glare (same image as the digits read, so it adds words, never a second read of a number); the plain image
+        // only if they are still missing.
+        await recognize(() => eng.ocr.recognizeText(bin, { signal: sig }), { labelPass: true, variant: 'bin' });
+        if (can() && unresolved()) await plainText();
+      } else if (hasSolidRun(binPage)) {
+        // A number only the label shows: the plain image has to read it too (certParser), and brings the words.
+        await plainText();
+      }
     };
     try {
-      await passesFor(prep);
-      if (unresolved()) await labelPass();
-      if (!hasValidRun(pages) && prep.width > LANDSCAPE_RATIO * prep.height) {
-        for (const deg of [90, 270]) {
-          if (!can()) break;
-          await passesFor(await prep.rotate(deg));
-          if (hasValidRun(pages)) break;
+      if (can()) {
+        const text = await recognize(() => eng.ocr.recognizeText(prep.ocrBlob, { signal: sig, rotation: prep.rotation }));
+        // Slab words but not a digit group in sight (gold label, a few degrees of tilt): the default binarisation lost
+        // the number, so the Sauvola opinion replaces the whole-band digit passes (which read nothing on such photos)
+        // and its boxes get the digit crops. Nothing there either: the label pass below still looks.
+        if (!digitBoxes(text).length && weak() && slabEvidence() && can()) {
+          const sv = await opinion(prep, SECOND_OPINION_ORDER[0]);
+          await digitPassesFor(prep, sv, { onlyNew: true });
+        } else {
+          await digitPassesFor(prep, text);
         }
       }
+      let view = prep; // orientation the later passes read
+      // Orientation probe (A20): decided on numbers the parser would show, not on any digit run (a whitelist
+      // fall-back at confidence 0 used to stop the search before 270°). One text pass per side, stopping at the side
+      // that reads a number; digit crops then on that side, or, when neither read one, first on the side whose words
+      // read best.
+      if (!analysis().candidates.length && prep.width > LANDSCAPE_RATIO * prep.height) {
+        const probes = [];
+        for (const deg of [90, 270]) {
+          if (!can()) break;
+          const p = await prep.rotate(deg);
+          const page = await recognize(() => eng.ocr.recognizeText(p.ocrBlob, { signal: sig, rotation: deg }));
+          probes.push({ p, score: probeScore(page), page });
+          if (analysis().candidates.length) break;
+        }
+        const ranked = analysis().candidates.length ? probes.slice(-1) : probes.slice().sort((a, b) => b.score - a.score);
+        // The chosen side always gets its digit crops (its text pass alone is one read); the other only if the first
+        // still shows nothing.
+        for (const [i, pr] of ranked.entries()) {
+          if ((i > 0 && analysis().candidates.length) || !can()) break;
+          view = pr.p;
+          await digitPassesFor(pr.p, pr.page, { reserve: 1, onlyNew: true });
+          if (analysis().candidates.length) break;
+        }
+        if (!analysis().candidates.length && ranked.length) view = ranked[0].p;
+      }
+      // Second opinion (A20): the same image binarised differently inside Tesseract (Sauvola, then Leptonica's Otsu)
+      // reads glare-cut, gold-label and tilted numbers the default Otsu misses. Only for a weak result on a photo that
+      // shows a slab at all, and only while the scan is still quick.
+      const quick = () => now() - ocrStart < SECOND_OPINION_MAX_MS;
+      if (weak() && can() && slabEvidence() && quick()) {
+        // Sauvola (local) first; Leptonica's Otsu first for an incomplete read, since it keeps the leading zeros a
+        // glare streak takes from the default Otsu. The other one only when the first read no number at all and an
+        // earlier pass did find one to complete or confirm.
+        const incomplete = analysis().candidates[0]?.evidence.includes('incomplete');
+        const order = incomplete ? SECOND_OPINION_ORDER.slice().reverse() : SECOND_OPINION_ORDER;
+        for (const o of order) {
+          if (opinions.some((p) => p.variant === o.variant)) continue;
+          if (opinions.length && (opinions.some(hasSolidRun) || !analysis().candidates.length)) break;
+          if (!weak() || !can() || !quick()) break;
+          const page = await opinion(view, o);
+          if (opinions.length === 1 && weak()) await digitPassesFor(view, page, { reserve: 3, onlyNew: true });
+        }
+      }
+      // A landscape photo that read nothing in any orientation: its top band is no label, skip the label pass.
+      const lost = !analysis().candidates.length && prep.width > LANDSCAPE_RATIO * prep.height && !slabEvidence();
+      if (unresolved() && !lost) await labelPass(view.rotation);
     } catch (e) {
       if (e instanceof ScanStop || sig.aborted) throw new ScanStop(stopCode());
       if (!pages.length) {

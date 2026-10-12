@@ -1480,5 +1480,31 @@
   },
   "candidate_use": {
     "message": "Dit nummer gebruiken"
+  },
+  "reason_number_incomplete": {
+    "message": "Het label noemt $GRADER$, maar het nummer lijkt onvolledig: een reflectie verbergt misschien een deel. Controleer elk cijfer met het label.",
+    "description": "A20: a number too short for the grader named on the label.",
+    "placeholders": {
+      "grader": {
+        "content": "$1",
+        "example": "BGS"
+      }
+    }
+  },
+  "report_button": {
+    "message": "Dit ging fout",
+    "description": "A20: saves a local report of the scan (photo + what was read)."
+  },
+  "report_hint": {
+    "message": "Bewaart deze foto en wat er gelezen is als één bestand in je downloads, om mee te sturen met een melding. CertScanner verstuurt niets."
+  },
+  "report_saved": {
+    "message": "$FILE$ staat in je downloads. Er is niets verstuurd.",
+    "placeholders": {
+      "file": {
+        "content": "$1",
+        "example": "certscanner-report-20261012-153000.zip"
+      }
+    }
   }
 }

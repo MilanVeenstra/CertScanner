@@ -429,6 +429,7 @@ export function createUi(doc, actions) {
     offline(body);
     renderPrices(view.prices);
     syncIdentity();
+    reportBox(view.report);
     const said = o.lookupPending ? `${graderName(o.grader)} ${o.number}. ${t('verify_not_opened_bgs')}` : t(openedStatusKey(o.grader), [graderName(o.grader), o.number]);
     settle(said, { moveFocus });
     // The heading names the slab, not what happened: the outcome ("Opened … cert page") is always spoken (§2.2).
@@ -785,6 +786,7 @@ export function createUi(doc, actions) {
     }
     mountForm({ ...view.prefill, withCopy: true, cgcHint: !view.reasons.some((r) => r.key === 'reason_cgc_both') });
     renderLowres(ref(body, 'lowres-slot'), view.lowres);
+    reportBox(view.report);
     offline(body);
     const summary = [t('confirm_heading'), view.reasons[0] ? t(view.reasons[0].key, view.reasons[0].subs) : ''].filter(Boolean).join('. ');
     settle(summary, { moveFocus });
@@ -812,7 +814,21 @@ export function createUi(doc, actions) {
     btn.textContent = t(large ? 'image_smaller' : 'image_larger');
   }
 
-  /** S4. view: {thumbUrl, thumbAlt, qrHost, lowres, ocrUnavailable} */
+  /** "This went wrong" (A20): offered only while the scanned photo and its result are in memory (not after a restore). */
+  function reportBox(on) {
+    const box = ref(body, 'report-box');
+    if (box) box.hidden = !on;
+  }
+
+  /** The report file was handed to the browser's download: the hint names it, and it is announced. */
+  function reportSaved(fileName) {
+    const hint = ref(body, 'report-hint');
+    const text = t('report_saved', [fileName]);
+    if (hint) hint.textContent = text;
+    announce(text);
+  }
+
+  /** S4. view: {thumbUrl, thumbAlt, qrHost, lowres, ocrUnavailable, report} */
   function showNone(view, { moveFocus = true } = {}) {
     setTaskState('none');
     setHeading(t('none_heading'), 'info');
@@ -821,6 +837,7 @@ export function createUi(doc, actions) {
     qrBlock(body, view.qrHost, false);
     ref(body, 'ocr-note').hidden = !view.ocrUnavailable;
     renderLowres(ref(body, 'lowres-slot'), view.lowres);
+    reportBox(view.report);
     settle(t('none_heading'), { moveFocus });
   }
 
@@ -1097,6 +1114,7 @@ export function createUi(doc, actions) {
     openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
     showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    reportSaved,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },

@@ -77,13 +77,18 @@ export function createUi(doc, actions) {
   /** Unfold "Other ways to scan" (e.g. the task card's "Type a number" action); no-op while the task card shows the form. */
   function openOtherWays() { if (!otherWays.hidden) setOtherWays('open'); }
   singles.certform.addEventListener('submit', (e) => { e.preventDefault(); actions.submitTaskForm(); });
-  singles.candidates.addEventListener('change', (e) => {
-    const c = currentCandidates[Number(e.target.value)];
+  // Possible numbers (confirm): one click on a row continues with it. With a known grader that is the normal process
+  // (open + result with value); without one the number goes into the form and focus moves to the grader choice.
+  singles.candidates.addEventListener('click', (e) => {
+    const b = e.target.closest?.('[data-ref="use"]');
+    const c = b ? currentCandidates[Number(b.dataset.index)] : null;
     if (!c) return;
     fillRead(c, { path: null });
     field?.fill(c.number, c.grader);
     syncOpenLabel();
     actions.candidatePicked?.(c);
+    if (c.grader) actions.candidateChosen?.(c);
+    else singles.certform.querySelector('input[name="task-grader"]')?.focus();
   });
 
   // ------------------------------------------------------------ helpers
@@ -533,6 +538,20 @@ export function createUi(doc, actions) {
     text.classList.toggle('muted', !card);
   }
 
+  /**
+   * What the PSA key gave for this cert, under the identity: grade text and population, or why nothing came back
+   * (key not accepted, daily limit, …). Shown whatever happens to the prices.
+   */
+  function showPsaInfo({ card = null, reason = null }) {
+    const el = ref(body, 'psa-info');
+    if (!el) return;
+    const n = (v) => new Intl.NumberFormat(t('locale_code') || undefined).format(v);
+    el.hidden = false;
+    el.textContent = card
+      ? (card.population != null ? t('psa_info_pop', [card.gradeText || '', n(card.population), n(card.populationHigher ?? 0)]) : t('psa_info_ok', [card.gradeText || '']))
+      : t({ auth: 'psa_info_auth', limit: 'psa_info_limit', 'no-permission': 'psa_info_no_permission', 'not-found': 'psa_info_not_found' }[reason] ?? 'psa_info_error');
+  }
+
   /** Card details from PSA's API (cert lookup) or from the label: search terms, grade and full title. */
   function applyCertCard(card) {
     const input = ref(body, 'price-card');
@@ -581,7 +600,7 @@ export function createUi(doc, actions) {
     ref(box, 'price-retry').hidden = !['error', 'challenge', 'unreadable'].includes(st.status);
     ref(box, 'price-pc-search').hidden = !['challenge', 'unreadable', 'not-found'].includes(st.status);
     ref(body, 'value-match').hidden = st.status === 'need-card';
-    ref(body, 'pc-col').textContent = st.note ? ` · ${t(st.note)}` : '';
+    ref(body, 'pc-col').textContent = st.note ? ` · ${t(st.note.key, st.note.subs)}` : '';
     ref(body, 'value-source').textContent = t(ok && st.source === 'ppt' ? 'value_source_ppt' : 'value_source');
     if (!ok) {
       const q = ref(body, 'price-card')?.value.trim() ?? '';
@@ -634,11 +653,6 @@ export function createUi(doc, actions) {
       }
       grid.appendChild(li);
     }
-    const pop = ref(market, 'pc-pop');
-    const psa = st.psa;
-    pop.hidden = !(psa && psa.population != null);
-    const count = (n) => new Intl.NumberFormat(t('locale_code') || undefined).format(n);
-    if (!pop.hidden) pop.textContent = t('prices_pop_line', [psa.gradeText || label, count(psa.population), count(psa.populationHigher ?? 0)]);
     const list = ref(market, 'pc-sales');
     while (list.firstChild) list.firstChild.remove();
     const rows = st.sales?.rows ?? [];
@@ -751,15 +765,21 @@ export function createUi(doc, actions) {
     if (cands.length >= 2) {
       cands.forEach((c, i) => {
         const cf = clone('tpl-candidate');
-        const label = cf.querySelector('label');
-        const radio = cf.querySelector('input');
-        label.dataset.testid = `candidate-${i}`;
-        radio.value = String(i);
-        radio.checked = i === 0;
-        ref(cf, 'number').textContent = c.number;
+        const row = cf.querySelector('.candidate');
+        const use = ref(cf, 'use');
+        row.dataset.testid = `candidate-${i}`;
+        const num = ref(cf, 'number');
+        num.id = `cand-${i}-number`;
+        num.textContent = c.number;
         ref(cf, 'best').hidden = i !== 0;
         const meta = [t(methodKey(c.source)), c.grader ? t('candidate_grader_guess', [graderName(c.grader)]) : t('candidate_grader_unknown')];
         ref(cf, 'meta').textContent = meta.join(' · ');
+        const label = ref(cf, 'use-label');
+        label.id = `cand-${i}-use`;
+        label.textContent = !c.grader ? t('candidate_use') : hasDirectUrl(c.grader) ? t('confirm_open_guess', [graderName(c.grader)]) : t('open_lookup');
+        use.dataset.index = String(i);
+        use.setAttribute('aria-labelledby', `${label.id} ${num.id}`);
+        if (i === 0) { use.classList.remove('btn-secondary'); use.classList.add('btn-strong'); }
         items.appendChild(cf);
       });
     }
@@ -1076,7 +1096,7 @@ export function createUi(doc, actions) {
   return {
     openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
-    showIdle, showScanning, showResult, markLookupOpened, priceInput, showPriceError, showPriceData, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },

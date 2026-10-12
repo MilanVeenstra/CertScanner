@@ -17,11 +17,11 @@ import { decide } from '../core/routing.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, openedStatusKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrade, POP_URLS } from '../core/priceLinks.js';
+import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrade, gradeLabel, graderShort, POP_URLS } from '../core/priceLinks.js';
 import { isPcUrl, searchUrl as pcSearchUrl } from '../core/pricecharting.js';
 import { loadPrices, requestPricePermission } from './priceData.js';
-import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
-import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken } from './pptApi.js';
+import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, testPsaKey, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
+import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken, testPptKey } from './pptApi.js';
 import { isPokemon, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
@@ -66,6 +66,7 @@ const tabSites = new Map();
 const ui = createUi(doc, {
   submitTaskForm: () => onTaskFormSubmit(),
   candidatePicked: (c) => { last.picked = c; },
+  candidateChosen: (c) => { openChosen({ grader: c.grader, number: c.number }); },
   pricesChanged: () => refreshPrices({ fromCert: false }),
 });
 
@@ -281,6 +282,7 @@ async function refreshPrices({ fromCert = true } = {}) {
     const r = await fetchPsaCert(o.number, { token: psaToken }).catch(() => null);
     if (run !== priceRun) return;
     if (r?.ok) { psa = r.card; ui.applyCertCard(r.card); }
+    ui.showPsaInfo(r?.ok ? { card: r.card } : { reason: r?.reason ?? 'error' }); // visible either way: what the PSA key did
   }
   // Card name from the label itself, read at text size (the full-image pass reads it poorly on small photos, and a
   // QR/barcode read skips OCR altogether). Runs once per result, before the prices are looked up.
@@ -306,22 +308,36 @@ async function refreshPrices({ fromCert = true } = {}) {
   const pokemon = isPokemon({ lines: [...(last.result?.labelText ?? []), ...(last.labelLines ?? [])], desc, brand: psa?.brand ?? '' });
   try {
     let ppt = null;
-    if (pptToken && pokemon && grader !== 'cgc-comics') {
-      ppt = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken });
-      if (run !== priceRun) return;
-      if (ppt.status === 'ok' && ppt.current) res = ppt;
-      else if (['auth', 'limit', 'no-permission'].includes(ppt.status)) note = `prices_ppt_${ppt.status.replace('-', '_')}`;
+    if (pptToken && grader !== 'cgc-comics') {
+      // With a PokemonPriceTracker key the value line always says why it was or wasn't used.
+      if (!pokemon) note = { key: 'prices_ppt_not_pokemon', subs: [] };
+      else {
+        ppt = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken });
+        if (run !== priceRun) return;
+        if (ppt.status === 'ok') res = ppt;
+        else note = pptNote(ppt, grader, grade);
+      }
     }
     if (!res) {
       const read = pricesFor(o);
       res = await loadPrices({ query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null });
       // PokemonPriceTracker knew the card but had no sale in this grade: its other grades beat an error.
-      if (res.status !== 'ok' && ppt?.status === 'ok') res = ppt;
+      if (res.status !== 'ok' && ppt?.status === 'no-grade') res = ppt.result;
     }
   } catch { res = { status: 'error' }; }
   if (run !== priceRun) return;
   lastPrices = res;
   ui.showPriceData({ ...res, psa, note });
+}
+
+/** Why PokemonPriceTracker wasn't used for this card ({key, subs} for the value line). */
+function pptNote(r, grader, grade) {
+  const q = r.search ?? '';
+  const key = {
+    auth: 'prices_ppt_auth', limit: 'prices_ppt_limit', 'no-permission': 'prices_ppt_no_permission', 'not-found': 'prices_ppt_not_found',
+    'no-match': 'prices_ppt_not_found', 'no-grade': 'prices_ppt_no_grade', format: 'prices_ppt_format',
+  }[r.status] ?? 'prices_ppt_error';
+  return { key, subs: key === 'prices_ppt_not_found' ? [q] : key === 'prices_ppt_no_grade' ? [grade ? gradeLabel(grader, grade) : graderShort(grader)] : [] };
 }
 
 /** Price block for an opened cert: the card and grade read from the label (same photo only; empty for typed numbers). */
@@ -666,7 +682,14 @@ async function onTaskFormSubmit() {
   if (!field) return;
   const v = field.submit();
   if (!v) return;
-  const editing = ui.taskState === 'edit';
+  await openChosen(v, { editing: ui.taskState === 'edit' });
+}
+
+/**
+ * The user settled the number (form or a possible-number row): from here it is the normal process, as after a sure
+ * scan: the cert page opens and the result shows with value, cert check and market.
+ */
+async function openChosen(v, { editing = false } = {}) {
   // "Corrected by you" when editing a result or when the number is not one the scan read.
   const read = (last.result?.candidates ?? []).find((c) => c.number === v.number);
   const method = editing || !read ? 'edited' : read.source;
@@ -885,10 +908,14 @@ $('psa-key-save').addEventListener('click', () => {
   if (!isPsaToken(v)) { renderPsaKey('setting_psa_key_invalid'); return; }
   chrome.permissions.request({ origins: [PSA_API_PERMISSION] }).then(async (granted) => {
     if (!granted) { renderPsaKey('setting_psa_key_denied'); return; }
+    renderPsaKey('setting_key_checking');
+    const check = await testPsaKey(v);
+    if (check === 'auth') { renderPsaKey('setting_psa_key_rejected'); return; } // not saved
     await savePsaToken(v);
     psaToken = v;
     $('setting-psa-key').value = '';
-    renderPsaKey('setting_psa_key_saved');
+    renderPsaKey({ ok: 'setting_psa_key_works', limit: 'setting_key_saved_limit', 'no-permission': 'setting_psa_key_denied' }[check] ?? 'setting_key_saved_unchecked');
+    if (last.opened) refreshPrices(); // the result on screen gets the PSA data now
   }, () => renderPsaKey('setting_psa_key_denied'));
 });
 $('psa-key-remove').addEventListener('click', async () => {
@@ -907,10 +934,14 @@ $('ppt-key-save').addEventListener('click', () => {
   if (!isPptToken(v)) { renderPptKey('setting_ppt_key_invalid'); return; }
   chrome.permissions.request({ origins: [PPT_PERMISSION] }).then(async (granted) => {
     if (!granted) { renderPptKey('setting_ppt_key_denied'); return; }
+    renderPptKey('setting_key_checking');
+    const check = await testPptKey(v);
+    if (check === 'auth') { renderPptKey('setting_ppt_key_rejected'); return; } // not saved
     await savePptToken(v);
     pptToken = v;
     $('setting-ppt-key').value = '';
-    renderPptKey('setting_ppt_key_saved');
+    renderPptKey({ ok: 'setting_ppt_key_works', limit: 'setting_key_saved_limit', format: 'setting_ppt_key_format', 'no-permission': 'setting_ppt_key_denied' }[check] ?? 'setting_key_saved_unchecked');
+    if (last.opened) refreshPrices({ fromCert: false }); // the result on screen is looked up again
   }, () => renderPptKey('setting_ppt_key_denied'));
 });
 $('ppt-key-remove').addEventListener('click', async () => {

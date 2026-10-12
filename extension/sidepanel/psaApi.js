@@ -80,3 +80,22 @@ export async function fetchPsaCert(number, { token, signal, fetchImpl = globalTh
   cache.set(number, out);
   return out;
 }
+
+/**
+ * Checks a key right after it is saved (uses 1 of the day's lookups). Any answer other than 401/403 means PSA accepted
+ * the key; the test number itself doesn't have to exist.
+ * @returns {Promise<'ok'|'auth'|'limit'|'error'|'no-permission'>}
+ */
+export async function testPsaKey(token, { fetchImpl = globalThis.fetch.bind(globalThis), chromeApi = globalThis.chrome } = {}) {
+  if (!okToken(token)) return 'auth';
+  try {
+    if (!(await chromeApi.permissions.contains({ origins: [PSA_API_PERMISSION] }))) return 'no-permission';
+    const res = await fetchImpl(`${PSA_API_ORIGIN}/publicapi/cert/GetByCertNumber/10000000`, {
+      headers: { Authorization: `bearer ${token.trim()}`, Accept: 'application/json' }, credentials: 'omit', referrerPolicy: 'no-referrer',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (res.status === 401 || res.status === 403) return 'auth';
+    if (res.status === 429) return 'limit';
+    return res.status >= 500 ? 'error' : 'ok';
+  } catch { return 'error'; }
+}

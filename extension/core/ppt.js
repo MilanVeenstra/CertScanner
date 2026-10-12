@@ -90,13 +90,38 @@ function readSales(list) {
   })).filter((s) => s.price && s.date).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)).slice(0, 10);
 }
 
+/** The cards array of an answer: {data:[…]}, {data:{…}}, {cards:[…]}, {results:[…]} or a bare array. */
+export function pptList(json) {
+  const d = json?.data ?? json?.cards ?? json?.results ?? json;
+  if (Array.isArray(d)) return d;
+  return d && typeof d === 'object' && (d.name || d.cardName) ? [d] : [];
+}
+
+/**
+ * The per-grade object of a card. Documented at ebay.salesByGrade; other places are searched too (a few levels deep)
+ * for an object whose keys look like grades ("psa10", "cgc9_5") and whose values carry prices.
+ */
+function findGradeMap(c) {
+  const direct = c?.ebay?.salesByGrade ?? c?.salesByGrade ?? c?.ebay?.graded ?? c?.graded;
+  if (direct && typeof direct === 'object') return direct;
+  const seen = new Set();
+  const walk = (o, depth) => {
+    if (!o || typeof o !== 'object' || Array.isArray(o) || depth > 3 || seen.has(o)) return null;
+    seen.add(o);
+    const keys = Object.keys(o).slice(0, 60);
+    if (keys.some((k) => KEY_RE.test(String(k).toLowerCase().replace('.', '_')) && readGrade(o[k]))) return o;
+    for (const k of keys) { const hit = walk(o[k], depth + 1); if (hit) return hit; }
+    return null;
+  };
+  return walk(c, 0);
+}
+
 /** API JSON -> cards (at most 10), each with its grades and, when the plan includes them, single sales. */
 export function parsePptCards(json) {
-  const list = Array.isArray(json?.data) ? json.data : (json?.data && typeof json.data === 'object' ? [json.data] : []);
-  return list.slice(0, 10).map((c) => {
+  return pptList(json).slice(0, 10).map((c) => {
     const grades = {};
     const sold = {};
-    const byGrade = c?.ebay?.salesByGrade;
+    const byGrade = findGradeMap(c);
     if (byGrade && typeof byGrade === 'object') {
       for (const [k, v] of Object.entries(byGrade)) {
         const key = String(k).toLowerCase().replace('.', '_');
@@ -104,7 +129,7 @@ export function parsePptCards(json) {
         if (g) grades[key] = g;
       }
     }
-    const listings = c?.ebay?.soldListings;
+    const listings = c?.ebay?.soldListings ?? c?.soldListings;
     if (listings && typeof listings === 'object') {
       for (const [k, v] of Object.entries(listings)) {
         const key = String(k).toLowerCase().replace('.', '_');
@@ -113,10 +138,10 @@ export function parsePptCards(json) {
       }
     }
     return {
-      name: str(c?.name, 100),
-      set: str(c?.setName ?? c?.set?.name ?? (typeof c?.set === 'string' ? c.set : ''), 100),
-      number: str(c?.cardNumber ?? c?.number, 20),
-      raw: money(c?.prices?.market ?? c?.prices?.marketPrice),
+      name: str(c?.name ?? c?.cardName ?? c?.title, 100),
+      set: str(c?.setName ?? c?.set?.name ?? c?.expansion?.name ?? (typeof c?.set === 'string' ? c.set : ''), 100),
+      number: str(c?.cardNumber ?? c?.number ?? c?.localId ?? c?.collectorNumber, 20),
+      raw: money(c?.prices?.market ?? c?.prices?.marketPrice ?? c?.marketPrice ?? c?.prices?.raw),
       grades, sold,
     };
   }).filter((c) => c.name);
@@ -125,10 +150,13 @@ export function parsePptCards(json) {
 const words = (s) => new Set(str(s, 200).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z0-9]+/).filter((w) => w.length > 1));
 const leadNumber = (s) => /^0*(\d+)/.exec(String(s ?? '').trim())?.[1] ?? null;
 
-/** Best card for the search: the card number has to match when known; then the most shared name words. */
+/**
+ * Best card for the search: the card number has to match when known (and the answer has numbers at all); then the
+ * most shared name words.
+ */
 export function bestPptCard(cards, { desc, cardNo = null } = {}) {
   const want = words(desc);
-  const no = cardNo ? leadNumber(cardNo) : null;
+  const no = cardNo && cards.some((c) => leadNumber(c.number)) ? leadNumber(cardNo) : null;
   let best = null;
   let bestScore = -1;
   for (const c of cards) {

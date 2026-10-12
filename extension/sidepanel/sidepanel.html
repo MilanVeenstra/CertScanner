@@ -244,7 +244,7 @@
 
 <template id="tpl-result">
   <!-- Layout A (docs/design/ui-candidates.md §3): identity → Value → Cert check → Market. -->
-  <div class="media-row identity"><span data-slot="thumb"></span><div class="identity-text"><span data-slot="read"></span><p class="muted identity-set" data-ref="price-set" hidden></p></div></div>
+  <div class="media-row identity"><span data-slot="thumb"></span><div class="identity-text"><span data-slot="read"></span><p class="muted identity-set" data-ref="price-set" hidden></p><p class="muted identity-set" data-ref="psa-info" data-testid="psa-info" hidden></p></div></div>
   <div data-ref="value-slot"></div>
   <section class="verify" aria-labelledby="verify-heading">
     <h3 id="verify-heading" data-i18n="verify_heading">Cert check</h3>
@@ -294,7 +294,7 @@
 </template>
 
 <template id="tpl-candidate">
-  <label class="candidate"><input type="radio" name="candidate"><span class="cand-body"><span class="cand-top"><span class="cert cert-sm" dir="ltr" data-ref="number"></span><span class="chip" data-ref="best" data-i18n="candidate_best" hidden></span></span><span class="muted cand-meta" data-ref="meta"></span></span></label>
+  <div class="candidate"><span class="cand-body"><span class="cand-top"><span class="cert cert-sm" dir="ltr" data-ref="number"></span><span class="chip" data-ref="best" data-i18n="candidate_best" hidden></span></span><span class="muted cand-meta" data-ref="meta"></span></span><button type="button" class="btn btn-secondary btn-sm cand-use" data-ref="use"><span data-ref="use-label"></span></button></div>
 </template>
 
 <template id="tpl-none">
@@ -403,7 +403,6 @@
       <h4 class="sales-heading" data-ref="pc-sales-heading"></h4>
       <ol class="sales" data-ref="pc-sales" data-testid="price-sales"></ol>
       <p class="hint" data-ref="pc-no-sales" hidden></p>
-      <p class="hint" data-ref="pc-pop" hidden></p>
       <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open" data-ref="price-pc-open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_open">View on PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
     <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>

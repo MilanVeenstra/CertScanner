@@ -1116,23 +1116,6 @@
       }
     }
   },
-  "prices_pop_line": {
-    "message": "PSA-populatie voor $GRADE$: $POP$ (hoger: $HIGHER$)",
-    "placeholders": {
-      "grade": {
-        "content": "$1",
-        "example": "GEM MT 10"
-      },
-      "pop": {
-        "content": "$2",
-        "example": "1234"
-      },
-      "higher": {
-        "content": "$3",
-        "example": "0"
-      }
-    }
-  },
   "prices_pc_open": {
     "message": "Bekijk op PriceCharting"
   },
@@ -1408,5 +1391,94 @@
         "content": "$4"
       }
     }
+  },
+  "psa_info_pop": {
+    "message": "Via je PSA-sleutel: $GRADE$ · populatie $POP$ (hoger: $HIGHER$)",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      },
+      "pop": {
+        "content": "$2"
+      },
+      "higher": {
+        "content": "$3"
+      }
+    }
+  },
+  "psa_info_ok": {
+    "message": "Via je PSA-sleutel: $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "psa_info_auth": {
+    "message": "PSA accepteerde je sleutel niet: controleer hem in Instellingen."
+  },
+  "psa_info_limit": {
+    "message": "De daglimiet van PSA voor je sleutel is bereikt."
+  },
+  "psa_info_no_permission": {
+    "message": "Geen toegang tot api.psacard.com: sla de PSA-sleutel opnieuw op in Instellingen."
+  },
+  "psa_info_not_found": {
+    "message": "PSA heeft geen gegevens voor dit certnummer."
+  },
+  "psa_info_error": {
+    "message": "PSA was niet bereikbaar voor de kaartgegevens."
+  },
+  "prices_ppt_not_pokemon": {
+    "message": "niet herkend als Pokémon-kaart, dus PriceCharting gebruikt"
+  },
+  "prices_ppt_not_found": {
+    "message": "PokemonPriceTracker vond geen kaart voor ‘$QUERY$’, PriceCharting gebruikt",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_ppt_no_grade": {
+    "message": "PokemonPriceTracker heeft geen recente verkopen in $GRADE$, PriceCharting gebruikt",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_ppt_format": {
+    "message": "het antwoord van PokemonPriceTracker werd niet begrepen, PriceCharting gebruikt"
+  },
+  "prices_ppt_error": {
+    "message": "PokemonPriceTracker was niet bereikbaar, PriceCharting gebruikt"
+  },
+  "setting_key_checking": {
+    "message": "Sleutel controleren…"
+  },
+  "setting_key_saved_limit": {
+    "message": "Sleutel opgeslagen. De daglimiet is voor vandaag bereikt; morgen werkt hij weer."
+  },
+  "setting_key_saved_unchecked": {
+    "message": "Sleutel opgeslagen, maar de dienst was niet bereikbaar om hem te controleren."
+  },
+  "setting_psa_key_works": {
+    "message": "Sleutel opgeslagen en werkt. PSA-slabs tonen nu grade en populatie van PSA."
+  },
+  "setting_psa_key_rejected": {
+    "message": "Niet opgeslagen: PSA accepteerde deze sleutel niet."
+  },
+  "setting_ppt_key_works": {
+    "message": "Sleutel opgeslagen en werkt (de controle kostte 1 credit). Pokémon-slabs krijgen hun waarde nu van PokemonPriceTracker."
+  },
+  "setting_ppt_key_rejected": {
+    "message": "Niet opgeslagen: PokemonPriceTracker accepteerde deze sleutel niet."
+  },
+  "setting_ppt_key_format": {
+    "message": "Sleutel opgeslagen, maar het antwoord van PokemonPriceTracker zag er anders uit dan verwacht; prijzen kunnen van PriceCharting komen."
+  },
+  "candidate_use": {
+    "message": "Dit nummer gebruiken"
   }
 }

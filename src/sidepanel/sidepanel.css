@@ -316,10 +316,10 @@ legend { padding: 0; margin-block-end: var(--cs-space-1); }
 
 /* Candidate rows (confirm with several numbers) */
 .candidates > div { display: flex; flex-direction: column; }
-.candidate { display: flex; gap: var(--cs-space-25); align-items: flex-start; padding: 10px 0; border-block-start: 1px solid var(--cs-row); cursor: pointer; }
-.candidate input { accent-color: var(--cs-text); margin: 4px 0 0; inline-size: 16px; block-size: 16px; flex: none; }
-.candidate:has(input:focus-visible) { outline: 2px solid var(--cs-focus); outline-offset: 2px; }
-.candidate input:focus-visible { outline: none; }
+/* One row per possible number; its button continues with that number (open + the normal result). */
+.candidate { display: flex; flex-wrap: wrap; gap: var(--cs-space-2) var(--cs-space-25); align-items: center; justify-content: space-between; padding: 10px 0; border-block-start: 1px solid var(--cs-row); }
+.candidate .cand-body { flex: 1 1 150px; }
+.cand-use { flex: none; }
 .cand-body { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
 .cand-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .cand-meta { font-size: var(--cs-text-xs); }

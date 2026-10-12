@@ -1116,23 +1116,6 @@
       }
     }
   },
-  "prices_pop_line": {
-    "message": "PSA population for $GRADE$: $POP$ (higher: $HIGHER$)",
-    "placeholders": {
-      "grade": {
-        "content": "$1",
-        "example": "GEM MT 10"
-      },
-      "pop": {
-        "content": "$2",
-        "example": "1234"
-      },
-      "higher": {
-        "content": "$3",
-        "example": "0"
-      }
-    }
-  },
   "prices_pc_open": {
     "message": "View on PriceCharting"
   },
@@ -1408,5 +1391,94 @@
         "content": "$4"
       }
     }
+  },
+  "psa_info_pop": {
+    "message": "From your PSA key: $GRADE$ · population $POP$ (higher: $HIGHER$)",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      },
+      "pop": {
+        "content": "$2"
+      },
+      "higher": {
+        "content": "$3"
+      }
+    }
+  },
+  "psa_info_ok": {
+    "message": "From your PSA key: $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "psa_info_auth": {
+    "message": "PSA didn't accept your key: check it in Settings."
+  },
+  "psa_info_limit": {
+    "message": "PSA's daily limit for your key is reached."
+  },
+  "psa_info_no_permission": {
+    "message": "No access to api.psacard.com: save the PSA key again in Settings."
+  },
+  "psa_info_not_found": {
+    "message": "PSA has no data for this cert number."
+  },
+  "psa_info_error": {
+    "message": "PSA couldn't be reached for the card data."
+  },
+  "prices_ppt_not_pokemon": {
+    "message": "not recognised as a Pokémon card, so PriceCharting is used"
+  },
+  "prices_ppt_not_found": {
+    "message": "PokemonPriceTracker found no card for “$QUERY$”, PriceCharting used",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_ppt_no_grade": {
+    "message": "PokemonPriceTracker has no recent $GRADE$ sales, PriceCharting used",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_ppt_format": {
+    "message": "PokemonPriceTracker's answer wasn't understood, PriceCharting used"
+  },
+  "prices_ppt_error": {
+    "message": "PokemonPriceTracker couldn't be reached, PriceCharting used"
+  },
+  "setting_key_checking": {
+    "message": "Checking the key…"
+  },
+  "setting_key_saved_limit": {
+    "message": "Key saved. Its daily limit is reached for today, so it works again tomorrow."
+  },
+  "setting_key_saved_unchecked": {
+    "message": "Key saved, but the service couldn't be reached to check it."
+  },
+  "setting_psa_key_works": {
+    "message": "Key saved and working. PSA slabs now show their grade and population from PSA."
+  },
+  "setting_psa_key_rejected": {
+    "message": "Not saved: PSA didn't accept this key."
+  },
+  "setting_ppt_key_works": {
+    "message": "Key saved and working (the check used 1 credit). Pokémon slabs now get their value from PokemonPriceTracker."
+  },
+  "setting_ppt_key_rejected": {
+    "message": "Not saved: PokemonPriceTracker didn't accept this key."
+  },
+  "setting_ppt_key_format": {
+    "message": "Key saved, but PokemonPriceTracker's answer looked different than expected; prices may come from PriceCharting."
+  },
+  "candidate_use": {
+    "message": "Use this number"
   }
 }

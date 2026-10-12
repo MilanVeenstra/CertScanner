@@ -48,7 +48,7 @@ describe('Prices for this card', { concurrency: false }, () => {
     last: document.querySelector('[data-testid="price-last-sold"]')?.textContent,
     grid: [...document.querySelectorAll('[data-testid="price-grid"] li')].map((li) => li.textContent),
     sales: [...document.querySelectorAll('[data-testid="price-sales"] li')].map((li) => li.textContent),
-    pop: document.querySelector('[data-ref="pc-pop"]')?.hidden ? null : document.querySelector('[data-ref="pc-pop"]')?.textContent,
+    pop: document.querySelector('[data-testid="psa-info"]')?.hidden ? null : document.querySelector('[data-testid="psa-info"]')?.textContent,
     number: document.querySelector('[data-testid="result-number"]')?.textContent,
   }));
   const settled = () => E.poll(async () => { const s = (await read()).status; return s && !['loading', 'reading', 'check'].includes(s); }, { message: 'prices settled', timeout: 45000 });

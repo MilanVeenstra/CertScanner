@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { isPokemon, pptSearch, pptUrl, gradeKey, keyLabel, parsePptCards, bestPptCard, pptResult, PPT_PERMISSION } from '../../src/core/ppt.js';
-import { loadPptPrices, isPptToken } from '../../src/sidepanel/pptApi.js';
+import { loadPptPrices, isPptToken, testPptKey } from '../../src/sidepanel/pptApi.js';
+import { testPsaKey } from '../../src/sidepanel/psaApi.js';
 
 const json = JSON.parse(readFileSync(new URL('../fixtures/pokemonpricetracker/cards-charizard.json', import.meta.url), 'utf8'));
 const TOKEN = 'ppt_test_token_1234567890';
@@ -78,4 +79,41 @@ test('PokemonPriceTracker client: key, permission, one request per card name, er
   assert.equal((await status(500)).status, 'error');
   const noPerm = await loadPptPrices({ desc: 'POKEMON MEW 151', grader: 'psa', grade: '10', token: TOKEN }, { fetchImpl, chromeApi: { permissions: { contains: async () => false } } });
   assert.equal(noPerm.status, 'no-permission');
+});
+
+test('PokemonPriceTracker: other answer shapes are still read; every miss says why', async () => {
+  // Same data under other names: a bare array, cardName/number, grades under another key.
+  const alt = [{ cardName: 'Charizard ex', number: '199', setName: 'SV 151', marketPrice: 120,
+    graded: { PSA10: { medianPrice: 600, count: 3 }, 'cgc9.5': { averagePrice: 300 } } }];
+  const cards = parsePptCards(alt);
+  assert.equal(cards.length, 1);
+  assert.deepEqual(Object.keys(cards[0].grades).sort(), ['cgc9_5', 'psa10']);
+  const deep = parsePptCards({ data: [{ name: 'Mew', cardNumber: '151', stats: { market: { psa9: { medianPrice: 50 } } } }] });
+  assert.equal(deep[0].grades.psa9.median, 50, 'grade map found a few levels deep');
+  const noNumbers = parsePptCards({ data: [{ name: 'Charizard ex', ebay: { salesByGrade: { psa10: { medianPrice: 600 } } } }] });
+  assert.equal(bestPptCard(noNumbers, { desc: 'CHARIZARD ex 199', cardNo: '199' })?.name, 'Charizard ex', 'answer without numbers: matched by name');
+
+  const chromeApi = { permissions: { contains: async () => true } };
+  const reply = (body, status = 200) => async () => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status });
+  const load = (fetchImpl, p = {}) => loadPptPrices({ desc: 'POKEMON CHARIZARD ex 199', cardNo: '199', grader: 'psa', grade: '10', token: TOKEN, ...p }, { fetchImpl, chromeApi });
+  assert.equal((await load(reply({ data: [] }), { desc: 'POKEMON ZZZ 1' })).status, 'not-found');
+  const nm = await load(reply(json), { desc: 'POKEMON CHARIZARD ex 4', cardNo: '4' });
+  assert.equal(nm.status, 'no-match');
+  assert.equal(nm.search, 'CHARIZARD ex 4');
+  const ng = await load(reply(json), { grade: '6' });
+  assert.equal(ng.status, 'no-grade');
+  assert.equal(ng.result.prices.length, 5, 'the other grades come along');
+  assert.equal((await load(reply({ data: [{ id: 1 }] }), { desc: 'POKEMON ODD 9' })).status, 'format');
+
+  // Key checks right after saving.
+  const seen = [];
+  const ok = async (url, init) => { seen.push({ url, auth: init.headers.Authorization }); return new Response(JSON.stringify({ data: [{ name: 'Pikachu' }] }), { status: 200 }); };
+  assert.equal(await testPptKey(TOKEN, { fetchImpl: ok, chromeApi }), 'ok');
+  assert.equal(seen[0].url, 'https://www.pokemonpricetracker.com/api/v2/cards?search=pikachu&limit=1', 'one card, no eBay data: 1 credit');
+  assert.equal(await testPptKey(TOKEN, { fetchImpl: reply('{}', 401), chromeApi }), 'auth');
+  assert.equal(await testPptKey(TOKEN, { fetchImpl: reply('{}', 429), chromeApi }), 'limit');
+  assert.equal(await testPptKey(TOKEN, { fetchImpl: reply({ data: [] }), chromeApi }), 'format');
+  assert.equal(await testPsaKey('psa_test_token_123456', { fetchImpl: reply('{}', 404), chromeApi }), 'ok', 'any non-auth answer means the key was accepted');
+  assert.equal(await testPsaKey('psa_test_token_123456', { fetchImpl: reply('{}', 401), chromeApi }), 'auth');
+  assert.equal(await testPsaKey('psa_test_token_123456', { fetchImpl: async () => { throw new TypeError('offline'); }, chromeApi }), 'error');
 });

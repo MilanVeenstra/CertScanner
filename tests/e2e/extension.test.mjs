@@ -286,6 +286,27 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     assert.equal(v.live, null, 'the price box is not a live region');
   });
 
+  test('J5c several possible numbers: one click on a row opens that number and shows the normal result', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    const r = await pasteImage(page, await readFile(path.join(E.BENCH, 'psa-c03-blur2.jpg')));
+    assert.equal(r.state, 'confirm');
+    assert.ok(r.candidates >= 2, `several numbers listed (${r.candidates})`);
+    const pick = await page.evaluate(() => document.querySelector('[data-testid="candidate-1"] .cert')?.textContent);
+    const beforeTabs = await E.graderTabs(env);
+    await page.locator('[data-testid="candidate-1"] [data-ref="use"]').click();
+    await E.poll(async () => (await page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'result after choosing' });
+    const [t] = await newGraderTabsSince(beforeTabs);
+    assert.equal(t?.url, `https://www.psacard.com/cert/${pick}`, 'the chosen number opened, nothing else');
+    const v = await page.evaluate(() => ({
+      task: document.getElementById('task').dataset.state,
+      number: document.querySelector('[data-testid="result-number"]')?.textContent,
+      value: Boolean(document.querySelector('.value [data-testid="price-data"]')),
+      focus: document.activeElement?.id,
+    }));
+    assert.deepEqual(v, { task: 'result', number: pick, value: true, focus: 'task-heading' }, 'same result view as a sure scan');
+  });
+
   test('J6 no number: non-slab image → none, no tab, upload and manual entry offered', T, async () => {
     await E.closeGraderTabs(env);
     const { result, opened } = await runJob({ srcUrl: `${servers.A}/non-slab.png`, settle: 1500 });

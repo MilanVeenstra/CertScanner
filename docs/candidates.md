@@ -138,4 +138,4 @@ The evaluator's P3 findings were fixed afterwards and re-measured:
 - Page-scan results still have no per-row value (deferred: needs one PriceCharting lookup per row).
 - Settings regroup, a "Look up value automatically" switch and half grades PriceCharting has no column for (e.g.
   PSA 8.5 shows "—") are deferred.
-- PriceCharting tab fallback policy review (see gates).
+- ~~PriceCharting tab fallback policy review~~: resolved 2026-10-12 (ADR A18) — the inactive-tab fallback was removed; Pokémon slabs can use PokemonPriceTracker's official API.

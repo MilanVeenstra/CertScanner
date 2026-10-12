@@ -1,0 +1,30 @@
+{
+  "_comment": "Synthetic response in the documented /api/v2/cards?includeEbay=true shape (vendor docs 2025-2026); values are made up for tests.",
+  "data": [
+    {
+      "name": "Charizard ex",
+      "setName": "Obsidian Flames",
+      "cardNumber": "223/197",
+      "tcgPlayerId": "509980",
+      "prices": { "market": 98.5 },
+      "ebay": { "salesByGrade": { "psa10": { "count": 31, "medianPrice": 410, "averagePrice": 402.4, "smartMarketPrice": { "price": 405, "confidence": "high" }, "lastSaleDate": "2026-10-08T21:03:00Z" } } }
+    },
+    {
+      "name": "Charizard ex",
+      "setName": "Scarlet & Violet 151",
+      "cardNumber": "199/165",
+      "tcgPlayerId": "517045",
+      "prices": { "market": 118.24 },
+      "ebay": {
+        "salesByGrade": {
+          "psa10": { "count": 42, "medianPrice": 598.0, "averagePrice": 603.1, "minPrice": 540, "maxPrice": 680, "smartMarketPrice": { "price": 601.5, "confidence": "high" }, "lastSaleDate": "2026-10-09T18:22:00Z" },
+          "psa9": { "count": 57, "medianPrice": 205.0, "averagePrice": 209.9, "lastSaleDate": "2026-10-10T10:01:00Z" },
+          "bgs9_5": { "count": 6, "medianPrice": 255.0, "lastSaleDate": "2026-09-30T00:00:00Z" },
+          "cgc10": { "count": 9, "medianPrice": 520.0, "smartMarketPrice": { "price": 515.0, "confidence": "medium" }, "lastSaleDate": "2026-10-02T00:00:00Z" },
+          "junk": { "medianPrice": 1 },
+          "psa8": { "count": 3, "medianPrice": "n/a" }
+        }
+      }
+    }
+  ]
+}

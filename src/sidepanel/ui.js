@@ -555,15 +555,16 @@ export function createUi(doc, actions) {
     : d);
 
   const PRICE_STATE_KEY = {
-    loading: 'prices_loading', reading: 'prices_reading', check: 'prices_checking', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
+    loading: 'prices_loading', reading: 'prices_reading', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
     unreadable: 'prices_unreadable', error: 'prices_error', challenge: 'prices_challenge', 'need-card': 'prices_need_card_data',
   };
-  /** States announced once through #status (the tab that opens, and the ones that need the user). */
-  const ANNOUNCED_STATES = new Set(['check', 'not-found', 'unreadable', 'error', 'challenge']);
+  /** States announced once through #status (the ones that need the user). */
+  const ANNOUNCED_STATES = new Set(['not-found', 'unreadable', 'error', 'challenge']);
 
   /**
-   * Value area (+ Market data). st: {status:'loading'|'reading'|'check'|'no-permission'|'not-found'|'unreadable'|'error'|
-   * 'challenge'|'need-card'} or the ok result of priceData.loadPrices() plus {psa} (PSA API card with population).
+   * Value area (+ Market data). st: {status:'loading'|'reading'|'no-permission'|'not-found'|'unreadable'|'error'|
+   * 'challenge'|'need-card'} or an ok result (source 'pc': priceData.loadPrices(), 'ppt': pptApi.loadPptPrices()) plus
+   * {psa} (PSA API card with population) and {note} (why PokemonPriceTracker wasn't used, e.g. its daily limit).
    */
   function showPriceData(st) {
     const box = ref(body, 'price-data');
@@ -571,7 +572,7 @@ export function createUi(doc, actions) {
     if (!box) return;
     const ok = st.status === 'ok';
     const comic = priceGrader === 'cgc-comics';
-    box.setAttribute('aria-busy', String(['loading', 'reading', 'check'].includes(st.status)));
+    box.setAttribute('aria-busy', String(['loading', 'reading'].includes(st.status)));
     box.dataset.status = st.status;
     ref(box, 'price-state').hidden = ok;
     ref(box, 'price-found').hidden = !ok;
@@ -580,7 +581,8 @@ export function createUi(doc, actions) {
     ref(box, 'price-retry').hidden = !['error', 'challenge', 'unreadable'].includes(st.status);
     ref(box, 'price-pc-search').hidden = !['challenge', 'unreadable', 'not-found'].includes(st.status);
     ref(body, 'value-match').hidden = st.status === 'need-card';
-    ref(body, 'pc-col').textContent = '';
+    ref(body, 'pc-col').textContent = st.note ? ` · ${t(st.note)}` : '';
+    ref(body, 'value-source').textContent = t(ok && st.source === 'ppt' ? 'value_source_ppt' : 'value_source');
     if (!ok) {
       const q = ref(body, 'price-card')?.value.trim() ?? '';
       const key = st.status === 'need-card' && comic ? 'prices_need_title_data' : (PRICE_STATE_KEY[st.status] ?? 'prices_error');
@@ -601,13 +603,19 @@ export function createUi(doc, actions) {
     const pcLabel = st.current?.label ?? st.labels?.[0] ?? '';
     const asked = grade ? gradeLabel(priceGrader, grade) : '';
     const label = asked || pcLabel;
-    if (!grade) ref(body, 'pc-col').textContent = ` · ${t('value_pick_grade')}`;
-    else if (st.current && pcLabel && pcLabel.toLowerCase() !== asked.toLowerCase()) ref(body, 'pc-col').textContent = ` · ${t('value_column', [pcLabel])}`;
+    if (!grade) ref(body, 'pc-col').textContent += ` · ${t('value_pick_grade')}`;
+    else if (st.current && pcLabel && pcLabel.toLowerCase() !== asked.toLowerCase()) ref(body, 'pc-col').textContent += ` · ${t('value_column', [pcLabel])}`;
+    if (market) ref(market, 'price-pc-open').hidden = !st.url;
     ref(box, 'pc-label').textContent = label ? t('prices_current_label', [keepTogether(label)]) : t('prices_current_unknown');
     ref(box, 'pc-price').textContent = st.current ? money(st.current.price) : '—';
-    ref(box, 'pc-last-label').textContent = t('prices_last_sold_label', [keepTogether(label || t('prices_grade_all'))]);
-    ref(box, 'pc-last').textContent = st.lastSold ? money(st.lastSold.price) : '—';
-    ref(box, 'pc-last-date').textContent = st.lastSold ? saleDate(st.lastSold.date) : t('prices_no_recent');
+    // Second tile: the newest single sale; PokemonPriceTracker plans without single sales give the median sale instead.
+    const sum = !st.lastSold && st.soldSummary?.median ? st.soldSummary : null;
+    const gradeText = keepTogether(label || t('prices_grade_all'));
+    ref(box, 'pc-last-label').textContent = t(sum ? 'prices_median_label' : 'prices_last_sold_label', [gradeText]);
+    ref(box, 'pc-last').textContent = st.lastSold ? money(st.lastSold.price) : sum ? money(sum.median) : '—';
+    ref(box, 'pc-last-date').textContent = st.lastSold ? saleDate(st.lastSold.date)
+      : sum ? [sum.count ? t('prices_sales_count', [String(sum.count)]) : '', sum.lastDate ? t('prices_last_on', [saleDate(sum.lastDate)]) : ''].filter(Boolean).join(' · ')
+        : t('prices_no_recent');
     const grid = ref(market, 'pc-grid');
     while (grid.firstChild) grid.firstChild.remove();
     for (const p of st.prices) {
@@ -657,9 +665,10 @@ export function createUi(doc, actions) {
       valueAnnounced = true;
       const name = identity?.title || identity?.desc || '';
       const cur = st.current ? money(st.current.price) : '—';
-      announce(st.lastSold
-        ? t('status_value', [name, label || t('prices_grade_all'), cur, money(st.lastSold.price)])
-        : t('status_value_no_sale', [name, label || t('prices_grade_all'), cur]));
+      const g = label || t('prices_grade_all');
+      announce(st.lastSold ? t('status_value', [name, g, cur, money(st.lastSold.price)])
+        : sum ? t('status_value_median', [name, g, cur, money(sum.median)])
+          : t('status_value_no_sale', [name, g, cur]));
     }
   }
 

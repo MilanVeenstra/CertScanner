@@ -21,6 +21,8 @@ import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrad
 import { isPcUrl, searchUrl as pcSearchUrl } from '../core/pricecharting.js';
 import { loadPrices, requestPricePermission } from './priceData.js';
 import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
+import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken } from './pptApi.js';
+import { isPokemon, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
@@ -259,12 +261,15 @@ function showOpened(opened, bodyState, { moveFocus = true, restored = false } = 
 // ---------------------------------------------------------------- prices in the panel
 
 let psaToken = null;
+let pptToken = null;
 let priceRun = 0;
 let lastPrices = null;
 
 /**
- * Fill "Prices for this card": first the card from the cert (PSA API, when a key is saved), then PriceCharting's
- * price per grade and recent sales for that card, read on this device. fromCert=false keeps what the user typed.
+ * Fill Value + Market: first the card from the cert (PSA API, when a key is saved), then the prices. Pokémon slabs with
+ * a PokemonPriceTracker key: its eBay sales per grade (ADR A18); everything else, and Pokémon cards it doesn't know or
+ * has no sales for in that grade: PriceCharting's price per grade and recent sales, read on this device.
+ * fromCert=false keeps what the user typed.
  */
 async function refreshPrices({ fromCert = true } = {}) {
   const o = last.opened;
@@ -296,17 +301,27 @@ async function refreshPrices({ fromCert = true } = {}) {
   const { grader, desc, grade } = ui.priceInput();
   if (!desc) { ui.showPriceData({ status: 'need-card' }); return; }
   ui.showPriceData({ status: 'loading' });
-  let res;
+  let res = null;
+  let note = null;
+  const pokemon = isPokemon({ lines: [...(last.result?.labelText ?? []), ...(last.labelLines ?? [])], desc, brand: psa?.brand ?? '' });
   try {
-    const read = pricesFor(o);
-    res = await loadPrices({
-      query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null, windowId: windowId ?? undefined,
-      onStage: (s) => { if (run === priceRun && s === 'check') ui.showPriceData({ status: 'check' }); },
-    });
+    let ppt = null;
+    if (pptToken && pokemon && grader !== 'cgc-comics') {
+      ppt = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken });
+      if (run !== priceRun) return;
+      if (ppt.status === 'ok' && ppt.current) res = ppt;
+      else if (['auth', 'limit', 'no-permission'].includes(ppt.status)) note = `prices_ppt_${ppt.status.replace('-', '_')}`;
+    }
+    if (!res) {
+      const read = pricesFor(o);
+      res = await loadPrices({ query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null });
+      // PokemonPriceTracker knew the card but had no sale in this grade: its other grades beat an error.
+      if (res.status !== 'ok' && ppt?.status === 'ok') res = ppt;
+    }
   } catch { res = { status: 'error' }; }
   if (run !== priceRun) return;
   lastPrices = res;
-  ui.showPriceData({ ...res, psa });
+  ui.showPriceData({ ...res, psa, note });
 }
 
 /** Price block for an opened cert: the card and grade read from the label (same photo only; empty for typed numbers). */
@@ -882,6 +897,29 @@ $('psa-key-remove').addEventListener('click', async () => {
   psaToken = null;
   renderPsaKey('setting_psa_key_removed');
 });
+// PokemonPriceTracker API key (optional): Pokémon prices from eBay sales per grade. Saving asks for its host access.
+function renderPptKey(status = null) {
+  $('ppt-key-remove').hidden = !pptToken;
+  $('ppt-key-status').textContent = status ? t(status) : (pptToken ? t('setting_ppt_key_saved') : '');
+}
+$('ppt-key-save').addEventListener('click', () => {
+  const v = $('setting-ppt-key').value.trim();
+  if (!isPptToken(v)) { renderPptKey('setting_ppt_key_invalid'); return; }
+  chrome.permissions.request({ origins: [PPT_PERMISSION] }).then(async (granted) => {
+    if (!granted) { renderPptKey('setting_ppt_key_denied'); return; }
+    await savePptToken(v);
+    pptToken = v;
+    $('setting-ppt-key').value = '';
+    renderPptKey('setting_ppt_key_saved');
+  }, () => renderPptKey('setting_ppt_key_denied'));
+});
+$('ppt-key-remove').addEventListener('click', async () => {
+  await clearPptToken().catch(() => {});
+  chrome.permissions.remove({ origins: [PPT_PERMISSION] }).catch(() => {}); // the key was the only reason for it
+  pptToken = null;
+  renderPptKey('setting_ppt_key_removed');
+});
+$('ppt-key-get').addEventListener('click', () => { chrome.tabs.create({ url: PPT_SIGNUP }).catch(() => ui.announce(t('err_open_tab'))); });
 $('psa-key-get').addEventListener('click', () => { chrome.tabs.create({ url: PSA_API_SIGNUP }).catch(() => ui.announce(t('err_open_tab'))); });
 
 $('setting-ebay-site').addEventListener('change', async (e) => {
@@ -923,7 +961,7 @@ $('clear-history').addEventListener('click', async () => {
 
 async function refreshSites({ focusAfterRemove = null } = {}) {
   let granted = { hosts: [], allSites: [] };
-  try { granted = await listGrantedSites(chrome, { exclude: [PSA_API_PERMISSION] }); } catch { /* keep empty */ }
+  try { granted = await listGrantedSites(chrome, { exclude: [PSA_API_PERMISSION, PPT_PERMISSION] }); } catch { /* keep empty */ }
   ui.renderSites(granted, {
     // SEC-17: announce what Chrome actually did (remove() resolves false when nothing was removed).
     onRemove: async (host, index) => {
@@ -1008,6 +1046,8 @@ function restore(saved) {
   try { settings = await loadSettings(); } catch { settings = { ...DEFAULT_SETTINGS }; }
   psaToken = await loadPsaToken();
   renderPsaKey();
+  pptToken = await loadPptToken();
+  renderPptKey();
   try { history = await loadHistory(); } catch { history = { v: 1, entries: [] }; }
   renderRecent();
   refreshShortcut();

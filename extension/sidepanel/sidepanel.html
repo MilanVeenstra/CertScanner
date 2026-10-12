@@ -175,6 +175,17 @@
       <p class="hint" id="psa-key-hint" data-i18n="setting_psa_key_hint"></p>
       <p class="hint" id="psa-key-status" data-testid="psa-key-status" aria-live="polite"></p>
     </div>
+    <div class="field psa-key">
+      <label for="setting-ppt-key" data-i18n="setting_ppt_key">PokemonPriceTracker API key (optional, Pokémon)</label>
+      <input type="password" id="setting-ppt-key" class="cert-field" data-testid="setting-ppt-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="ppt-key-hint ppt-key-status">
+      <div class="actions">
+        <button type="button" class="btn btn-secondary btn-sm" id="ppt-key-save" data-testid="ppt-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
+        <button type="button" class="link" id="ppt-key-remove" data-testid="ppt-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
+        <button type="button" class="link" id="ppt-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+      <p class="hint" id="ppt-key-hint" data-i18n="setting_ppt_key_hint"></p>
+      <p class="hint" id="ppt-key-status" data-testid="ppt-key-status" aria-live="polite"></p>
+    </div>
   </section>
 
   <section class="section" aria-labelledby="history-heading">
@@ -365,7 +376,7 @@
         </div>
       </div>
     </div>
-    <p class="value-meta muted"><span data-i18n="value_source"></span><span data-ref="pc-col"></span></p>
+    <p class="value-meta muted"><span data-ref="value-source" data-i18n="value_source"></span><span data-ref="pc-col"></span></p>
     <p class="value-match" data-ref="value-match"><span class="muted" data-i18n="value_match"></span> <span class="price-card-text" data-ref="price-card-text" data-testid="price-card-text"></span></p>
     <button type="button" class="link" data-ref="price-edit" data-testid="price-edit" aria-expanded="false" aria-controls="price-fields"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="value_change"></span></button>
     <form class="price-fields" id="price-fields" data-ref="price-fields" novalidate hidden>
@@ -393,7 +404,7 @@
       <ol class="sales" data-ref="pc-sales" data-testid="price-sales"></ol>
       <p class="hint" data-ref="pc-no-sales" hidden></p>
       <p class="hint" data-ref="pc-pop" hidden></p>
-      <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_open">View on PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open" data-ref="price-pc-open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_open">View on PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
     <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     <h4 data-i18n="ebay_heading">Search eBay</h4>

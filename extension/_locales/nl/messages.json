@@ -617,7 +617,7 @@
     "message": "Over"
   },
   "about_privacy": {
-    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Het certnummer gaat naar de grader als de pagina opent, en naar PSA als je een PSA-sleutel hebt toegevoegd. Kaartnaam en grade gaan naar PriceCharting voor de waarde. eBay krijgt alleen wat je zoekt als je een eBay-link opent."
+    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Het certnummer gaat naar de grader als de pagina opent, en naar PSA als je een PSA-sleutel hebt toegevoegd. Kaartnaam en grade gaan naar PriceCharting voor de waarde, of bij Pokémon-kaarten naar PokemonPriceTracker als je die sleutel hebt toegevoegd. eBay krijgt alleen wat je zoekt als je een eBay-link opent."
   },
   "about_lookup": {
     "message": "Een certcontrole toont wat de database van de grader over een nummer zegt. Of de slab op een foto echt is, kan die niet zeggen."
@@ -984,7 +984,7 @@
     "message": "eBay-site"
   },
   "setting_ebay_site_hint": {
-    "message": "Voor de links Verkocht op eBay en Te koop op eBay. Waarden in het paneel komen van PriceCharting (Amerikaanse dollars)."
+    "message": "Voor de links Verkocht op eBay en Te koop op eBay. Waarden in het paneel komen van PriceCharting, of bij Pokémon-kaarten van PokemonPriceTracker als je die sleutel hebt toegevoegd (Amerikaanse dollars)."
   },
   "prices_card_label": {
     "message": "Kaart"
@@ -1163,9 +1163,6 @@
   "setting_psa_key_denied": {
     "message": "Niet opgeslagen: CertScanner heeft toestemming nodig om api.psacard.com te bereiken."
   },
-  "prices_checking": {
-    "message": "PriceCharting controleert de browser (er opent kort een tabblad op de achtergrond)…"
-  },
   "prices_challenge": {
     "message": "PriceCharting wil eerst je browser controleren. Open PriceCharting, wacht tot de pagina verschijnt en klik dan op Opnieuw."
   },
@@ -1340,5 +1337,76 @@
   },
   "value_change_comic": {
     "message": "Verkeerde titel of grade? Wijzigen"
+  },
+  "setting_ppt_key": {
+    "message": "PokemonPriceTracker API-sleutel (optioneel, Pokémon)"
+  },
+  "setting_ppt_key_hint": {
+    "message": "Voor Pokémon-slabs: de waarde komt uit recente eBay-verkopen in de grade van de slab (PSA, BGS, CGC), via de officiële API van PokemonPriceTracker, zonder PriceCharting-pagina ertussen. De gratis sleutel heeft 100 credits per dag; één kaart kost er maximaal 4 (een andere grade kiezen kost niets). Alleen de kaartnaam en het nummer worden verstuurd; de sleutel blijft op dit apparaat. Zonder sleutel, of als een kaart niet gevonden wordt, gebruikt CertScanner PriceCharting."
+  },
+  "setting_ppt_key_saved": {
+    "message": "Sleutel opgeslagen. Pokémon-slabs krijgen hun waarde nu van PokemonPriceTracker."
+  },
+  "setting_ppt_key_removed": {
+    "message": "Sleutel verwijderd."
+  },
+  "setting_ppt_key_invalid": {
+    "message": "Dat lijkt geen API-sleutel van PokemonPriceTracker."
+  },
+  "setting_ppt_key_denied": {
+    "message": "Niet opgeslagen: CertScanner heeft toestemming nodig om www.pokemonpricetracker.com te bereiken."
+  },
+  "value_source_ppt": {
+    "message": "eBay-verkopen via PokemonPriceTracker · Amerikaanse dollars"
+  },
+  "prices_ppt_auth": {
+    "message": "PokemonPriceTracker accepteerde de sleutel niet, PriceCharting gebruikt"
+  },
+  "prices_ppt_limit": {
+    "message": "daglimiet van PokemonPriceTracker bereikt, PriceCharting gebruikt"
+  },
+  "prices_ppt_no_permission": {
+    "message": "geen toegang tot PokemonPriceTracker (sla de sleutel opnieuw op), PriceCharting gebruikt"
+  },
+  "prices_median_label": {
+    "message": "Mediaan verkocht · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_sales_count": {
+    "message": "$COUNT$ verkopen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_last_on": {
+    "message": "laatst $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "status_value_median": {
+    "message": "$CARD$, $GRADE$: huidige prijs $PRICE$, mediaan verkocht $MEDIAN$.",
+    "placeholders": {
+      "card": {
+        "content": "$1"
+      },
+      "grade": {
+        "content": "$2"
+      },
+      "price": {
+        "content": "$3"
+      },
+      "median": {
+        "content": "$4"
+      }
+    }
   }
 }

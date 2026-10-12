@@ -617,7 +617,7 @@
     "message": "About"
   },
   "about_privacy": {
-    "message": "Images are processed on this device and never uploaded. The cert number goes to the grader when its page opens, and to PSA if you added a PSA key. The card name and grade go to PriceCharting for the value. eBay only gets what you search for when you open an eBay link."
+    "message": "Images are processed on this device and never uploaded. The cert number goes to the grader when its page opens, and to PSA if you added a PSA key. The card name and grade go to PriceCharting for the value, or for Pokémon cards to PokemonPriceTracker if you added its key. eBay only gets what you search for when you open an eBay link."
   },
   "about_lookup": {
     "message": "A cert lookup shows what the grader's database says about a number. It can't tell whether the slab in a photo is genuine."
@@ -984,7 +984,7 @@
     "message": "eBay site"
   },
   "setting_ebay_site_hint": {
-    "message": "Used by the Sold on eBay and For sale on eBay links. Values shown in the panel come from PriceCharting (US dollars)."
+    "message": "Used by the Sold on eBay and For sale on eBay links. Values shown in the panel come from PriceCharting, or for Pokémon cards from PokemonPriceTracker when you added its key (US dollars)."
   },
   "prices_card_label": {
     "message": "Card"
@@ -1163,9 +1163,6 @@
   "setting_psa_key_denied": {
     "message": "Not saved: CertScanner needs permission to contact api.psacard.com."
   },
-  "prices_checking": {
-    "message": "PriceCharting is checking the browser (a tab opens briefly in the background)…"
-  },
   "prices_challenge": {
     "message": "PriceCharting wants to check your browser first. Open PriceCharting, wait until the page shows, then click Try again."
   },
@@ -1340,5 +1337,76 @@
   },
   "value_change_comic": {
     "message": "Wrong title or grade? Change"
+  },
+  "setting_ppt_key": {
+    "message": "PokemonPriceTracker API key (optional, Pokémon)"
+  },
+  "setting_ppt_key_hint": {
+    "message": "For Pokémon slabs: the value comes from recent eBay sales in the slab's grade (PSA, BGS, CGC) through PokemonPriceTracker's official API, with no PriceCharting page in between. The free key has 100 credits a day; one card costs up to 4 (a grade change costs nothing). Only the card name and number are sent; the key stays on this device. Without a key, or when a card isn't found, PriceCharting is used."
+  },
+  "setting_ppt_key_saved": {
+    "message": "Key saved. Pokémon slabs now get their value from PokemonPriceTracker."
+  },
+  "setting_ppt_key_removed": {
+    "message": "Key removed."
+  },
+  "setting_ppt_key_invalid": {
+    "message": "That doesn't look like a PokemonPriceTracker API key."
+  },
+  "setting_ppt_key_denied": {
+    "message": "Not saved: CertScanner needs permission to contact www.pokemonpricetracker.com."
+  },
+  "value_source_ppt": {
+    "message": "eBay sales via PokemonPriceTracker · US dollars"
+  },
+  "prices_ppt_auth": {
+    "message": "PokemonPriceTracker didn't accept the key, PriceCharting used"
+  },
+  "prices_ppt_limit": {
+    "message": "PokemonPriceTracker daily limit reached, PriceCharting used"
+  },
+  "prices_ppt_no_permission": {
+    "message": "no access to PokemonPriceTracker (save the key again), PriceCharting used"
+  },
+  "prices_median_label": {
+    "message": "Median sold · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_sales_count": {
+    "message": "$COUNT$ sales",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_last_on": {
+    "message": "last $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "status_value_median": {
+    "message": "$CARD$, $GRADE$: current price $PRICE$, median sold $MEDIAN$.",
+    "placeholders": {
+      "card": {
+        "content": "$1"
+      },
+      "grade": {
+        "content": "$2"
+      },
+      "price": {
+        "content": "$3"
+      },
+      "median": {
+        "content": "$4"
+      }
+    }
   }
 }

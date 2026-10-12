@@ -317,6 +317,72 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     assert.equal(await panel.page.locator(tid('upload-input')).count(), 1, 'upload offered');
   });
 
+  test('A20 "This went wrong": confirm, none and result offer one local .zip (report JSON + the photo); nothing is requested; not after a restore', T, async () => {
+    await E.closeGraderTabs(env);
+    const page = panel.page;
+    /** Click the report button and read the downloaded archive (stored entries, as scanReport.js writes them). */
+    const saveReport = async () => {
+      const netBefore = env.net.length;
+      const [download] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.locator(tid('report-button')).click()]);
+      const buf = await readFile(await download.path());
+      const files = {};
+      const eocd = buf.length - 22;
+      let cd = buf.readUInt32LE(eocd + 16);
+      for (let i = 0; i < buf.readUInt16LE(eocd + 10); i++) {
+        const size = buf.readUInt32LE(cd + 24);
+        const nameLen = buf.readUInt16LE(cd + 28);
+        const local = buf.readUInt32LE(cd + 42);
+        const name = buf.subarray(cd + 46, cd + 46 + nameLen).toString('utf8');
+        const start = local + 30 + buf.readUInt16LE(local + 26);
+        files[name] = buf.subarray(start, start + size);
+        cd += 46 + nameLen;
+      }
+      const requested = env.net.slice(netBefore).filter((r) => /^https?:/.test(r.url));
+      return { name: download.suggestedFilename(), files, requested };
+    };
+    const reportShown = () => page.evaluate(() => {
+      const b = document.querySelector('[data-testid="report-button"]');
+      return Boolean(b) && !b.closest('[hidden]') && b.getClientRects().length > 0;
+    });
+
+    // Confirm: the photo and the scan's own read.
+    const file = FIX('ambiguous-10digit.png');
+    const { result } = await upload(file);
+    assert.equal(result.state, 'confirm');
+    assert.ok(await reportShown(), 'offered on the confirm screen');
+    const names = await accessibleNames(page, ['report-button']);
+    assert.match(names['report-button'] ?? '', /This went wrong/);
+    const r = await saveReport();
+    assert.match(r.name, /^certscanner-report-\d{8}-\d{6}\.zip$/);
+    assert.deepEqual(Object.keys(r.files).sort(), ['scan-image.png', 'scan-report.json']);
+    assert.ok(r.files['scan-image.png'].equals(readFileSync(file)), 'the scanned photo, byte for byte');
+    const report = JSON.parse(r.files['scan-report.json'].toString('utf8'));
+    assert.equal(report.kind, 'certscanner-scan-report');
+    assert.equal(report.scan.status, 'confirm');
+    assert.equal(report.scan.candidates[0].number, '5012345678');
+    assert.ok(report.scan.candidates[0].evidence.length > 0 && report.scan.passes.length > 0 && report.scan.timings.totalMs > 0);
+    assert.ok(!JSON.stringify(report).includes('127.0.0.1'), 'no page or image address');
+    assert.deepEqual(r.requested, [], 'nothing requested over the network');
+    const hint = await page.evaluate(() => ({ hint: document.getElementById('report-hint')?.textContent ?? '', live: document.querySelector('[data-testid="status-live"]')?.textContent ?? '' }));
+    assert.ok(hint.hint.includes(r.name) && /Nothing was sent/.test(hint.hint), hint.hint);
+
+    // None and result: offered too.
+    assert.equal((await upload(FIX('non-slab.png'))).result.state, 'none');
+    assert.ok(await reportShown(), 'offered when nothing was found');
+    const none = await saveReport();
+    assert.equal(JSON.parse(none.files['scan-report.json'].toString('utf8')).scan.status, 'none');
+    const auto = await upload(FIX('psa-9digit.png'));
+    assert.equal(auto.result.state, 'auto-open');
+    assert.ok(await reportShown(), 'offered on the result');
+    await E.closeGraderTabs(env);
+
+    // After a panel reload the photo is gone from memory: no report for the restored card.
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 300)));
+    assert.equal(await reportShown(), false, 'restored card: no photo, no report');
+  });
+
   test('J7 fetch blocked (hotlink CDN): capture fallback reads the on-screen image; harness strategies → capture/screen', T, async () => {
     await E.closeGraderTabs(env);
     const img = `${servers.B}/hotlink/psa-8digit-leading-zero.png`;

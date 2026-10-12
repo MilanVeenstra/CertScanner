@@ -54,6 +54,13 @@ test('confirmReasons: priority order, at most two', () => {
   assert.deepEqual(confirmReasons(qr, settings()).map((r) => r.key), ['reason_uncertain']);
 });
 
+test('A20 confirmReasons: an incomplete number names the label\'s grader instead of guessing one', () => {
+  const short = result({ candidates: [cand({ grader: null, graderOptions: ['bgs', 'psa'], number: '00123456', confidence: 0.55, evidence: ['len:8', 'pass:text', 'conflict', 'incomplete'] })] });
+  const r = confirmReasons(short, settings());
+  assert.deepEqual(r.map((x) => x.key), ['reason_number_incomplete']);
+  assert.deepEqual(r[0].subs, ['BGS']);
+});
+
 test('errorView maps scan errors to the spec E-states', () => {
   assert.deepEqual(errorView('restricted', { retryable: true }), { id: 'E1', tone: 'warning', heading: 'err_restricted_heading', body: 'err_restricted_body', bodySubs: [], actions: ['choose'] });
   assert.deepEqual(errorView('not-found', { retryable: true }).actions, ['retry', 'choose']);

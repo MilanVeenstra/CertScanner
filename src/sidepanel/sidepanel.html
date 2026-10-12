@@ -38,6 +38,7 @@
   <symbol id="i-ban" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m3.75 3.75 8.5 8.5"/></symbol>
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v8M4.75 7.25 8 10.5l3.25-3.25M2.5 10.5v3h11v-3"/></symbol>
 </svg>
 
 <header class="app-header">
@@ -266,6 +267,10 @@
     <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
   </section>
   <div data-ref="market-slot"></div>
+  <div class="report" data-ref="report-box" hidden>
+    <button type="button" class="link" data-testid="report-button" data-action="report" aria-describedby="report-hint"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span data-i18n="report_button"></span></button>
+    <p class="hint" id="report-hint" data-ref="report-hint" data-i18n="report_hint"></p>
+  </div>
 </template>
 
 <template id="tpl-edit">
@@ -291,6 +296,10 @@
   <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
   <button type="button" class="link" data-testid="scan-other" data-action="scan-other"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="confirm_scan_other"></span></button>
+  <div class="report" data-ref="report-box" hidden>
+    <button type="button" class="link" data-testid="report-button" data-action="report" aria-describedby="report-hint"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span data-i18n="report_button"></span></button>
+    <p class="hint" id="report-hint" data-ref="report-hint" data-i18n="report_hint"></p>
+  </div>
 </template>
 
 <template id="tpl-candidate">
@@ -306,6 +315,10 @@
     <button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
   </div>
   <div data-ref="lowres-slot"></div>
+  <div class="report" data-ref="report-box" hidden>
+    <button type="button" class="link" data-testid="report-button" data-action="report" aria-describedby="report-hint"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span data-i18n="report_button"></span></button>
+    <p class="hint" id="report-hint" data-ref="report-hint" data-i18n="report_hint"></p>
+  </div>
 </template>
 
 <template id="tpl-error">

@@ -226,11 +226,15 @@ test('Competition: two numbers >= .50 each lose .10 and nothing auto-opens', () 
   assert.equal(decide(cands, settings(), []), 'confirm');
 });
 
-test('Keyword conflict: 8-digit number on a CGC-comics label is penalised', () => {
+// A20 changed this case: before, PSA was preselected because it is the only grader for 8 digits. On a label that
+// clearly names another grader the read is most likely incomplete (glare, a lost leading zero), so the grader stays
+// open with the label's grader offered first and the number left to correct.
+test('Keyword conflict: 8-digit number on a CGC-comics label is penalised and left without a grader (incomplete)', () => {
   const cands = parseCandidates({ pages: [ocrPage(['UNIVERSAL GRADE', 'WHITE PAGES', '12345678']), digitsPage('12345678')] });
-  assert.equal(cands[0].grader, 'psa');
-  assert.ok(cands[0].evidence.includes('conflict'));
-  assert.equal(cands[0].confidence, 0.69); // .685 + .15 - .15
+  assert.equal(cands[0].grader, null);
+  assert.deepEqual(cands[0].graderOptions, ['cgc-comics', 'psa']);
+  assert.ok(cands[0].evidence.includes('conflict') && cands[0].evidence.includes('incomplete'));
+  assert.equal(cands[0].confidence, 0.69); // .685 + .15 - .15 (no length bonus)
   assert.equal(decide(cands, settings(), []), 'confirm');
 });
 
@@ -292,4 +296,129 @@ test('a number read only by the label pass is never auto-opened (two reads of on
   assert.ok(cands[0].confidence < 0.8 && cands[0].evidence.includes('label-pass'));
   assert.equal(decide(cands, settings(), []), 'confirm');
   assert.ok(parseCandidates({ pages: [page] }).every((c) => c.confidence < 0.8));
+});
+
+// ------------------------------------------------------------------ A20 (scan-accuracy round 2026-10-12)
+const tag = (page, extra) => ({ ...page, ...extra });
+const BGS_WORDS = ['BECKETT GRADING SERVICES', 'BGS', 'CENTERING 9.5 CORNERS 9.5'];
+
+test('A20 confidence floor: a whitelist fall-back (conf < 20) neither stands alone nor counts as a second read', () => {
+  // "2023 SV 151" read through a digits whitelist fuses into a 7-digit PSA-length run at confidence 0.
+  assert.deepEqual(parseCandidates({ pages: [ocrPage(BGS_WORDS), digitsPage('2023151', 0)] }), []);
+  const cands = parseCandidates({ pages: [ocrPage(['GEM MT 10', '01234567']), digitsPage('01234567', 5)] });
+  assert.equal(cands[0].confidence, 0.74, 'one real read: .685 + .05, no second-read bonus');
+  assert.equal(decide(cands, settings(), []), 'confirm');
+});
+
+test('A20 label pass: two reads of one black/white image are not shown; the plain image agreeing is (capped, confirm)', () => {
+  const full = ocrPage(BGS_WORDS);
+  const bin = tag(digitsPage('0012345678'), { labelPass: true, variant: 'bin' });
+  const binText = tag(ocrPage(['0012345678']), { labelPass: true, variant: 'bin' });
+  assert.deepEqual(parseCandidates({ pages: [full, bin, binText] }), [], 'same image twice: not independent');
+  const plain = tag(ocrPage([...BGS_WORDS, '0012345678']), { labelPass: true, variant: 'plain' });
+  const cands = parseCandidates({ pages: [full, bin, plain] });
+  assert.equal(cands.length, 1);
+  assert.equal(cands[0].number, '0012345678');
+  assert.equal(cands[0].grader, 'bgs');
+  assert.ok(cands[0].confidence < 0.8 && cands[0].evidence.includes('label-pass'));
+  assert.equal(decide(cands, settings(), []), 'confirm');
+  // Two images agreeing but not a single slab word anywhere: not shown.
+  assert.deepEqual(parseCandidates({ pages: [ocrPage(['SOME PHOTO']), bin, tag(ocrPage(['0012345678']), { labelPass: true, variant: 'plain' })] }), []);
+});
+
+test('A20 label pass: an incomplete read of the other image completes the number (lost leading zero)', () => {
+  const full = ocrPage(BGS_WORDS);
+  const bin = tag(digitsPage('012345678'), { labelPass: true, variant: 'bin' }); // 9 digits: no grader of that length on a BGS label
+  const plain = tag(ocrPage([...BGS_WORDS, '0012345678']), { labelPass: true, variant: 'plain' });
+  const cands = parseCandidates({ pages: [full, bin, plain] });
+  assert.deepEqual(cands.map((c) => c.number), ['0012345678'], 'the truncated PSA-length read is not offered');
+  assert.equal(cands[0].grader, 'bgs');
+  assert.ok(cands[0].evidence.includes('completes:012345678') && cands[0].confidence < 0.8);
+  // An unrelated number in the other image completes nothing.
+  const other = tag(digitsPage('987654321'), { labelPass: true, variant: 'bin' });
+  assert.deepEqual(parseCandidates({ pages: [full, other, plain] }), [], 'two unrelated one-image reads: nothing shown');
+});
+
+test('A20 second opinion: a number read once by a Sauvola/Leptonica pass is shown but never opens a page by itself', () => {
+  const first = ocrPage(['CGC', 'GEM MINT 10', 'Celebrations']);
+  const sauvola = tag(ocrPage(['CGC', 'GEM MINT 10', '3901234567'], { conf: 94 }), { variant: 'sauvola' });
+  const one = parseCandidates({ pages: [first, sauvola] });
+  assert.equal(one[0].number, '3901234567');
+  assert.equal(one[0].grader, 'cgc-cards');
+  assert.equal(one[0].confidence, 0.79);
+  assert.ok(one[0].evidence.includes('second-opinion'));
+  assert.equal(decide(one, settings(), []), 'confirm');
+  // Confirmed by a read of another image (its digit crop, or the other binarisation): two reads, may open.
+  const two = parseCandidates({ pages: [first, sauvola, digitsPage('3901234567', 90)] });
+  assert.ok(two[0].confidence >= 0.8 && !two[0].evidence.includes('second-opinion'));
+  const lept = tag(ocrPage(['3901234567'], { conf: 92 }), { variant: 'leptonica' });
+  assert.ok(parseCandidates({ pages: [first, sauvola, lept] })[0].confidence >= 0.8);
+});
+
+test('A20 near-duplicates: a competing read stays its own number (merging could hide the right one)', () => {
+  const label = ['CGC', 'GEM MINT 10'];
+  // Text 2038475610 (81) vs digit crop 2938475610 (95): both are real reads; the surer one first, nothing opens.
+  const cands = parseCandidates({ pages: [ocrPage([...label, '2038475610'], { conf: [88, 88, 81] }), digitsPage('2938475610', 95)] });
+  assert.deepEqual(cands.map((c) => c.number), ['2938475610', '2038475610']);
+  assert.ok(!cands[0].evidence.some((e) => e.startsWith('near-dup')));
+  assert.equal(decide(cands, settings(), []), 'confirm');
+  // Two text passes agreeing on a misread don't swallow the digit crop's different read either (bench-real
+  // cgcd-c17-thumb250: default + Sauvola text read 2038…, the crop read 2938…).
+  const sv = tag(ocrPage(['2038475610'], { conf: 82 }), { variant: 'sauvola' });
+  const two = parseCandidates({ pages: [ocrPage([...label, '2038475610'], { conf: [88, 88, 80] }), sv, digitsPage('2938475610', 95)] });
+  assert.deepEqual(two.map((c) => c.number).sort(), ['2038475610', '2938475610']);
+  assert.equal(decide(two, settings(), []), 'confirm');
+});
+
+test('A20 a second-opinion text read of the same number is no second read; a digit crop is', () => {
+  const label = ['CGC', 'NM/MINT 8.5'];
+  // Default + Sauvola text both misread 2038475610, the digit crop reads 2938475610: the crop ranks first.
+  const sv = tag(ocrPage(['2038475610'], { conf: 90 }), { variant: 'sauvola' });
+  const c = parseCandidates({ pages: [ocrPage([...label, '2038475610'], { conf: [88, 88, 86] }), sv, digitsPage('2938475610', 95)] });
+  assert.equal(c[0].number, '2938475610');
+  assert.equal(decide(c, settings(), []), 'confirm');
+  // Default text + digit crop agree: a real second read, as before.
+  const ok = parseCandidates({ pages: [ocrPage([...label, '2938475610'], { conf: [88, 88, 90] }), digitsPage('2938475610', 95)] });
+  assert.ok(ok[0].confidence >= 0.8);
+});
+
+test('A20 near-duplicates: only a weak stray read (below the competitor bar) is absorbed, and never opens a page', () => {
+  // No slab words, text 2038475610 at 60 (score < .50) vs crop 2938475610 at 95: one number, still confirmed.
+  const cands = parseCandidates({ pages: [ocrPage(['2038475610'], { conf: 60 }), digitsPage('2938475610', 95)] });
+  assert.deepEqual(cands.map((c) => c.number), ['2938475610']);
+  assert.ok(cands[0].evidence.includes('near-dup:2038475610'));
+  assert.ok(cands[0].confidence < 0.8, 'the absorbed read is no second read of the disputed digit');
+  assert.equal(decide(cands, settings(), []), 'confirm');
+  // Two slabs with consecutive certs, each read twice: two numbers, nothing opens.
+  const pair = parseCandidates({ pages: [ocrPage(['PSA', 'GEM MT 10', '12345678', '12345679']), digitsPage('12345678'), digitsPage('12345679')] });
+  assert.deepEqual(pair.map((c) => c.number).sort(), ['12345678', '12345679']);
+  assert.equal(decide(pair, settings(), []), 'confirm');
+});
+
+test('A20 near-duplicates: a different grader guess is not merged, and a second-opinion read stays capped', () => {
+  // "00…" is a Beckett serial shape, "10…" is not: same length, one digit apart, different guesses.
+  const a = analyze({ pages: [ocrPage(['GRADED', '0012345678'], { conf: [88, 95] }), digitsPage('1012345678', 80)] });
+  assert.equal(a.candidates[0].number, '0012345678');
+  assert.ok(!a.candidates[0].evidence.some((e) => e.startsWith('near-dup')), 'Beckett guess vs CGC guess: not one number');
+  assert.equal(a.candidates[0].confidence, 0.6, 'no second-read bonus: .70 + .10 (serial shape) - .20 (no slab words)');
+  // Sauvola alone read 3901234567 (capped at .79); the default text read 3901234561: two numbers, nothing opens.
+  const first = ocrPage(['CGC', 'GEM MINT 10', '3901234561'], { conf: [88, 88, 75] });
+  const sauvola = tag(ocrPage(['3901234567'], { conf: 95 }), { variant: 'sauvola' });
+  const capped = parseCandidates({ pages: [first, sauvola] });
+  assert.ok(capped.some((c) => c.number === '3901234567' && c.confidence < 0.8));
+  assert.equal(decide(capped, settings(), []), 'confirm');
+});
+
+test('A20 incomplete read: the complete number of the label\'s grader takes its place (glare ate the leading zeros)', () => {
+  const words = ['BECKETT GRADING SERVICES', 'CENTERING 10 CORNERS 10 EDGES 10'];
+  const otsu = ocrPage([...words, '09876543'], { conf: [88, 88, 87] });
+  const shortOnly = parseCandidates({ pages: [otsu] });
+  assert.equal(shortOnly[0].grader, null, 'alone: no grader preselected');
+  assert.deepEqual(shortOnly[0].graderOptions, ['bgs', 'psa']);
+  assert.ok(shortOnly[0].evidence.includes('incomplete'));
+  const lept = tag(ocrPage(['0009876543'], { conf: 96 }), { variant: 'leptonica' });
+  const cands = parseCandidates({ pages: [otsu, lept] });
+  assert.deepEqual(cands.map((x) => x.number), ['0009876543']);
+  assert.equal(cands[0].grader, 'bgs');
+  assert.ok(cands[0].evidence.includes('completes:09876543'));
 });

@@ -1,0 +1,4021 @@
+{
+  "schemaVersion": 1,
+  "generator": "scripts/gen-fixtures.mjs",
+  "synthetic": true,
+  "notice": "Derived from the synthetic bench renders (abstract art, fictional names, printed grader names, no logos) and one HTML receipt. Cert numbers are test values. Never load live grader pages from tests.",
+  "environment": {
+    "chromium": "141.0.7390.37",
+    "playwright": "1.56.1",
+    "bwipJs": "4.8.0",
+    "labelFont": "\"Liberation Sans\", Arial, Helvetica, sans-serif",
+    "labelFontInstalled": true,
+    "deviceScaleFactor": 1
+  },
+  "gate": {
+    "wrongAutoOpensMax": 0,
+    "topCorrectMin": 60,
+    "wrongNumberShownMax": 1,
+    "hadToChooseMax": 5
+  },
+  "metrics": {
+    "classes": "auto-ok / auto-WRONG (opened anything else, or any auto-open on mustNotAutoOpen) / opened-ok / opened-wrong (BGS: number shown as read, no tab) / confirm-ok (one number, right) / confirm-choose (>= 2 numbers offered, the preselected one right) / confirm-wrong (preselected number wrong) / none-ok / none-miss / fp (a number shown on a fixture with no number) / error.",
+    "topCorrect": "Positives = fixtures with expected.number or numbers. Top correct = auto-ok + opened-ok + confirm-ok + confirm-choose.",
+    "wrongNumberShown": "confirm-wrong + opened-wrong + fp.",
+    "hadToChoose": "confirm-choose (the four two-slab photos are expected here)."
+  },
+  "families": [
+    "phone",
+    "thumb",
+    "keystone",
+    "reflect",
+    "crop",
+    "pair",
+    "moire",
+    "bg",
+    "sideways",
+    "dark",
+    "negative"
+  ],
+  "counts": {
+    "total": 66,
+    "phone": 12,
+    "thumb": 13,
+    "keystone": 5,
+    "reflect": 5,
+    "crop": 5,
+    "pair": 4,
+    "moire": 5,
+    "bg": 6,
+    "sideways": 4,
+    "dark": 3,
+    "negative": 4
+  },
+  "totalBytes": 6299281,
+  "fixtures": [
+    {
+      "id": "psa-c01-phone",
+      "family": "phone",
+      "from": "psa-c01",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "04718263"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "2021 CHROME SERIES",
+        "ROOKIE SLUGGER",
+        "#27",
+        "GEM MT 10",
+        "PSA",
+        "04718263"
+      ],
+      "note": "",
+      "file": "psa-c01-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 1
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 1
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1719,
+      "bytes": 191028,
+      "sha256": "5b6660bd85cba7515d8055ff64f29f8bcc1a5e5ecc4b391999d17a8302c8bc1b"
+    },
+    {
+      "id": "psa-c03-phone",
+      "family": "phone",
+      "from": "psa-c03",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "109876543"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "2018 PRIZM",
+        "POINT GUARD",
+        "#280",
+        "MINT 9",
+        "PSA",
+        "109876543"
+      ],
+      "note": "",
+      "file": "psa-c03-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 2
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.05,
+            0.03
+          ],
+          "tr": [
+            0.96,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0.02,
+            0.97
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 2
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1719,
+      "bytes": 188644,
+      "sha256": "851fcbc288104300387d03a88b0e9eeb963a9b28d9d840058fc64b82594f8cd4"
+    },
+    {
+      "id": "psa-c05-phone",
+      "family": "phone",
+      "from": "psa-c05",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "056734128"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "2000 NEO GENESIS",
+        "LIGHTNING MOUSE",
+        "#70",
+        "NM-MT 8",
+        "PSA",
+        "056734128"
+      ],
+      "note": "",
+      "file": "psa-c05-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 3
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 3
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1719,
+      "bytes": 187568,
+      "sha256": "ea7df4b4c97d5c8643164853451ad25d1b4a26201455298dd4b9db5981b1cd4e"
+    },
+    {
+      "id": "psa-c07-phone",
+      "family": "phone",
+      "from": "psa-c07",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "5123478"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1986 BASKETBALL",
+        "HIGH FLYER",
+        "#57",
+        "VG-EX 4",
+        "PSA",
+        "5123478"
+      ],
+      "note": "",
+      "file": "psa-c07-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 4
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.05,
+            0.03
+          ],
+          "tr": [
+            0.96,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0.02,
+            0.97
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 4
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1719,
+      "bytes": 184564,
+      "sha256": "81b8ccc5b805b47f6d59d2404c2e50a47b9ce84bd2f2bdcc67261d36803fce57"
+    },
+    {
+      "id": "cgcc-c09-phone",
+      "family": "phone",
+      "from": "cgcc-c09",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3984561002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63"
+      ],
+      "note": "",
+      "file": "cgcc-c09-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 5
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 5
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1689,
+      "bytes": 195012,
+      "sha256": "1abce648e0b609d6e7e27a98fa58bc6e9cb4f2fa8e328836ee36fbd223dc66bb"
+    },
+    {
+      "id": "cgcc-c11-phone",
+      "family": "phone",
+      "from": "cgcc-c11",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4102938015"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.4",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4102938-015",
+        "Star Rangers #12",
+        "Nova Comics, 6/77"
+      ],
+      "note": "",
+      "file": "cgcc-c11-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 6
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.05,
+            0.03
+          ],
+          "tr": [
+            0.96,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0.02,
+            0.97
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 6
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1689,
+      "bytes": 194007,
+      "sha256": "40f9e8c3c3deae4067835af8c9b65bdc99708bb0dee1157c900e39ee410f916d"
+    },
+    {
+      "id": "cgcc-c12-phone",
+      "family": "phone",
+      "from": "cgcc-c12",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3765432011"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "SIGNATURE SERIES",
+        "3765432011",
+        "Mutant Squad #1",
+        "Apex Comics, 8/91"
+      ],
+      "note": "",
+      "file": "cgcc-c12-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 7
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 7
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1689,
+      "bytes": 194345,
+      "sha256": "82dc3c18debbca232401122bd613d72a5b79504d31bf1a0e894bdf1630d3886c"
+    },
+    {
+      "id": "cgcd-c14-phone",
+      "family": "phone",
+      "from": "cgcd-c14",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1402345678901"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "note": "",
+      "file": "cgcd-c14-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 8
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.05,
+            0.03
+          ],
+          "tr": [
+            0.96,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0.02,
+            0.97
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 8
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1719,
+      "bytes": 184796,
+      "sha256": "13c1ca4f3a896185b4e9f6077bc95798a7b94b45bf7718fc3a85bf8edbfe989f"
+    },
+    {
+      "id": "cgcd-c16-phone",
+      "family": "phone",
+      "from": "cgcd-c16",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "3901234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2021 Celebrations",
+        "Sea Dragon - Holo",
+        "GEM MINT",
+        "10",
+        "3901234567"
+      ],
+      "note": "",
+      "file": "cgcd-c16-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 9
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 9
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1719,
+      "bytes": 185842,
+      "sha256": "1664492fcedbecb195079025f31ff854929219cc49657a700156f92f138ff338"
+    },
+    {
+      "id": "bgs-c21-phone",
+      "family": "phone",
+      "from": "bgs-c21",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "note": "",
+      "file": "bgs-c21-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 10
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.05,
+            0.03
+          ],
+          "tr": [
+            0.96,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0.02,
+            0.97
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 10
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1747,
+      "bytes": 192484,
+      "sha256": "e44f49261e874bd41d6fe3d7b15bf3ffad45992387d19e088f0d81f2cd22441e"
+    },
+    {
+      "id": "bgs-c22-phone",
+      "family": "phone",
+      "from": "bgs-c22",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0011873452"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9"
+      ],
+      "note": "",
+      "file": "bgs-c22-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 11
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 11
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1747,
+      "bytes": 191809,
+      "sha256": "01348b5f080b79df91be6b9b11ee970c5cfb261c2e80dd2a2d93716415ae3182"
+    },
+    {
+      "id": "bgs-c23-phone",
+      "family": "phone",
+      "from": "bgs-c23",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0009876543"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "PRISTINE",
+        "10",
+        "BECKETT GRADING SERVICES",
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO #2",
+        "0009876543",
+        "CENTERING",
+        "10",
+        "CORNERS",
+        "10",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "10"
+      ],
+      "note": "",
+      "file": "bgs-c23-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 12
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.05,
+            0.03
+          ],
+          "tr": [
+            0.96,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0.02,
+            0.97
+          ]
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 12
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 1747,
+      "bytes": 191404,
+      "sha256": "2543bd248787e91dfe6164ab4cdb585f46d478d491312df02ef1de90da69be6a"
+    },
+    {
+      "id": "psa-c02-thumb225",
+      "family": "thumb",
+      "from": "psa-c02",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "72910483"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO",
+        "#2",
+        "NM-MT 8",
+        "PSA",
+        "72910483"
+      ],
+      "note": "",
+      "file": "psa-c02-thumb225.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 225
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.6
+      },
+      "width": 225,
+      "height": 352,
+      "bytes": 8283,
+      "sha256": "8f2cc043fc50146c3321b3d9ab88f3724e5b3c0660b83e61d19aa0ce9522381b"
+    },
+    {
+      "id": "psa-c04-thumb300",
+      "family": "thumb",
+      "from": "psa-c04",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "00573921"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1993 FINEST",
+        "REFRACTOR",
+        "#88",
+        "GEM MT 10",
+        "PSA",
+        "00573921"
+      ],
+      "note": "",
+      "file": "psa-c04-thumb300.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 300
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.65
+      },
+      "width": 300,
+      "height": 469,
+      "bytes": 14011,
+      "sha256": "b6721ca6542c1efe4908c59aa7ad35ea07b5846ca943cea608025c461f9f3c35"
+    },
+    {
+      "id": "psa-c06-thumb400",
+      "family": "thumb",
+      "from": "psa-c06",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "30561247"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1989 UPPER TIER",
+        "STAR ROOKIE",
+        "#1",
+        "EX-MT 6",
+        "PSA",
+        "30561247"
+      ],
+      "note": "",
+      "file": "psa-c06-thumb400.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 400
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 400,
+      "height": 625,
+      "bytes": 22309,
+      "sha256": "dc1be89e64be2d8b95f2c0f87fe902bc87b8a413473ccd6f117863d28febbf0a"
+    },
+    {
+      "id": "psa-c01-thumb500",
+      "family": "thumb",
+      "from": "psa-c01",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "04718263"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "2021 CHROME SERIES",
+        "ROOKIE SLUGGER",
+        "#27",
+        "GEM MT 10",
+        "PSA",
+        "04718263"
+      ],
+      "note": "",
+      "file": "psa-c01-thumb500.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 500
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.75
+      },
+      "width": 500,
+      "height": 781,
+      "bytes": 32200,
+      "sha256": "001d7ad6152965c8b5ac82c8f731deb3cd0316a99f468c29dbb738cd834153eb"
+    },
+    {
+      "id": "cgcc-c10-thumb300",
+      "family": "thumb",
+      "from": "cgcc-c10",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4087123006"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.6",
+        "OFF-WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4087123006",
+        "Night Avenger #423",
+        "Gotham Ink, 9/88"
+      ],
+      "note": "",
+      "file": "cgcc-c10-thumb300.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 300
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 300,
+      "height": 461,
+      "bytes": 15347,
+      "sha256": "607fbb36cc09e800b6000395df16776a465220dea5f2946c0a047e32121e998d"
+    },
+    {
+      "id": "cgcc-c09-thumb400",
+      "family": "thumb",
+      "from": "cgcc-c09",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3984561002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63"
+      ],
+      "note": "",
+      "file": "cgcc-c09-thumb400.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 400
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.65
+      },
+      "width": 400,
+      "height": 614,
+      "bytes": 21967,
+      "sha256": "9c1e1e2b2a5fb7dd05c972c56d440f0c3a6b2fbe74ad0fb81a2b144a8f665089"
+    },
+    {
+      "id": "cgcc-c13-thumb350",
+      "family": "thumb",
+      "from": "cgcc-c13",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4155667002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.2",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4155667002",
+        "Deep Sea Saga #5",
+        "Tidal Press, 2/71"
+      ],
+      "note": "",
+      "file": "cgcc-c13-thumb350.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 350
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 350,
+      "height": 537,
+      "bytes": 21732,
+      "sha256": "61b3c89804579dd606f042467b21d3493d80835e6561fd3701af749cae65b04c"
+    },
+    {
+      "id": "cgcd-c15-thumb300",
+      "family": "thumb",
+      "from": "cgcd-c15",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1403987650123"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2023 Scarlet Set",
+        "Fire Lizard ex",
+        "PRISTINE",
+        "10",
+        "1403987650123"
+      ],
+      "note": "",
+      "file": "cgcd-c15-thumb300.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 300
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 300,
+      "height": 469,
+      "bytes": 15346,
+      "sha256": "bfd25dfc897ae3542754f84d65eb62f4433ed2004dc0f9b1b565158f730fc3fc"
+    },
+    {
+      "id": "cgcd-c18-thumb450",
+      "family": "thumb",
+      "from": "cgcd-c18",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1405551234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2020 Vivid Set",
+        "Thunder Bird V",
+        "MINT+",
+        "9.5",
+        "1405551234567"
+      ],
+      "note": "",
+      "file": "cgcd-c18-thumb450.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 450
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 450,
+      "height": 703,
+      "bytes": 22988,
+      "sha256": "87c21eb9e6b018d00dd8d83c7beb02b98836936f5426baed9c266a79cf274dab"
+    },
+    {
+      "id": "cgcd-c17-thumb250",
+      "family": "thumb",
+      "from": "cgcd-c17",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "2938475610"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "1999 Base Set",
+        "Water Turtle - Holo",
+        "NM/MINT+",
+        "8.5",
+        "2938475610"
+      ],
+      "note": "",
+      "file": "cgcd-c17-thumb250.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 250
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.65
+      },
+      "width": 250,
+      "height": 391,
+      "bytes": 10306,
+      "sha256": "a772f9ecd960ff0abba3da6426cb2c9deed2aa74e54208695470cc78b93c34f0"
+    },
+    {
+      "id": "bgs-c22-thumb400",
+      "family": "thumb",
+      "from": "bgs-c22",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0011873452"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9"
+      ],
+      "note": "",
+      "file": "bgs-c22-thumb400.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 400
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 400,
+      "height": 635,
+      "bytes": 22529,
+      "sha256": "78b50ad6ab149e7df8461def8b4a034fbe609b3ca1bd281323ced7ee20b81d45"
+    },
+    {
+      "id": "bgs-c21-thumb300",
+      "family": "thumb",
+      "from": "bgs-c21",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "note": "",
+      "file": "bgs-c21-thumb300.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 300
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 300,
+      "height": 476,
+      "bytes": 16115,
+      "sha256": "73c3690034cc22b9b4d14d487cee5e5d4b93b4a9395fccf4cd3b541da5a950f9"
+    },
+    {
+      "id": "psa-c08-thumb400",
+      "family": "thumb",
+      "from": "psa-c08",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "61834502"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "PSA",
+        "61834502"
+      ],
+      "note": "",
+      "file": "psa-c08-thumb400.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 400
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 400,
+      "height": 669,
+      "bytes": 25287,
+      "sha256": "5c7a23a055ea7b51021c9aeb39873dfe8592db12b3d560f1aba29605ed4b1af4"
+    },
+    {
+      "id": "psa-c04-keystone",
+      "family": "keystone",
+      "from": "psa-c04",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "00573921"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1993 FINEST",
+        "REFRACTOR",
+        "#88",
+        "GEM MT 10",
+        "PSA",
+        "00573921"
+      ],
+      "note": "",
+      "file": "psa-c04-keystone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "solid",
+          "color": "#e6e3dc"
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.1,
+            0.06
+          ],
+          "tr": [
+            0.92,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0,
+            0.94
+          ]
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 42889,
+      "sha256": "0719971a63e025a661748674849844032c11f21b65c0531e4ad1c4b23ddbc8cc"
+    },
+    {
+      "id": "cgcc-c10-keystone",
+      "family": "keystone",
+      "from": "cgcc-c10",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4087123006"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.6",
+        "OFF-WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4087123006",
+        "Night Avenger #423",
+        "Gotham Ink, 9/88"
+      ],
+      "note": "",
+      "file": "cgcc-c10-keystone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "solid",
+          "color": "#e6e3dc"
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            1,
+            0.07
+          ],
+          "br": [
+            0.9,
+            0.95
+          ],
+          "bl": [
+            0.08,
+            1
+          ]
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 680,
+      "height": 1044,
+      "bytes": 65286,
+      "sha256": "6ae3be80fc4ce5188fc40574c23d5c03a71593bd690aca055217c662d3ad8f36"
+    },
+    {
+      "id": "cgcd-c15-keystone",
+      "family": "keystone",
+      "from": "cgcd-c15",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1403987650123"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2023 Scarlet Set",
+        "Fire Lizard ex",
+        "PRISTINE",
+        "10",
+        "1403987650123"
+      ],
+      "note": "",
+      "file": "cgcd-c15-keystone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "solid",
+          "color": "#e6e3dc"
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.1,
+            0.06
+          ],
+          "tr": [
+            0.92,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0,
+            0.94
+          ]
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 44315,
+      "sha256": "96acbdcc87a02d6486c474156f98f6782693a82354ac228d74633f9acd911ee4"
+    },
+    {
+      "id": "bgs-c23-keystone",
+      "family": "keystone",
+      "from": "bgs-c23",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0009876543"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "PRISTINE",
+        "10",
+        "BECKETT GRADING SERVICES",
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO #2",
+        "0009876543",
+        "CENTERING",
+        "10",
+        "CORNERS",
+        "10",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "10"
+      ],
+      "note": "",
+      "file": "bgs-c23-keystone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "solid",
+          "color": "#e6e3dc"
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            1,
+            0.07
+          ],
+          "br": [
+            0.9,
+            0.95
+          ],
+          "bl": [
+            0.08,
+            1
+          ]
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 864,
+      "bytes": 49133,
+      "sha256": "7bdb089e97986137d617f1e04a43ca4668aca6c3f485d96467abd3a8e77613b7"
+    },
+    {
+      "id": "psa-c08-keystone",
+      "family": "keystone",
+      "from": "psa-c08",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "61834502"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "PSA",
+        "61834502"
+      ],
+      "note": "",
+      "file": "psa-c08-keystone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "solid",
+          "color": "#e6e3dc"
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0.1,
+            0.06
+          ],
+          "tr": [
+            0.92,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0,
+            0.94
+          ]
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 910,
+      "bytes": 52679,
+      "sha256": "ef88c25ad1849e7a166292919e77d96ab097e85188464e53cd7b21c2f6c9e207"
+    },
+    {
+      "id": "psa-c06-reflect",
+      "family": "reflect",
+      "from": "psa-c06",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "30561247"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1989 UPPER TIER",
+        "STAR ROOKIE",
+        "#1",
+        "EX-MT 6",
+        "PSA",
+        "30561247"
+      ],
+      "note": "",
+      "file": "psa-c06-reflect.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.3,
+              "y": 0,
+              "angle": -22,
+              "width": 0.11,
+              "alpha": 0.55
+            },
+            {
+              "x": 0.7,
+              "y": 0,
+              "angle": -22,
+              "width": 0.05,
+              "alpha": 0.45
+            }
+          ],
+          "spot": {
+            "cx": 0.5,
+            "cy": 0.1,
+            "rx": 0.3,
+            "ry": 0.06,
+            "alpha": 0.55
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 44785,
+      "sha256": "d7805130ace45dbf8a6752bef8c7c74f483a12e24baba7c6f92daad9cbdcb1e8"
+    },
+    {
+      "id": "cgcc-c12-reflect",
+      "family": "reflect",
+      "from": "cgcc-c12",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3765432011"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "SIGNATURE SERIES",
+        "3765432011",
+        "Mutant Squad #1",
+        "Apex Comics, 8/91"
+      ],
+      "note": "",
+      "file": "cgcc-c12-reflect.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.3,
+              "y": 0,
+              "angle": -22,
+              "width": 0.11,
+              "alpha": 0.55
+            },
+            {
+              "x": 0.7,
+              "y": 0,
+              "angle": -22,
+              "width": 0.05,
+              "alpha": 0.45
+            }
+          ],
+          "spot": {
+            "cx": 0.5,
+            "cy": 0.1,
+            "rx": 0.3,
+            "ry": 0.06,
+            "alpha": 0.55
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 680,
+      "height": 1044,
+      "bytes": 60025,
+      "sha256": "eaafb3a756b6f4c1d5fa440a1f0e2ab55c3bb5cc20db0534a6685098528a9cab"
+    },
+    {
+      "id": "cgcd-c18-reflect",
+      "family": "reflect",
+      "from": "cgcd-c18",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1405551234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2020 Vivid Set",
+        "Thunder Bird V",
+        "MINT+",
+        "9.5",
+        "1405551234567"
+      ],
+      "note": "",
+      "file": "cgcd-c18-reflect.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.3,
+              "y": 0,
+              "angle": -22,
+              "width": 0.11,
+              "alpha": 0.55
+            },
+            {
+              "x": 0.7,
+              "y": 0,
+              "angle": -22,
+              "width": 0.05,
+              "alpha": 0.45
+            }
+          ],
+          "spot": {
+            "cx": 0.5,
+            "cy": 0.1,
+            "rx": 0.3,
+            "ry": 0.06,
+            "alpha": 0.55
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 41459,
+      "sha256": "39beb719053163cd27945f146f12f79160e13a7c7fafbdf14c1dc26496f85384"
+    },
+    {
+      "id": "bgs-c21-reflect",
+      "family": "reflect",
+      "from": "bgs-c21",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "note": "",
+      "file": "bgs-c21-reflect.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.3,
+              "y": 0,
+              "angle": -22,
+              "width": 0.11,
+              "alpha": 0.55
+            },
+            {
+              "x": 0.7,
+              "y": 0,
+              "angle": -22,
+              "width": 0.05,
+              "alpha": 0.45
+            }
+          ],
+          "spot": {
+            "cx": 0.5,
+            "cy": 0.1,
+            "rx": 0.3,
+            "ry": 0.06,
+            "alpha": 0.55
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 864,
+      "bytes": 47563,
+      "sha256": "2fbd7832ea6119cdb6c146951d3773896fd5ee9214b40c7aaee3b6edcae1a85c"
+    },
+    {
+      "id": "cgcc-c13-reflect",
+      "family": "reflect",
+      "from": "cgcc-c13",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4155667002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.2",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4155667002",
+        "Deep Sea Saga #5",
+        "Tidal Press, 2/71"
+      ],
+      "note": "",
+      "file": "cgcc-c13-reflect.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.3,
+              "y": 0,
+              "angle": -22,
+              "width": 0.11,
+              "alpha": 0.55
+            },
+            {
+              "x": 0.7,
+              "y": 0,
+              "angle": -22,
+              "width": 0.05,
+              "alpha": 0.45
+            }
+          ],
+          "spot": {
+            "cx": 0.5,
+            "cy": 0.1,
+            "rx": 0.3,
+            "ry": 0.06,
+            "alpha": 0.55
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 680,
+      "height": 1044,
+      "bytes": 66157,
+      "sha256": "85d33902592ab244593a8da858972234b4e8532bbd50f5ae10ebb00fdbf0262f"
+    },
+    {
+      "id": "psa-c02-crop-top",
+      "family": "crop",
+      "from": "psa-c02",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "72910483"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO",
+        "#2",
+        "NM-MT 8",
+        "PSA",
+        "72910483"
+      ],
+      "note": "top 25% of the label cut off (brand/grade line kept, cert line kept)",
+      "file": "psa-c02-crop-top.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "crop",
+          "x": 0,
+          "y": 0.09,
+          "w": 1,
+          "h": 0.91
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 774,
+      "bytes": 37821,
+      "sha256": "8afe447b6f8f314cc7e2dd7009f5aa772f0bff3bffae959b6e1e7ceb712bfb57"
+    },
+    {
+      "id": "cgcc-c11-crop-left",
+      "family": "crop",
+      "from": "cgcc-c11",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4102938015"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.4",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4102938-015",
+        "Star Rangers #12",
+        "Nova Comics, 6/77"
+      ],
+      "note": "left 28% cut: CGC brand + grade box gone, cert number kept",
+      "file": "cgcc-c11-crop-left.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "crop",
+          "x": 0.28,
+          "y": 0,
+          "w": 0.72,
+          "h": 1
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 490,
+      "height": 1044,
+      "bytes": 39702,
+      "sha256": "7e9ad6ae309f1abd6b489e5ed1bfc5d9d18f401f578af7381cc1d9792a71ea64"
+    },
+    {
+      "id": "cgcd-c14-crop-edge",
+      "family": "crop",
+      "from": "cgcd-c14",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1402345678901"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "note": "label touches the top edge of the photo",
+      "file": "cgcd-c14-crop-edge.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "crop",
+          "x": 0.05,
+          "y": 0.055,
+          "w": 0.9,
+          "h": 0.7
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 490,
+      "height": 595,
+      "bytes": 30744,
+      "sha256": "28771f355d3470f3b6c19a27a5f4aefb1c88db3535224f8a09ba8ba3f4667e66"
+    },
+    {
+      "id": "bgs-c22-crop-right",
+      "family": "crop",
+      "from": "bgs-c22",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0011873452"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9"
+      ],
+      "note": "right 22% cut: subgrades gone, serial kept",
+      "file": "bgs-c22-crop-right.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "crop",
+          "x": 0,
+          "y": 0,
+          "w": 0.78,
+          "h": 1
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 424,
+      "height": 864,
+      "bytes": 34428,
+      "sha256": "3bfa6ae205cc0e8779b5cfa50d677e2b9d1e7aa5ef59a2e2aafa0c3e46089c7d"
+    },
+    {
+      "id": "psa-c05-crop-nonumber",
+      "family": "crop",
+      "from": "psa-c05",
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "accept": [
+        "none",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [
+        "2000 NEO GENESIS",
+        "LIGHTNING MOUSE",
+        "#70",
+        "NM-MT 8",
+        "PSA",
+        "056734128"
+      ],
+      "note": "the cert line is cut away: any number shown is wrong",
+      "file": "psa-c05-crop-nonumber.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "crop",
+          "x": 0,
+          "y": 0.17,
+          "w": 1,
+          "h": 0.83
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 706,
+      "bytes": 33562,
+      "sha256": "da0f2ac4ae42f200131f278794558d1ed3080ebb72f41846479147e5b7b3ce01"
+    },
+    {
+      "id": "pair-psa-c01-psa-c03",
+      "family": "pair",
+      "from": [
+        "psa-c01",
+        "psa-c03"
+      ],
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": null
+      },
+      "numbers": [
+        "04718263",
+        "109876543"
+      ],
+      "graders": [
+        "psa",
+        "psa"
+      ],
+      "accept": [
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [
+        "2021 CHROME SERIES",
+        "ROOKIE SLUGGER",
+        "#27",
+        "GEM MT 10",
+        "PSA",
+        "04718263",
+        "2018 PRIZM",
+        "POINT GUARD",
+        "#280",
+        "MINT 9",
+        "PSA",
+        "109876543"
+      ],
+      "note": "two slabs psa-c01 + psa-c03: must not auto-open; the shown number must be one of the two",
+      "file": "pair-psa-c01-psa-c03.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "compose",
+          "gap": 40,
+          "width": 1400,
+          "bg": {
+            "op": "bg",
+            "kind": "wood",
+            "seed": 7
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 1400,
+      "height": 1078,
+      "bytes": 131828,
+      "sha256": "41c3e7d6ef40bc1d7333d0d71cc95393baa7675cf951e369fe29ffc699475429"
+    },
+    {
+      "id": "pair-cgcc-c09-cgcd-c14",
+      "family": "pair",
+      "from": [
+        "cgcc-c09",
+        "cgcd-c14"
+      ],
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": null
+      },
+      "numbers": [
+        "3984561002",
+        "1402345678901"
+      ],
+      "graders": [
+        "cgc-comics",
+        "cgc-cards"
+      ],
+      "accept": [
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63",
+        "CGC",
+        "2022 Sword Set",
+        "Electric Mouse - Holo",
+        "GEM MINT",
+        "10",
+        "1402345678901"
+      ],
+      "note": "two slabs cgcc-c09 + cgcd-c14: must not auto-open; the shown number must be one of the two",
+      "file": "pair-cgcc-c09-cgcd-c14.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "compose",
+          "gap": 40,
+          "width": 1400,
+          "bg": {
+            "op": "bg",
+            "kind": "wood",
+            "seed": 7
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 1400,
+      "height": 1072,
+      "bytes": 125525,
+      "sha256": "0475ce7b1b974371dec17d274d7af27fbf73415355f98f8a05b4a479b75da729"
+    },
+    {
+      "id": "pair-bgs-c22-psa-c06",
+      "family": "pair",
+      "from": [
+        "bgs-c22",
+        "psa-c06"
+      ],
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": null
+      },
+      "numbers": [
+        "0011873452",
+        "30561247"
+      ],
+      "graders": [
+        "bgs",
+        "psa"
+      ],
+      "accept": [
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9",
+        "1989 UPPER TIER",
+        "STAR ROOKIE",
+        "#1",
+        "EX-MT 6",
+        "PSA",
+        "30561247"
+      ],
+      "note": "two slabs bgs-c22 + psa-c06: must not auto-open; the shown number must be one of the two",
+      "file": "pair-bgs-c22-psa-c06.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "compose",
+          "gap": 40,
+          "width": 1400,
+          "bg": {
+            "op": "bg",
+            "kind": "wood",
+            "seed": 7
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 1400,
+      "height": 1086,
+      "bytes": 130027,
+      "sha256": "d78b4d69d54629e8ee404e5cd38e11dd1b9109b49f7086ad9825e22efc6b14d2"
+    },
+    {
+      "id": "pair-psa-c02-cgcc-c10-thumb",
+      "family": "pair",
+      "from": [
+        "psa-c02",
+        "cgcc-c10"
+      ],
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": null
+      },
+      "numbers": [
+        "72910483",
+        "4087123006"
+      ],
+      "graders": [
+        "psa",
+        "cgc-comics"
+      ],
+      "accept": [
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO",
+        "#2",
+        "NM-MT 8",
+        "PSA",
+        "72910483",
+        "CGC",
+        "9.6",
+        "OFF-WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4087123006",
+        "Night Avenger #423",
+        "Gotham Ink, 9/88"
+      ],
+      "note": "two slabs psa-c02 + cgcc-c10: must not auto-open; the shown number must be one of the two",
+      "file": "pair-psa-c02-cgcc-c10-thumb.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "compose",
+          "gap": 40,
+          "width": 900,
+          "bg": {
+            "op": "bg",
+            "kind": "wood",
+            "seed": 7
+          }
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 900,
+      "height": 689,
+      "bytes": 54470,
+      "sha256": "6edb980f5e7ed1f470046baf9c2a740812d853df6eb373acf12461b6dc22fe24"
+    },
+    {
+      "id": "psa-c03-moire",
+      "family": "moire",
+      "from": "psa-c03",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "109876543"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "2018 PRIZM",
+        "POINT GUARD",
+        "#280",
+        "MINT 9",
+        "PSA",
+        "109876543"
+      ],
+      "note": "",
+      "file": "psa-c03-moire.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "moire",
+          "pitch": 3.2,
+          "angle": 4,
+          "amp": 0.45
+        },
+        {
+          "op": "blur",
+          "px": 0.5
+        },
+        {
+          "op": "scale",
+          "width": 900
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 900,
+      "height": 1406,
+      "bytes": 255893,
+      "sha256": "d86f7e9f564d897385232afee7b2ada14c31a6f2c8f79cacb7bb4ea12c86d7a1"
+    },
+    {
+      "id": "cgcc-c09-moire",
+      "family": "moire",
+      "from": "cgcc-c09",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3984561002"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "3984561002",
+        "Cosmic Tales #1",
+        "Atlas Press, 3/63"
+      ],
+      "note": "",
+      "file": "cgcc-c09-moire.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "moire",
+          "pitch": 3.2,
+          "angle": 4,
+          "amp": 0.45
+        },
+        {
+          "op": "blur",
+          "px": 0.5
+        },
+        {
+          "op": "scale",
+          "width": 900
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 900,
+      "height": 1382,
+      "bytes": 290266,
+      "sha256": "862b03d46d4a88e6b73bb7b1ffa34fe077a6f1c50adfbeb59dc5e575d60a4b5a"
+    },
+    {
+      "id": "cgcd-c16-moire",
+      "family": "moire",
+      "from": "cgcd-c16",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "3901234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2021 Celebrations",
+        "Sea Dragon - Holo",
+        "GEM MINT",
+        "10",
+        "3901234567"
+      ],
+      "note": "",
+      "file": "cgcd-c16-moire.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "moire",
+          "pitch": 3.2,
+          "angle": 4,
+          "amp": 0.45
+        },
+        {
+          "op": "blur",
+          "px": 0.5
+        },
+        {
+          "op": "scale",
+          "width": 900
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 900,
+      "height": 1406,
+      "bytes": 270310,
+      "sha256": "e9a9feb7e971aae7446e1ddcd400dfbf8fea2a7e32097b074a7ad2ad9e52cc22"
+    },
+    {
+      "id": "bgs-c21-moire",
+      "family": "moire",
+      "from": "bgs-c21",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "note": "",
+      "file": "bgs-c21-moire.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "moire",
+          "pitch": 3.2,
+          "angle": 4,
+          "amp": 0.45
+        },
+        {
+          "op": "blur",
+          "px": 0.5
+        },
+        {
+          "op": "scale",
+          "width": 900
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 900,
+      "height": 1429,
+      "bytes": 272122,
+      "sha256": "949ec89f3f3e24507ec4f8182907628cc3f2861b32e4b2f7615012302204639d"
+    },
+    {
+      "id": "psa-c08-moire",
+      "family": "moire",
+      "from": "psa-c08",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "61834502"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "PSA",
+        "61834502"
+      ],
+      "note": "",
+      "file": "psa-c08-moire.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "moire",
+          "pitch": 3.2,
+          "angle": 4,
+          "amp": 0.45
+        },
+        {
+          "op": "blur",
+          "px": 0.5
+        },
+        {
+          "op": "scale",
+          "width": 900
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 900,
+      "height": 1506,
+      "bytes": 268927,
+      "sha256": "3212a6e9345723d0270cc0ab2330453e3eac2a4f1f1c0c54d402d3bc226c4a9d"
+    },
+    {
+      "id": "psa-c05-bg-cloth",
+      "family": "bg",
+      "from": "psa-c05",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "056734128"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "2000 NEO GENESIS",
+        "LIGHTNING MOUSE",
+        "#70",
+        "NM-MT 8",
+        "PSA",
+        "056734128"
+      ],
+      "note": "",
+      "file": "psa-c05-bg-cloth.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "cloth",
+          "seed": 3
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 57978,
+      "sha256": "d8856d751872c458583c6d97418aad63b56e482cab87d05e72dccab981217207"
+    },
+    {
+      "id": "cgcc-c12-bg-red",
+      "family": "bg",
+      "from": "cgcc-c12",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "3765432011"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.8",
+        "WHITE PAGES",
+        "SIGNATURE SERIES",
+        "3765432011",
+        "Mutant Squad #1",
+        "Apex Comics, 8/91"
+      ],
+      "note": "",
+      "file": "cgcc-c12-bg-red.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "solid",
+          "color": "#b3261e"
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 680,
+      "height": 1044,
+      "bytes": 59451,
+      "sha256": "0437275e5a577cfdd4cd30ad7573bbc7074c3a31a924fa8298d12093a79a40ad"
+    },
+    {
+      "id": "cgcd-c17-bg-wood",
+      "family": "bg",
+      "from": "cgcd-c17",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "2938475610"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "1999 Base Set",
+        "Water Turtle - Holo",
+        "NM/MINT+",
+        "8.5",
+        "2938475610"
+      ],
+      "note": "",
+      "file": "cgcd-c17-bg-wood.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 4
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 46401,
+      "sha256": "6cbb4e07e616a9a4c3319d0016c63952582897646bbd86ce7816d226ec0e7df1"
+    },
+    {
+      "id": "bgs-c23-bg-cloth",
+      "family": "bg",
+      "from": "bgs-c23",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0009876543"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "PRISTINE",
+        "10",
+        "BECKETT GRADING SERVICES",
+        "1999 BASE SET",
+        "WATER TURTLE-HOLO #2",
+        "0009876543",
+        "CENTERING",
+        "10",
+        "CORNERS",
+        "10",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "10"
+      ],
+      "note": "black label on a dark cloth",
+      "file": "bgs-c23-bg-cloth.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "cloth",
+          "seed": 5
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 864,
+      "bytes": 59916,
+      "sha256": "538d966c40fe252aaaf00b2f00127bd9d76a7c13c6aeabd1e4ee6fb6d54c9c84"
+    },
+    {
+      "id": "psa-c07-bg-gradient",
+      "family": "bg",
+      "from": "psa-c07",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "5123478"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1986 BASKETBALL",
+        "HIGH FLYER",
+        "#57",
+        "VG-EX 4",
+        "PSA",
+        "5123478"
+      ],
+      "note": "",
+      "file": "psa-c07-bg-gradient.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "gradient",
+          "c1": "#1e3a8a",
+          "c2": "#60a5fa"
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 44234,
+      "sha256": "0b88d6b99818bf918a1f0ffb3b7978fadf4489fc26d964c7e8af2078e174be8f"
+    },
+    {
+      "id": "neg-c19-bg-wood",
+      "family": "bg",
+      "from": "neg-c19",
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": "6012349870"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "6012349870"
+      ],
+      "note": "",
+      "file": "neg-c19-bg-wood.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 6
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.85
+      },
+      "width": 544,
+      "height": 850,
+      "bytes": 39125,
+      "sha256": "118ac1e8b940d093d8ca57287f4b72d6058aa1766c90d4494d11f8529e1af0ce"
+    },
+    {
+      "id": "psa-c01-side90",
+      "family": "sideways",
+      "from": "psa-c01",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "04718263"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "2021 CHROME SERIES",
+        "ROOKIE SLUGGER",
+        "#27",
+        "GEM MT 10",
+        "PSA",
+        "04718263"
+      ],
+      "note": "",
+      "file": "psa-c01-side90.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 8
+        },
+        {
+          "op": "rotate",
+          "degrees": 90
+        },
+        {
+          "op": "reflect",
+          "streaks": [
+            {
+              "x": 0.35,
+              "y": 0,
+              "angle": -18,
+              "width": 0.08,
+              "alpha": 0.35
+            }
+          ],
+          "spot": {
+            "cx": 0.62,
+            "cy": 0.09,
+            "rx": 0.22,
+            "ry": 0.07,
+            "alpha": 0.32
+          }
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 704,
+      "bytes": 57703,
+      "sha256": "a4b66071d417b51636ec059be0c5a105f4caea1e6d1e509b8f2d7eaa76973d53"
+    },
+    {
+      "id": "cgcc-c10-side270",
+      "family": "sideways",
+      "from": "cgcc-c10",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-comics",
+        "number": "4087123006"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "9.6",
+        "OFF-WHITE PAGES",
+        "UNIVERSAL GRADE",
+        "4087123006",
+        "Night Avenger #423",
+        "Gotham Ink, 9/88"
+      ],
+      "note": "",
+      "file": "cgcc-c10-side270.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 9
+        },
+        {
+          "op": "rotate",
+          "degrees": 270
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 717,
+      "bytes": 55511,
+      "sha256": "6373d22ff765430877f5f888c64bfd701370fad3fe7bf155ba91288545905f7e"
+    },
+    {
+      "id": "cgcd-c15-side90-thumb",
+      "family": "sideways",
+      "from": "cgcd-c15",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1403987650123"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2023 Scarlet Set",
+        "Fire Lizard ex",
+        "PRISTINE",
+        "10",
+        "1403987650123"
+      ],
+      "note": "",
+      "file": "cgcd-c15-side90-thumb.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "rotate",
+          "degrees": 90
+        },
+        {
+          "op": "scale",
+          "width": 500
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 500,
+      "height": 320,
+      "bytes": 16280,
+      "sha256": "6cbd8bac73941f4424f6a264afe4128269f987727d5439d8fc27dd15505d868d"
+    },
+    {
+      "id": "bgs-c22-side270",
+      "family": "sideways",
+      "from": "bgs-c22",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0011873452"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "MINT",
+        "9",
+        "BECKETT GRADING SERVICES",
+        "2018 PRIZM",
+        "POINT GUARD #280",
+        "0011873452",
+        "CENTERING",
+        "9",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "9",
+        "SURFACE",
+        "9"
+      ],
+      "note": "",
+      "file": "bgs-c22-side270.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 10
+        },
+        {
+          "op": "rotate",
+          "degrees": 270
+        },
+        {
+          "op": "scale",
+          "width": 1100
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1100,
+      "height": 693,
+      "bytes": 51431,
+      "sha256": "cc3f289f70516ef4056becc280e0aaffb8afcc08e61c27153f1d1141126f777a"
+    },
+    {
+      "id": "psa-c04-dark",
+      "family": "dark",
+      "from": "psa-c04",
+      "expected": {
+        "status": "auto-open",
+        "grader": "psa",
+        "number": "00573921"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "1993 FINEST",
+        "REFRACTOR",
+        "#88",
+        "GEM MT 10",
+        "PSA",
+        "00573921"
+      ],
+      "note": "",
+      "file": "psa-c04-dark.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 11
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "tone",
+          "brightness": 0.55,
+          "contrast": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 12,
+          "seed": 11
+        },
+        {
+          "op": "scale",
+          "width": 1000
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1000,
+      "height": 1563,
+      "bytes": 203640,
+      "sha256": "06f70976773774bf322187d7500dd8557902a9b98a80f358c84ed5fd70f10489"
+    },
+    {
+      "id": "cgcd-c18-dark",
+      "family": "dark",
+      "from": "cgcd-c18",
+      "expected": {
+        "status": "auto-open",
+        "grader": "cgc-cards",
+        "number": "1405551234567"
+      },
+      "accept": [
+        "auto-open",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "CGC",
+        "2020 Vivid Set",
+        "Thunder Bird V",
+        "MINT+",
+        "9.5",
+        "1405551234567"
+      ],
+      "note": "",
+      "file": "cgcd-c18-dark.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 12
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "tone",
+          "brightness": 0.55,
+          "contrast": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 12,
+          "seed": 12
+        },
+        {
+          "op": "scale",
+          "width": 1000
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1000,
+      "height": 1563,
+      "bytes": 202474,
+      "sha256": "af9474ae93b4a6c38b25e50c9b025d3ff46c7979c5146e35775c7fa1cb52292a"
+    },
+    {
+      "id": "bgs-c21-dark",
+      "family": "dark",
+      "from": "bgs-c21",
+      "expected": {
+        "status": "opened",
+        "grader": "bgs",
+        "number": "0012345678"
+      },
+      "accept": [
+        "opened",
+        "confirm"
+      ],
+      "mustNotAutoOpen": false,
+      "labelText": [
+        "BGS",
+        "GEM MINT",
+        "9.5",
+        "BECKETT GRADING SERVICES",
+        "2023 SV 151",
+        "FIRE LIZARD ex #199",
+        "0012345678",
+        "CENTERING",
+        "9.5",
+        "CORNERS",
+        "9.5",
+        "EDGES",
+        "10",
+        "SURFACE",
+        "9.5"
+      ],
+      "note": "",
+      "file": "bgs-c21-dark.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "bg",
+          "kind": "wood",
+          "seed": 13
+        },
+        {
+          "op": "perspective",
+          "tl": [
+            0,
+            0
+          ],
+          "tr": [
+            0.97,
+            0.04
+          ],
+          "br": [
+            0.99,
+            0.98
+          ],
+          "bl": [
+            0.04,
+            1
+          ]
+        },
+        {
+          "op": "tone",
+          "brightness": 0.55,
+          "contrast": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 12,
+          "seed": 13
+        },
+        {
+          "op": "scale",
+          "width": 1000
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 1000,
+      "height": 1588,
+      "bytes": 207836,
+      "sha256": "d056df76ae3367b08bbe3a1b7477591b24b71b290d85cf1d58b4fbc2f2b3a7d3"
+    },
+    {
+      "id": "neg-c20-phone",
+      "family": "negative",
+      "from": "neg-c20",
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "accept": [
+        "none",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [],
+      "note": "",
+      "file": "neg-c20-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "perspective",
+          "tl": [
+            0.05,
+            0.03
+          ],
+          "tr": [
+            0.96,
+            0
+          ],
+          "br": [
+            1,
+            1
+          ],
+          "bl": [
+            0.02,
+            0.97
+          ]
+        },
+        {
+          "op": "vignette",
+          "strength": 0.35
+        },
+        {
+          "op": "blur",
+          "px": 0.6
+        },
+        {
+          "op": "noise",
+          "amount": 6,
+          "seed": 14
+        },
+        {
+          "op": "scale",
+          "width": 800
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 800,
+      "height": 1089,
+      "bytes": 85439,
+      "sha256": "ffbe79514035ea2cf0a89883d9e6b573507ad3c28c476ad82790cf89587affca"
+    },
+    {
+      "id": "neg-landscape-phone",
+      "family": "negative",
+      "from": {
+        "file": "non-slab.png"
+      },
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "accept": [
+        "none",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [],
+      "note": "landscape photo, no digits",
+      "file": "neg-landscape-phone.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "noise",
+          "amount": 8,
+          "seed": 15
+        },
+        {
+          "op": "scale",
+          "width": 900
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.75
+      },
+      "width": 900,
+      "height": 591,
+      "bytes": 42615,
+      "sha256": "c3da68464349479982b10509e75477a10e05cfb83c51f73373b43fc2a1d3b9e3"
+    },
+    {
+      "id": "neg-c19-thumb300",
+      "family": "negative",
+      "from": "neg-c19",
+      "expected": {
+        "status": "confirm",
+        "grader": null,
+        "number": "6012349870"
+      },
+      "accept": [
+        "confirm",
+        "none"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [
+        "6012349870"
+      ],
+      "note": "plain 10-digit number, no grader words: may show it, never open",
+      "file": "neg-c19-thumb300.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "scale",
+          "width": 300
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.7
+      },
+      "width": 300,
+      "height": 469,
+      "bytes": 12411,
+      "sha256": "0c1ef641e7ade29086509817adfc2c3ea576fb44baa0cab579f40259de7c4e3d"
+    },
+    {
+      "id": "neg-receipt",
+      "family": "negative",
+      "from": {
+        "html": "receipt"
+      },
+      "expected": {
+        "status": "none",
+        "grader": null,
+        "number": null
+      },
+      "accept": [
+        "none",
+        "confirm"
+      ],
+      "mustNotAutoOpen": true,
+      "labelText": [],
+      "note": "order confirmation with 8/10/13-digit numbers that are not certs",
+      "file": "neg-receipt.jpg",
+      "mimeType": "image/jpeg",
+      "ops": [
+        {
+          "op": "noise",
+          "amount": 4,
+          "seed": 16
+        }
+      ],
+      "encode": {
+        "format": "image/jpeg",
+        "quality": 0.8
+      },
+      "width": 848,
+      "height": 401,
+      "bytes": 36997,
+      "sha256": "535fcb099e4517c06ce84ca432c4564ce3e50299678dbb9e1878b93c4b09f6c0"
+    }
+  ]
+}

@@ -32,7 +32,9 @@
  * @typedef {{grader:Grader|null, graderOptions:Grader[], number:string, confidence:number,
  *   source:'qr-url'|'barcode'|'ocr'|'manual', evidence:string[]}} CertCandidate
  * evidence codes: 'len:8','kw:GEM MT','pass:text','pass:digits','fixup','cert-label','dash-form',
- *   'qr-host:www.cgccomics.com','qr-path-unmatched','qr-untrusted:evil.example','barcode:Code128','conflict'
+ *   'qr-host:www.cgccomics.com','qr-path-unmatched','qr-untrusted:evil.example','barcode:Code128','conflict',
+ *   A20: 'incomplete' (too short for the label's grader), 'label-pass', 'second-opinion', 'near-dup:<number>',
+ *   'completes:<number>'
  */
 
 /** @typedef {{code:'qr-untrusted-host'|'low-resolution'|'ocr-unavailable', detail?:string}} ScanWarning */
@@ -40,7 +42,15 @@
 /**
  * @typedef {{jobId:string|null, status:'auto-open'|'confirm'|'none'|'error', candidates:CertCandidate[],
  *   imageInfo:ImageInfo|null, warnings:ScanWarning[], error?:{code:ScanErrorCode, origin?:string},
- *   timings:{acquireMs:number, preprocessMs:number, barcodeMs:number, ocrInitMs:number, ocrMs:number, totalMs:number}}} ScanResult
+ *   timings:{acquireMs:number, preprocessMs:number, barcodeMs:number, ocrInitMs:number, ocrMs:number, totalMs:number},
+ *   labelText?:string[], passes?:ScanPass[]}} ScanResult
+ * passes (A20): one entry per recognize call, in memory only (never stored); exported only by the user's
+ * "This went wrong" click.
+ */
+
+/**
+ * @typedef {{pass:'text'|'digits', variant:string|null, label:boolean, rotation:number, ms:number|null,
+ *   confidence:number, text:string}} ScanPass
  */
 
 /** @typedef {{stage:'acquire'|'decode'|'barcode'|'ocr-init'|'ocr'|'parse', fraction?:number}} ScanProgress */

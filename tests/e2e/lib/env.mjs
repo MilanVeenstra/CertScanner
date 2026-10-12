@@ -23,6 +23,7 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 export const DIST_E2E = process.env.CERTSCANNER_E2E_DIST ? path.resolve(process.env.CERTSCANNER_E2E_DIST) : path.join(ROOT, 'dist-e2e');
 export const FIXTURES = path.join(ROOT, 'tests', 'fixtures');
 export const BENCH = path.join(FIXTURES, 'bench');
+export const BENCH_REAL = path.join(FIXTURES, 'bench-real');
 export const CHROME = process.env.CERTSCANNER_CHROMIUM
   || (existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined);
 

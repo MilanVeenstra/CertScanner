@@ -4,6 +4,11 @@
 
 export const PSM = Object.freeze({ SINGLE_BLOCK: '6', SINGLE_LINE: '7', SPARSE_TEXT: '11' });
 export const DIGIT_WHITELIST = '0123456789-';
+/** Tesseract 5 `thresholding_method` values (A20): the default Otsu, Leptonica's Otsu, and Sauvola (local). */
+export const THRESHOLDING = Object.freeze({ otsu: '0', leptonicaOtsu: '1', sauvola: '2' });
+const PASS_PARAMS = new Set(['thresholding_method']);
+/** Only the binarisation method can be changed per call; page segmentation and whitelist stay owned by the pass. */
+const passParams = (params) => Object.fromEntries(Object.entries(params ?? {}).filter(([k, v]) => PASS_PARAMS.has(k) && Object.values(THRESHOLDING).includes(v)));
 
 class OcrError extends Error {
   constructor(code, cause) { super(code); this.code = code; this.cause = cause; }
@@ -140,7 +145,9 @@ export function createOcrEngine({
       // Abort while this worker is busy: drop it (only if it is still the current one) so the next scan starts fresh.
       const dropIfCurrent = () => { if (worker === w) dispose(); };
       try {
-        await w.setParameters({ user_defined_dpi: '300', ...params });
+        // Tesseract keeps variables between calls: the binarisation method is set on every call, so a second-opinion
+        // pass (A20: Sauvola / Leptonica Otsu) never leaks into the next scan's passes.
+        await w.setParameters({ user_defined_dpi: '300', thresholding_method: THRESHOLDING.otsu, ...params });
         signal?.throwIfAborted();
         const rec = w.recognize(input, rectangle ? { rectangle } : {}, { text: true, blocks: true });
         rec.catch(() => {}); // settles after terminate(); never unhandled
@@ -166,13 +173,13 @@ export function createOcrEngine({
     get ready() { return Boolean(worker); },
     /** Workers terminated so far (idle, abort, timeout, dispose); diagnostics and tests. */
     get terminations() { return terminations; },
-    /** Sparse text pass (keywords + numbers). */
-    recognizeText(image, opts = {}) {
-      return run(image, { tessedit_pageseg_mode: PSM.SPARSE_TEXT, tessedit_char_whitelist: '' }, { ...opts, pass: 'text' });
+    /** Sparse text pass (keywords + numbers). `params`: {thresholding_method} for a second opinion (A20). */
+    recognizeText(image, { params, ...opts } = {}) {
+      return run(image, { tessedit_pageseg_mode: PSM.SPARSE_TEXT, tessedit_char_whitelist: '', ...passParams(params) }, { ...opts, pass: 'text' });
     },
     /** Digits pass: single line by default, whitelist 0-9 and '-'. */
-    recognizeDigits(image, { psm = PSM.SINGLE_LINE, whitelist = DIGIT_WHITELIST, ...opts } = {}) {
-      return run(image, { tessedit_pageseg_mode: psm, tessedit_char_whitelist: whitelist }, { ...opts, pass: 'digits' });
+    recognizeDigits(image, { psm = PSM.SINGLE_LINE, whitelist = DIGIT_WHITELIST, params, ...opts } = {}) {
+      return run(image, { tessedit_pageseg_mode: psm, tessedit_char_whitelist: whitelist, ...passParams(params) }, { ...opts, pass: 'digits' });
     },
   };
 }

@@ -23,12 +23,18 @@
  * (JPEG q40, 0.5x scale, 1-2 px blur, glare, rotation, dark/low contrast, busy art with other digits).
  * Degradations use only canvas operations and a seeded PRNG, so they are byte-stable too.
  *
+ * From the bench renders it derives the realistic set tests/fixtures/bench-real/ (ADR A20, own manifest.json): phone
+ * photos (keystone, reflections, noise, textured backgrounds), thumbnails, two-slab photos, photos of a screen,
+ * sideways and low-light photos, and negatives such as an order confirmation with 8/10/13-digit numbers.
+ *
  * Usage:
- *   node scripts/gen-fixtures.mjs                 generate into tests/fixtures (+ bench/), then verify
+ *   node scripts/gen-fixtures.mjs                 generate into tests/fixtures (+ bench/, bench-real/), then verify
  *   node scripts/gen-fixtures.mjs --verify-only   verify the existing fixtures only
  *   node scripts/gen-fixtures.mjs --no-verify     generate without verifying
- *   node scripts/gen-fixtures.mjs --no-bench      skip the benchmark set (generate and verify)
- *   node scripts/gen-fixtures.mjs --out <dir>     write somewhere else (e.g. byte-stability check)
+ *   node scripts/gen-fixtures.mjs --no-bench      skip both benchmark sets (generate and verify)
+ *   node scripts/gen-fixtures.mjs --real-only     (re)generate and verify only bench-real/ from the existing bench/
+ *   node scripts/gen-fixtures.mjs --out <dir>     write somewhere else (e.g. byte-stability check; with --real-only
+ *                                                 the sources are read from tests/fixtures unless <dir>/bench exists)
  *
  * Env: CERTSCANNER_CHROMIUM=<path to chrome>  (default: /opt/pw-browsers/chromium-1194/chrome-linux/chrome
  *      if present, otherwise Playwright's own bundled Chromium).
@@ -58,20 +64,22 @@ const EVALUATION_RULE = 'A run passes a fixture when the observed status is in (
 // CLI
 // ---------------------------------------------------------------------------------------------
 function parseArgs(argv) {
-  const opts = { out: DEFAULT_OUT, generate: true, verify: true, bench: true };
+  const opts = { out: DEFAULT_OUT, generate: true, verify: true, bench: true, realOnly: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--verify-only') opts.generate = false;
     else if (a === '--no-verify') opts.verify = false;
     else if (a === '--no-bench') opts.bench = false;
+    else if (a === '--real-only') opts.realOnly = true;
     else if (a === '--out') opts.out = path.resolve(argv[++i] ?? '');
     else if (a.startsWith('--out=')) opts.out = path.resolve(a.slice(6));
     else if (a === '-h' || a === '--help') {
-      console.log('usage: node scripts/gen-fixtures.mjs [--out <dir>] [--verify-only | --no-verify] [--no-bench]');
+      console.log('usage: node scripts/gen-fixtures.mjs [--out <dir>] [--verify-only | --no-verify] [--no-bench | --real-only]');
       process.exit(0);
     } else throw new Error(`Unknown argument: ${a}`);
   }
   if (!opts.generate && !opts.verify) throw new Error('--verify-only and --no-verify are exclusive');
+  if (opts.realOnly && !opts.bench) throw new Error('--real-only and --no-bench are exclusive');
   return opts;
 }
 
@@ -1090,6 +1098,432 @@ async function verifyBench(outDir, browser) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Realistic benchmark set (tests/fixtures/bench-real/, ADR A20)
+// ---------------------------------------------------------------------------------------------
+// Phone photos and marketplace pictures of the synthetic bench slabs: what the 65-fixture bench does not cover
+// (perspective, plastic reflections, coloured/textured backgrounds, thumbnails, two slabs in one photo, photos of a
+// screen, sideways photos, low light, a receipt with 8/10/13-digit numbers). Every image is derived from the bench
+// renders above (or non-slab.png / one HTML receipt) with canvas operations and a seeded PRNG inside Chromium, so the
+// output is byte-stable for a given Chromium build. Ported from the scan-accuracy research (2026-10-12); the 66 files
+// are byte-identical to the research set, so its baseline numbers stay comparable.
+//
+// Families:
+//   phone      hand-held: keystone + plastic reflections + vignette + slight blur + sensor noise + wood background,
+//              1100 px wide JPEG q0.80
+//   thumb      marketplace thumbnail: 225-500 px wide, JPEG q0.60-0.75
+//   keystone   strong perspective only (~14 deg)
+//   reflect    heavy plastic reflections across the label
+//   crop       label cut at the edge of the photo (one with the number cut away)
+//   pair       two slabs in one photo (must never auto-open)
+//   moire      photo of a screen (LCD sub-pixel pattern + slight blur)
+//   bg         coloured / textured backgrounds (wood, dark cloth, red, gradient)
+//   sideways   slab photographed sideways (90 / 270 deg)
+//   dark       low light: brightness 0.55, contrast 0.6, noise 12, perspective
+//   negative   no slab (raw card, landscape, a plain 10-digit number, an order confirmation)
+
+const REAL_SUBDIR = 'bench-real';
+const REAL_MAX_TOTAL = 8 * 1024 * 1024;
+const REAL_MAX_FILE = 400 * 1024;
+
+const REAL_WOOD = (seed) => ({ op: 'bg', kind: 'wood', seed });
+const REAL_CLOTH = (seed) => ({ op: 'bg', kind: 'cloth', seed });
+const REAL_SOLID = (color) => ({ op: 'bg', kind: 'solid', color });
+const REAL_GRADIENT = (c1, c2) => ({ op: 'bg', kind: 'gradient', c1, c2 });
+/** Keystone: corners of the warped image as fractions of the frame (tl, tr, br, bl). */
+const persp = (tl, tr, br, bl) => ({ op: 'perspective', tl, tr, br, bl });
+const PERSP_MILD = persp([0.05, 0.03], [0.96, 0.0], [1.0, 1.0], [0.02, 0.97]);
+const PERSP_MILD2 = persp([0.0, 0.0], [0.97, 0.04], [0.99, 0.98], [0.04, 1.0]);
+const PERSP_STRONG = persp([0.10, 0.06], [0.92, 0.0], [1.0, 1.0], [0.0, 0.94]); // ~14 deg camera tilt
+const PERSP_STRONG2 = persp([0.0, 0.0], [1.0, 0.07], [0.90, 0.95], [0.08, 1.0]);
+const REFLECT_LIGHT = { op: 'reflect', streaks: [{ x: 0.35, y: 0.0, angle: -18, width: 0.08, alpha: 0.35 }], spot: { cx: 0.62, cy: 0.09, rx: 0.22, ry: 0.07, alpha: 0.32 } };
+const REFLECT_HEAVY = { op: 'reflect', streaks: [{ x: 0.3, y: 0.0, angle: -22, width: 0.11, alpha: 0.55 }, { x: 0.7, y: 0.0, angle: -22, width: 0.05, alpha: 0.45 }], spot: { cx: 0.5, cy: 0.1, rx: 0.3, ry: 0.06, alpha: 0.55 } };
+const VIGNETTE = { op: 'vignette', strength: 0.35 };
+const PHONE = (seed, { bg = REAL_WOOD(seed), p = PERSP_MILD, width = 1100 } = {}) => [bg, p, REFLECT_LIGHT, VIGNETTE, { op: 'blur', px: 0.6 }, { op: 'noise', amount: 6, seed }, { op: 'scale', width }];
+const JPEG = (q) => ({ format: 'image/jpeg', quality: q });
+
+/**
+ * Spec list. `from`: a bench id, [bench id, bench id] (pair), {file} or {html:'receipt'}.
+ * Positives carry expected.number (pairs: `numbers`, either one is right); mustNotAutoOpen marks photos that may show
+ * a number but must never open a page by themselves.
+ */
+function realSpecs(byId) {
+  const specs = [];
+  const add = (id, family, from, ops, encode, extra = {}) => {
+    const base = typeof from === 'string' ? byId[from] : null;
+    const expected = extra.expected ?? base.expected;
+    const accept = extra.accept ?? (expected.grader === 'bgs' ? ['opened', 'confirm'] : expected.number ? ['auto-open', 'confirm'] : ['none', 'confirm']);
+    specs.push({ id, family, from, ops, encode, expected, accept, mustNotAutoOpen: extra.mustNotAutoOpen ?? !expected.number, ...(extra.numbers ? { numbers: extra.numbers } : {}), labelText: base?.labelText ?? [], note: extra.note ?? '' });
+  };
+
+  // phone (12)
+  let s = 1;
+  for (const b of ['psa-c01', 'psa-c03', 'psa-c05', 'psa-c07', 'cgcc-c09', 'cgcc-c11', 'cgcc-c12', 'cgcd-c14', 'cgcd-c16', 'bgs-c21', 'bgs-c22', 'bgs-c23']) {
+    add(`${b}-phone`, 'phone', b, PHONE(s++, { p: s % 2 ? PERSP_MILD : PERSP_MILD2 }), JPEG(0.8));
+  }
+  // thumb (13)
+  for (const [b, w, q] of [['psa-c02', 225, 0.6], ['psa-c04', 300, 0.65], ['psa-c06', 400, 0.7], ['psa-c01', 500, 0.75], ['cgcc-c10', 300, 0.7], ['cgcc-c09', 400, 0.65],
+    ['cgcc-c13', 350, 0.7], ['cgcd-c15', 300, 0.7], ['cgcd-c18', 450, 0.7], ['cgcd-c17', 250, 0.65], ['bgs-c22', 400, 0.7], ['bgs-c21', 300, 0.7], ['psa-c08', 400, 0.7]]) {
+    add(`${b}-thumb${w}`, 'thumb', b, [{ op: 'scale', width: w }], JPEG(q));
+  }
+  // keystone (5)
+  for (const [b, p] of [['psa-c04', PERSP_STRONG], ['cgcc-c10', PERSP_STRONG2], ['cgcd-c15', PERSP_STRONG], ['bgs-c23', PERSP_STRONG2], ['psa-c08', PERSP_STRONG]]) {
+    add(`${b}-keystone`, 'keystone', b, [REAL_SOLID(BACKDROP), p], JPEG(0.85));
+  }
+  // reflect (5)
+  for (const b of ['psa-c06', 'cgcc-c12', 'cgcd-c18', 'bgs-c21', 'cgcc-c13']) add(`${b}-reflect`, 'reflect', b, [REFLECT_HEAVY], JPEG(0.85));
+  // crop (5): fractions of the full image
+  add('psa-c02-crop-top', 'crop', 'psa-c02', [{ op: 'crop', x: 0, y: 0.09, w: 1, h: 0.91 }], JPEG(0.85), { note: 'top 25% of the label cut off (brand/grade line kept, cert line kept)' });
+  add('cgcc-c11-crop-left', 'crop', 'cgcc-c11', [{ op: 'crop', x: 0.28, y: 0, w: 0.72, h: 1 }], JPEG(0.85), { note: 'left 28% cut: CGC brand + grade box gone, cert number kept' });
+  add('cgcd-c14-crop-edge', 'crop', 'cgcd-c14', [{ op: 'crop', x: 0.05, y: 0.055, w: 0.9, h: 0.7 }], JPEG(0.85), { note: 'label touches the top edge of the photo' });
+  add('bgs-c22-crop-right', 'crop', 'bgs-c22', [{ op: 'crop', x: 0, y: 0, w: 0.78, h: 1 }], JPEG(0.85), { note: 'right 22% cut: subgrades gone, serial kept' });
+  add('psa-c05-crop-nonumber', 'crop', 'psa-c05', [{ op: 'crop', x: 0, y: 0.17, w: 1, h: 0.83 }], JPEG(0.85),
+    { expected: { status: 'none', grader: null, number: null }, accept: ['none', 'confirm'], mustNotAutoOpen: true, note: 'the cert line is cut away: any number shown is wrong' });
+  // pair (4)
+  const pair = (id, a, b, width, q) => {
+    const A = byId[a];
+    const B = byId[b];
+    specs.push({ id, family: 'pair', from: [a, b], ops: [{ op: 'compose', gap: 40, width, bg: REAL_WOOD(7) }], encode: JPEG(q),
+      expected: { status: 'confirm', grader: null, number: null }, numbers: [A.expected.number, B.expected.number], graders: [A.expected.grader, B.expected.grader],
+      accept: ['confirm'], mustNotAutoOpen: true, labelText: [...A.labelText, ...B.labelText], note: `two slabs ${a} + ${b}: must not auto-open; the shown number must be one of the two` });
+  };
+  pair('pair-psa-c01-psa-c03', 'psa-c01', 'psa-c03', 1400, 0.85);
+  pair('pair-cgcc-c09-cgcd-c14', 'cgcc-c09', 'cgcd-c14', 1400, 0.85);
+  pair('pair-bgs-c22-psa-c06', 'bgs-c22', 'psa-c06', 1400, 0.85);
+  pair('pair-psa-c02-cgcc-c10-thumb', 'psa-c02', 'cgcc-c10', 900, 0.7);
+  // moire (5)
+  for (const b of ['psa-c03', 'cgcc-c09', 'cgcd-c16', 'bgs-c21', 'psa-c08']) add(`${b}-moire`, 'moire', b, [{ op: 'moire', pitch: 3.2, angle: 4, amp: 0.45 }, { op: 'blur', px: 0.5 }, { op: 'scale', width: 900 }], JPEG(0.85));
+  // bg (6)
+  add('psa-c05-bg-cloth', 'bg', 'psa-c05', [REAL_CLOTH(3)], JPEG(0.85));
+  add('cgcc-c12-bg-red', 'bg', 'cgcc-c12', [REAL_SOLID('#b3261e')], JPEG(0.85));
+  add('cgcd-c17-bg-wood', 'bg', 'cgcd-c17', [REAL_WOOD(4)], JPEG(0.85));
+  add('bgs-c23-bg-cloth', 'bg', 'bgs-c23', [REAL_CLOTH(5)], JPEG(0.85), { note: 'black label on a dark cloth' });
+  add('psa-c07-bg-gradient', 'bg', 'psa-c07', [REAL_GRADIENT('#1e3a8a', '#60a5fa')], JPEG(0.85));
+  add('neg-c19-bg-wood', 'bg', 'neg-c19', [REAL_WOOD(6)], JPEG(0.85));
+  // sideways (4)
+  add('psa-c01-side90', 'sideways', 'psa-c01', [REAL_WOOD(8), { op: 'rotate', degrees: 90 }, REFLECT_LIGHT, { op: 'scale', width: 1100 }], JPEG(0.8));
+  add('cgcc-c10-side270', 'sideways', 'cgcc-c10', [REAL_WOOD(9), { op: 'rotate', degrees: 270 }, { op: 'scale', width: 1100 }], JPEG(0.8));
+  add('cgcd-c15-side90-thumb', 'sideways', 'cgcd-c15', [{ op: 'rotate', degrees: 90 }, { op: 'scale', width: 500 }], JPEG(0.7));
+  add('bgs-c22-side270', 'sideways', 'bgs-c22', [REAL_WOOD(10), { op: 'rotate', degrees: 270 }, { op: 'scale', width: 1100 }], JPEG(0.8));
+  // dark (3)
+  for (const [b, seed] of [['psa-c04', 11], ['cgcd-c18', 12], ['bgs-c21', 13]]) {
+    add(`${b}-dark`, 'dark', b, [REAL_WOOD(seed), PERSP_MILD2, { op: 'tone', brightness: 0.55, contrast: 0.6 }, { op: 'noise', amount: 12, seed }, { op: 'scale', width: 1000 }], JPEG(0.8));
+  }
+  // negatives (4)
+  add('neg-c20-phone', 'negative', 'neg-c20', [PERSP_MILD, VIGNETTE, { op: 'blur', px: 0.6 }, { op: 'noise', amount: 6, seed: 14 }, { op: 'scale', width: 800 }], JPEG(0.8));
+  specs.push({ id: 'neg-landscape-phone', family: 'negative', from: { file: 'non-slab.png' }, ops: [{ op: 'noise', amount: 8, seed: 15 }, { op: 'scale', width: 900 }], encode: JPEG(0.75),
+    expected: { status: 'none', grader: null, number: null }, accept: ['none', 'confirm'], mustNotAutoOpen: true, labelText: [], note: 'landscape photo, no digits' });
+  add('neg-c19-thumb300', 'negative', 'neg-c19', [{ op: 'scale', width: 300 }], JPEG(0.7), { expected: { status: 'confirm', grader: null, number: '6012349870' }, accept: ['confirm', 'none'], mustNotAutoOpen: true, note: 'plain 10-digit number, no grader words: may show it, never open' });
+  specs.push({ id: 'neg-receipt', family: 'negative', from: { html: 'receipt' }, ops: [{ op: 'noise', amount: 4, seed: 16 }], encode: JPEG(0.8),
+    expected: { status: 'none', grader: null, number: null }, accept: ['none', 'confirm'], mustNotAutoOpen: true, labelText: [], note: 'order confirmation with 8/10/13-digit numbers that are not certs' });
+  return specs;
+}
+
+const RECEIPT_HTML = `<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#fff;font-family:"Liberation Sans",Arial,sans-serif;color:#222}
+#shot{width:760px;padding:36px 44px;background:#fff}
+h1{font-size:26px;margin:0 0 18px}p,li{font-size:17px;line-height:1.5;margin:0 0 8px}.big{font-size:22px;font-weight:700}
+table{border-collapse:collapse;width:100%;margin-top:14px}td{padding:8px 6px;border-bottom:1px solid #ddd;font-size:16px}
+</style></head><body><div id="shot">
+<h1>Order confirmation</h1>
+<p>Thank you for your order. Your order number is <span class="big">4035128874</span>.</p>
+<p>Tracking number: 1Z 2041 7733 9910 1288 · Customer ID 82716394 · Invoice 2023-10-0041</p>
+<table><tr><td>Graded card holder, 1 pc</td><td>EAN 8712345678901</td><td>€ 12,50</td></tr>
+<tr><td>Card sleeves, 100 pcs</td><td>EAN 5012345678900</td><td>€ 4,95</td></tr>
+<tr><td>Shipping</td><td></td><td>€ 6,95</td></tr><tr><td class="big">Total</td><td></td><td class="big">€ 24,40</td></tr></table>
+<p style="margin-top:18px">Questions? Call 020 123 4567 or quote reference 20231007-1123.</p>
+</div></body></html>`;
+
+/** In-page processing for the realistic set (canvas only; seeded PRNG). Runs inside Chromium via page.evaluate. */
+const REAL_PAGE_FN = async ({ sources, ops, encode }) => {
+  const fresh = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  const mulberry32 = (a) => () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const load = async (b64) => {
+    const bytes = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+    const bmp = await createImageBitmap(new Blob([bytes]));
+    const c = fresh(bmp.width, bmp.height);
+    c.getContext('2d').drawImage(bmp, 0, 0);
+    return c;
+  };
+  const BACK = [0xe6, 0xe3, 0xdc];
+
+  /** Background texture canvas of w x h. */
+  const texture = (w, h, spec) => {
+    const c = fresh(w, h);
+    const ctx = c.getContext('2d');
+    if (spec.kind === 'solid') { ctx.fillStyle = spec.color; ctx.fillRect(0, 0, w, h); return c; }
+    if (spec.kind === 'gradient') { const g = ctx.createLinearGradient(0, 0, w, h); g.addColorStop(0, spec.c1); g.addColorStop(1, spec.c2); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); return c; }
+    const rnd = mulberry32(spec.seed * 7919 + 1);
+    if (spec.kind === 'wood') {
+      ctx.fillStyle = '#a9743f'; ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 140; i++) { // grain lines
+        const y = rnd() * h; const k = 0.4 + rnd() * 1.8; const a = 0.08 + rnd() * 0.22;
+        ctx.strokeStyle = rnd() < 0.5 ? `rgba(70,40,15,${a})` : `rgba(230,190,140,${a * 0.6})`;
+        ctx.lineWidth = k; ctx.beginPath(); ctx.moveTo(0, y);
+        for (let x = 0; x <= w; x += 40) ctx.lineTo(x, y + Math.sin(x / 90 + i) * 6 + (rnd() - 0.5) * 3);
+        ctx.stroke();
+      }
+      return c;
+    }
+    // cloth: dark grey-blue with fine noise and a faint weave
+    ctx.fillStyle = '#2a2f3a'; ctx.fillRect(0, 0, w, h);
+    const img = ctx.getImageData(0, 0, w, h); const d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const n = (rnd() - 0.5) * 26; const wv = ((i >> 2) % 3 === 0) ? 6 : 0; d[i] += n + wv; d[i + 1] += n + wv; d[i + 2] += n + wv; }
+    ctx.putImageData(img, 0, 0);
+    return c;
+  };
+  /** Replace backdrop-coloured pixels by the texture. */
+  const applyBg = (canvas, spec) => {
+    const w = canvas.width; const h = canvas.height;
+    const tex = texture(w, h, spec).getContext('2d').getImageData(0, 0, w, h).data;
+    const ctx = canvas.getContext('2d'); const img = ctx.getImageData(0, 0, w, h); const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (Math.abs(d[i] - BACK[0]) <= 4 && Math.abs(d[i + 1] - BACK[1]) <= 4 && Math.abs(d[i + 2] - BACK[2]) <= 4) { d[i] = tex[i]; d[i + 1] = tex[i + 1]; d[i + 2] = tex[i + 2]; }
+    }
+    ctx.putImageData(img, 0, 0);
+    return canvas;
+  };
+  /** Homography from 4 source points to 4 destination points (DLT, 8x8 solve). */
+  const homography = (src, dst) => {
+    const A = []; const b = [];
+    for (let i = 0; i < 4; i++) {
+      const [x, y] = src[i]; const [u, v] = dst[i];
+      A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u);
+      A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v);
+    }
+    const n = 8;
+    for (let c = 0; c < n; c++) {
+      let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+      [A[c], A[p]] = [A[p], A[c]]; [b[c], b[p]] = [b[p], b[c]];
+      for (let r = 0; r < n; r++) {
+        if (r === c) continue;
+        const f = A[r][c] / A[c][c];
+        for (let k = c; k < n; k++) A[r][k] -= f * A[c][k];
+        b[r] -= f * b[c];
+      }
+    }
+    const hvec = b.map((v, i) => v / A[i][i]);
+    return [...hvec, 1];
+  };
+  const applyPerspective = (canvas, spec) => {
+    const w = canvas.width; const h = canvas.height;
+    const dst = [spec.tl, spec.tr, spec.br, spec.bl].map(([fx, fy]) => [fx * w, fy * h]);
+    const src = [[0, 0], [w, 0], [w, h], [0, h]];
+    const H = homography(dst, src); // destination -> source
+    const sctx = canvas.getContext('2d'); const sd = sctx.getImageData(0, 0, w, h).data;
+    const out = fresh(w, h); const octx = out.getContext('2d');
+    // Outside the warped quad: the colour of the source corner pixel (the background after applyBg).
+    octx.fillStyle = `rgb(${sd[0]},${sd[1]},${sd[2]})`; octx.fillRect(0, 0, w, h);
+    const oimg = octx.getImageData(0, 0, w, h); const od = oimg.data;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const den = H[6] * x + H[7] * y + H[8];
+        const sx = (H[0] * x + H[1] * y + H[2]) / den; const sy = (H[3] * x + H[4] * y + H[5]) / den;
+        if (sx < 0 || sy < 0 || sx >= w - 1 || sy >= h - 1) continue;
+        const x0 = Math.floor(sx); const y0 = Math.floor(sy); const fx = sx - x0; const fy = sy - y0;
+        const i00 = (y0 * w + x0) * 4; const i10 = i00 + 4; const i01 = i00 + w * 4; const i11 = i01 + 4; const o = (y * w + x) * 4;
+        for (let k = 0; k < 3; k++) od[o + k] = (sd[i00 + k] * (1 - fx) + sd[i10 + k] * fx) * (1 - fy) + (sd[i01 + k] * (1 - fx) + sd[i11 + k] * fx) * fy;
+        od[o + 3] = 255;
+      }
+    }
+    octx.putImageData(oimg, 0, 0);
+    return out;
+  };
+  const applyReflect = (canvas, spec) => {
+    const w = canvas.width; const h = canvas.height; const ctx = canvas.getContext('2d');
+    ctx.save(); ctx.globalCompositeOperation = 'screen';
+    for (const st of spec.streaks) {
+      ctx.save(); ctx.translate(st.x * w, st.y * h); ctx.rotate((st.angle * Math.PI) / 180);
+      const sw = st.width * w; const g = ctx.createLinearGradient(-sw, 0, sw, 0);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, `rgba(255,255,255,${st.alpha})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.fillRect(-sw, -h * 2, 2 * sw, h * 4); ctx.restore();
+    }
+    if (spec.spot) {
+      const sp = spec.spot; ctx.save(); ctx.translate(sp.cx * w, sp.cy * h); ctx.scale(sp.rx * w, sp.ry * h);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, `rgba(255,255,255,${sp.alpha})`); g.addColorStop(0.6, `rgba(255,255,255,${sp.alpha * 0.5})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
+    ctx.restore();
+    return canvas;
+  };
+  const applyVignette = (canvas, spec) => {
+    const w = canvas.width; const h = canvas.height; const ctx = canvas.getContext('2d');
+    const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) * 0.6);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${spec.strength})`);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    return canvas;
+  };
+  const applyFilter = (canvas, filter, fill) => {
+    const c = fresh(canvas.width, canvas.height); const ctx = c.getContext('2d');
+    const sd = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    ctx.fillStyle = fill ?? `rgb(${sd[0]},${sd[1]},${sd[2]})`; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.filter = filter; ctx.drawImage(canvas, 0, 0); return c;
+  };
+  const applyNoise = (canvas, spec) => {
+    const ctx = canvas.getContext('2d'); const img = ctx.getImageData(0, 0, canvas.width, canvas.height); const d = img.data;
+    const rnd = mulberry32(spec.seed * 104729 + 7);
+    for (let i = 0; i < d.length; i += 4) { const n = (rnd() - 0.5) * 2 * spec.amount; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+    ctx.putImageData(img, 0, 0); return canvas;
+  };
+  const applyScale = async (canvas, width) => {
+    const w = Math.round(width); const h = Math.round((canvas.height * w) / canvas.width);
+    const bmp = await createImageBitmap(canvas, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high' });
+    const c = fresh(w, h); c.getContext('2d').drawImage(bmp, 0, 0); return c;
+  };
+  const applyCrop = (canvas, spec) => {
+    const x = Math.round(spec.x * canvas.width); const y = Math.round(spec.y * canvas.height);
+    const w = Math.round(spec.w * canvas.width); const h = Math.round(spec.h * canvas.height);
+    const c = fresh(w, h); c.getContext('2d').drawImage(canvas, x, y, w, h, 0, 0, w, h); return c;
+  };
+  const applyRotate = (canvas, spec) => {
+    const rad = (spec.degrees * Math.PI) / 180; const cos = Math.abs(Math.cos(rad)); const sin = Math.abs(Math.sin(rad));
+    const W = Math.ceil(canvas.width * cos + canvas.height * sin); const Hh = Math.ceil(canvas.width * sin + canvas.height * cos);
+    const c = fresh(W, Hh); const ctx = c.getContext('2d');
+    const sd = canvas.getContext('2d').getImageData(0, 0, 1, 1).data; ctx.fillStyle = `rgb(${sd[0]},${sd[1]},${sd[2]})`; ctx.fillRect(0, 0, W, Hh);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.translate(W / 2, Hh / 2); ctx.rotate(rad); ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2); return c;
+  };
+  const applyMoire = (canvas, spec) => {
+    const w = canvas.width; const h = canvas.height; const ctx = canvas.getContext('2d'); const img = ctx.getImageData(0, 0, w, h); const d = img.data;
+    const th = (spec.angle * Math.PI) / 180; const cs = Math.cos(th); const sn = Math.sin(th); const p = spec.pitch; const a = spec.amp;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const u = x * cs + y * sn; const v = -x * sn + y * cs; const i = (y * w + x) * 4;
+        const row = 0.5 + 0.5 * Math.cos((2 * Math.PI * v) / p);
+        for (let k = 0; k < 3; k++) { const col = 0.5 + 0.5 * Math.cos((2 * Math.PI * (u + (k * p) / 3)) / p); d[i + k] *= 1 - a * (0.55 * row + 0.45 * col); }
+      }
+    }
+    ctx.putImageData(img, 0, 0); return canvas;
+  };
+  const compose = async (canvases, spec) => {
+    const gap = spec.gap; const H0 = Math.max(...canvases.map((c) => c.height));
+    const scaled = canvases.map((c) => ({ c, w: Math.round((c.width * H0) / c.height), h: H0 }));
+    const W = scaled.reduce((s0, x) => s0 + x.w, 0) + gap * (scaled.length + 1); const Hh = H0 + 2 * gap;
+    const out = texture(W, Hh, spec.bg); const ctx = out.getContext('2d'); ctx.imageSmoothingQuality = 'high';
+    let x = gap;
+    for (const sc of scaled) { ctx.drawImage(applyBg(sc.c, spec.bg), x, gap, sc.w, sc.h); x += sc.w + gap; }
+    return applyScale(out, spec.width);
+  };
+
+  const canvases = await Promise.all(sources.map(load));
+  let canvas = canvases[0];
+  for (const o of ops) {
+    if (o.op === 'compose') canvas = await compose(canvases, o);
+    else if (o.op === 'bg') canvas = applyBg(canvas, o);
+    else if (o.op === 'perspective') canvas = applyPerspective(canvas, o);
+    else if (o.op === 'reflect') canvas = applyReflect(canvas, o);
+    else if (o.op === 'vignette') canvas = applyVignette(canvas, o);
+    else if (o.op === 'blur') canvas = applyFilter(canvas, `blur(${o.px}px)`);
+    else if (o.op === 'tone') canvas = applyFilter(canvas, `brightness(${o.brightness}) contrast(${o.contrast})`);
+    else if (o.op === 'noise') canvas = applyNoise(canvas, o);
+    else if (o.op === 'scale') canvas = await applyScale(canvas, o.width);
+    else if (o.op === 'crop') canvas = applyCrop(canvas, o);
+    else if (o.op === 'rotate') canvas = applyRotate(canvas, o);
+    else if (o.op === 'moire') canvas = applyMoire(canvas, o);
+    else throw new Error(`unknown op ${o.op}`);
+  }
+  const url = canvas.toDataURL(encode.format, encode.quality);
+  return { b64: url.slice(url.indexOf(',') + 1), width: canvas.width, height: canvas.height };
+};
+
+/**
+ * Write tests/fixtures/bench-real/ from the bench renders in `sourceDir` (<sourceDir>/bench/*.png, non-slab.png).
+ * @param {string} outDir fixtures root to write bench-real/ into
+ * @param {string} sourceDir fixtures root holding bench/ and non-slab.png (the same as outDir after a full run)
+ */
+async function generateReal(outDir, browser, env, sourceDir = outDir) {
+  const dir = path.join(outDir, REAL_SUBDIR);
+  await mkdir(dir, { recursive: true });
+  const bench = JSON.parse(await readFile(path.join(sourceDir, BENCH_SUBDIR, 'bench-manifest.json'), 'utf8'));
+  const byId = Object.fromEntries(bench.fixtures.map((f) => [f.id, f]));
+  const specs = realSpecs(byId);
+  const ids = new Set();
+  for (const s of specs) { if (ids.has(s.id)) throw new Error(`duplicate bench-real id ${s.id}`); ids.add(s.id); }
+  const ext = (s) => (s.encode.format === 'image/jpeg' ? 'jpg' : 'png');
+  const keep = new Set([...specs.map((s) => `${s.id}.${ext(s)}`), 'manifest.json']);
+  for (const f of await readdir(dir)) if (!keep.has(f) && /\.(png|jpe?g)$/i.test(f)) await rm(path.join(dir, f));
+
+  const ctx = await newContext(browser);
+  const pg = await ctx.newPage();
+  const out = [];
+  let total = 0;
+  try {
+    for (const sp of specs) {
+      let sources;
+      if (Array.isArray(sp.from)) sources = await Promise.all(sp.from.map((id) => readFile(path.join(sourceDir, BENCH_SUBDIR, byId[id].file))));
+      else if (typeof sp.from === 'string') sources = [await readFile(path.join(sourceDir, BENCH_SUBDIR, byId[sp.from].file))];
+      else if (sp.from.file) sources = [await readFile(path.join(sourceDir, sp.from.file))];
+      else if (sp.from.html === 'receipt') {
+        await pg.setContent(RECEIPT_HTML, { waitUntil: 'load' });
+        await pg.evaluate(() => document.fonts.ready);
+        sources = [await pg.locator('#shot').screenshot({ type: 'png', scale: 'css' })];
+      }
+      await pg.setContent('<!doctype html><html><body></body></html>', { waitUntil: 'load' });
+      const r = await pg.evaluate(REAL_PAGE_FN, { sources: sources.map((b) => b.toString('base64')), ops: sp.ops, encode: sp.encode });
+      const buf = Buffer.from(r.b64, 'base64');
+      const file = `${sp.id}.${ext(sp)}`;
+      await writeFile(path.join(dir, file), buf);
+      total += buf.length;
+      const { ops, encode, ...rest } = sp;
+      out.push({ ...rest, file, mimeType: sp.encode.format, ops, encode, width: r.width, height: r.height, bytes: buf.length, sha256: sha256(buf) });
+    }
+  } finally {
+    await ctx.close();
+  }
+  const families = [...new Set(specs.map((s) => s.family))];
+  const manifest = {
+    schemaVersion: 1,
+    generator: 'scripts/gen-fixtures.mjs',
+    synthetic: true,
+    notice: 'Derived from the synthetic bench renders (abstract art, fictional names, printed grader names, no logos) and one HTML receipt. Cert numbers are test values. Never load live grader pages from tests.',
+    environment: env,
+    // Frozen acceptance for the realistic set (docs/candidates.md, scan-accuracy round 2026-10-12).
+    gate: { wrongAutoOpensMax: 0, topCorrectMin: 60, wrongNumberShownMax: 1, hadToChooseMax: 5 },
+    metrics: {
+      classes: 'auto-ok / auto-WRONG (opened anything else, or any auto-open on mustNotAutoOpen) / opened-ok / opened-wrong (BGS: number shown as read, no tab) / confirm-ok (one number, right) / confirm-choose (>= 2 numbers offered, the preselected one right) / confirm-wrong (preselected number wrong) / none-ok / none-miss / fp (a number shown on a fixture with no number) / error.',
+      topCorrect: 'Positives = fixtures with expected.number or numbers. Top correct = auto-ok + opened-ok + confirm-ok + confirm-choose.',
+      wrongNumberShown: 'confirm-wrong + opened-wrong + fp.',
+      hadToChoose: 'confirm-choose (the four two-slab photos are expected here).',
+    },
+    families,
+    counts: { total: specs.length, ...Object.fromEntries(families.map((f) => [f, specs.filter((s) => s.family === f).length])) },
+    totalBytes: total,
+    fixtures: out,
+  };
+  await writeFile(path.join(dir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  console.log(`wrote ${specs.length} realistic fixtures to ${REAL_SUBDIR}/ (${(total / 1024 / 1024).toFixed(2)} MiB)`);
+}
+
+async function verifyReal(outDir) {
+  const failures = [];
+  const fail = (msg) => { failures.push(msg); console.log(`  FAIL ${msg}`); };
+  const dir = path.join(outDir, REAL_SUBDIR);
+  const manifest = JSON.parse(await readFile(path.join(dir, 'manifest.json'), 'utf8'));
+  console.log(`\nVerify ${dir}`);
+  let total = 0;
+  for (const f of manifest.fixtures) {
+    const buf = await readFile(path.join(dir, f.file));
+    total += buf.length;
+    const dim = imageSize(buf);
+    if (buf.length >= REAL_MAX_FILE) fail(`${REAL_SUBDIR}/${f.file}: ${buf.length} bytes >= ${REAL_MAX_FILE}`);
+    if (sha256(buf) !== f.sha256) fail(`${REAL_SUBDIR}/${f.file}: sha256 differs from manifest`);
+    if (dim.width !== f.width || dim.height !== f.height) fail(`${REAL_SUBDIR}/${f.file}: header ${dim.width}x${dim.height} != manifest`);
+    if (dim.type !== f.mimeType) fail(`${REAL_SUBDIR}/${f.file}: type ${dim.type} != ${f.mimeType}`);
+    for (const n of [f.expected.number, ...(f.numbers ?? [])].filter(Boolean)) if (!/^\d{7,13}$/.test(n)) fail(`${REAL_SUBDIR}/${f.file}: bad expected number ${n}`);
+  }
+  const extra = (await readdir(dir)).filter((x) => /\.(png|jpe?g)$/i.test(x) && !manifest.fixtures.some((f) => f.file === x));
+  if (extra.length) fail(`${REAL_SUBDIR}: files not in manifest: ${extra.join(', ')}`);
+  if (total >= REAL_MAX_TOTAL) fail(`${REAL_SUBDIR}: total ${total} bytes >= ${REAL_MAX_TOTAL}`);
+  console.log(`  ${manifest.fixtures.length} fixtures, ${(total / 1024 / 1024).toFixed(2)} MiB (budget ${REAL_MAX_TOTAL / 1024 / 1024} MiB); families ${JSON.stringify(manifest.counts)}`);
+  console.log(failures.length ? `\nBENCH-REAL VERIFY FAILED (${failures.length})` : '\nBENCH-REAL VERIFY OK');
+  return failures.length === 0;
+}
+
+// ---------------------------------------------------------------------------------------------
 // e2e pages (synthetic marketplace listing)
 // ---------------------------------------------------------------------------------------------
 function pageEntries(sizes) {
@@ -2091,18 +2525,32 @@ async function main() {
   const browser = await launchBrowser();
   let ok = true;
   try {
-    if (opts.generate) {
-      const env = await generate(opts.out, browser);
-      if (opts.bench) await generateBench(opts.out, browser, env);
-    }
-    if (opts.verify) {
-      ok = await verify(opts.out, browser);
-      if (opts.bench) ok = (await verifyBench(opts.out, browser)) && ok;
+    if (opts.realOnly) {
+      // Sources: the bench renders already on disk (the output dir's own bench/ when it has one).
+      const source = existsSync(path.join(opts.out, BENCH_SUBDIR, 'bench-manifest.json')) ? opts.out : DEFAULT_OUT;
+      const env = JSON.parse(await readFile(path.join(source, BENCH_SUBDIR, 'bench-manifest.json'), 'utf8')).environment;
+      if (opts.generate) await generateReal(opts.out, browser, env, source);
+      if (opts.verify) ok = await verifyReal(opts.out);
+    } else {
+      await generateAll(opts, browser);
+      if (opts.verify) {
+        ok = await verify(opts.out, browser);
+        if (opts.bench) ok = (await verifyBench(opts.out, browser)) && (await verifyReal(opts.out)) && ok;
+      }
     }
   } finally {
     await browser.close();
   }
   process.exitCode = ok ? 0 : 1;
+}
+
+async function generateAll(opts, browser) {
+  if (!opts.generate) return;
+  const env = await generate(opts.out, browser);
+  if (opts.bench) {
+    await generateBench(opts.out, browser, env);
+    await generateReal(opts.out, browser, env); // derived from the bench renders just written
+  }
 }
 
 main().catch((err) => {

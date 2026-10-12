@@ -5,11 +5,12 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { BENCH, FIXTURES } from './lib/env.mjs';
+import { BENCH, BENCH_REAL, FIXTURES } from './lib/env.mjs';
 
 const sha = (p) => createHash('sha256').update(readFileSync(p)).digest('hex');
 const main = JSON.parse(readFileSync(path.join(FIXTURES, 'manifest.json'), 'utf8'));
 const bench = JSON.parse(readFileSync(path.join(BENCH, 'bench-manifest.json'), 'utf8'));
+const real = JSON.parse(readFileSync(path.join(BENCH_REAL, 'manifest.json'), 'utf8'));
 const VALID_LEN = { psa: [7, 8, 9, 10], 'cgc-comics': [10], 'cgc-cards': [10, 13], bgs: [10] };
 
 test('main fixtures match manifest.json (sha256, bytes)', () => {
@@ -125,4 +126,32 @@ test('benchmark set: >= 40 fixtures, < 8 MB, hashes match, expectations well-for
   const lens = new Set(bench.fixtures.filter((f) => f.expected.number).map((f) => `${f.expected.grader}:${f.expected.number.length}`));
   for (const k of ['psa:7', 'psa:8', 'psa:9', 'cgc-comics:10', 'cgc-cards:10', 'cgc-cards:13']) assert.ok(lens.has(k), `${k} covered`);
   assert.ok(bench.fixtures.some((f) => f.tags.includes('leading-zero') && f.expected.number.length === 9), '9-digit leading zero');
+});
+
+test('realistic set (bench-real): 66 fixtures in 11 families, < 8 MiB, hashes match, derived only from the synthetic renders', () => {
+  assert.equal(real.fixtures.length, 66, 'the frozen acceptance counts 62 positives out of 66 (ADR A20)');
+  let total = 0;
+  for (const f of real.fixtures) {
+    const p = path.join(BENCH_REAL, f.file);
+    total += statSync(p).size;
+    assert.equal(sha(p), f.sha256, f.file);
+    assert.ok(statSync(p).size < 400 * 1024, `${f.file}: < 400 KiB`);
+    const numbers = f.numbers ?? (f.expected.number ? [f.expected.number] : []);
+    for (const n of numbers) assert.match(n, /^\d{7,13}$/, f.id);
+    if (f.expected.grader) assert.ok(VALID_LEN[f.expected.grader].includes(f.expected.number.length), `${f.id}: length valid for grader`);
+    if (!numbers.length || f.numbers) assert.ok(f.mustNotAutoOpen, `${f.id}: negatives and two-slab photos must not auto-open`);
+    // Sources: bench renders, the main non-slab photo, or the built-in receipt page (no outside images).
+    const from = Array.isArray(f.from) ? f.from : [f.from];
+    for (const src of from) {
+      if (typeof src === 'string') assert.ok(bench.fixtures.some((b) => b.id === src), `${f.id}: source ${src} is a bench fixture`);
+      else assert.ok(src.file === 'non-slab.png' || src.html === 'receipt', `${f.id}: source ${JSON.stringify(src)}`);
+    }
+  }
+  assert.ok(total < 8 * 1024 * 1024, `bench-real total ${total} bytes`);
+  const files = readdirSync(BENCH_REAL).filter((x) => /\.(png|jpe?g)$/.test(x));
+  assert.equal(files.length, real.fixtures.length, 'no stray files in bench-real/');
+  const positives = real.fixtures.filter((f) => (f.numbers ?? (f.expected.number ? [f.expected.number] : [])).length > 0);
+  assert.equal(positives.length, 62);
+  assert.deepEqual(real.families, ['phone', 'thumb', 'keystone', 'reflect', 'crop', 'pair', 'moire', 'bg', 'sideways', 'dark', 'negative']);
+  assert.deepEqual(real.gate, { wrongAutoOpensMax: 0, topCorrectMin: 60, wrongNumberShownMax: 1, hadToChooseMax: 5 });
 });

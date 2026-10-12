@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sniffDimensions, imageOriginOf, acquireFromJob } from '../../src/pipeline/acquire.js';
-import { digitBoxes } from '../../src/pipeline/scanner.js';
+import { digitBoxes, probeScore, MAX_RECOGNIZE_CALLS } from '../../src/pipeline/scanner.js';
 import { toOcrPage } from '../../src/pipeline/ocr.js';
 import { ocrScale, otsuThreshold, stretchContrast } from '../../src/pipeline/preprocess.js';
 import { originPattern } from '../../src/sidepanel/permissionsUi.js';
@@ -135,4 +135,14 @@ test('SEC-20 pageProbe inspect: page mode fetches only the displayed image (or o
   } finally {
     Object.assign(globalThis, saved);
   }
+});
+
+test('A20 orientation probe: a side is scored by the words read fairly surely; garbage at low confidence scores 0', () => {
+  const w = (text, confidence) => ({ text, confidence, bbox: { x0: 0, y0: 0, x1: 1, y1: 1 }, lineText: text, lineId: 0 });
+  const mirrored = { words: [w('VSd', 29), w('3143012028', 0), w('S3IF3S', 0)] };
+  const upright = { words: [w('PSA', 91), w('GEM', 88), w('04718263', 96), w('#27', 40)] };
+  assert.equal(probeScore(mirrored), 0);
+  assert.equal(probeScore(upright), 91 + 88 + 96);
+  assert.equal(probeScore(null), 0);
+  assert.equal(MAX_RECOGNIZE_CALLS, 10, 'ADR A20: room for the orientation probe and one second opinion');
 });

@@ -139,3 +139,108 @@ The evaluator's P3 findings were fixed afterwards and re-measured:
 - Settings regroup, a "Look up value automatically" switch and half grades PriceCharting has no column for (e.g.
   PSA 8.5 shows "—") are deferred.
 - ~~PriceCharting tab fallback policy review~~: resolved 2026-10-12 (ADR A18) — the inactive-tab fallback was removed; Pokémon slabs can use PokemonPriceTracker's official API.
+
+## Scan-accuracy round (2026-10-12, ADR A20)
+
+User report (NL, paraphrased): "scanning suddenly goes wrong more often". The research the same day found no broad
+regression in the last scanning change, but a change in the *kind* of failure: the label pass turned some "nothing
+found" results into a wrong preselected number or a "choose between numbers" screen. The plan (ten mechanisms, eight
+steps) and the acceptance below were frozen before any scanning code changed.
+
+Method: the current build `58754af` was frozen as an e2e build and measured with the new benchmark (both sets) before
+the first scanning change; after the last change the baseline and the final build were measured again back to back.
+Same machine, Chromium 141.0.7390.37, warm panel, upload path, one run at a time. "Final" = the working tree on top of
+`58754af` (uncommitted when measured). Reports: `docs/quality/bench/a20-baseline-58754af{,-real}.md`,
+`docs/quality/bench/a20-final{,-real}.md` (the baseline-2 / final-B pair below).
+
+### Frozen acceptance
+
+Wrong auto-opens 0 on both sets (hard) · bench top-1 ≥ 100 % clean / ≥ 90 % degraded · bench-real top number right
+≥ 60/62, wrong number shown ≤ 1, had to choose ≤ 5, no new none → wrong number · warm UI p50/p95 ≤ +10 % on the bench,
+bench-real p95 ≤ the current build's and no photo > 5 s · unit, check and all e2e suites green.
+
+### Bench (65 fixtures)
+
+| Metric | 58754af run 1 | 58754af run 2 | Final run A | Final run B |
+|---|---|---|---|---|
+| Top-1 clean / degraded | 100 / 87.8 % | 100 / 87.8 % | 100 / 92.7 % | 100 / 92.7 % |
+| Wrong auto-opens | 0 | 0 | 0 | 0 |
+| Wrong number shown | 3 (psa-c03-blur2, cgcd-c16-rot-6, bgs-c23-glare) | 3 | 1 (psa-c03-blur2) | 1 |
+| Had to choose | 0 | 0 | 0 | 0 |
+| Nothing found on a slab | 2 (blur-2 photos) | 2 | 2 | 2 |
+| Auto-open precision / rate clean, degraded | 49/49 · 85.7 / 75.6 % | 49/49 · 85.7 / 75.6 % | 50/50 · 85.7 / 78 % | 50/50 · 85.7 / 78 % |
+| Grader correct clean / degraded; BGS top-1 | 100 / 92.7 %; 87.5 % | 100 / 92.7 %; 87.5 % | 100 / 95.1 %; 100 % | 100 / 95.1 %; 100 % |
+| Card name clean / degraded | 90 / 66.7 % | 90 / 66.7 % | 90 / 69.2 % | 90 / 69.2 % |
+| Warm UI p50 / p95 / max | 655 / 1332 / 3509 ms | 631 / 1325 / 3514 ms | 635 / 1042 / 3522 ms | 654 / 1145 / 3613 ms |
+
+Class changes (final B vs run 2): bgs-c21, bgs-c21-jpeg40, bgs-c21-blur1 confirm → result shown (Sauvola reads the gold
+label); cgcd-c16-rot-6 wrong number → auto-open right; bgs-c23-glare wrong PSA number → right BGS number (confirm).
+
+### bench-real (66 fixtures, 62 with a number)
+
+| Metric | 58754af run 1 | 58754af run 2 | Final run A | Final run B |
+|---|---|---|---|---|
+| auto-ok / auto-WRONG | 38 / 0 | 38 / 0 | 42 / 0 | 42 / 0 |
+| opened-ok (BGS) | 7 | 7 | 9 | 9 |
+| confirm-ok / confirm-choose / confirm-wrong | 7 / 6 / 2 | 7 / 6 / 2 | 7 / 4 / 0 | 7 / 4 / 0 |
+| none-ok / none on a slab / fp | 3 / 2 / 1 | 3 / 2 / 1 | 3 / 0 / 1 | 3 / 0 / 1 |
+| **Top number right** | **58/62** | **58/62** | **62/62** | **62/62** |
+| **Wrong number shown** | **3** (bgs-c21-reflect, bgs-c21-moire, neg-receipt) | **3** | **1** (neg-receipt) | **1** |
+| **Had to choose** | **6** | **6** | **4** (the two-slab photos) | **4** |
+| New none → wrong number | - | - | 0 | 0 |
+| Warm UI p50 / p95 / max | 660 / 2300 / 3459 ms | 660 / 2289 / 3619 ms | 673 / 2093 / 4066 ms | 709 / 2069 / 4035 ms |
+
+Class changes (final B vs run 2): bgs-c21-phone choose → result shown; cgcd-c17-thumb250 choose → auto-open (near-duplicate
+merge); bgs-c21-thumb300 confirm → result shown; psa-c08-keystone confirm → auto-open (Sauvola reads the number next to
+the barcode); bgs-c21-reflect and bgs-c21-moire wrong PSA number → right BGS number (confirm); psa-c01-side90 and
+cgcd-c15-side90-thumb nothing → auto-open (orientation probe). Per family, warm UI p95 grew where outcomes improved
+(sideways 1407 → 1806 ms, reflect 663 → 1059 ms, phone 901 → 1239 ms, moiré max 3540 → 4035 ms) and fell for negatives
+(3182 → 2069 ms: no label pass on a landscape photo that read nothing).
+
+### Steps kept and dropped
+
+| Step | Kept? | Evidence |
+|---|---|---|
+| 1 Realistic set + outcome metrics | kept | 66 files byte-identical to the research set; baseline reproduced the research classes exactly (38/0/7/0/7/6/2/3/2/1) |
+| 2 Safe label pass | kept | second read = plain label image with Sauvola (131-fixture check: 100 right agreements with the black/white read, 4 wrong; the same image read twice: 14 wrong); bgs-c21-moire wrong → right |
+| 3 One number (near-duplicates) | **narrowed in review** | as built, cgcd-c17-thumb250 choose → auto-open; in the review run the time-gated Sauvola pass also ran and the merge absorbed the right number into the wrong one (see below); now only weak stray reads are absorbed, never past the auto-open bar |
+| 4 Orientation probe, 10 calls | kept | both sideways misses → auto-open right |
+| 5 Gated second opinions | kept | bench degraded 87.8 → 92.7 %; gated on slab words or a barcode and < 1.2 s of OCR; replaces the band passes when no digit group was read (bench p95 fell) |
+| 6 Incomplete numbers keep no grader | kept | bgs-c21-reflect / bgs-c23-glare no longer preselect PSA; new reason `reason_number_incomplete` (EN/NL) |
+| 7a/7b GTIN-13, `14xx` prior | **dropped** | neg-receipt stayed `fp`: with the EAN codes demoted, the customer ID took their place |
+| 7c lost-dash `7 + 3` | **dropped** | the `4102938` runs were the dash form `4102938-015`, which the parser already joins |
+| 7d median denoise | **dropped** | text pass not faster on the dark photos (1211 → 1736 ms, 1643 → 1915 ms), same reads |
+| 8 "This went wrong" export | kept | one local `.zip` (JSON + photo) via `<a download>`; e2e: confirm/none/result, contents checked, no network request, not after a restore |
+
+Residual: the order-confirmation fixture still offers a number (`fp`, within the gate); a two-slab photo where one
+slab's number is read only once and differs by ≤ 2 digits from the other's could be merged (unit-tested for the read-twice
+case only); timings vary ±10 % between runs of the same build, so both final runs are listed.
+
+### Review and verified final (orchestrator)
+
+Reviewing the diff before committing, two parser rules were tightened (ADR A20 amendments), because they could put or
+open a wrong number:
+- **Near-duplicate merge.** As built, a near-duplicate read was absorbed as the host's *second read* (+0.15), which can
+  carry a number across the auto-open bar although two passes disagree on a digit. The verification run hit exactly that:
+  default + Sauvola text read `2038475610`, the digit crop the right `2938475610`; the merge absorbed the right one into the
+  wrong one (with the bonus capped it showed the wrong number at 0.79; uncapped it would have auto-opened it). The
+  implementer's runs missed it because the second opinion is gated on OCR time. Now only a weak stray read (score < 0.50)
+  is absorbed, and its bonus stops at 0.79.
+- **Independent reads.** A Sauvola / Leptonica *text* read of a number the default text pass also read no longer counts
+  as a second read (same engine, same pixels, same misread); a digit crop, label image, barcode or QR still does.
+
+Verified run on the final source (frozen e2e build, same machine, one run at a time; reports
+`docs/quality/bench/a20-final{,-real}.md`):
+
+| | Bench (65) | bench-real (66) |
+|---|---|---|
+| Top-1 / top number right | 100 % clean, 92.7 % degraded | **62/62** |
+| Wrong auto-opens | 0 | 0 |
+| Wrong number shown | 1 (psa-c03-blur2) | 1 (neg-receipt, an order confirmation) |
+| Had to choose | 0 | 5 (the four two-slab photos + cgcd-c17-thumb250) |
+| Nothing found on a slab | 2 (blur-2) | 0 |
+| Warm UI p50 / p95 / max | 638 / 1155 / 3606 ms | 732 / 2053 / 4154 ms |
+
+All frozen criteria pass (had to choose exactly at the bound of 5). Unit tests 261/261, `npm run check`, benchmark
+gates; remaining e2e suites re-run on the same build (see the commit).
+

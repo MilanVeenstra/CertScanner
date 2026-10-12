@@ -122,3 +122,22 @@ test('a Blob is handed to tesseract.js as bytes, so a terminate() during its asy
   assert.deepEqual([...seen[0]], [1, 2, 3]);
   await ocr.dispose();
 });
+
+test('A20: every call sets the binarisation method (default Otsu); only thresholding_method can be changed per call', async () => {
+  const T = fakeTesseract();
+  const seen = [];
+  const create = T.createWorker;
+  T.createWorker = async (...a) => { const w = await create(...a); w.setParameters = async (p) => { seen.push(p); }; return w; };
+  const ocr = engine(T);
+  await ocr.recognizeText(new Blob(['x']), { params: { thresholding_method: '2' } });
+  await ocr.recognizeText(new Blob(['x']));
+  await ocr.recognizeDigits(new Blob(['x']), { params: { thresholding_method: '1', tessedit_char_whitelist: 'ABC', tessedit_pageseg_mode: '6' } });
+  await ocr.recognizeText(new Blob(['x']), { params: { thresholding_method: '7' } });
+  assert.equal(seen[0].thresholding_method, '2', 'Sauvola second opinion');
+  assert.equal(seen[1].thresholding_method, '0', 'the next pass is back to Otsu (Tesseract keeps variables between calls)');
+  assert.equal(seen[2].thresholding_method, '1');
+  assert.equal(seen[2].tessedit_char_whitelist, '0123456789-', 'a pass keeps its own whitelist');
+  assert.equal(seen[2].tessedit_pageseg_mode, '7', 'and its own page segmentation');
+  assert.equal(seen[3].thresholding_method, '0', 'unknown methods are ignored');
+  await ocr.dispose();
+});

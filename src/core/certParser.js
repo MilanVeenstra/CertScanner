@@ -115,10 +115,16 @@ function dashRegex(rules) {
   return new RegExp(rules.DASH_FORM.re.source.replace(')-(', ') ?- ?('), 'g');
 }
 
-/** Extract reads from one OcrPage. */
+/**
+ * Extract reads from one OcrPage.
+ * `variant` (scanner.js, A20) names how the image was binarised ('sauvola', 'leptonica', label 'bin' / 'plain'): a read
+ * of a differently binarised image is an independent read, a second read of the same image is not.
+ */
 function readsFromPage(page, rules, validLengths) {
   const pass = page.pass === 'digits' ? 'digits' : 'text';
   const label = page.labelPass === true; // read from the enlarged label pass (scanner.js), not the full image
+  const variant = typeof page.variant === 'string' && /^[a-z]{1,16}$/.test(page.variant) ? page.variant : null;
+  const key = `ocr:${pass}${label ? ':label' : ''}${variant ? `:${variant}` : ''}`;
   const reads = [];
   let dashSeen = false;
   for (const line of pageLines(page, rules)) {
@@ -129,7 +135,7 @@ function readsFromPage(page, rules, validLengths) {
       const end = start + m[0].length;
       covered.push([start, end]);
       const c = confFor(line, start, end);
-      reads.push({ number: m[1] + m[2], kind: 'ocr', key: `ocr:${pass}${label ? ':label' : ''}`, pass, label, conf: c.conf, fixed: c.fixed, certLabel, dash: true });
+      reads.push({ number: m[1] + m[2], kind: 'ocr', key, pass, label, variant, conf: c.conf, fixed: c.fixed, certLabel, dash: true });
       dashSeen = true;
     }
     for (const m of line.text.matchAll(/\d+/g)) {
@@ -138,7 +144,7 @@ function readsFromPage(page, rules, validLengths) {
       if (covered.some(([a, b]) => start < b && end > a)) continue;
       if (!validLengths.has(m[0].length)) continue;
       const c = confFor(line, start, end);
-      reads.push({ number: m[0], kind: 'ocr', key: `ocr:${pass}${label ? ':label' : ''}`, pass, label, conf: c.conf, fixed: c.fixed, certLabel, dash: false });
+      reads.push({ number: m[0], kind: 'ocr', key, pass, label, variant, conf: c.conf, fixed: c.fixed, certLabel, dash: false });
     }
   }
   return { reads, dashSeen };
@@ -209,6 +215,61 @@ function rankGraders(graders, kw, length, rules) {
   return [...graders].sort((a, b) => (kw[b].score - kw[a].score) || (tie.indexOf(a) - tie.indexOf(b)));
 }
 
+/** Variants of the second-opinion passes (scanner.js): the full image binarised differently inside Tesseract. */
+const SECOND_OPINIONS = new Set(['sauvola', 'leptonica']);
+const hamming = (a, b) => { let d = 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) d++; return d; };
+const guessOf = (c) => c.grader ?? c.graderOptions?.[0] ?? null;
+
+/**
+ * One number, not two (A20). In place on the scored list:
+ * - near-duplicates: same length, <= nearDup.maxDiff digits different, same grader guess, and the weaker one read
+ *   only once by OCR. The host absorbs it when more independent reads agree on the host (and the host's reads are
+ *   not below the base floor), or when both were read once and the engine is clearly surer of the host
+ *   (>= hostConf, by >= margin). The absorbed read counts as the host's second read. A number read twice is never
+ *   absorbed, so two slabs with close numbers stay two candidates.
+ * - incomplete reads: a number flagged 'incomplete' (no grader fits its length on that label) whose digits appear
+ *   inside a complete number of the label's grader is the same print, read short. Read from another image than the
+ *   complete number, it also counts as that image agreeing (a label-only number then needs no exact second read:
+ *   the plain label read "0012345678" where the black/white one lost a zero).
+ * Label-only numbers read from one image that nothing completed are dropped at the end.
+ */
+function mergeReads(scored, rules) {
+  const { nearDup, base } = rules.SCORE;
+  const absorbs = (host, c) => {
+    if (!nearDup || !c.ocrOnly || c.reads !== 1 || host === c || host.labelSingle || c.labelSingle) return false;
+    if (host.number.length !== c.number.length || hamming(host.number, c.number) > nearDup.maxDiff || guessOf(host) !== guessOf(c)) return false;
+    // A read strong enough to compete stays its own number: two text passes can misread the same digit the same way
+    // while the digit crop reads it right (bench-real cgcd-c17-thumb250), so merging it could hide the right number.
+    if (c.pre >= rules.SCORE.thresholds.competitor) return false;
+    if (host.reads >= 2) return host.meanConf >= base.ocr.confLo;
+    return host.meanConf >= nearDup.hostConf && host.meanConf - c.meanConf >= nearDup.margin;
+  };
+  const order = [...scored].sort((a, b) => (b.reads - a.reads) || (b.meanConf - a.meanConf) || (b.pre - a.pre));
+  const gone = new Set();
+  for (const host of order) {
+    if (gone.has(host)) continue;
+    for (const c of order) {
+      if (gone.has(c) || !absorbs(host, c)) continue;
+      gone.add(c);
+      // A capped number (label pass, second opinion) stays capped: a read that disagrees on a digit does not
+      // confirm the disputed digit. The merge shows one number instead of two, but never opens a page by itself:
+      // its bonus stops below the auto-open bar.
+      const below = rules.SCORE.thresholds.autoOpen - 0.01;
+      if (host.reads < 2) { host.pre = Math.min(host.cap, Math.max(host.pre, Math.min(host.pre + rules.SCORE.bonus.secondRead, below))); host.reads = 2; }
+      host.evidence.push(`near-dup:${c.number}`);
+    }
+  }
+  for (const c of scored) {
+    if (gone.has(c) || !c.evidence.includes('incomplete') || !c.ocrOnly) continue;
+    const full = scored.find((m) => !gone.has(m) && m !== c && m.grader === c.graderOptions[0] && m.number.length > c.number.length && m.number.includes(c.number));
+    if (!full) continue;
+    gone.add(c);
+    full.evidence.push(`completes:${c.number}`);
+    if (full.labelSingle && [...c.images].some((im) => !full.images.has(im))) full.labelSingle = false;
+  }
+  for (let i = scored.length - 1; i >= 0; i--) if (gone.has(scored[i]) || scored[i].labelSingle) scored.splice(i, 1);
+}
+
 /**
  * Full analysis: candidates plus warnings derived from the inputs.
  * @param {{pages?:import('./types.js').OcrPage[], barcodes?:import('./types.js').BarcodeRead[], hints?:string}} input
@@ -251,19 +312,22 @@ export function analyze(input, rules = DEFAULT_RULES) {
   }
 
   const scored = [];
+  const minConf = SCORE.read?.minConf ?? 0;
   for (const [number, rs] of byNumber) {
     const evidence = [`len:${number.length}`];
     const add = (e) => { if (!evidence.includes(e)) evidence.push(e); };
-    const ocrReads = rs.filter((r) => r.kind === 'ocr');
+    // Reads below the confidence floor are whitelist fall-backs: they are not reads of this number (A20).
+    const ocrReads = rs.filter((r) => r.kind === 'ocr' && r.conf >= minConf);
     const qrReads = rs.filter((r) => r.kind === 'qr-url');
     const bcReads = rs.filter((r) => r.kind === 'barcode');
+    if (!ocrReads.length && !qrReads.length && !bcReads.length) continue;
     const allUntrusted = qrReads.length === 0 && ocrReads.length === 0 && bcReads.length > 0 && bcReads.every((r) => r.untrusted);
 
     // 1. Start
     const bases = [];
     let source = 'ocr';
+    const meanConf = ocrReads.length ? ocrReads.reduce((s, r) => s + r.conf, 0) / ocrReads.length : 100;
     if (ocrReads.length) {
-      const meanConf = ocrReads.reduce((s, r) => s + r.conf, 0) / ocrReads.length;
       const o = SCORE.base.ocr;
       bases.push(o.min + o.span * clamp((meanConf - o.confLo) / (o.confHi - o.confLo), 0, 1));
     }
@@ -281,7 +345,14 @@ export function analyze(input, rules = DEFAULT_RULES) {
     for (const r of [...qrReads, ...bcReads]) r.evidence.forEach(add);
 
     // 2. Read quality
-    const keys = new Set(rs.map((r) => r.key));
+    // Independent reads only: a second-opinion *text* pass (Sauvola / Leptonica) of a number the default text pass
+    // also read is the same engine on the same pixels and repeats its misreads (bench-real cgcd-c17-thumb250: both
+    // read 2038475610 where the digit crop read the right 2938475610). Confirmation then has to come from a digit
+    // crop, a label image, a barcode or a QR code.
+    const plainText = ocrReads.some((r) => r.pass === 'text' && !r.label && !r.variant);
+    const keys = new Set([...ocrReads, ...qrReads, ...bcReads]
+      .filter((r) => !(plainText && r.kind === 'ocr' && r.pass === 'text' && !r.label && SECOND_OPINIONS.has(r.variant)))
+      .map((r) => r.key));
     if (keys.size >= 2) score += SCORE.bonus.secondRead;
     if (ocrReads.some((r) => r.certLabel)) { score += SCORE.bonus.certLabel; add('cert-label'); }
     if (ocrReads.some((r) => r.dash)) add('dash-form');
@@ -300,10 +371,20 @@ export function analyze(input, rules = DEFAULT_RULES) {
       const kwN = scoresForNumber(kw, number, ctx, rules);
       graderOptions = rankGraders(F, kwN, number.length, rules);
       if (F.length === 1) {
-        grader = F[0];
-        const conflict = rules.GRADER_IDS.some((g) => g !== grader && kw[g].score >= SCORE.resolve.conflictKeyword)
-          && kw[grader].score < SCORE.resolve.slabVocabularyMin;
-        if (conflict) { score -= SCORE.penalty.keywordConflict; add('conflict'); } else score += SCORE.bonus.lengthUnique;
+        // The label clearly names another grader, and no grader of this length: most likely an incomplete read (glare
+        // or a lost leading zero). Offer the label's grader first with the number to correct, instead of preselecting
+        // the grader that merely fits the length (A20; PSA "00123456" on a Beckett label).
+        const strong = rules.GRADER_IDS.filter((g) => g !== F[0] && kw[g].score >= SCORE.resolve.conflictKeyword)
+          .sort((a, b) => kw[b].score - kw[a].score)[0];
+        if (strong && kw[F[0]].score < SCORE.resolve.slabVocabularyMin) {
+          graderOptions = [strong, F[0]];
+          score -= SCORE.penalty.keywordConflict;
+          add('conflict');
+          add('incomplete');
+        } else {
+          grader = F[0];
+          score += SCORE.bonus.lengthUnique;
+        }
       } else {
         const [best, second] = graderOptions;
         const bestScore = kwN[best].score;
@@ -319,15 +400,34 @@ export function analyze(input, rules = DEFAULT_RULES) {
     }
 
     // 4. Slab vocabulary
-    if (source !== 'qr-url' && maxKw < SCORE.resolve.slabVocabularyMin) score -= SCORE.penalty.noSlabVocabulary;
+    const noVocabulary = maxKw < SCORE.resolve.slabVocabularyMin;
+    if (source !== 'qr-url' && noVocabulary) score -= SCORE.penalty.noSlabVocabulary;
 
     if (allUntrusted) score = Math.min(score, SCORE.thresholds.untrustedQrCap);
+    const ocrOnly = ocrReads.length > 0 && !qrReads.length && !bcReads.length;
+    // Images the number was read from: a label-pass image by its binarisation, any other page by its pass key.
+    const images = new Set(ocrReads.map((r) => (r.label ? `label:${r.variant ?? r.pass}` : r.key)));
     // Read only by the label pass (a retry on images the full-image passes could not read): never enough to open a
-    // page by itself, since its two reads come from the same crop.
-    const labelOnly = ocrReads.length > 0 && !qrReads.length && !bcReads.length && ocrReads.every((r) => r.label);
-    if (labelOnly) { score = Math.min(score, SCORE.thresholds.autoOpen - 0.01); add('label-pass'); }
-    scored.push({ grader, graderOptions, number, pre: score, source, evidence, allUntrusted });
+    // page by itself, and shown only when the label is a slab label (slab words) and two differently binarised
+    // images of it agree on the number (A20): two reads of one image repeat its errors (2901234567 for 3901234567).
+    // A single-image read may still be completed by the other image's incomplete read (mergeReads).
+    const labelOnly = ocrOnly && ocrReads.every((r) => r.label);
+    let cap = Infinity;
+    if (labelOnly) {
+      if (noVocabulary) continue;
+      cap = SCORE.thresholds.autoOpen - 0.01;
+      add('label-pass');
+    }
+    // Read only by a second-opinion pass (Sauvola / Leptonica Otsu), once: one read of an image that the default
+    // binarisation read differently. Shown, but it does not open a page by itself (A20).
+    const secondOpinionOnly = ocrOnly && keys.size < 2 && ocrReads.every((r) => !r.label && SECOND_OPINIONS.has(r.variant));
+    if (secondOpinionOnly) { cap = SCORE.thresholds.autoOpen - 0.01; add('second-opinion'); }
+    score = Math.min(score, cap);
+    scored.push({ grader, graderOptions, number, pre: score, cap, source, evidence, allUntrusted, meanConf, reads: keys.size, ocrOnly, images,
+      labelSingle: labelOnly && images.size < 2 });
   }
+
+  mergeReads(scored, rules);
 
   // 5. Competition (based on pre-competition scores, so order does not matter)
   const candidates = scored.map((c) => {
@@ -342,7 +442,9 @@ export function analyze(input, rules = DEFAULT_RULES) {
     .filter((c) => c.confidence >= SCORE.thresholds.show)
     .sort((a, b) => (b.confidence - a.confidence) || (a.number < b.number ? -1 : 1))
     .slice(0, SCORE.thresholds.maxCandidates);
-  return { candidates: final, warnings: bc.warnings, keywords: kw };
+  // signals: what the scanner needs to decide on extra passes (A20 second opinions): the strongest label vocabulary.
+  const signals = { maxKeyword: maxKw };
+  return { candidates: final, warnings: bc.warnings, keywords: kw, signals };
 }
 
 /** ADR §6 contract: text + barcodes -> CertCandidate[] */
@@ -350,8 +452,3 @@ export function parseCandidates(input, rules = DEFAULT_RULES) {
   return analyze(input, rules).candidates;
 }
 
-/** True when any page holds a digit run of a valid length (scanner: decides on rotation passes). */
-export function hasValidRun(pages, rules = DEFAULT_RULES) {
-  const validLengths = new Set(rules.ALL_LENGTHS);
-  return (Array.isArray(pages) ? pages : []).some((p) => isObj(p) && readsFromPage(p, rules, validLengths).reads.length > 0);
-}

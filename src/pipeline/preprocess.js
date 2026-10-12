@@ -133,19 +133,26 @@ export function adaptiveThreshold(gray, width, height, win = 41, C = 12) {
 export const LABEL_WIDTH = 2400;
 export const LABEL_MAX_UPSCALE = 3;
 export const LABEL_FRACTION = 0.32;
+/**
+ * A binarised label image is never wider than this (A20): Tesseract needed 6-14 s for a 2200-px binarised label of a
+ * noisy or moiré photo (beyond the 8 s recognize timeout); 1100-1200 px reads the same numbers in ~0.2-0.4 s.
+ */
+export const LABEL_BINARIZE_MAX_WIDTH = 1200;
 
 /**
  * The slab label at text-reading size: the top (or, upside down, the bottom) part of the photo, scaled so the label is
  * about 2400 px wide (upscaling <= 3x), grayscale with stretched contrast. Used to read the card name, which is printed
  * smaller than the cert number and is lost in the full-image pass on small photos.
  * @param {ImageBitmap} bitmap
- * @param {{which?:'top'|'bottom', rotation?:0|90|180|270}} [opts]
+ * @param {{which?:'top'|'bottom', rotation?:0|90|180|270, binarize?:boolean, width?:number}} [opts]
+ *   binarize: adaptive black/white (label pass); the width is then capped at LABEL_BINARIZE_MAX_WIDTH.
  * @returns {Promise<Blob>}
  */
 export async function labelImage(bitmap, { which = 'top', rotation = 0, binarize = false, width = LABEL_WIDTH } = {}) {
   const swap = rotation === 90 || rotation === 270;
   const w0 = swap ? bitmap.height : bitmap.width;
-  const scale = Math.min(LABEL_MAX_UPSCALE, width / Math.max(1, w0));
+  const target = binarize ? Math.min(width, LABEL_BINARIZE_MAX_WIDTH) : width;
+  const scale = Math.min(LABEL_MAX_UPSCALE, target / Math.max(1, w0));
   const full = drawRotated(bitmap, bitmap.width, bitmap.height, rotation, scale);
   const bandH = Math.max(1, Math.round(full.height * LABEL_FRACTION));
   const out = new OffscreenCanvas(full.width, bandH);

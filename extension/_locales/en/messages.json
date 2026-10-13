@@ -1655,5 +1655,11 @@
         "example": "7"
       }
     }
+  },
+  "prices_grade_choose": {
+    "message": "Choose a grade"
+  },
+  "prices_need_grade": {
+    "message": "Choose the grade to see its value."
   }
 }

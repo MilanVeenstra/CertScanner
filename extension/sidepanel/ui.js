@@ -506,19 +506,27 @@ export function createUi(doc, actions) {
     ref(vf, 'price-edit-label').textContent = t(comic ? 'value_change_comic' : 'value_change');
     ref(vf, 'price-change').addEventListener('click', () => openPriceFields('card'));
     input.value = prices.desc ?? '';
+    // Design v2: the slab's grades only ("All grades" gave an empty tile); "Choose a grade" while none was read.
     for (const g of ['', ...GRADE_SCALES[prices.grader]]) {
       const o = doc.createElement('option');
       o.value = g;
-      o.textContent = g ? gradeLabel(prices.grader, g) : t('prices_grade_all');
+      o.textContent = g ? gradeLabel(prices.grader, g) : t('prices_grade_choose');
+      if (!g) o.disabled = true;
       select.appendChild(o);
     }
     select.value = matchGrade(prices.grader, prices.grade) ?? '';
     input.addEventListener('input', () => showPriceError(''));
-    select.addEventListener('change', () => { syncPriceSummary(); actions.pricesChanged?.(); });
+    select.addEventListener('change', () => showPriceError(''));
+    // "Show value" applies the card and grade (user: "show value met grades werkt niet" - a new grade was looked up as
+    // soon as it was picked, so the button itself seemed to do nothing): the form closes and the value loads again.
     fields.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!input.value.trim()) { showPriceError(comic ? 'prices_need_title' : 'prices_need_card'); return; }
+      if (!select.value) { showPriceError('prices_need_grade', 'grade'); return; }
       showPriceError('');
+      setPriceFields(false);
+      syncPriceSummary();
+      ref(extra, 'price-edit')?.focus();
       actions.pricesChanged?.();
     });
     edit.addEventListener('click', () => {
@@ -813,17 +821,19 @@ export function createUi(doc, actions) {
   }
 
   /** Error under the card field, focus on the field; an empty key clears it. */
-  function showPriceError(key) {
+  function showPriceError(key, field = 'card') {
     const err = ref(extra, 'price-error');
     const input = ref(extra, 'price-card');
+    const select = ref(extra, 'price-grade');
     if (!err || !input) return;
     err.textContent = key ? t(key) : '';
+    input.removeAttribute('aria-invalid');
+    select?.removeAttribute('aria-invalid');
     if (key) {
       setPriceFields(true);
-      input.setAttribute('aria-invalid', 'true');
-      input.focus();
-    } else {
-      input.removeAttribute('aria-invalid');
+      const el = field === 'grade' ? select : input;
+      el.setAttribute('aria-invalid', 'true');
+      el.focus();
     }
   }
 

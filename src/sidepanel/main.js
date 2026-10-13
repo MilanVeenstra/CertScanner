@@ -337,6 +337,7 @@ function onEbayAction(a, el) {
     return;
   }
   if (a === 'ebay-retry') { refreshPrices({ fromCert: false }); return; }
+  if (a === 'ebay-pick') { ui.openPriceFields(el?.dataset.focus); return; }
   if (a === 'ebay-open-sold' && lastEbay?.urls) { openPrice(() => lastEbay.urls.sold); return; }
   if (a === 'ebay-open-active' && lastEbay?.urls) { openPrice(() => lastEbay.urls.active); return; }
   if (a === 'ebay-item') {
@@ -407,6 +408,13 @@ async function refreshPrices({ fromCert = true } = {}) {
       });
       // PokemonPriceTracker knew the card but had no sale in this grade: its other grades beat an error.
       if (res.status !== 'ok' && ppt?.status === 'no-grade') res = ppt.result;
+      // Not recognised as a Pokémon card, but PriceCharting gave nothing (its check, no match): with a key saved,
+      // PokemonPriceTracker may still know the card (user: "werkende pokemon api key ingevoerd en ik krijg niks te zien").
+      else if (res.status !== 'ok' && !ppt && pptToken && grader !== 'cgc-comics') {
+        const late = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken });
+        if (run !== priceRun) return;
+        if (late.status === 'ok') { res = late; note = null; } else if (late.status === 'no-grade') { res = late.result; note = pptNote(late, grader, grade); }
+      }
     }
   } catch { res = { status: 'error' }; }
   if (run !== priceRun) return;
@@ -985,9 +993,9 @@ $('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url:
 $('back-button').addEventListener('click', () => showView('home'));
 
 // PSA API key (optional): card name and population from the cert number. Saving asks for api.psacard.com access.
-function renderPsaKey(status = null) {
+function renderPsaKey(status = null, subs = []) {
   $('psa-key-remove').hidden = !psaToken;
-  $('psa-key-status').textContent = status ? t(status) : (psaToken ? t('setting_psa_key_saved') : '');
+  $('psa-key-status').textContent = status ? t(status, subs) : (psaToken ? t('setting_psa_key_saved') : '');
 }
 $('psa-key-save').addEventListener('click', () => {
   const v = $('setting-psa-key').value.trim();
@@ -995,12 +1003,16 @@ $('psa-key-save').addEventListener('click', () => {
   chrome.permissions.request({ origins: [PSA_API_PERMISSION] }).then(async (granted) => {
     if (!granted) { renderPsaKey('setting_psa_key_denied'); return; }
     renderPsaKey('setting_key_checking');
-    const check = await testPsaKey(v);
-    if (check === 'auth') { renderPsaKey('setting_psa_key_rejected'); return; } // not saved
+    // Saved whatever the check says (a site block or a PSA error is not proof of a bad key); the status line says what PSA
+    // answered, with its HTTP status, and Remove key undoes it.
+    const { result, status } = await testPsaKey(v);
     await savePsaToken(v);
     psaToken = v;
     $('setting-psa-key').value = '';
-    renderPsaKey({ ok: 'setting_psa_key_works', limit: 'setting_key_saved_limit', 'no-permission': 'setting_psa_key_denied' }[check] ?? 'setting_key_saved_unchecked');
+    renderPsaKey({
+      ok: 'setting_psa_key_works', limit: 'setting_key_saved_limit', 'no-permission': 'setting_psa_key_denied',
+      auth: 'setting_psa_key_rejected', blocked: 'setting_psa_key_blocked', server: 'setting_psa_key_server',
+    }[result] ?? 'setting_key_saved_unchecked', [String(status)]);
     if (last.opened) refreshPrices(); // the result on screen gets the PSA data now
   }, () => renderPsaKey('setting_psa_key_denied'));
 });

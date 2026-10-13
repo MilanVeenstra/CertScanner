@@ -245,4 +245,21 @@ describe('Prices for this card', { concurrency: false }, () => {
     assert.equal(hits.filter((h) => h.url.startsWith('https://www.pricecharting.com/')).length, pcBefore, 'PriceCharting not asked');
     await env.sw.evaluate(() => chrome.storage.local.remove('pptApiToken'));
   });
+
+  test('grade not read: the eBay block offers "Choose grade", which opens Change with the grade list focused', T, async () => {
+    await env.sw.evaluate(() => chrome.storage.local.remove('psaApiToken'));
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    await expandOtherWays(page);
+    await page.fill('#cert-input', '81234570');
+    await page.click('#manual-submit');
+    await E.poll(async () => page.evaluate(() => document.querySelector('[data-testid="ebay-sold"]')?.dataset.status === 'need-grade'), { message: 'eBay needs the grade' });
+    const before = await page.evaluate(() => ({ pick: document.querySelector('[data-testid="ebay-pick"]')?.textContent, hidden: document.querySelector('[data-testid="ebay-pick"]')?.hidden, fields: document.getElementById('price-fields')?.hidden }));
+    assert.equal(before.hidden, false);
+    assert.equal(before.pick, 'Choose grade');
+    await page.click('[data-testid="ebay-pick"]');
+    const after = await page.evaluate(() => ({ fields: document.getElementById('price-fields')?.hidden, focus: document.activeElement?.id }));
+    assert.equal(after.fields, false, 'Change is open');
+    assert.equal(after.focus, 'price-grade', 'the grade list has the focus');
+  });
 });

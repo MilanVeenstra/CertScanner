@@ -1467,7 +1467,13 @@
     "message": "Key saved and working. PSA slabs now show their grade and population from PSA."
   },
   "setting_psa_key_rejected": {
-    "message": "Not saved: PSA didn't accept this key."
+    "message": "Key saved, but PSA answered $STATUS$ (not authorised). Check that you copied the whole access token from psacard.com/publicapi, or create a new one there.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "403"
+      }
+    }
   },
   "setting_ppt_key_works": {
     "message": "Key saved and working (the check used 1 credit). Pokémon slabs now get their value from PokemonPriceTracker."
@@ -1567,10 +1573,10 @@
     "message": "Couldn't load eBay sales. Try again later."
   },
   "ebay_need_card": {
-    "message": "Type the card name above to see eBay sales."
+    "message": "The card name wasn't read from the label. Type it to see eBay sales."
   },
   "ebay_need_grade": {
-    "message": "Choose the grade above to see eBay sales."
+    "message": "The grade wasn't read from the label. Choose it to see eBay sales."
   },
   "ebay_none": {
     "message": "No recent eBay sales of this card in $GRADE$.",
@@ -1594,5 +1600,35 @@
   },
   "setting_read_via_tab_hint": {
     "message": "When PriceCharting or eBay wants to check your browser first, the page opens briefly in an inactive tab, is read and closed. Off: the panel asks you to open the site yourself."
+  },
+  "ebay_pick_grade": {
+    "message": "Choose grade"
+  },
+  "ebay_pick_card": {
+    "message": "Type card name"
+  },
+  "setting_psa_key_blocked": {
+    "message": "Key saved. PSA's site protection blocked the check (HTTP $STATUS$), so the key itself wasn't tested. Open psacard.com in a tab once, then save the key again.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "403"
+      }
+    }
+  },
+  "setting_psa_key_server": {
+    "message": "Key saved, but PSA answered with error $STATUS$. PSA uses this for a wrong key or a problem on their side; if no PSA data shows after a scan, create a new key.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "403"
+      }
+    }
+  },
+  "psa_info_blocked": {
+    "message": "PSA's site protection blocked the lookup. Open psacard.com once in a tab, then scan again."
+  },
+  "psa_info_server": {
+    "message": "PSA answered with an error: check the key in Settings, or try again later."
   }
 }

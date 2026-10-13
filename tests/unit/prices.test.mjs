@@ -63,6 +63,11 @@ test('PSA lookup needs a saved key and api.psacard.com access', async () => {
   assert.deepEqual(await fetchPsaCert('81234567', { token: null, fetchImpl }), { ok: false, reason: 'no-token' });
   assert.deepEqual(await fetchPsaCert('81234567', { token: 'test-token-1234567890', fetchImpl, chromeApi: { permissions: { contains: async () => false } } }), { ok: false, reason: 'no-permission' });
   assert.equal(fetched, 0);
+  const allowed = { permissions: { contains: async () => true } };
+  const blocked = async () => new Response('<html><title>Attention Required!</title></html>', { status: 403, headers: { 'content-type': 'text/html' } });
+  assert.deepEqual(await fetchPsaCert('81234568', { token: 'test-token-1234567890', fetchImpl: blocked, chromeApi: allowed }), { ok: false, reason: 'blocked' });
+  const server = async () => new Response('{}', { status: 500 });
+  assert.deepEqual(await fetchPsaCert('81234569', { token: 'test-token-1234567890', fetchImpl: server, chromeApi: allowed }), { ok: false, reason: 'server' });
 });
 
 test('special grades: CGC 10 Pristine and BGS 10 Black Label are priced apart', async () => {

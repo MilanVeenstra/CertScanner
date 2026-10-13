@@ -1467,7 +1467,13 @@
     "message": "Sleutel opgeslagen en werkt. PSA-slabs tonen nu grade en populatie van PSA."
   },
   "setting_psa_key_rejected": {
-    "message": "Niet opgeslagen: PSA accepteerde deze sleutel niet."
+    "message": "Sleutel bewaard, maar PSA antwoordde $STATUS$ (niet toegestaan). Controleer of je het hele access token van psacard.com/publicapi hebt gekopieerd, of maak daar een nieuwe aan.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "403"
+      }
+    }
   },
   "setting_ppt_key_works": {
     "message": "Sleutel opgeslagen en werkt (de controle kostte 1 credit). Pokémon-slabs krijgen hun waarde nu van PokemonPriceTracker."
@@ -1567,10 +1573,10 @@
     "message": "eBay-verkopen konden niet geladen worden. Probeer het later opnieuw."
   },
   "ebay_need_card": {
-    "message": "Typ hierboven de kaartnaam om eBay-verkopen te zien."
+    "message": "De kaartnaam is niet van het label gelezen. Typ hem om eBay-verkopen te zien."
   },
   "ebay_need_grade": {
-    "message": "Kies hierboven de grade om eBay-verkopen te zien."
+    "message": "De grade is niet van het label gelezen. Kies hem om eBay-verkopen te zien."
   },
   "ebay_none": {
     "message": "Geen recente eBay-verkopen van deze kaart in $GRADE$.",
@@ -1594,5 +1600,35 @@
   },
   "setting_read_via_tab_hint": {
     "message": "Als PriceCharting of eBay eerst je browser wil controleren, opent de pagina kort in een inactief tabblad, wordt gelezen en weer gesloten. Uit: het paneel vraagt je de site zelf te openen."
+  },
+  "ebay_pick_grade": {
+    "message": "Grade kiezen"
+  },
+  "ebay_pick_card": {
+    "message": "Kaartnaam typen"
+  },
+  "setting_psa_key_blocked": {
+    "message": "Sleutel bewaard. De beveiliging van PSA blokkeerde de controle (HTTP $STATUS$), dus de sleutel zelf is niet getest. Open psacard.com één keer in een tabblad en bewaar de sleutel daarna opnieuw.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "403"
+      }
+    }
+  },
+  "setting_psa_key_server": {
+    "message": "Sleutel bewaard, maar PSA antwoordde met fout $STATUS$. PSA gebruikt die voor een verkeerde sleutel of een storing bij hen; verschijnt er na een scan geen PSA-informatie, maak dan een nieuwe sleutel aan.",
+    "placeholders": {
+      "status": {
+        "content": "$1",
+        "example": "403"
+      }
+    }
+  },
+  "psa_info_blocked": {
+    "message": "De beveiliging van PSA blokkeerde het opzoeken. Open psacard.com één keer in een tabblad en scan daarna opnieuw."
+  },
+  "psa_info_server": {
+    "message": "PSA antwoordde met een fout: controleer de sleutel in Instellingen of probeer het later opnieuw."
   }
 }

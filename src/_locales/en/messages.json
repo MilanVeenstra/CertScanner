@@ -1639,5 +1639,18 @@
         "example": "application/json “Forbidden”"
       }
     }
+  },
+  "setting_psa_key_usage": {
+    "message": "Lookups CertScanner sent to PSA today: $COUNT$ of $LIMIT$ (counted on this device; PSA counts per day).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      },
+      "limit": {
+        "content": "$2",
+        "example": "100"
+      }
+    }
   }
 }

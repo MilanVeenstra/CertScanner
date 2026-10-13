@@ -70,6 +70,31 @@ test('PSA lookup needs a saved key and api.psacard.com access', async () => {
   assert.deepEqual(await fetchPsaCert('81234569', { token: 'test-token-1234567890', fetchImpl: server, chromeApi: allowed }), { ok: false, reason: 'server' });
 });
 
+test('PSA daily limit: calls counted, answers kept for the session, no calls for the rest of the day after a quota answer', async () => {
+  const { fetchPsaCert, testPsaKey, psaCallsToday } = await import('../../src/sidepanel/psaApi.js');
+  const area = () => { const m = {}; return { get: async (k) => ({ [k]: m[k] }), set: async (o) => { Object.assign(m, o); }, remove: async (k) => { delete m[k]; } }; };
+  const chromeApi = { permissions: { contains: async () => true }, storage: { local: area(), session: area() } };
+  const token = 'test-token-1234567890';
+  let calls = 0;
+  const card = async () => { calls++; return new Response(JSON.stringify({ PSACert: { Subject: 'CHARIZARD ex', Brand: 'POKEMON', CardNumber: '199', CardGrade: 'GEM MT 10' } }), { status: 200 }); };
+  assert.equal((await fetchPsaCert('91234567', { token, fetchImpl: card, chromeApi })).ok, true);
+  assert.equal(calls, 1);
+  assert.equal(await psaCallsToday(chromeApi), 1);
+  // A reopened panel has an empty in-memory cache; the session copy answers without a call.
+  const again = await import(`../../src/sidepanel/psaApi.js?fresh=${Date.now()}`);
+  assert.equal((await again.fetchPsaCert('91234567', { token, fetchImpl: card, chromeApi })).card.subject, 'CHARIZARD ex');
+  assert.equal(calls, 1, 'no second call for the same cert');
+  const quota = async () => { calls++; return new Response('"API calls quota exceeded! maximum admitted 100 per Day."', { status: 403, headers: { 'content-type': 'application/json' } }); };
+  assert.deepEqual(await fetchPsaCert('91234568', { token, fetchImpl: quota, chromeApi }), { ok: false, reason: 'limit' }, 'quota text counts as the limit, even with a 403');
+  assert.equal(calls, 2);
+  assert.deepEqual(await fetchPsaCert('91234569', { token, fetchImpl: card, chromeApi }), { ok: false, reason: 'limit' });
+  assert.equal(calls, 2, 'paused: no call for the rest of the day');
+  assert.equal(await psaCallsToday(chromeApi), 2);
+  assert.equal((await testPsaKey(token, { fetchImpl: card, chromeApi })).result, 'ok', 'saving a key still checks it');
+  assert.equal((await fetchPsaCert('91234569', { token, fetchImpl: card, chromeApi })).ok, true, 'a working answer lifts the pause');
+  assert.equal(await psaCallsToday(chromeApi), 4);
+});
+
 test('special grades: CGC 10 Pristine and BGS 10 Black Label are priced apart', async () => {
   const { specialGrade } = await import('../../src/core/priceLinks.js');
   assert.equal(specialGrade('cgc-cards', ['CGC', 'PRISTINE 10', 'Pikachu']), 'Pristine');

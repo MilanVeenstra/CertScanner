@@ -165,6 +165,18 @@
       </select>
     </label>
     <p class="hint switch-hint" data-i18n="setting_ebay_site_hint"></p>
+    <label class="switch-row" for="setting-ebay-sold">
+      <span class="switch-text" data-i18n="setting_ebay_sold">Show eBay sales in the panel</span>
+      <input type="checkbox" role="switch" id="setting-ebay-sold" data-testid="setting-ebaySold" data-setting="ebaySold" aria-describedby="hint-ebay-sold">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+    </label>
+    <p class="hint switch-hint" id="hint-ebay-sold" data-i18n="setting_ebay_sold_hint"></p>
+    <label class="switch-row" for="setting-read-via-tab">
+      <span class="switch-text" data-i18n="setting_read_via_tab">Pass site checks in a background tab</span>
+      <input type="checkbox" role="switch" id="setting-read-via-tab" data-testid="setting-readViaTab" data-setting="readViaTab" aria-describedby="hint-read-via-tab">
+      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+    </label>
+    <p class="hint switch-hint" id="hint-read-via-tab" data-i18n="setting_read_via_tab_hint"></p>
     <div class="field psa-key">
       <label for="setting-psa-key" data-i18n="setting_psa_key">PSA API key (optional)</label>
       <input type="password" id="setting-psa-key" class="cert-field" data-testid="setting-psa-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="psa-key-hint psa-key-status">
@@ -404,6 +416,29 @@
       <button type="submit" class="btn btn-strong btn-sm price-show" data-testid="price-show"><span data-i18n="value_show"></span></button>
     </form>
     <p class="field-error" id="price-error" data-ref="price-error" aria-live="polite"></p>
+    <!-- A21: recent eBay sales of this card in this grade, read from eBay's public sold search on this device. -->
+    <div class="ebay-block" data-ref="ebay-block" data-testid="ebay-sold" data-status="" hidden>
+      <h4 data-ref="ebay-heading"></h4>
+      <div class="ebay-state" data-ref="ebay-state" hidden>
+        <p data-ref="ebay-state-text"></p>
+        <div class="price-links">
+          <button type="button" class="btn btn-strong btn-sm" data-action="ebay-allow" data-testid="ebay-allow" data-ref="ebay-allow" hidden><span data-ref="ebay-allow-label"></span></button>
+          <button type="button" class="link" data-action="ebay-retry" data-ref="ebay-retry" hidden><span data-i18n="retry_button">Try again</span></button>
+        </div>
+      </div>
+      <div class="ebay-found" data-ref="ebay-found" hidden>
+        <dl class="ebay-stats">
+          <div><dt data-i18n="ebay_last">Last sold</dt><dd><strong data-ref="ebay-last" data-testid="ebay-last"></strong> <span class="muted" data-ref="ebay-last-date"></span></dd></div>
+          <div><dt data-ref="ebay-median-label"></dt><dd><strong data-ref="ebay-median" data-testid="ebay-median"></strong></dd></div>
+          <div><dt data-i18n="ebay_for_sale">For sale from</dt><dd><strong data-ref="ebay-low" data-testid="ebay-low"></strong> <span class="muted" data-ref="ebay-low-count"></span></dd></div>
+        </dl>
+        <ol class="sales ebay-sales" data-ref="ebay-sales" data-testid="ebay-sales"></ol>
+      </div>
+      <div class="price-links">
+        <button type="button" class="link" data-action="ebay-open-sold" data-ref="ebay-open-sold"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="ebay_all_sales">All sales on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+        <button type="button" class="link" data-action="ebay-open-active" data-ref="ebay-open-active"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="ebay_all_offers">For sale on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+    </div>
   </section>
 </template>
 

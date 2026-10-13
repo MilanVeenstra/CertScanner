@@ -617,7 +617,7 @@
     "message": "Over"
   },
   "about_privacy": {
-    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Het certnummer gaat naar de grader als de pagina opent, en naar PSA als je een PSA-sleutel hebt toegevoegd. Kaartnaam en grade gaan naar PriceCharting voor de waarde, of bij Pokémon-kaarten naar PokemonPriceTracker als je die sleutel hebt toegevoegd. eBay krijgt alleen wat je zoekt als je een eBay-link opent."
+    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Het certnummer gaat naar de grader als de pagina opent, en naar PSA als je een PSA-sleutel hebt toegevoegd. Kaartnaam en grade gaan naar PriceCharting en eBay voor de waarde en recente verkopen, of bij Pokémon-kaarten naar PokemonPriceTracker als je die sleutel hebt toegevoegd."
   },
   "about_lookup": {
     "message": "Een certcontrole toont wat de database van de grader over een nummer zegt. Of de slab op een foto echt is, kan die niet zeggen."
@@ -1506,5 +1506,93 @@
         "example": "certscanner-report-20261012-153000.zip"
       }
     }
+  },
+  "ebay_sales_heading": {
+    "message": "eBay-verkopen · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_last": {
+    "message": "Laatst verkocht"
+  },
+  "ebay_median_label": {
+    "message": "Mediaan van $COUNT$ verkopen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_for_sale": {
+    "message": "Te koop vanaf"
+  },
+  "ebay_offers_count": {
+    "message": "($COUNT$ advertenties)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_all_sales": {
+    "message": "Alle verkopen op eBay"
+  },
+  "ebay_all_offers": {
+    "message": "Te koop op eBay"
+  },
+  "ebay_loading": {
+    "message": "Recente verkopen op eBay opzoeken…"
+  },
+  "ebay_checking": {
+    "message": "eBay controleert de browser (er opent kort een tabblad op de achtergrond)…"
+  },
+  "ebay_allow_text": {
+    "message": "CertScanner kan de recente eBay-verkopen van deze kaart hier tonen. Chrome vraagt je één keer om $HOST$ toe te staan.",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_allow": {
+    "message": "eBay-verkopen hier tonen"
+  },
+  "ebay_blocked": {
+    "message": "eBay wil eerst je browser controleren. Open eBay en klik daarna op Opnieuw proberen."
+  },
+  "ebay_error": {
+    "message": "eBay-verkopen konden niet geladen worden. Probeer het later opnieuw."
+  },
+  "ebay_need_card": {
+    "message": "Typ hierboven de kaartnaam om eBay-verkopen te zien."
+  },
+  "ebay_need_grade": {
+    "message": "Kies hierboven de grade om eBay-verkopen te zien."
+  },
+  "ebay_none": {
+    "message": "Geen recente eBay-verkopen van deze kaart in $GRADE$.",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_checking": {
+    "message": "PriceCharting controleert de browser (er opent kort een tabblad op de achtergrond)…"
+  },
+  "setting_ebay_sold": {
+    "message": "eBay-verkopen in het paneel tonen"
+  },
+  "setting_ebay_sold_hint": {
+    "message": "Leest op dit apparaat de openbare 'verkocht'-zoekresultaten van eBay voor de kaart in zijn grade (jouw eBay-site hierboven): laatste verkoop, mediaan, goedkoopste aanbod en de laatste verkopen. eBay's gebruikersvoorwaarden beperken automatisch uitlezen; dit is voor eigen gebruik."
+  },
+  "setting_read_via_tab": {
+    "message": "Controles van sites in een achtergrondtabblad doorlopen"
+  },
+  "setting_read_via_tab_hint": {
+    "message": "Als PriceCharting of eBay eerst je browser wil controleren, opent de pagina kort in een inactief tabblad, wordt gelezen en weer gesloten. Uit: het paneel vraagt je de site zelf te openen."
   }
 }

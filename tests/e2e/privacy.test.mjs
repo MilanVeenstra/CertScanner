@@ -27,7 +27,10 @@ const OFFICIAL = {
  * www.pricecharting.com. dist-e2e has <all_urls> granted, so they appear here; release builds need the user's
  * "Show prices here" click first (unit: loadPrices -> 'no-permission').
  */
-const isPriceFetch = (u) => { try { const x = new URL(u); return x.origin === 'https://www.pricecharting.com' && (x.pathname === '/search-products' || x.pathname.startsWith('/game/')); } catch { return false; } };
+const isPcFetch = (u) => { try { const x = new URL(u); return x.origin === 'https://www.pricecharting.com' && (x.pathname === '/search-products' || x.pathname.startsWith('/game/')); } catch { return false; } };
+/** eBay sales overview (ADR A21): the sold search and the Buy It Now search for the card in its grade, on the eBay site. */
+const isEbaySalesFetch = (u) => { try { const x = new URL(u); return x.origin === 'https://www.ebay.com' && x.pathname === '/sch/i.html'; } catch { return false; } };
+const isPriceFetch = (u) => isPcFetch(u) || isEbaySalesFetch(u);
 
 function checkNetLog(reqs, { allowedOrigins, expectedGrader }) {
   const ok = (u) => u.startsWith('chrome') || u.startsWith('blob:') || u.startsWith('data:') || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u) || isPriceFetch(u);
@@ -45,8 +48,8 @@ function checkNetLog(reqs, { allowedOrigins, expectedGrader }) {
   const background = [...new Set(nonLocal.filter((r) => !r.renderer).map((r) => `${E.hostOf(r.url)} [${r.annotationName}]`))];
   // Requests the extension itself initiated (fetches from the panel/worker): only local fixture origins, never elsewhere.
   const byExtension = reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url));
-  assert.deepEqual(byExtension.filter((r) => !allowedOrigins.has(new URL(r.url).origin) && !isPriceFetch(r.url)).map((r) => r.url), [], 'extension-initiated requests stay on the page/image origins (and PriceCharting card searches)');
-  for (const r of byExtension.filter((x) => isPriceFetch(x.url) && x.url.includes('/search-products'))) {
+  assert.deepEqual(byExtension.filter((r) => !allowedOrigins.has(new URL(r.url).origin) && !isPriceFetch(r.url)).map((r) => r.url), [], 'extension-initiated requests stay on the page/image origins (and PriceCharting / eBay card searches)');
+  for (const r of byExtension.filter((x) => (isPcFetch(x.url) && x.url.includes('/search-products')) || isEbaySalesFetch(x.url))) {
     assert.ok(!/\d{8,}/.test(new URL(r.url).search), `${r.url}: card search terms only, never a cert number`);
   }
   return { total: reqs.length, renderer: renderer.length, grader: grader.length, background, byExtension: byExtension.length };
@@ -169,7 +172,7 @@ describe('J11 privacy on the release build (PriceCharting access only): upload +
     await env.close();
     const reqs = E.parseNetLog(await readFile(path.join(dir, 'netlog.json'), 'utf8'));
     const summary = checkNetLog(reqs, { allowedOrigins: local, expectedGrader: [OFFICIAL.psa01234567, OFFICIAL.comicQr4012347003] });
-    assert.deepEqual(reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url) && !isPriceFetch(r.url)).map((r) => r.url), [], 'release build: the extension initiated no http(s) request other than PriceCharting card searches');
+    assert.deepEqual(reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url) && !isPcFetch(r.url)).map((r) => r.url), [], 'release build: the extension initiated no http(s) request other than PriceCharting card searches (eBay needs the optional permission first)');
     console.log(`# J11 release NetLog: ${summary.total} URL requests, renderer ${summary.renderer}, extension-initiated ${summary.byExtension}, grader navigations ${summary.grader}; Chromium background services (not extension, all DNS-blocked): ${summary.background.join(', ') || 'none'}`);
   });
 });

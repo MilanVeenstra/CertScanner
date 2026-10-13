@@ -20,6 +20,8 @@ import { openCert, openPriceLink, recordHistory } from './opener.js';
 import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrade, gradeLabel, graderShort, POP_URLS } from '../core/priceLinks.js';
 import { isPcUrl, searchUrl as pcSearchUrl } from '../core/pricecharting.js';
 import { loadPrices, requestPricePermission } from './priceData.js';
+import { loadEbay, requestEbayPermission } from './ebayData.js';
+import { ebayHost, isEbayUrl } from '../core/ebaySold.js';
 import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, testPsaKey, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
 import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken, testPptKey } from './pptApi.js';
 import { isPokemon, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
@@ -304,6 +306,44 @@ let psaToken = null;
 let pptToken = null;
 let priceRun = 0;
 let lastPrices = null;
+let lastEbay = null;
+
+/**
+ * eBay sales overview (A21), next to the PriceCharting / PokemonPriceTracker value: runs alongside it, shown in its own
+ * block so neither waits for the other. `run` ties it to the result on screen.
+ */
+async function refreshEbay(run, { grader, desc, grade }) {
+  if (!settings.ebaySold) { ui.showEbay({ status: 'off' }); return; }
+  const label = grade ? gradeLabel(grader, grade) : graderShort(grader);
+  const host = ebayHost(settings.ebaySite);
+  ui.showEbay({ status: 'loading', label });
+  let r;
+  try {
+    r = await loadEbay({
+      site: settings.ebaySite, grader, desc, grade, windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
+      onStage: (s) => { if (run === priceRun && s === 'check') ui.showEbay({ status: 'check', label }); },
+    });
+  } catch { r = { status: 'error' }; }
+  if (run !== priceRun) return;
+  lastEbay = r;
+  ui.showEbay({ ...r, label, host });
+}
+
+/** eBay block actions: allow the eBay site (from the click), try again, open the searches or one sold listing. */
+function onEbayAction(a, el) {
+  if (a === 'ebay-allow') {
+    // permissions.request must be the first call inside the click (user gesture).
+    requestEbayPermission(settings.ebaySite).then((granted) => { if (granted) refreshPrices({ fromCert: false }); }, () => {});
+    return;
+  }
+  if (a === 'ebay-retry') { refreshPrices({ fromCert: false }); return; }
+  if (a === 'ebay-open-sold' && lastEbay?.urls) { openPrice(() => lastEbay.urls.sold); return; }
+  if (a === 'ebay-open-active' && lastEbay?.urls) { openPrice(() => lastEbay.urls.active); return; }
+  if (a === 'ebay-item') {
+    const url = el?.dataset.url ?? '';
+    if (isEbayUrl(url, settings.ebaySite) && /^\/itm\/\d{9,15}$/.test(new URL(url).pathname)) openPrice(() => url);
+  }
+}
 
 /**
  * Fill Value + Market: first the card from the cert (PSA API, when a key is saved), then the prices. Pokémon slabs with
@@ -340,6 +380,7 @@ async function refreshPrices({ fromCert = true } = {}) {
     else if (info.grade && !ui.priceInput().grade) ui.applyCertCard({ query: '', grade: info.grade, title: null });
   }
   const { grader, desc, grade } = ui.priceInput();
+  refreshEbay(run, { grader, desc, grade }); // its own block, in parallel
   if (!desc) { ui.showPriceData({ status: 'need-card' }); return; }
   ui.showPriceData({ status: 'loading' });
   let res = null;
@@ -359,7 +400,11 @@ async function refreshPrices({ fromCert = true } = {}) {
     }
     if (!res) {
       const read = pricesFor(o);
-      res = await loadPrices({ query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null });
+      res = await loadPrices({
+        query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null,
+        windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
+        onStage: (s) => { if (run === priceRun && s === 'check') ui.showPriceData({ status: 'check' }); },
+      });
       // PokemonPriceTracker knew the card but had no sale in this grade: its other grades beat an error.
       if (res.status !== 'ok' && ppt?.status === 'no-grade') res = ppt.result;
     }
@@ -819,6 +864,7 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'scan-other') scanOther();
   else if (a === 'report') saveReport();
   else if (a.startsWith('price-')) onPriceAction(a);
+  else if (a.startsWith('ebay-')) onEbayAction(a, b);
 });
 $('choose-image').addEventListener('click', () => $('file-input').click());
 

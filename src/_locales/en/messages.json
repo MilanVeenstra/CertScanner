@@ -617,7 +617,7 @@
     "message": "About"
   },
   "about_privacy": {
-    "message": "Images are processed on this device and never uploaded. The cert number goes to the grader when its page opens, and to PSA if you added a PSA key. The card name and grade go to PriceCharting for the value, or for Pokémon cards to PokemonPriceTracker if you added its key. eBay only gets what you search for when you open an eBay link."
+    "message": "Images are processed on this device and never uploaded. The cert number goes to the grader when its page opens, and to PSA if you added a PSA key. The card name and grade go to PriceCharting and eBay for the value and recent sales, or for Pokémon cards to PokemonPriceTracker if you added its key."
   },
   "about_lookup": {
     "message": "A cert lookup shows what the grader's database says about a number. It can't tell whether the slab in a photo is genuine."
@@ -1506,5 +1506,93 @@
         "example": "certscanner-report-20261012-153000.zip"
       }
     }
+  },
+  "ebay_sales_heading": {
+    "message": "eBay sales · $GRADE$",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_last": {
+    "message": "Last sold"
+  },
+  "ebay_median_label": {
+    "message": "Median of $COUNT$ sales",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_for_sale": {
+    "message": "For sale from"
+  },
+  "ebay_offers_count": {
+    "message": "($COUNT$ listings)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_all_sales": {
+    "message": "All sales on eBay"
+  },
+  "ebay_all_offers": {
+    "message": "For sale on eBay"
+  },
+  "ebay_loading": {
+    "message": "Looking up recent sales on eBay…"
+  },
+  "ebay_checking": {
+    "message": "eBay is checking the browser (a tab opens briefly in the background)…"
+  },
+  "ebay_allow_text": {
+    "message": "CertScanner can show this card's recent eBay sales here. Chrome asks you once to allow $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "ebay_allow": {
+    "message": "Show eBay sales here"
+  },
+  "ebay_blocked": {
+    "message": "eBay wants to check your browser first. Open eBay, then click Try again."
+  },
+  "ebay_error": {
+    "message": "Couldn't load eBay sales. Try again later."
+  },
+  "ebay_need_card": {
+    "message": "Type the card name above to see eBay sales."
+  },
+  "ebay_need_grade": {
+    "message": "Choose the grade above to see eBay sales."
+  },
+  "ebay_none": {
+    "message": "No recent eBay sales of this card in $GRADE$.",
+    "placeholders": {
+      "grade": {
+        "content": "$1"
+      }
+    }
+  },
+  "prices_checking": {
+    "message": "PriceCharting is checking the browser (a tab opens briefly in the background)…"
+  },
+  "setting_ebay_sold": {
+    "message": "Show eBay sales in the panel"
+  },
+  "setting_ebay_sold_hint": {
+    "message": "Reads eBay's public sold search for the card in its grade on this device (your eBay site above): last sale, median, cheapest offer and the latest sales. eBay's user agreement restricts automated reading; this is for your own use."
+  },
+  "setting_read_via_tab": {
+    "message": "Pass site checks in a background tab"
+  },
+  "setting_read_via_tab_hint": {
+    "message": "When PriceCharting or eBay wants to check your browser first, the page opens briefly in an inactive tab, is read and closed. Off: the panel asks you to open the site yourself."
   }
 }

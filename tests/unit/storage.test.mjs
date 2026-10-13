@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, migrateSettings, applySettingsPatch } from '../../src
 import { MAX_HISTORY, migrateHistory, addEntry, makeEntry } from '../../src/shared/history.js';
 
 test('settings defaults', () => {
-  assert.deepEqual(DEFAULT_SETTINGS, { v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: 'com' });
+  assert.deepEqual(DEFAULT_SETTINGS, { v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: 'com', ebaySold: true, readViaTab: true });
 });
 
 test('migrateSettings: missing or invalid -> defaults, nothing written', () => {
@@ -15,7 +15,8 @@ test('migrateSettings: missing or invalid -> defaults, nothing written', () => {
 
 test('migrateSettings: v1 reads known booleans, ignores bad types', () => {
   assert.deepEqual(migrateSettings({ v: 1, autoOpen: false, openInBackground: true, saveHistory: false }),
-    { value: { v: 1, autoOpen: false, openInBackground: true, saveHistory: false, scanOnToolbarClick: true, ebaySite: 'com' }, needsWrite: false });
+    { value: { v: 1, autoOpen: false, openInBackground: true, saveHistory: false, scanOnToolbarClick: true, ebaySite: 'com', ebaySold: true, readViaTab: true }, needsWrite: false });
+  assert.equal(migrateSettings({ v: 1, ebaySold: false, readViaTab: false }).value.readViaTab, false);
   assert.deepEqual(migrateSettings({ v: 1, autoOpen: 'no', saveHistory: 0 }).value, DEFAULT_SETTINGS);
 });
 
@@ -27,9 +28,13 @@ test('migrateSettings: newer version reads known fields and never writes back', 
 });
 
 test('applySettingsPatch keeps newer-version fields and validates the patch', () => {
-  assert.deepEqual(applySettingsPatch(undefined, { autoOpen: false }), { v: 1, autoOpen: false, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: 'com' });
+  assert.deepEqual(applySettingsPatch(undefined, { autoOpen: false }), {
+    v: 1, autoOpen: false, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: 'com', ebaySold: true, readViaTab: true,
+  });
   const newer = applySettingsPatch({ v: 3, autoOpen: true, futureThing: 1 }, { openInBackground: true });
-  assert.deepEqual(newer, { v: 3, autoOpen: true, openInBackground: true, saveHistory: true, scanOnToolbarClick: true, ebaySite: 'com', futureThing: 1 });
+  assert.deepEqual(newer, {
+    v: 3, autoOpen: true, openInBackground: true, saveHistory: true, scanOnToolbarClick: true, ebaySite: 'com', ebaySold: true, readViaTab: true, futureThing: 1,
+  });
   assert.throws(() => applySettingsPatch(undefined, { autoOpen: 'yes' }), TypeError);
   assert.throws(() => applySettingsPatch(undefined, { evil: true }), TypeError);
 });

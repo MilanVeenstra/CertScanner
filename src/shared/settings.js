@@ -6,8 +6,12 @@ export const SETTINGS_KEY = 'settings';
 export const SETTINGS_VERSION = 1;
 // A9: scanOnToolbarClick (default true) - the toolbar icon scans the page; when false it only opens the panel.
 // ebaySite (2026-10-11): which eBay the price & listing links open (key of EBAY_SITES).
-export const DEFAULT_SETTINGS = Object.freeze({ v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: DEFAULT_EBAY_SITE });
-const FIELDS = ['autoOpen', 'openInBackground', 'saveHistory', 'scanOnToolbarClick'];
+// ebaySold (A21): show recent eBay sales in the panel (reads eBay's public sold search on this device).
+// readViaTab (A21): when a site's bot check blocks the panel's request, read the page once in an inactive tab.
+export const DEFAULT_SETTINGS = Object.freeze({
+  v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: DEFAULT_EBAY_SITE, ebaySold: true, readViaTab: true,
+});
+const FIELDS = ['autoOpen', 'openInBackground', 'saveHistory', 'scanOnToolbarClick', 'ebaySold', 'readViaTab'];
 const CHOICE_FIELDS = { ebaySite: isEbaySite };
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -42,7 +46,10 @@ export function applySettingsPatch(raw, patch) {
 }
 
 function pick(s) {
-  return { autoOpen: s.autoOpen, openInBackground: s.openInBackground, saveHistory: s.saveHistory, scanOnToolbarClick: s.scanOnToolbarClick, ebaySite: s.ebaySite };
+  return {
+    autoOpen: s.autoOpen, openInBackground: s.openInBackground, saveHistory: s.saveHistory, scanOnToolbarClick: s.scanOnToolbarClick, ebaySite: s.ebaySite,
+    ebaySold: s.ebaySold, readViaTab: s.readViaTab,
+  };
 }
 
 const area = () => globalThis.chrome.storage.sync;

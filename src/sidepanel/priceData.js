@@ -2,12 +2,13 @@
 // (user request: "altijd de prijs en last sold laten zien, zoals op PriceCharting").
 // PriceCharting is behind Cloudflare's bot check: plain requests without the browser's cookies get a challenge page
 // (ADR A16). fetch() therefore sends the browser's PriceCharting cookies (credentials: 'include'), like a normal visit.
-// When the check still has to run, the panel says so and offers "Open PriceCharting" (the user's own visit passes the
-// check) and "Try again". CertScanner never opens a tab by itself for this (ADR A18; the earlier inactive-tab
-// fallback is gone). Pokémon slabs can use PokemonPriceTracker's API instead (pptApi.js).
+// When the check still has to run, the page is read once in an inactive tab (tabReader.js; setting "readViaTab", on by
+// default since ADR A21, the user's choice for personal use) or, with the setting off, the panel offers "Open
+// PriceCharting" and "Try again". Pokémon slabs can use PokemonPriceTracker's API instead (pptApi.js).
 // Needs host access to www.pricecharting.com (manifest host_permissions). Pages are parsed with DOMParser (inert:
 // no scripts run, nothing is inserted into the panel); src/core/pricecharting.js extracts short text values.
 import { PC_PERMISSION, searchUrl, isPcUrl, isProductUrl, bestSearchResult, parseProduct, gradeLabels, pickPrice, pickSales, isChallengePage } from '../core/pricecharting.js';
+import { readViaTab } from './tabReader.js';
 
 const TIMEOUT_MS = 15_000;
 const MAX_HTML = 4_000_000;
@@ -41,13 +42,23 @@ async function viaFetch(url, signal, fetchImpl) {
  *   sales:{label:string, rows:{date:string, title:string, price:number, source:string|null}[]}|null, labels:string[]}
  *   | {status:'no-permission'|'not-found'|'unreadable'|'error'|'challenge', url?:string}>}
  */
-export async function loadPrices({ query, cardNo = null, grader, grade = null, special = null, signal }, {
+export async function loadPrices({ query, cardNo = null, grader, grade = null, special = null, signal, windowId, allowTab = false, onStage }, {
   fetchImpl = globalThis.fetch.bind(globalThis), chromeApi = globalThis.chrome,
 } = {}) {
   if (!(await hasPricePermission(chromeApi))) return { status: 'no-permission' };
   const key = JSON.stringify([query, cardNo, grader, grade, special]);
   if (cache.has(key)) return cache.get(key);
-  const get = (url) => viaFetch(url, AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)].filter(Boolean)), fetchImpl);
+  const get = async (url) => {
+    try {
+      return await viaFetch(url, AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)].filter(Boolean)), fetchImpl);
+    } catch (e) {
+      if (!(e instanceof Challenge) || !allowTab) throw e;
+      try { onStage?.('check'); } catch { /* UI only */ }
+      const page = await readViaTab(url, { isAllowedUrl: isPcUrl, readySelector: 'h1, table, #games_table', signal, chromeApi, windowId })
+        .catch((err) => { throw signal?.aborted ? err : new Challenge('not-passed'); });
+      return { doc: parse(page.html), url: page.url };
+    }
+  };
   let out;
   try {
     let page = await get(searchUrl(query));

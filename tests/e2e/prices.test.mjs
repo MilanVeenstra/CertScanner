@@ -9,6 +9,7 @@ import { expandOtherWays, pasteImage } from './lib/panel.mjs';
 
 const T = { timeout: 120_000 };
 const FX = path.join(E.FIXTURES, 'pricecharting');
+const EBAY = path.join(E.FIXTURES, 'ebay');
 const PSA_CERT = { PSACert: { CertNumber: '81234567', Year: '2023', Brand: 'POKEMON SV 151', CardNumber: '199', Subject: 'CHARIZARD ex', Variety: 'SPECIAL ILLUSTRATION RARE', CardGrade: 'GEM MT 10', TotalPopulation: 1234, PopulationHigher: 0 } };
 
 describe('Prices for this card', { concurrency: false }, () => {
@@ -30,6 +31,12 @@ describe('Prices for this card', { concurrency: false }, () => {
       }
       const body = u.includes('/search-products') ? (u.includes('199') ? 'search.html' : null) : 'product.html';
       return route.fulfill({ status: 200, contentType: 'text/html', body: body ? await readFile(path.join(FX, body), 'utf8') : '<html><body>none</body></html>' });
+    });
+    await env.context.route('https://www.ebay.com/**', async (route) => {
+      const u = route.request().url();
+      hits.push({ url: u, type: route.request().resourceType(), referer: route.request().headers().referer ?? null });
+      const file = new URL(u).searchParams.get('LH_Sold') === '1' ? 'sold.html' : 'active.html';
+      return route.fulfill({ status: 200, contentType: 'text/html', body: await readFile(path.join(EBAY, file), 'utf8') });
     });
     await env.context.route('https://api.psacard.com/**', (route) => {
       hits.push({ url: route.request().url(), auth: route.request().headers().authorization });
@@ -90,22 +97,115 @@ describe('Prices for this card', { concurrency: false }, () => {
     assert.equal(api?.auth, 'bearer test-token-1234567890');
   });
 
-  test("PriceCharting's bot check: the panel reports it and opens no tab by itself (user opens PriceCharting, then Try again)", T, async () => {
-    const challenge = await readFile(path.join(FX, 'challenge.html'), 'utf8');
-    const r = await page.evaluate(async ({ challenge }) => {
+  test("PriceCharting's bot check: read once in an inactive tab (setting on); with the setting off no tab, the panel reports it", T, async () => {
+    const files = Object.fromEntries(await Promise.all(['challenge', 'search', 'product'].map(async (f) => [f, await readFile(path.join(FX, `${f}.html`), 'utf8')])));
+    const r = await page.evaluate(async ({ files }) => {
       const { loadPrices } = await import('/sidepanel/priceData.js');
-      const log = [];
-      const fetchImpl = async (url) => { log.push(`fetch ${url}`); return new Response(challenge, { status: 403, headers: { 'content-type': 'text/html', 'cf-mitigated': 'challenge' } }); };
-      const chromeApi = {
-        permissions: { contains: async () => true },
-        tabs: { create: async ({ url }) => { log.push(`tab ${url}`); return { id: 1 }; }, remove: async () => {} },
-        scripting: { executeScript: async () => { log.push('script'); return []; } },
+      const run = async (allowTab) => {
+        const log = [];
+        const tabs = new Map();
+        const fetchImpl = async (url) => { log.push(`fetch ${url}`); return new Response(files.challenge, { status: 403, headers: { 'content-type': 'text/html', 'cf-mitigated': 'challenge' } }); };
+        const chromeApi = {
+          permissions: { contains: async () => true },
+          tabs: {
+            create: async ({ url, active }) => { log.push(`tab ${url} active=${active}`); tabs.set(tabs.size + 1, url); return { id: tabs.size }; },
+            remove: async (id) => { log.push(`close ${id}`); },
+          },
+          scripting: {
+            executeScript: async ({ target }) => {
+              const url = tabs.get(target.tabId);
+              return [{ result: { url, challenge: false, ready: true, html: url.includes('/search-products') ? files.search : files.product } }];
+            },
+          },
+        };
+        const stages = [];
+        const res = await loadPrices({ query: 'Charizard ex 199', cardNo: '199', grader: 'psa', grade: '9', allowTab, onStage: (s) => stages.push(s) }, { fetchImpl, chromeApi });
+        return { status: res.status, current: res.current?.price ?? null, log, stages };
       };
-      const res = await loadPrices({ query: 'Charizard ex 199', cardNo: '199', grader: 'psa', grade: '9' }, { fetchImpl, chromeApi });
-      return { status: res.status, log };
-    }, { challenge });
-    assert.equal(r.status, 'challenge');
-    assert.ok(r.log.every((l) => l.startsWith('fetch ')), `no tab and no script, only the fetch: ${r.log.join(', ')}`);
+      return { off: await run(false), on: await run(true) };
+    }, { files });
+    assert.equal(r.off.status, 'challenge');
+    assert.ok(r.off.log.every((l) => l.startsWith('fetch ')), `setting off: no tab, only the fetch: ${r.off.log.join(', ')}`);
+    assert.equal(r.on.status, 'ok');
+    assert.equal(r.on.current, 212.75, 'Grade 9 price read from the tab');
+    assert.deepEqual(r.on.stages, ['check', 'check'], 'the panel shows "checking" while the tab reads');
+    const tabsOpened = r.on.log.filter((l) => l.startsWith('tab '));
+    assert.equal(tabsOpened.length, 2, 'search page and product page');
+    assert.ok(tabsOpened.every((l) => l.endsWith('active=false')), 'inactive tabs');
+    assert.equal(r.on.log.filter((l) => l.startsWith('close ')).length, 2, 'every tab closed again');
+  });
+
+  test('eBay sales for this card and grade: last sold, median, cheapest Buy It Now, recent sales', T, async () => {
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    const r = await pasteImage(page, await readFile(path.join(E.FIXTURES, 'psa-8digit-leading-zero.png')));
+    assert.equal(r.state, 'auto-open');
+    const ebay = () => page.evaluate(() => {
+      const box = document.querySelector('[data-testid="ebay-sold"]');
+      return {
+        status: box?.dataset.status, hidden: box?.hidden,
+        last: box?.querySelector('[data-testid="ebay-last"]')?.textContent,
+        median: box?.querySelector('[data-testid="ebay-median"]')?.textContent,
+        low: box?.querySelector('[data-testid="ebay-low"]')?.textContent,
+        rows: [...(box?.querySelectorAll('[data-testid="ebay-sales"] li') ?? [])].map((li) => li.textContent),
+        urls: [...(box?.querySelectorAll('[data-action="ebay-item"]') ?? [])].map((b) => b.dataset.url),
+      };
+    });
+    await E.poll(async () => !['', 'loading', 'check', undefined].includes((await ebay()).status), { message: 'eBay settled', timeout: 45000 });
+    const v = await ebay();
+    assert.equal(v.status, 'ok');
+    assert.ok(!v.hidden);
+    assert.equal(v.last, '$625.00', 'newest PSA 10 sale');
+    assert.equal(v.median, '$605.00', 'median of the 4 matching sales');
+    assert.equal(v.low, '$649.99', 'cheapest PSA 10 Buy It Now');
+    assert.equal(v.rows.length, 4, 'PSA 9, the lot and results below "fewer words" left out');
+    assert.ok(v.rows[0].includes('$625.00') && v.rows[3].includes('$590.00'));
+    assert.ok(v.urls.every((u) => /^https:\/\/www\.ebay\.com\/itm\/\d{9,15}$/.test(u)), 'clean item links');
+    // the restored previous result (same card) may have started the same searches during the reload: count distinct URLs
+    const eb = hits.filter((h) => h.url.startsWith('https://www.ebay.com/'));
+    assert.equal(new Set(eb.map((h) => h.url)).size, 2, 'one sold search, one Buy It Now search');
+    for (const h of eb) {
+      const u = new URL(h.url);
+      assert.equal(u.pathname, '/sch/i.html');
+      assert.match(u.searchParams.get('_nkw'), /CHARIZARD ex 199 PSA 10/);
+      assert.ok(!/\d{8,}/.test(u.search), `no cert number sent to eBay: ${h.url}`);
+      assert.ok(!h.referer, 'no referrer sent');
+    }
+  });
+
+  test("eBay's bot check: read once in an inactive tab (setting on); with the setting off the panel reports it", T, async () => {
+    const files = Object.fromEntries(await Promise.all(['challenge', 'sold', 'active'].map(async (f) => [f, await readFile(path.join(EBAY, `${f}.html`), 'utf8')])));
+    const r = await page.evaluate(async ({ files }) => {
+      const { loadEbay } = await import('/sidepanel/ebayData.js');
+      const run = async (allowTab, desc) => {
+        const log = [];
+        const tabs = new Map();
+        const fetchImpl = async (url) => { log.push(`fetch ${url}`); return new Response(files.challenge, { status: 200, headers: { 'content-type': 'text/html' } }); };
+        const chromeApi = {
+          permissions: { contains: async () => true },
+          tabs: {
+            create: async ({ url, active }) => { log.push(`tab active=${active}`); tabs.set(tabs.size + 1, url); return { id: tabs.size }; },
+            remove: async (id) => { log.push(`close ${id}`); },
+          },
+          scripting: {
+            executeScript: async ({ target }) => {
+              const url = tabs.get(target.tabId);
+              return [{ result: { url, challenge: false, ready: true, html: new URL(url).searchParams.get('LH_Sold') ? files.sold : files.active } }];
+            },
+          },
+        };
+        const res = await loadEbay({ site: 'com', grader: 'psa', grade: '10', desc, allowTab }, { fetchImpl, chromeApi });
+        return { status: res.status, count: res.overview?.count ?? null, low: res.overview?.forSale?.low.price.value ?? null, log };
+      };
+      return { off: await run(false, 'Pokemon 151 Charizard ex 199'), on: await run(true, 'Pokemon 151 Charizard ex 199') };
+    }, { files });
+    assert.equal(r.off.status, 'blocked');
+    assert.ok(r.off.log.every((l) => l.startsWith('fetch ')), `setting off: no tab: ${r.off.log.join(', ')}`);
+    assert.equal(r.on.status, 'ok');
+    assert.equal(r.on.count, 4);
+    assert.equal(r.on.low, 649.99);
+    assert.deepEqual(r.on.log.filter((l) => l.startsWith('tab ')), ['tab active=false', 'tab active=false']);
+    assert.equal(r.on.log.filter((l) => l.startsWith('close ')).length, 2, 'every tab closed again');
   });
 
   test('number from a QR code: the card name is still read from the label (text-size pass)', T, async () => {

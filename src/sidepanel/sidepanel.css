@@ -479,3 +479,18 @@ body.is-dragover .drop-zone { border-color: var(--cs-text); background: var(--cs
   .icon { stroke: currentColor; }
 }
 .other-tip { margin: 0; font-size: var(--cs-text-sm); }
+
+/* A21: eBay sales overview inside Value (last sale, median, cheapest offer, latest sales) */
+.ebay-block { display: flex; flex-direction: column; gap: var(--cs-space-2); border-block-start: 1px solid var(--cs-row); padding-block-start: var(--cs-space-3); }
+.ebay-block h4 { margin: 0; font-size: var(--cs-text-sm); font-weight: 700; }
+.ebay-block > .link, .ebay-block .price-links .link { align-self: flex-start; }
+.ebay-state { display: flex; flex-direction: column; align-items: flex-start; gap: var(--cs-space-2); }
+.ebay-state p { margin: 0; font-size: var(--cs-text-sm); }
+.ebay-block[aria-busy="true"] .ebay-state p { color: var(--cs-text-muted); }
+.ebay-found { display: flex; flex-direction: column; gap: var(--cs-space-2); }
+.ebay-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: var(--cs-space-2); margin: 0; }
+.ebay-stats > div { display: flex; flex-direction: column; gap: 2px; padding: var(--cs-space-2); border: 1px solid var(--cs-border-subtle); background: var(--cs-bg); }
+.ebay-stats dt { font-size: var(--cs-text-xs); font-weight: 600; color: var(--cs-text-muted); }
+.ebay-stats dd { margin: 0; font-size: var(--cs-text-xs); }
+.ebay-stats strong { display: block; font: 700 16px/1.2 var(--cs-font-sans); white-space: nowrap; }
+.sales .sale-title.link { text-align: start; font-size: var(--cs-text-xs); color: var(--cs-text-muted); overflow-wrap: anywhere; }

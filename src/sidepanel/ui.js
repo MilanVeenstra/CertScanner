@@ -569,17 +569,81 @@ export function createUi(doc, actions) {
     syncPriceSummary(card.title || null);
   }
 
-  const money = (n) => new Intl.NumberFormat(t('locale_code') || undefined, { style: 'currency', currency: 'USD' }).format(n);
+  const money = (n, currency = 'USD') => new Intl.NumberFormat(t('locale_code') || undefined, { style: 'currency', currency }).format(n);
   const saleDate = (d) => (/^\d{4}-\d{2}-\d{2}$/.test(d)
     ? new Intl.DateTimeFormat(t('locale_code') || undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${d}T00:00:00Z`))
     : d);
 
   const PRICE_STATE_KEY = {
-    loading: 'prices_loading', reading: 'prices_reading', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
+    loading: 'prices_loading', reading: 'prices_reading', check: 'prices_checking', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
     unreadable: 'prices_unreadable', error: 'prices_error', challenge: 'prices_challenge', 'need-card': 'prices_need_card_data',
   };
-  /** States announced once through #status (the ones that need the user). */
-  const ANNOUNCED_STATES = new Set(['not-found', 'unreadable', 'error', 'challenge']);
+  /** States announced once through #status (a tab that opens, and the ones that need the user). */
+  const ANNOUNCED_STATES = new Set(['check', 'not-found', 'unreadable', 'error', 'challenge']);
+
+  const EBAY_STATE_KEY = {
+    loading: 'ebay_loading', check: 'ebay_checking', 'no-permission': 'ebay_allow_text', blocked: 'ebay_blocked', error: 'ebay_error',
+    'need-card': 'ebay_need_card', 'need-grade': 'ebay_need_grade', none: 'ebay_none',
+  };
+  const SHOWN_EBAY_SALES = 5;
+
+  /**
+   * eBay block in Value (A21). st: {status:'off'} (setting off), a state from EBAY_STATE_KEY, or the ok result of
+   * ebayData.loadEbay(); plus {label} (the grade asked for, "PSA 10") and {host} (the eBay site).
+   */
+  function showEbay(st) {
+    const box = ref(body, 'ebay-block');
+    if (!box) return;
+    box.hidden = st.status === 'off';
+    if (box.hidden) return;
+    const ov = st.status === 'ok' ? st.overview : null;
+    const status = ov && !ov.count && !ov.forSale ? 'none' : st.status;
+    box.dataset.status = status;
+    box.setAttribute('aria-busy', String(['loading', 'check'].includes(status)));
+    ref(box, 'ebay-heading').textContent = t('ebay_sales_heading', [keepTogether(st.label || '')]);
+    const found = status === 'ok';
+    ref(box, 'ebay-state').hidden = found;
+    ref(box, 'ebay-found').hidden = !found;
+    ref(box, 'ebay-allow').hidden = status !== 'no-permission';
+    ref(box, 'ebay-allow-label').textContent = t('ebay_allow');
+    ref(box, 'ebay-retry').hidden = !['blocked', 'error'].includes(status);
+    for (const name of ['ebay-open-sold', 'ebay-open-active']) ref(box, name).hidden = !st.urls;
+    if (!found) {
+      ref(box, 'ebay-state-text').textContent = t(EBAY_STATE_KEY[status] ?? 'ebay_error', [status === 'no-permission' ? (st.host ?? '') : keepTogether(st.label || '')]);
+      if (['check', 'blocked'].includes(status)) announce(t(EBAY_STATE_KEY[status]));
+      return;
+    }
+    const cur = ov.currency;
+    ref(box, 'ebay-last').textContent = ov.last ? money(ov.last.price.value, cur) : '—';
+    ref(box, 'ebay-last-date').textContent = ov.last ? saleDate(ov.last.soldDate) : '';
+    ref(box, 'ebay-median-label').textContent = t('ebay_median_label', [String(ov.count)]);
+    ref(box, 'ebay-median').textContent = ov.median != null ? money(ov.median, cur) : '—';
+    ref(box, 'ebay-low').textContent = ov.forSale ? money(ov.forSale.low.price.value, cur) : '—';
+    ref(box, 'ebay-low-count').textContent = ov.forSale ? t('ebay_offers_count', [String(ov.forSale.count)]) : '';
+    const list = ref(box, 'ebay-sales');
+    while (list.firstChild) list.firstChild.remove();
+    for (const s of ov.sales.slice(0, SHOWN_EBAY_SALES)) {
+      const li = doc.createElement('li');
+      const d = doc.createElement('span');
+      const v = doc.createElement('strong');
+      const b = doc.createElement('button');
+      d.className = 'sale-date';
+      v.className = 'sale-price';
+      b.type = 'button';
+      b.className = 'link sale-title';
+      b.dataset.action = 'ebay-item';
+      b.dataset.url = s.url;
+      d.textContent = saleDate(s.soldDate);
+      v.textContent = money(s.price.value, cur);
+      b.textContent = s.title;
+      const nt = doc.createElement('span');
+      nt.className = 'visually-hidden';
+      nt.textContent = ` ${t('a11y_new_tab')}`;
+      b.append(nt);
+      li.append(d, v, b);
+      list.appendChild(li);
+    }
+  }
 
   /**
    * Value area (+ Market data). st: {status:'loading'|'reading'|'no-permission'|'not-found'|'unreadable'|'error'|
@@ -592,7 +656,7 @@ export function createUi(doc, actions) {
     if (!box) return;
     const ok = st.status === 'ok';
     const comic = priceGrader === 'cgc-comics';
-    box.setAttribute('aria-busy', String(['loading', 'reading'].includes(st.status)));
+    box.setAttribute('aria-busy', String(['loading', 'reading', 'check'].includes(st.status)));
     box.dataset.status = st.status;
     ref(box, 'price-state').hidden = ok;
     ref(box, 'price-found').hidden = !ok;
@@ -1081,6 +1145,8 @@ export function createUi(doc, actions) {
     $('setting-background').checked = Boolean(s.openInBackground);
     $('setting-history').checked = Boolean(s.saveHistory);
     $('setting-ebay-site').value = s.ebaySite ?? 'com';
+    $('setting-ebay-sold').checked = s.ebaySold !== false;
+    $('setting-read-via-tab').checked = s.readViaTab !== false;
     const clear = $('clear-history');
     const empty = historyCount === 0;
     if (empty) clear.setAttribute('aria-disabled', 'true'); else clear.removeAttribute('aria-disabled');
@@ -1113,7 +1179,7 @@ export function createUi(doc, actions) {
   return {
     openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
-    showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, showEbay, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     reportSaved,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,

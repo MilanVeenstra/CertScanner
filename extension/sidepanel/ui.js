@@ -523,6 +523,14 @@ export function createUi(doc, actions) {
     syncPriceSummary();
   }
 
+  /** Opens Change and puts the cursor in the card field or the grade list. */
+  function openPriceFields(focus = 'card') {
+    setPriceFields(true);
+    const el = ref(body, focus === 'grade' ? 'price-grade' : 'price-card');
+    el?.scrollIntoView({ block: 'center' });
+    el?.focus();
+  }
+
   function setPriceFields(open) {
     const fields = ref(body, 'price-fields');
     if (!fields) return;
@@ -550,7 +558,10 @@ export function createUi(doc, actions) {
     el.hidden = false;
     el.textContent = card
       ? (card.population != null ? t('psa_info_pop', [card.gradeText || '', n(card.population), n(card.populationHigher ?? 0)]) : t('psa_info_ok', [card.gradeText || '']))
-      : t({ auth: 'psa_info_auth', limit: 'psa_info_limit', 'no-permission': 'psa_info_no_permission', 'not-found': 'psa_info_not_found' }[reason] ?? 'psa_info_error');
+      : t({
+        auth: 'psa_info_auth', blocked: 'psa_info_blocked', server: 'psa_info_server', limit: 'psa_info_limit', 'no-permission': 'psa_info_no_permission',
+        'not-found': 'psa_info_not_found',
+      }[reason] ?? 'psa_info_error');
   }
 
   /** Card details from PSA's API (cert lookup) or from the label: search terms, grade and full title. */
@@ -607,6 +618,12 @@ export function createUi(doc, actions) {
     ref(box, 'ebay-allow').hidden = status !== 'no-permission';
     ref(box, 'ebay-allow-label').textContent = t('ebay_allow');
     ref(box, 'ebay-retry').hidden = !['blocked', 'error'].includes(status);
+    // Grade or card name not read: the button opens Change with that field focused (user: "kies hierboven de grade, maar
+    // ik zie niks staan" - the fields are folded away under Change).
+    const pick = ref(box, 'ebay-pick');
+    pick.hidden = !['need-grade', 'need-card'].includes(status);
+    pick.dataset.focus = status === 'need-grade' ? 'grade' : 'card';
+    ref(box, 'ebay-pick-label').textContent = t(status === 'need-grade' ? 'ebay_pick_grade' : 'ebay_pick_card');
     for (const name of ['ebay-open-sold', 'ebay-open-active']) ref(box, name).hidden = !st.urls;
     if (!found) {
       ref(box, 'ebay-state-text').textContent = t(EBAY_STATE_KEY[status] ?? 'ebay_error', [status === 'no-permission' ? (st.host ?? '') : keepTogether(st.label || '')]);
@@ -1179,7 +1196,7 @@ export function createUi(doc, actions) {
   return {
     openOtherWays,
     announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
-    showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, showEbay, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, showEbay, openPriceFields, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     reportSaved,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,

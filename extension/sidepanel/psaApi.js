@@ -1,7 +1,8 @@
 // Card details for a PSA cert from PSA's official Public API (user request: "als je de cert hebt kan je gewoon de kaart
 // naam hebben"). Needs the user's own free access token (psacard.com/publicapi), kept in chrome.storage.local on this
 // device only, and the optional host permission for api.psacard.com (asked when the key is saved).
-// Only the cert number and the token are sent; the response is validated field by field.
+// Only the cert number and the token are sent, with the browser's psacard.com cookies like a normal visit (PSA's site
+// protection may answer a cookieless request with its own 403 page); the response is validated field by field.
 export const PSA_API_ORIGIN = 'https://api.psacard.com';
 export const PSA_API_PERMISSION = `${PSA_API_ORIGIN}/*`;
 export const PSA_API_SIGNUP = 'https://www.psacard.com/publicapi';
@@ -26,6 +27,29 @@ export async function clearPsaToken(chromeApi = globalThis.chrome) {
   cache.clear();
 }
 export const isPsaToken = okToken;
+
+/**
+ * What a non-2xx PSA answer means, or null for a usable one. PSA's API docs: 500 = invalid credentials or a server
+ * error, 4xx = a wrong request path, 429 = the daily limit. A 403/503 that is an HTML page (a bot check in front of the
+ * API) is PSA's site protection, not a verdict on the key (user report 2026-10-13: a valid key was refused as "not
+ * accepted").
+ * @returns {Promise<'auth'|'blocked'|'limit'|'server'|'error'|null>}
+ */
+async function verdict(res) {
+  if (res.status === 429) return 'limit';
+  if (res.status === 401) return 'auth';
+  if (res.status === 403 || res.status === 503) {
+    const type = res.headers?.get?.('content-type') ?? '';
+    const head = (await res.text().catch(() => '')).slice(0, 2000).trimStart();
+    const page = /html/i.test(type) || head.startsWith('<') || Boolean(res.headers?.get?.('cf-mitigated'));
+    return page ? 'blocked' : res.status === 403 ? 'auth' : 'error';
+  }
+  if (res.status >= 500) return 'server';
+  return null;
+}
+const psaInit = (token, signal) => ({
+  headers: { Authorization: `bearer ${token}`, Accept: 'application/json' }, credentials: 'include', referrerPolicy: 'no-referrer', signal,
+});
 
 /**
  * Pure: PSA API JSON -> card details. Search terms follow the label search format: brand word + subject + card number
@@ -53,7 +77,8 @@ export function parsePsaCert(json) {
 }
 
 /**
- * @returns {Promise<{ok:true, card:ReturnType<typeof parsePsaCert>} | {ok:false, reason:'no-token'|'no-permission'|'auth'|'not-found'|'limit'|'error'}>}
+ * @returns {Promise<{ok:true, card:ReturnType<typeof parsePsaCert>}
+ *   | {ok:false, reason:'no-token'|'no-permission'|'auth'|'blocked'|'server'|'not-found'|'limit'|'error'}>}
  */
 export async function fetchPsaCert(number, { token, signal, fetchImpl = globalThis.fetch.bind(globalThis), chromeApi = globalThis.chrome } = {}) {
   if (!okToken(token)) return { ok: false, reason: 'no-token' };
@@ -65,11 +90,9 @@ export async function fetchPsaCert(number, { token, signal, fetchImpl = globalTh
   const sig = AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)].filter(Boolean));
   let out;
   try {
-    const res = await fetchImpl(`${PSA_API_ORIGIN}/publicapi/cert/GetByCertNumber/${number}`, {
-      headers: { Authorization: `bearer ${token}`, Accept: 'application/json' }, credentials: 'omit', referrerPolicy: 'no-referrer', signal: sig,
-    });
-    if (res.status === 401 || res.status === 403) return { ok: false, reason: 'auth' };
-    if (res.status === 429) return { ok: false, reason: 'limit' };
+    const res = await fetchImpl(`${PSA_API_ORIGIN}/publicapi/cert/GetByCertNumber/${number}`, psaInit(token, sig));
+    const bad = await verdict(res);
+    if (bad) return { ok: false, reason: bad };
     if (!res.ok) return { ok: false, reason: res.status === 404 ? 'not-found' : 'error' };
     const card = parsePsaCert(JSON.parse((await res.text()).slice(0, 200_000)));
     out = card ? { ok: true, card } : { ok: false, reason: 'not-found' };
@@ -82,20 +105,15 @@ export async function fetchPsaCert(number, { token, signal, fetchImpl = globalTh
 }
 
 /**
- * Checks a key right after it is saved (uses 1 of the day's lookups). Any answer other than 401/403 means PSA accepted
- * the key; the test number itself doesn't have to exist.
- * @returns {Promise<'ok'|'auth'|'limit'|'error'|'no-permission'>}
+ * Checks a key right after it is saved (uses 1 of the day's lookups); the test number itself doesn't have to exist.
+ * `status` is PSA's HTTP status (0 = no answer), shown with the result so a refusal can be told apart from a block.
+ * @returns {Promise<{result:'ok'|'auth'|'blocked'|'server'|'limit'|'error'|'no-permission', status:number}>}
  */
 export async function testPsaKey(token, { fetchImpl = globalThis.fetch.bind(globalThis), chromeApi = globalThis.chrome } = {}) {
-  if (!okToken(token)) return 'auth';
+  if (!okToken(token)) return { result: 'auth', status: 0 };
   try {
-    if (!(await chromeApi.permissions.contains({ origins: [PSA_API_PERMISSION] }))) return 'no-permission';
-    const res = await fetchImpl(`${PSA_API_ORIGIN}/publicapi/cert/GetByCertNumber/10000000`, {
-      headers: { Authorization: `bearer ${token.trim()}`, Accept: 'application/json' }, credentials: 'omit', referrerPolicy: 'no-referrer',
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (res.status === 401 || res.status === 403) return 'auth';
-    if (res.status === 429) return 'limit';
-    return res.status >= 500 ? 'error' : 'ok';
-  } catch { return 'error'; }
+    if (!(await chromeApi.permissions.contains({ origins: [PSA_API_PERMISSION] }))) return { result: 'no-permission', status: 0 };
+    const res = await fetchImpl(`${PSA_API_ORIGIN}/publicapi/cert/GetByCertNumber/10000000`, psaInit(token.trim(), AbortSignal.timeout(TIMEOUT_MS)));
+    return { result: (await verdict(res)) ?? 'ok', status: res.status };
+  } catch { return { result: 'error', status: 0 }; }
 }

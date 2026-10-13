@@ -261,5 +261,38 @@ describe('Prices for this card', { concurrency: false }, () => {
     const after = await page.evaluate(() => ({ fields: document.getElementById('price-fields')?.hidden, focus: document.activeElement?.id }));
     assert.equal(after.fields, false, 'Change is open');
     assert.equal(after.focus, 'price-grade', 'the grade list has the focus');
+    const error = () => page.evaluate(() => document.getElementById('price-error')?.textContent ?? '');
+    await page.click('[data-testid="price-show"]');
+    assert.match(await error(), /card name/, 'no card name: asks for it first');
+    await page.fill('[data-testid="price-card"]', 'Charizard ex 199');
+    await page.click('[data-testid="price-show"]');
+    assert.match(await error(), /Choose the grade/, 'then for the grade');
+    await page.selectOption('[data-testid="price-grade"]', '10');
+    await page.click('[data-testid="price-show"]');
+    await E.poll(async () => page.evaluate(() => !['need-grade', 'need-card', 'loading', 'check'].includes(document.querySelector('[data-testid="ebay-sold"]')?.dataset.status)), { message: 'card and grade applied' });
+    assert.equal(await page.evaluate(() => document.querySelector('[data-testid="ebay-sold"] h3')?.textContent), 'eBay sales · PSA\u00a010');
+    assert.equal(await page.evaluate(() => document.getElementById('price-fields')?.hidden), true, 'Show value closes Change');
+  });
+
+  test('Change: a new grade applies on "Show value" (form closes, value of that grade); the list has the slab\'s grades only', T, async () => {
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    const r = await pasteImage(page, await readFile(path.join(E.FIXTURES, 'psa-8digit-leading-zero.png')));
+    assert.equal(r.state, 'auto-open');
+    await settled();
+    assert.equal((await read()).current, '$612.99');
+    await page.click('[data-testid="price-edit"]');
+    const options = await page.evaluate(() => [...document.querySelectorAll('[data-testid="price-grade"] option')].map((o) => o.textContent));
+    assert.ok(!options.includes('All grades') && options.includes('PSA 9') && options.includes('PSA 10'), options.join(', '));
+    await page.selectOption('[data-testid="price-grade"]', '9');
+    await E.sleep(800);
+    assert.equal((await read()).current, '$612.99', 'picking a grade alone changes nothing yet');
+    await page.click('[data-testid="price-show"]');
+    await E.poll(async () => (await read()).current === '$212.75', { message: 'PSA 9 value after Show value' });
+    const v = await page.evaluate(() => ({ fields: document.getElementById('price-fields')?.hidden, label: document.querySelector('[data-ref="pc-label"]')?.textContent, ebay: document.querySelector('[data-testid="ebay-sold"] h3')?.textContent, focus: document.activeElement?.dataset.testid }));
+    assert.equal(v.fields, true, 'Change closed');
+    assert.equal(v.label, 'Current price · PSA\u00a09');
+    assert.equal(v.ebay, 'eBay sales · PSA\u00a09');
+    assert.equal(v.focus, 'price-edit', 'focus back on "Wrong card or grade? Change"');
   });
 });

@@ -60,6 +60,17 @@ export function createCertField({ input, fieldset, errorEl, previewEl, hintEl, r
     // Grader buttons still hidden: the grader comes from the number, so don't ask the user to choose one (D7).
     const key = p?.key === 'url_preview_pending' && fieldset.hidden ? 'url_preview_auto' : p?.key;
     previewEl.textContent = p ? t(key, p.subs) : '';
+    // Design v2: the address in "Opens <url>" is set in the mono face.
+    const url = key === 'url_preview' ? p.subs[0] : null;
+    const at = url ? previewEl.textContent.indexOf(url) : -1;
+    if (at >= 0) {
+      const text = previewEl.textContent;
+      const mono = previewEl.ownerDocument.createElement('span');
+      mono.className = 'mono';
+      mono.textContent = url;
+      previewEl.textContent = '';
+      previewEl.append(text.slice(0, at), mono, text.slice(at + url.length));
+    }
     clearTimeout(warnTimer);
     if (submitted) {
       const v = validateCert(input.value, explicit);

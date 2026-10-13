@@ -468,13 +468,7 @@
     "message": "Gescand op schermresolutie"
   },
   "lowres_body": {
-    "message": "Afbeeldingen op deze pagina komen van $HOST$. Sta afbeeldingen op volle grootte van die site toe voor scherpere scans.",
-    "placeholders": {
-      "host": {
-        "content": "$1",
-        "example": "i.ebayimg.com"
-      }
-    }
+    "message": "Chrome vraagt één keer of CertScanner de foto op volle grootte van deze site mag laden."
   },
   "lowres_button": {
     "message": "Scherpere scans op $HOST$",
@@ -595,10 +589,10 @@
     "description": "Settings section listing optional host grants (Sharper scans and Always allow)."
   },
   "settings_sites_body": {
-    "message": "Je hebt deze toegestaan via ‘Scherpere scans’ of ‘Altijd toestaan’. CertScanner mag daar afbeeldingen op volle grootte laden en die pagina's vanuit dit paneel scannen."
+    "message": "CertScanner biedt dit aan als een scan scherper kan of als het een pagina niet kan lezen."
   },
   "settings_sites_empty": {
-    "message": "Nog geen. CertScanner biedt dit aan als een scan scherper kan of als het een pagina niet kan lezen."
+    "message": "Nog geen."
   },
   "remove_button": {
     "message": "Verwijderen",
@@ -617,22 +611,22 @@
     "message": "Over"
   },
   "about_privacy": {
-    "message": "Afbeeldingen worden op dit apparaat verwerkt en nooit geüpload. Het certnummer gaat naar de grader als de pagina opent, en naar PSA als je een PSA-sleutel hebt toegevoegd. Kaartnaam en grade gaan naar PriceCharting en eBay voor de waarde en recente verkopen, of bij Pokémon-kaarten naar PokemonPriceTracker als je die sleutel hebt toegevoegd."
+    "message": "Foto's worden op dit apparaat gelezen. Afbeeldingen worden nooit geüpload."
   },
   "about_lookup": {
-    "message": "Een certcontrole toont wat de database van de grader over een nummer zegt. Of de slab op een foto echt is, kan die niet zeggen."
+    "message": "Een certcontrole laat zien dat een nummer bij de grader bestaat. Het bewijst niet dat deze slab echt is."
   },
   "about_disclaimer": {
     "message": "Niet gelieerd aan PSA, CGC of Beckett."
   },
   "about_trademarks": {
-    "message": "PSA, CGC en Beckett zijn handelsmerken van hun respectieve eigenaren."
+    "message": "PSA, CGC en BGS zijn handelsmerken van hun eigenaars."
   },
   "about_language": {
-    "message": "De taal volgt je Chrome-instellingen."
+    "message": "De taal volgt Chrome."
   },
   "about_uninstall": {
-    "message": "Als je de extensie verwijdert, wordt de scangeschiedenis gewist."
+    "message": "Als je CertScanner verwijdert, worden je geschiedenis en sleutels gewist."
   },
   "about_version": {
     "message": "Versie $VERSION$",
@@ -735,10 +729,10 @@
     "message": "De foto's op deze pagina zijn gecontroleerd, maar er is geen certnummer gelezen."
   },
   "page_tip_open_photo": {
-    "message": "Kleine miniaturen zijn moeilijk te lezen. Open de grote foto van de advertentie en scan opnieuw."
+    "message": "Open de grote foto van de advertentie en scan opnieuw."
   },
   "page_tip_right_click": {
-    "message": "Klik met rechts op een specifieke slabfoto en kies ‘$MENU$’. Als die op schermresolutie is gelezen, biedt CertScanner scherpere scans aan.",
+    "message": "Klik met rechts op een slabfoto en kies “$MENU$”.",
     "placeholders": {
       "menu": {
         "content": "$1",
@@ -747,7 +741,7 @@
     }
   },
   "page_tip_upload": {
-    "message": "Of sla de foto op en upload of plak hem hieronder."
+    "message": "Sla de foto op en upload hem hier."
   },
   "page_access_heading": {
     "message": "CertScanner kan deze pagina nog niet lezen"
@@ -774,13 +768,7 @@
     }
   },
   "page_access_fineprint": {
-    "message": "Chrome vraagt of je toegang tot $HOST$ toestaat. CertScanner gebruikt die alleen om slabfoto's te vinden en te lezen die je scant. Je kunt dit altijd intrekken in Instellingen.",
-    "placeholders": {
-      "host": {
-        "content": "$1",
-        "example": "www.ebay.com"
-      }
-    }
+    "message": "Chrome vraagt je dit te bevestigen. Je kunt het weghalen in Instellingen."
   },
   "settings_toolbar_heading": {
     "message": "Werkbalkknop en sneltoets"
@@ -984,7 +972,7 @@
     "message": "eBay-site"
   },
   "setting_ebay_site_hint": {
-    "message": "Voor de links Verkocht op eBay en Te koop op eBay. Waarden in het paneel komen van PriceCharting, of bij Pokémon-kaarten van PokemonPriceTracker als je die sleutel hebt toegevoegd (Amerikaanse dollars)."
+    "message": "Gebruikt door de links Verkocht op eBay en Te koop op eBay."
   },
   "prices_card_label": {
     "message": "Kaart"
@@ -1011,7 +999,7 @@
     "message": "Beckett heeft geen directe link per nummer. Openen kopieert het nummer en opent de zoekpagina van Beckett, waar je het plakt."
   },
   "result_lookup_note": {
-    "message": "Het nummer is gekopieerd. Plak het in het zoekformulier van Beckett (Ctrl+V / ⌘V)."
+    "message": "Het nummer is gekopieerd. Plak het in het zoekformulier van Beckett."
   },
   "status_opened_lookup": {
     "message": "Beckett-zoekpagina geopend. $GRADER$-nummer $NUMBER$ is gekopieerd, plak het daar.",
@@ -1132,7 +1120,7 @@
     "message": "Gratis sleutel aanvragen"
   },
   "setting_psa_key_hint": {
-    "message": "Met je eigen gratis PSA API-sleutel zoekt CertScanner kaartnaam, grade en populatie van een PSA-cert direct op (PSA staat ongeveer 100 opzoekingen per dag toe). De sleutel blijft op dit apparaat."
+    "message": "Met je eigen gratis PSA API-sleutel zoekt CertScanner de kaartnaam, grade en populatie op."
   },
   "setting_psa_key_saved": {
     "message": "Sleutel opgeslagen. PSA-kaarten worden nu op certnummer opgezocht."
@@ -1325,7 +1313,7 @@
     "message": "PokemonPriceTracker API-sleutel (optioneel, Pokémon)"
   },
   "setting_ppt_key_hint": {
-    "message": "Voor Pokémon-slabs: de waarde komt uit recente eBay-verkopen in de grade van de slab (PSA, BGS, CGC), via de officiële API van PokemonPriceTracker, zonder PriceCharting-pagina ertussen. De gratis sleutel heeft 100 credits per dag; één kaart kost er maximaal 4 (een andere grade kiezen kost niets). Alleen de kaartnaam en het nummer worden verstuurd; de sleutel blijft op dit apparaat. Zonder sleutel, of als een kaart niet gevonden wordt, gebruikt CertScanner PriceCharting."
+    "message": "Voor Pokémon-slabs: de waarde komt uit recente eBay-verkopen."
   },
   "setting_ppt_key_saved": {
     "message": "Sleutel opgeslagen. Pokémon-slabs krijgen hun waarde nu van PokemonPriceTracker."
@@ -1593,13 +1581,13 @@
     "message": "eBay-verkopen in het paneel tonen"
   },
   "setting_ebay_sold_hint": {
-    "message": "Leest op dit apparaat de openbare 'verkocht'-zoekresultaten van eBay voor de kaart in zijn grade (jouw eBay-site hierboven): laatste verkoop, mediaan, goedkoopste aanbod en de laatste verkopen. eBay's gebruikersvoorwaarden beperken automatisch uitlezen; dit is voor eigen gebruik."
+    "message": "Leest de openbare 'verkocht'-zoekresultaten van eBay; dit is voor eigen gebruik."
   },
   "setting_read_via_tab": {
     "message": "Controles van sites in een achtergrondtabblad doorlopen"
   },
   "setting_read_via_tab_hint": {
-    "message": "Als PriceCharting of eBay eerst je browser wil controleren, opent de pagina kort in een inactief tabblad, wordt gelezen en weer gesloten. Uit: het paneel vraagt je de site zelf te openen."
+    "message": "Als PriceCharting of eBay eerst je browser wil controleren, opent de pagina kort in een inactief tabblad."
   },
   "ebay_pick_grade": {
     "message": "Grade kiezen"
@@ -1650,6 +1638,21 @@
       "limit": {
         "content": "$2",
         "example": "100"
+      }
+    }
+  },
+  "value_change_short": {
+    "message": "Wijzigen"
+  },
+  "setting_key_placeholder": {
+    "message": "Plak je sleutel"
+  },
+  "market_more": {
+    "message": "en nog $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
       }
     }
   }

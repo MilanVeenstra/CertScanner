@@ -468,13 +468,7 @@
     "message": "Scanned at screen resolution"
   },
   "lowres_body": {
-    "message": "Images on this page come from $HOST$. Allow full-size images from that site for sharper scans.",
-    "placeholders": {
-      "host": {
-        "content": "$1",
-        "example": "i.ebayimg.com"
-      }
-    }
+    "message": "Chrome asks once to let CertScanner load the full-size photo on this site."
   },
   "lowres_button": {
     "message": "Sharper scans on $HOST$",
@@ -595,10 +589,10 @@
     "description": "Settings section listing optional host grants (Sharper scans and Always allow)."
   },
   "settings_sites_body": {
-    "message": "You allowed these through “Sharper scans” or “Always allow”. CertScanner may load full-size images there and scan those pages from this panel."
+    "message": "CertScanner offers this when a scan could be sharper or when it can't read a page."
   },
   "settings_sites_empty": {
-    "message": "None yet. CertScanner offers this when a scan could be sharper or when it can't read a page."
+    "message": "None yet."
   },
   "remove_button": {
     "message": "Remove",
@@ -617,22 +611,22 @@
     "message": "About"
   },
   "about_privacy": {
-    "message": "Images are processed on this device and never uploaded. The cert number goes to the grader when its page opens, and to PSA if you added a PSA key. The card name and grade go to PriceCharting and eBay for the value and recent sales, or for Pokémon cards to PokemonPriceTracker if you added its key."
+    "message": "Photos are read on this device. Images are never uploaded."
   },
   "about_lookup": {
-    "message": "A cert lookup shows what the grader's database says about a number. It can't tell whether the slab in a photo is genuine."
+    "message": "A cert check shows that a number exists at the grader. It does not prove that this slab is genuine."
   },
   "about_disclaimer": {
     "message": "Not affiliated with PSA, CGC or Beckett."
   },
   "about_trademarks": {
-    "message": "PSA, CGC and Beckett are trademarks of their respective owners."
+    "message": "PSA, CGC and BGS are trademarks of their owners."
   },
   "about_language": {
-    "message": "Language follows your Chrome settings."
+    "message": "The language follows Chrome."
   },
   "about_uninstall": {
-    "message": "Removing the extension deletes its scan history."
+    "message": "Removing CertScanner deletes your history and keys."
   },
   "about_version": {
     "message": "Version $VERSION$",
@@ -735,10 +729,10 @@
     "message": "Checked the photos on this page but couldn't read a cert number."
   },
   "page_tip_open_photo": {
-    "message": "Small thumbnails are hard to read. Open the large photo of the listing, then scan again."
+    "message": "Open the large photo of the listing and scan again."
   },
   "page_tip_right_click": {
-    "message": "Right-click a specific slab photo and choose “$MENU$”. If it was read at screen resolution, CertScanner offers sharper scans.",
+    "message": "Right-click a specific slab photo and choose “$MENU$”.",
     "placeholders": {
       "menu": {
         "content": "$1",
@@ -747,7 +741,7 @@
     }
   },
   "page_tip_upload": {
-    "message": "Or save the photo and upload or paste it below."
+    "message": "Save the photo and upload it here."
   },
   "page_access_heading": {
     "message": "CertScanner can't read this page yet"
@@ -774,13 +768,7 @@
     }
   },
   "page_access_fineprint": {
-    "message": "Chrome will ask you to allow access to $HOST$. CertScanner only uses it to find and read slab photos you scan. Remove it any time in Settings.",
-    "placeholders": {
-      "host": {
-        "content": "$1",
-        "example": "www.ebay.com"
-      }
-    }
+    "message": "Chrome asks you to confirm. You can remove it in Settings."
   },
   "settings_toolbar_heading": {
     "message": "Toolbar button and shortcut"
@@ -984,7 +972,7 @@
     "message": "eBay site"
   },
   "setting_ebay_site_hint": {
-    "message": "Used by the Sold on eBay and For sale on eBay links. Values shown in the panel come from PriceCharting, or for Pokémon cards from PokemonPriceTracker when you added its key (US dollars)."
+    "message": "Used by the Sold on eBay and For sale on eBay links."
   },
   "prices_card_label": {
     "message": "Card"
@@ -1011,7 +999,7 @@
     "message": "Beckett has no direct link per number. Open copies the number and opens Beckett's lookup, where you paste it."
   },
   "result_lookup_note": {
-    "message": "The number is copied. Paste it into Beckett's lookup form (Ctrl+V / ⌘V)."
+    "message": "The number is copied. Paste it into Beckett's lookup form."
   },
   "status_opened_lookup": {
     "message": "Opened Beckett lookup. $GRADER$ number $NUMBER$ is copied, paste it there.",
@@ -1132,7 +1120,7 @@
     "message": "Get a free key"
   },
   "setting_psa_key_hint": {
-    "message": "With your own free PSA API key, CertScanner looks up the card name, grade and population of a PSA cert directly (PSA allows about 100 lookups a day). The key stays on this device."
+    "message": "With your own free PSA API key, CertScanner looks up the card name, grade and population."
   },
   "setting_psa_key_saved": {
     "message": "Key saved. PSA cards are now looked up by cert number."
@@ -1325,7 +1313,7 @@
     "message": "PokemonPriceTracker API key (optional, Pokémon)"
   },
   "setting_ppt_key_hint": {
-    "message": "For Pokémon slabs: the value comes from recent eBay sales in the slab's grade (PSA, BGS, CGC) through PokemonPriceTracker's official API, with no PriceCharting page in between. The free key has 100 credits a day; one card costs up to 4 (a grade change costs nothing). Only the card name and number are sent; the key stays on this device. Without a key, or when a card isn't found, PriceCharting is used."
+    "message": "For Pokémon slabs: the value comes from recent eBay sales."
   },
   "setting_ppt_key_saved": {
     "message": "Key saved. Pokémon slabs now get their value from PokemonPriceTracker."
@@ -1593,13 +1581,13 @@
     "message": "Show eBay sales in the panel"
   },
   "setting_ebay_sold_hint": {
-    "message": "Reads eBay's public sold search for the card in its grade on this device (your eBay site above): last sale, median, cheapest offer and the latest sales. eBay's user agreement restricts automated reading; this is for your own use."
+    "message": "Reads eBay's public sold search; this is for your own use."
   },
   "setting_read_via_tab": {
     "message": "Pass site checks in a background tab"
   },
   "setting_read_via_tab_hint": {
-    "message": "When PriceCharting or eBay wants to check your browser first, the page opens briefly in an inactive tab, is read and closed. Off: the panel asks you to open the site yourself."
+    "message": "When PriceCharting or eBay wants to check your browser first, the page opens briefly in an inactive tab."
   },
   "ebay_pick_grade": {
     "message": "Choose grade"
@@ -1650,6 +1638,21 @@
       "limit": {
         "content": "$2",
         "example": "100"
+      }
+    }
+  },
+  "value_change_short": {
+    "message": "Change"
+  },
+  "setting_key_placeholder": {
+    "message": "Paste your key"
+  },
+  "market_more": {
+    "message": "and $COUNT$ more",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "7"
       }
     }
   }

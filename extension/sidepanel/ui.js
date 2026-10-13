@@ -12,11 +12,15 @@ import { ebayHostLabel, GRADE_SCALES, gradeLabel, graderShort, matchGrade, POP_U
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
 export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
 export const TASK_STATES = Object.freeze(['idle', 'scanning', 'result', 'edit', 'confirm', 'none', 'error', 'page-results', 'page-access']);
-const TONE_ICON = { success: 'i-check', info: 'i-circle-i', warning: 'i-triangle', danger: 'i-ban' };
-/** "Other ways to scan" disclosure per task state (design handoff: open in Idle, folded after a result, hidden while the
- * task card already shows the number form). The user can still toggle it; the next state change resets it. */
-const OTHER_WAYS = { idle: 'open', scanning: 'closed', result: 'closed', 'page-results': 'closed', none: 'closed', error: 'closed', 'page-access': 'closed', edit: 'hidden', confirm: 'hidden' };
+const TONE_ICON = { success: 'i-check', info: 'i-circle-i', warning: 'i-triangle', danger: 'i-circle-x' };
+/** "Other ways to scan" per task state (design v2: open on Start, folded under a result, none, an error or no access;
+ * not shown while scanning, on the page list or while the task card shows the number form). The user can still toggle
+ * it; the next state change resets it. Recent scans are shown on Start only. */
+const OTHER_WAYS = { idle: 'open', scanning: 'hidden', result: 'closed', 'page-results': 'hidden', none: 'closed', error: 'closed', 'page-access': 'closed', edit: 'hidden', confirm: 'hidden' };
+/** Reasons on "Check the number" that only inform (grey icon); the others are what to check (red triangle). */
+const INFO_REASONS = new Set(['reason_unclear', 'reason_always_ask', 'reason_bgs_lookup']);
 const RECENT_VISIBLE = 5;
+const SHOWN_EBAY_SALES = 4;
 const COPIED_MS = 2000;
 const SLOW_MS = 8000;
 
@@ -42,6 +46,10 @@ export function createUi(doc, actions) {
   const headingIcon = heading.querySelector('.state-icon');
   const headingBadge = $('task-heading-badge');
   const body = $('task-body');
+  /** Result sections under the task card: Value, eBay sales, Price per grade and "This went wrong" (design v2). */
+  const extra = $('result-extra');
+  /** A ref in the task card or, for the result, in its sections. */
+  const refAny = (name) => ref(body, name) ?? ref(extra, name);
   const status = $('status');
   const parking = $('parking');
   const singles = Object.fromEntries([...parking.querySelectorAll('[data-single]')].map((el) => [el.dataset.single, el]));
@@ -88,7 +96,10 @@ export function createUi(doc, actions) {
     syncOpenLabel();
     actions.candidatePicked?.(c);
     if (c.grader) actions.candidateChosen?.(c);
-    else singles.certform.querySelector('input[name="task-grader"]')?.focus();
+    else {
+      singles.certform.hidden = false; // folded away while several numbers were offered (design v2)
+      singles.certform.querySelector('input[name="task-grader"]')?.focus();
+    }
   });
 
   // ------------------------------------------------------------ helpers
@@ -103,6 +114,7 @@ export function createUi(doc, actions) {
     while (items.firstChild) items.firstChild.remove();
     currentCandidates = [];
     const form = singles.certform;
+    form.hidden = false;
     ref(form, 'input').value = '';
     for (const r of form.querySelectorAll('input[type="radio"]')) r.checked = false;
     ref(form, 'graders').dataset.value = '';
@@ -169,8 +181,10 @@ export function createUi(doc, actions) {
     status.textContent = '';
     lastAnnounced = '';
     setOtherWays(OTHER_WAYS[state] ?? 'closed');
+    $('recent').hidden = state !== 'idle';
     if (state === 'scanning') task.setAttribute('aria-busy', 'true'); else task.removeAttribute('aria-busy');
     while (body.firstChild) body.firstChild.remove();
+    while (extra.firstChild) extra.firstChild.remove();
   }
 
   function setBodyState(state) {
@@ -182,21 +196,18 @@ export function createUi(doc, actions) {
   function setThumb({ thumbUrl: url = null, thumbAlt = '' }, { placeholder = false } = {}) {
     const box = singles.thumb;
     const img = box.querySelector('img');
-    const ph = box.querySelector('.thumb-placeholder');
     closeLarger();
     shownThumbUrl = url;
     if (url) {
       img.src = url;
       img.alt = thumbAlt;
       img.hidden = false;
-      ph.setAttribute('hidden', '');
       box.hidden = false;
     } else {
       img.removeAttribute('src');
       img.alt = '';
       img.hidden = true;
-      if (placeholder) ph.removeAttribute('hidden'); else ph.setAttribute('hidden', '');
-      box.hidden = !placeholder;
+      box.hidden = !placeholder; // the striped box stands in while scanning
     }
   }
 
@@ -297,22 +308,21 @@ export function createUi(doc, actions) {
     if (lowres.state === 'offer') {
       title.textContent = t('lowres_title');
       bodyEl.textContent = t('lowres_body', [host]);
-      fine.textContent = t('lowres_fineprint', [host]);
     } else if (lowres.state === 'granted') {
-      box.className = 'alert alert-success';
+      box.className = 'note note-box alert-success';
       setIcon('i-circle-check');
       title.textContent = t('perm_granted', [host]);
       bodyEl.hidden = true; actionsRow.hidden = true; fine.hidden = true; notNow.hidden = true;
       rescanRow.hidden = false;
-      if (lowres.primary) rescanRow.querySelector('button').className = 'btn btn-primary';
+      if (lowres.primary) rescanRow.querySelector('button').className = 'btn btn-strong btn-sm';
     } else if (lowres.state === 'denied') {
-      box.className = 'alert alert-neutral';
+      box.className = 'note note-box';
       setIcon('i-circle-i');
       title.hidden = true;
       bodyEl.textContent = t('perm_denied', [host]);
       actionsRow.hidden = true; fine.hidden = true; notNow.hidden = true;
     } else if (lowres.state === 'failed') {
-      box.className = 'alert alert-danger';
+      box.className = 'note note-box note-warn';
       setIcon('i-circle-x');
       title.textContent = t('perm_failed');
       bodyEl.hidden = true; fine.hidden = true;
@@ -348,8 +358,8 @@ export function createUi(doc, actions) {
     ref(frag, 'caption').textContent = caption;
     body.appendChild(frag);
     setThumb({ thumbUrl: url, thumbAlt }, { placeholder: true });
-    // Page mode: "Looking for slab photos…", then "Scanning image k of n" above the steps of the current image.
-    singles.steps.hidden = page;
+    // Page mode (design v2): "Looking for slab photos…", then "Scanning image k of n" over a bar, without the photo steps.
+    ref(body, 'scan-media').hidden = page;
     singles.pageprogress.hidden = !page;
     if (page) singles.pageprogress.textContent = t('page_finding');
     renderSteps();
@@ -376,8 +386,6 @@ export function createUi(doc, actions) {
       }
     }
     stages = [];
-    singles.steps.hidden = false;
-    setThumb({}, { placeholder: true });
     renderSteps();
   }
 
@@ -389,7 +397,7 @@ export function createUi(doc, actions) {
 
   function renderSteps() {
     const s = stepStates(stages);
-    const icons = { waiting: 'i-circle', active: reducedMotion() ? 'i-half' : 'i-spinner', done: 'i-check', skipped: 'i-circle-dash' };
+    const icons = { waiting: 'i-circle', active: reducedMotion() ? 'i-half' : 'i-spinner', done: 'i-step-done', skipped: 'i-circle-dash' };
     const labels = { waiting: 'step_state_waiting', active: 'step_state_active', done: 'step_state_done', skipped: 'step_state_skipped' };
     for (const li of singles.steps.children) {
       const state = s[li.dataset.step];
@@ -416,9 +424,9 @@ export function createUi(doc, actions) {
     setHeading('');
     body.appendChild(clone('tpl-result'));
     fillRead({ grader: o.grader, number: o.number, method: o.method }, { path: displayUrl(o.url ?? buildCertUrl(o.grader, o.number)) });
-    const url = ref(body, 'verify-url');
-    url.appendChild(readEls.path);
-    url.after(readEls.method);
+    // Design v2: the cert check sits under the number: "✓ Opened <url>", how it was read below.
+    ref(body, 'verify-url').appendChild(readEls.path);
+    ref(body, 'verify-src').appendChild(readEls.method);
     ref(body, 'bg-note').hidden = !(o.background && Number.isInteger(o.tabId));
     renderVerify(o);
     // The (parked) grader control mirrors the opened grader so §13 readers see the routed grader in S2 too.
@@ -428,6 +436,7 @@ export function createUi(doc, actions) {
     resetCopyLabel();
     offline(body);
     renderPrices(view.prices);
+    extra.appendChild(clone('tpl-result-foot'));
     syncIdentity();
     reportBox(view.report);
     const said = o.lookupPending ? `${graderName(o.grader)} ${o.number}. ${t('verify_not_opened_bgs')}` : t(openedStatusKey(o.grader), [graderName(o.grader), o.number]);
@@ -441,16 +450,19 @@ export function createUi(doc, actions) {
     const line = ref(body, 'verify-line');
     if (!line) return;
     const pending = Boolean(o.lookupPending);
+    line.dataset.pending = String(pending);
     line.querySelector('use').setAttribute('href', pending ? '#i-circle-i' : '#i-check');
     ref(body, 'verify-text').textContent = t(pending ? 'verify_not_opened_bgs' : 'verify_opened');
-    const prefix = ref(body, 'verify-url-prefix');
-    prefix.hidden = !pending;
-    prefix.textContent = pending ? `${t('lookup_preview')} ` : '';
+    // Beckett before the click: no URL yet (its lookup form), only how the number was read.
+    ref(body, 'verify-url').hidden = pending;
     ref(body, 'lookup-note').hidden = pending || hasDirectUrl(o.grader);
     const again = ref(body, 'open-again');
-    again.classList.toggle('btn-primary', pending);
+    again.classList.toggle('btn-strong', pending);
     again.classList.toggle('btn-secondary', !pending);
+    ref(body, 'open-again-lead').toggleAttribute('hidden', pending);
+    ref(body, 'open-again-trail').toggleAttribute('hidden', !pending);
     ref(body, 'open-again-label').textContent = t(pending ? 'open_lookup' : 'open_again');
+    singles.copy.hidden = pending;
   }
 
   /** Beckett lookup opened from the result: the line, button and paste hint update in place; focus stays on the button. */
@@ -463,9 +475,10 @@ export function createUi(doc, actions) {
     headingText.textContent = name || t('identity_fallback', [graderName(identity.grader), identity.number]);
   }
 
-  /** Grade badge in the heading: the slab's grade as read (label or PSA), not the grade chosen for prices. */
+  /** Grade badge in the heading: the slab's grade as read (label or PSA), not the grade chosen for prices; none while the
+   * grade is unknown (design v2: "BGS 0012345678" without a chip). */
   function setBadge(grader, grade) {
-    if (!grader) { headingBadge.hidden = true; return; }
+    if (!grader || !grade) { headingBadge.hidden = true; return; }
     headingBadge.hidden = false;
     headingBadge.textContent = grade ? gradeLabel(grader, grade) : graderShort(grader);
     headingBadge.dataset.unknown = String(!grade);
@@ -480,9 +493,7 @@ export function createUi(doc, actions) {
   function renderPrices(prices) {
     priceGrader = null;
     valueAnnounced = false;
-    const vslot = ref(body, 'value-slot');
-    const mslot = ref(body, 'market-slot');
-    if (!vslot || !mslot || !prices || !GRADE_SCALES[prices.grader]) { setBadge(identity?.grader, null); return; }
+    if (!prices || !GRADE_SCALES[prices.grader]) { setBadge(identity?.grader, null); return; }
     priceGrader = prices.grader;
     const comic = prices.grader === 'cgc-comics';
     const vf = clone('tpl-value');
@@ -492,7 +503,8 @@ export function createUi(doc, actions) {
     const fields = ref(vf, 'price-fields');
     const edit = ref(vf, 'price-edit');
     ref(vf, 'price-card-label').textContent = t(comic ? 'prices_title_label' : 'prices_card_label');
-    edit.querySelector('span').textContent = t(comic ? 'value_change_comic' : 'value_change');
+    ref(vf, 'price-edit-label').textContent = t(comic ? 'value_change_comic' : 'value_change');
+    ref(vf, 'price-change').addEventListener('click', () => openPriceFields('card'));
     input.value = prices.desc ?? '';
     for (const g of ['', ...GRADE_SCALES[prices.grader]]) {
       const o = doc.createElement('option');
@@ -515,9 +527,14 @@ export function createUi(doc, actions) {
       if (open) input.focus();
     });
     ref(mf, 'price-pop').hidden = !POP_URLS[prices.grader];
-    ref(mf, 'price-note').textContent = t('find_note', [ebayHostLabel(prices.site)]);
-    vslot.appendChild(vf);
-    mslot.appendChild(mf);
+    ref(vf, 'price-note').textContent = t('find_note', [ebayHostLabel(prices.site)]);
+    const toggle = ref(mf, 'market-toggle');
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      ref(extra, 'market-data').hidden = !open;
+    });
+    extra.append(vf, mf);
     setPriceFields(false); // QA P2-6: the fields open only when the card name is missing (need-card) or on Change
     setBadge(prices.grader, select.value);
     syncPriceSummary();
@@ -526,23 +543,23 @@ export function createUi(doc, actions) {
   /** Opens Change and puts the cursor in the card field or the grade list. */
   function openPriceFields(focus = 'card') {
     setPriceFields(true);
-    const el = ref(body, focus === 'grade' ? 'price-grade' : 'price-card');
+    const el = ref(extra, focus === 'grade' ? 'price-grade' : 'price-card');
     el?.scrollIntoView({ block: 'center' });
     el?.focus();
   }
 
   function setPriceFields(open) {
-    const fields = ref(body, 'price-fields');
+    const fields = ref(extra, 'price-fields');
     if (!fields) return;
     fields.hidden = !open;
-    ref(body, 'price-edit')?.setAttribute('aria-expanded', String(open));
+    ref(extra, 'price-edit')?.setAttribute('aria-expanded', String(open));
   }
 
   /** "Matched" line under the tiles: PriceCharting's / PSA's name once known, else the search terms. */
   function syncPriceSummary(title = null) {
-    const text = ref(body, 'price-card-text');
+    const text = ref(extra, 'price-card-text');
     if (!text) return;
-    const card = title ?? ref(body, 'price-card').value.trim();
+    const card = title ?? ref(extra, 'price-card').value.trim();
     text.textContent = card || t(priceGrader === 'cgc-comics' ? 'identity_title_unknown' : 'identity_card_unknown');
     text.classList.toggle('muted', !card);
   }
@@ -566,8 +583,8 @@ export function createUi(doc, actions) {
 
   /** Card details from PSA's API (cert lookup) or from the label: search terms, grade and full title. */
   function applyCertCard(card) {
-    const input = ref(body, 'price-card');
-    const select = ref(body, 'price-grade');
+    const input = ref(extra, 'price-card');
+    const select = ref(extra, 'price-grade');
     if (!input || !select) return;
     if (card.query) input.value = card.query;
     const g = matchGrade(priceGrader, card.grade);
@@ -596,25 +613,56 @@ export function createUi(doc, actions) {
     loading: 'ebay_loading', check: 'ebay_checking', 'no-permission': 'ebay_allow_text', blocked: 'ebay_blocked', error: 'ebay_error',
     'need-card': 'ebay_need_card', 'need-grade': 'ebay_need_grade', none: 'ebay_none',
   };
-  const SHOWN_EBAY_SALES = 5;
+
+  /** A sale line: date · title · price (design v2: one line each, the title cut with an ellipsis). */
+  function saleRow(list, { date, title, price, url = null }) {
+    const li = doc.createElement('li');
+    const d = doc.createElement('span');
+    const v = doc.createElement('span');
+    d.className = 'sale-date';
+    v.className = 'sale-price';
+    d.textContent = saleDate(date);
+    v.textContent = price;
+    let ti;
+    if (url) {
+      ti = doc.createElement('button');
+      ti.type = 'button';
+      ti.className = 'link sale-title';
+      ti.dataset.action = 'ebay-item';
+      ti.dataset.url = url;
+      ti.textContent = title;
+      const nt = doc.createElement('span');
+      nt.className = 'visually-hidden';
+      nt.textContent = ` ${t('a11y_new_tab')}`;
+      ti.append(nt);
+    } else {
+      ti = doc.createElement('span');
+      ti.className = 'sale-title';
+      ti.textContent = title;
+    }
+    ti.title = title;
+    li.append(d, ti, v);
+    list.appendChild(li);
+  }
 
   /**
-   * eBay block in Value (A21). st: {status:'off'} (setting off), a state from EBAY_STATE_KEY, or the ok result of
-   * ebayData.loadEbay(); plus {label} (the grade asked for, "PSA 10") and {host} (the eBay site).
+   * eBay sales section (A21). st: {status:'off'} (setting off: only the eBay searches), a state from EBAY_STATE_KEY,
+   * or the ok result of ebayData.loadEbay(); plus {label} (the grade asked for, "PSA 10") and {host} (the eBay site).
    */
   function showEbay(st) {
-    const box = ref(body, 'ebay-block');
+    const box = ref(extra, 'ebay-block');
     if (!box) return;
-    box.hidden = st.status === 'off';
-    if (box.hidden) return;
+    const off = st.status === 'off';
     const ov = st.status === 'ok' ? st.overview : null;
     const status = ov && !ov.count && !ov.forSale ? 'none' : st.status;
     box.dataset.status = status;
     box.setAttribute('aria-busy', String(['loading', 'check'].includes(status)));
-    ref(box, 'ebay-heading').textContent = t('ebay_sales_heading', [keepTogether(st.label || '')]);
+    ref(box, 'ebay-heading').textContent = off ? t('ebay_heading') : t('ebay_sales_heading', [keepTogether(st.label || '')]);
     const found = status === 'ok';
-    ref(box, 'ebay-state').hidden = found;
+    ref(box, 'ebay-state').hidden = found || off;
     ref(box, 'ebay-found').hidden = !found;
+    if (off) return;
+    ref(box, 'ebay-spin').toggleAttribute('hidden', !['loading', 'check'].includes(status));
     ref(box, 'ebay-allow').hidden = status !== 'no-permission';
     ref(box, 'ebay-allow-label').textContent = t('ebay_allow');
     ref(box, 'ebay-retry').hidden = !['blocked', 'error'].includes(status);
@@ -624,7 +672,6 @@ export function createUi(doc, actions) {
     pick.hidden = !['need-grade', 'need-card'].includes(status);
     pick.dataset.focus = status === 'need-grade' ? 'grade' : 'card';
     ref(box, 'ebay-pick-label').textContent = t(status === 'need-grade' ? 'ebay_pick_grade' : 'ebay_pick_card');
-    for (const name of ['ebay-open-sold', 'ebay-open-active']) ref(box, name).hidden = !st.urls;
     if (!found) {
       ref(box, 'ebay-state-text').textContent = t(EBAY_STATE_KEY[status] ?? 'ebay_error', [status === 'no-permission' ? (st.host ?? '') : keepTogether(st.label || '')]);
       if (['check', 'blocked'].includes(status)) announce(t(EBAY_STATE_KEY[status]));
@@ -639,56 +686,55 @@ export function createUi(doc, actions) {
     ref(box, 'ebay-low-count').textContent = ov.forSale ? t('ebay_offers_count', [String(ov.forSale.count)]) : '';
     const list = ref(box, 'ebay-sales');
     while (list.firstChild) list.firstChild.remove();
-    for (const s of ov.sales.slice(0, SHOWN_EBAY_SALES)) {
-      const li = doc.createElement('li');
-      const d = doc.createElement('span');
-      const v = doc.createElement('strong');
-      const b = doc.createElement('button');
-      d.className = 'sale-date';
-      v.className = 'sale-price';
-      b.type = 'button';
-      b.className = 'link sale-title';
-      b.dataset.action = 'ebay-item';
-      b.dataset.url = s.url;
-      d.textContent = saleDate(s.soldDate);
-      v.textContent = money(s.price.value, cur);
-      b.textContent = s.title;
-      const nt = doc.createElement('span');
-      nt.className = 'visually-hidden';
-      nt.textContent = ` ${t('a11y_new_tab')}`;
-      b.append(nt);
-      li.append(d, v, b);
-      list.appendChild(li);
-    }
+    for (const s of ov.sales.slice(0, SHOWN_EBAY_SALES)) saleRow(list, { date: s.soldDate, title: s.title, price: money(s.price.value, cur), url: s.url });
+  }
+
+  /** "Price per grade" preview while folded: the grade below this slab's, the highest price, and how many more. */
+  function marketPreview(prices, current) {
+    if (!prices.length) return '';
+    const at = current ? prices.findIndex((p) => p.label === current.label) : -1;
+    const picks = [];
+    if (at > 0) picks.push(prices.at(at - 1));
+    const top = prices.reduce((a, b) => (b.price > a.price ? b : a));
+    const own = at >= 0 ? prices.at(at) : null;
+    if (top !== own && !picks.includes(top)) picks.push(top);
+    if (!picks.length) picks.push(prices[0]);
+    const more = prices.length - picks.length - (at >= 0 ? 1 : 0);
+    return [...picks.map((p) => `${p.label} ${money(p.price)}`), ...(more > 0 ? [t('market_more', [String(more)])] : [])].join(' · ');
   }
 
   /**
-   * Value area (+ Market data). st: {status:'loading'|'reading'|'no-permission'|'not-found'|'unreadable'|'error'|
+   * Value section (+ Price per grade). st: {status:'loading'|'reading'|'no-permission'|'not-found'|'unreadable'|'error'|
    * 'challenge'|'need-card'} or an ok result (source 'pc': priceData.loadPrices(), 'ppt': pptApi.loadPptPrices()) plus
    * {psa} (PSA API card with population) and {note} (why PokemonPriceTracker wasn't used, e.g. its daily limit).
    */
   function showPriceData(st) {
-    const box = ref(body, 'price-data');
-    const market = ref(body, 'market-data');
+    const box = ref(extra, 'price-data');
+    const market = ref(extra, 'market');
     if (!box) return;
     const ok = st.status === 'ok';
     const comic = priceGrader === 'cgc-comics';
-    box.setAttribute('aria-busy', String(['loading', 'reading', 'check'].includes(st.status)));
+    const busy = ['loading', 'reading', 'check'].includes(st.status);
+    box.setAttribute('aria-busy', String(busy));
     box.dataset.status = st.status;
     ref(box, 'price-state').hidden = ok;
     ref(box, 'price-found').hidden = !ok;
     if (market) market.hidden = !ok;
+    ref(box, 'price-spin').toggleAttribute('hidden', !busy);
     ref(box, 'price-allow').hidden = st.status !== 'no-permission';
+    ref(box, 'price-change').hidden = !['need-card', 'not-found'].includes(st.status);
     ref(box, 'price-retry').hidden = !['error', 'challenge', 'unreadable'].includes(st.status);
     ref(box, 'price-pc-search').hidden = !['challenge', 'unreadable', 'not-found'].includes(st.status);
-    ref(body, 'value-match').hidden = st.status === 'need-card';
-    ref(body, 'pc-col').textContent = st.note ? ` · ${t(st.note.key, st.note.subs)}` : '';
-    ref(body, 'value-source').textContent = t(ok && st.source === 'ppt' ? 'value_source_ppt' : 'value_source');
+    ref(extra, 'value-match').hidden = !ok && st.status === 'need-card';
+    ref(extra, 'value-source').textContent = ok ? t(st.source === 'ppt' ? 'value_source_ppt' : 'value_source') : '';
+    const notes = st.note ? [t(st.note.key, st.note.subs)] : [];
+    const col = ref(extra, 'pc-col');
+    const showNotes = () => { col.textContent = notes.join(' · '); col.hidden = !notes.length; };
     if (!ok) {
-      const q = ref(body, 'price-card')?.value.trim() ?? '';
+      showNotes();
+      const q = ref(extra, 'price-card')?.value.trim() ?? '';
       const key = st.status === 'need-card' && comic ? 'prices_need_title_data' : (PRICE_STATE_KEY[st.status] ?? 'prices_error');
       ref(box, 'price-state-text').textContent = t(key, [q]);
-      if (st.status === 'need-card') setPriceFields(true);
       if (ANNOUNCED_STATES.has(st.status)) announce(t(key, [q]));
       return;
     }
@@ -697,15 +743,18 @@ export function createUi(doc, actions) {
       syncPriceSummary(st.name);
       if (identity && !identity.title) { identity.title = st.name; syncIdentity(); }
     }
-    set.textContent = st.set ? t('prices_set_line', [st.set]) : '';
-    set.hidden = !st.set;
+    if (set) {
+      set.textContent = st.set ? t('prices_set_line', [st.set]) : '';
+      set.hidden = !st.set;
+    }
     // Tiles name the grade asked for (e.g. "PSA 9"); PriceCharting's own column name is shown when it differs.
-    const grade = ref(body, 'price-grade')?.value ?? '';
+    const grade = ref(extra, 'price-grade')?.value ?? '';
     const pcLabel = st.current?.label ?? st.labels?.[0] ?? '';
     const asked = grade ? gradeLabel(priceGrader, grade) : '';
     const label = asked || pcLabel;
-    if (!grade) ref(body, 'pc-col').textContent += ` · ${t('value_pick_grade')}`;
-    else if (st.current && pcLabel && pcLabel.toLowerCase() !== asked.toLowerCase()) ref(body, 'pc-col').textContent += ` · ${t('value_column', [pcLabel])}`;
+    if (!grade) notes.push(t('value_pick_grade'));
+    else if (st.current && pcLabel && pcLabel.toLowerCase() !== asked.toLowerCase()) notes.push(t('value_column', [pcLabel]));
+    showNotes();
     if (market) ref(market, 'price-pc-open').hidden = !st.url;
     ref(box, 'pc-label').textContent = label ? t('prices_current_label', [keepTogether(label)]) : t('prices_current_unknown');
     ref(box, 'pc-price').textContent = st.current ? money(st.current.price) : '—';
@@ -717,45 +766,35 @@ export function createUi(doc, actions) {
     ref(box, 'pc-last-date').textContent = st.lastSold ? saleDate(st.lastSold.date)
       : sum ? [sum.count ? t('prices_sales_count', [String(sum.count)]) : '', sum.lastDate ? t('prices_last_on', [saleDate(sum.lastDate)]) : ''].filter(Boolean).join(' · ')
         : t('prices_no_recent');
-    const grid = ref(market, 'pc-grid');
-    while (grid.firstChild) grid.firstChild.remove();
-    for (const p of st.prices) {
-      const li = doc.createElement('li');
-      const l = doc.createElement('span');
-      const v = doc.createElement('strong');
-      l.textContent = p.label;
-      v.textContent = money(p.price);
-      li.append(l, v);
-      if (st.current && p.label === st.current.label) {
-        li.dataset.current = 'true';
-        const sr = doc.createElement('span');
-        sr.className = 'visually-hidden';
-        sr.textContent = ` ${t('grid_current_sr')}`;
-        li.append(sr);
+    if (market) {
+      ref(market, 'market-preview').textContent = marketPreview(st.prices, st.current);
+      const grid = ref(market, 'pc-grid');
+      while (grid.firstChild) grid.firstChild.remove();
+      for (const p of st.prices) {
+        const li = doc.createElement('li');
+        const l = doc.createElement('span');
+        const v = doc.createElement('strong');
+        l.textContent = p.label;
+        v.textContent = money(p.price);
+        li.append(l, v);
+        if (st.current && p.label === st.current.label) {
+          li.dataset.current = 'true';
+          const sr = doc.createElement('span');
+          sr.className = 'visually-hidden';
+          sr.textContent = ` ${t('grid_current_sr')}`;
+          li.append(sr);
+        }
+        grid.appendChild(li);
       }
-      grid.appendChild(li);
+      const list = ref(market, 'pc-sales');
+      while (list.firstChild) list.firstChild.remove();
+      const rows = st.sales?.rows ?? [];
+      ref(market, 'pc-sales-heading').textContent = t('prices_sales_heading', [st.sales?.label ?? label]);
+      for (const r of rows) saleRow(list, { date: r.date, title: r.title, price: money(r.price) });
+      const none = ref(market, 'pc-no-sales');
+      none.hidden = rows.length > 0;
+      none.textContent = t('prices_no_sales', [label || t('prices_grade_all')]);
     }
-    const list = ref(market, 'pc-sales');
-    while (list.firstChild) list.firstChild.remove();
-    const rows = st.sales?.rows ?? [];
-    ref(market, 'pc-sales-heading').textContent = t('prices_sales_heading', [st.sales?.label ?? label]);
-    for (const r of rows) {
-      const li = doc.createElement('li');
-      const d = doc.createElement('span');
-      const v = doc.createElement('strong');
-      const ti = doc.createElement('span');
-      d.className = 'sale-date';
-      v.className = 'sale-price';
-      ti.className = 'sale-title';
-      d.textContent = saleDate(r.date);
-      v.textContent = money(r.price);
-      ti.textContent = r.title;
-      li.append(d, v, ti);
-      list.appendChild(li);
-    }
-    const none = ref(market, 'pc-no-sales');
-    none.hidden = rows.length > 0;
-    none.textContent = t('prices_no_sales', [label || t('prices_grade_all')]);
     // One spoken summary per result (D6): the grid and sales list are not a live region.
     if (!valueAnnounced) {
       valueAnnounced = true;
@@ -770,13 +809,13 @@ export function createUi(doc, actions) {
 
   /** What the price block searches for: {grader, desc, grade} (grade '' = all grades). */
   function priceInput() {
-    return { grader: priceGrader, desc: (ref(body, 'price-card')?.value ?? '').trim(), grade: ref(body, 'price-grade')?.value ?? '' };
+    return { grader: priceGrader, desc: (ref(extra, 'price-card')?.value ?? '').trim(), grade: ref(extra, 'price-grade')?.value ?? '' };
   }
 
   /** Error under the card field, focus on the field; an empty key clears it. */
   function showPriceError(key) {
-    const err = ref(body, 'price-error');
-    const input = ref(body, 'price-card');
+    const err = ref(extra, 'price-error');
+    const input = ref(extra, 'price-card');
     if (!err || !input) return;
     err.textContent = key ? t(key) : '';
     if (key) {
@@ -803,11 +842,14 @@ export function createUi(doc, actions) {
     if (err) err.textContent = ok ? '' : t('copy_failed');
   }
 
-  /** S2e. */
-  function showEdit({ number, grader }) {
+  /** S2e. method: how the number was read (shown above the form). */
+  function showEdit({ number, grader, method = null }) {
     setTaskState('edit');
     setHeading(t('edit_heading'));
     body.appendChild(clone('tpl-edit'));
+    const m = ref(body, 'edit-method');
+    m.textContent = method ? t(methodKey(method)) : '';
+    m.hidden = !method;
     const { input } = mountForm({ number, grader, withCancel: true });
     offline(body);
     input.focus();
@@ -822,21 +864,26 @@ export function createUi(doc, actions) {
     setHeading(t('confirm_heading'), 'warning');
     body.appendChild(clone('tpl-confirm'));
     ref(body, 'back-to-page').hidden = !view.backToPage;
-    qrBlock(body, view.qrHost, view.qrNumberUsed);
-    if (view.reasons.length) {
-      const list = ref(body, 'reason-list');
-      for (const r of view.reasons) {
-        const p = doc.createElement('p');
-        p.textContent = t(r.key, r.subs);
-        list.appendChild(p);
-      }
-      ref(body, 'reasons').hidden = false;
-    }
+    // Design v2: one grey box with every reason; what to check gets a red triangle, what only informs a grey "i".
+    // An off-site QR code is the first reason, with its title.
+    const reasons = ref(body, 'reasons');
+    const addReason = (tone, text, title = null) => {
+      const frag = clone('tpl-reason');
+      frag.querySelector('.reason').dataset.tone = tone;
+      ref(frag, 'reason-icon').setAttribute('href', tone === 'warning' ? '#i-triangle' : '#i-circle-i');
+      const head = ref(frag, 'reason-title');
+      head.textContent = title ?? '';
+      head.hidden = !title;
+      ref(frag, 'reason-text').appendChild(doc.createTextNode(text));
+      reasons.appendChild(frag);
+    };
+    if (view.qrHost) addReason('warning', [t('qr_offsite_body', [view.qrHost]), view.qrNumberUsed ? t('qr_offsite_number') : ''].filter(Boolean).join(' '), t('qr_offsite_title'));
+    for (const r of view.reasons) addReason(INFO_REASONS.has(r.key) ? 'info' : 'warning', t(r.key, r.subs));
+    reasons.hidden = !reasons.firstChild;
     setThumb(view);
-    ref(body, 'caption').textContent = view.caption ?? '';
     const larger = ref(body, 'larger');
     larger.hidden = !view.thumbUrl;
-    larger.textContent = t('image_larger');
+    ref(body, 'larger-label').textContent = t('image_larger');
     const cands = view.candidates.slice(0, 3);
     currentCandidates = cands;
     fillRead(cands[0], { path: null });
@@ -861,11 +908,13 @@ export function createUi(doc, actions) {
         label.textContent = !c.grader ? t('candidate_use') : hasDirectUrl(c.grader) ? t('confirm_open_guess', [graderName(c.grader)]) : t('open_lookup');
         use.dataset.index = String(i);
         use.setAttribute('aria-labelledby', `${label.id} ${num.id}`);
-        if (i === 0) { use.classList.remove('btn-secondary'); use.classList.add('btn-strong'); }
+        if (i === 0) use.classList.add('is-best');
         items.appendChild(cf);
       });
     }
     mountForm({ ...view.prefill, withCopy: true, cgcHint: !view.reasons.some((r) => r.key === 'reason_cgc_both') });
+    // Several numbers: each row continues with its number; the form comes back when a row needs a grader (design v2).
+    singles.certform.hidden = cands.length >= 2;
     renderLowres(ref(body, 'lowres-slot'), view.lowres);
     reportBox(view.report);
     offline(body);
@@ -892,20 +941,20 @@ export function createUi(doc, actions) {
       closeLarger();
     }
     btn.setAttribute('aria-expanded', String(large));
-    btn.textContent = t(large ? 'image_smaller' : 'image_larger');
+    ref(btn, 'larger-label').textContent = t(large ? 'image_smaller' : 'image_larger');
   }
 
   /** "This went wrong" (A20): offered only while the scanned photo and its result are in memory (not after a restore). */
   function reportBox(on) {
-    const box = ref(body, 'report-box');
+    const box = refAny('report-box');
     if (box) box.hidden = !on;
   }
 
   /** The report file was handed to the browser's download: the hint names it, and it is announced. */
   function reportSaved(fileName) {
-    const hint = ref(body, 'report-hint');
+    const hint = refAny('report-hint');
     const text = t('report_saved', [fileName]);
-    if (hint) hint.textContent = text;
+    if (hint) { hint.textContent = text; hint.hidden = false; }
     announce(text);
   }
 
@@ -927,7 +976,12 @@ export function createUi(doc, actions) {
     setTaskState('error');
     setHeading(t(ev.heading), ev.tone);
     const frag = clone('tpl-error');
-    for (const b of frag.querySelectorAll('[data-action]')) b.hidden = !ev.actions.includes(b.dataset.action);
+    let first = true;
+    for (const b of frag.querySelectorAll('[data-action]')) {
+      b.hidden = !ev.actions.includes(b.dataset.action);
+      b.className = `btn ${!b.hidden && first ? 'btn-strong' : 'btn-secondary'}`; // design v2: the first way out leads
+      if (!b.hidden) first = false;
+    }
     body.appendChild(frag);
     const p = singles.error;
     p.textContent = t(ev.body, ev.bodySubs);
@@ -981,10 +1035,10 @@ export function createUi(doc, actions) {
       const path = ref(row, 'path');
       const thumb = view.thumbs?.[item.imageIndex];
       if (thumb) {
-        ref(row, 'thumb-box').hidden = false;
         const img = ref(row, 'thumb');
         img.src = thumb;
         img.alt = t('page_result_photo', [String(item.imageIndex + 1)]);
+        img.hidden = false;
       }
       const open = ref(row, 'open');
       const choose = ref(row, 'choose');
@@ -1021,13 +1075,16 @@ export function createUi(doc, actions) {
     settle([t('page_results_heading'), ...(view.summary ?? []).map((l) => t(l.key, l.subs))].join('. '), { moveFocus });
   }
 
-  /** A row whose cert page was opened from the list keeps its Open button and shows "Opened". */
+  /** A row whose cert page was opened from the list shows "✓ Opened" in place of its Open button (design v2). */
   function markPageOpened(i) {
     const li = singles.pageresults.querySelector(`[data-testid="page-result-${i}"]`);
     if (!li) return;
     li.dataset.opened = 'true';
     const mark = ref(li, 'opened');
     if (mark) mark.hidden = false;
+    const open = ref(li, 'open');
+    if (open && li.contains(doc.activeElement) && doc.activeElement === open) ref(li, 'copy')?.focus();
+    if (open) open.hidden = true;
   }
 
   /**
@@ -1052,7 +1109,7 @@ export function createUi(doc, actions) {
    */
   function showPageAccess({ host = null, body: copy }, { moveFocus = true } = {}) {
     setTaskState('page-access');
-    setHeading(t('page_access_heading'), 'info');
+    setHeading(t('page_access_heading'), 'warning');
     const frag = clone('tpl-page-access');
     ref(frag, 'access-body').textContent = t(copy.key, copy.subs);
     if (host) {
@@ -1085,10 +1142,10 @@ export function createUi(doc, actions) {
     if (!note) return;
     if (state === 'denied') {
       ref(body, 'always').hidden = true;
-      note.className = 'alert alert-neutral';
+      note.className = 'note';
       ref(note, 'always-status-text').textContent = t('page_access_denied', [host]);
     } else {
-      note.className = 'alert alert-danger';
+      note.className = 'note note-warn';
       ref(note, 'always-status-text').textContent = t('perm_failed');
     }
     note.hidden = false;
@@ -1153,7 +1210,15 @@ export function createUi(doc, actions) {
     const kbd = ref(singles.pagescan, 'kbd');
     kbd.textContent = shortcut || '';
     kbd.hidden = !shortcut;
-    $('shortcut-current').textContent = shortcut ? t('setting_shortcut_current', [shortcut]) : t('setting_shortcut_unset');
+    const cur = $('shortcut-current');
+    cur.textContent = '';
+    const text = shortcut ? t('setting_shortcut_current', [shortcut]) : t('setting_shortcut_unset');
+    const at = shortcut ? text.indexOf(shortcut) : -1;
+    if (at < 0) { cur.textContent = text; return; }
+    const keys = doc.createElement('span');
+    keys.className = 'kbd';
+    keys.textContent = shortcut;
+    cur.append(text.slice(0, at), keys, text.slice(at + shortcut.length)); // "Keyboard shortcut: " + keys in mono
   }
 
   function renderSettings(s, { historyCount }) {

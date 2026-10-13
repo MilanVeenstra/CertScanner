@@ -1630,5 +1630,14 @@
   },
   "psa_info_server": {
     "message": "PSA antwoordde met een fout: controleer de sleutel in Instellingen of probeer het later opnieuw."
+  },
+  "setting_psa_key_answer": {
+    "message": "PSA zei: $ANSWER$",
+    "placeholders": {
+      "answer": {
+        "content": "$1",
+        "example": "application/json “Forbidden”"
+      }
+    }
   }
 }

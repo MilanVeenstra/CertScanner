@@ -22,7 +22,7 @@ import { isPcUrl, searchUrl as pcSearchUrl } from '../core/pricecharting.js';
 import { loadPrices, requestPricePermission } from './priceData.js';
 import { loadEbay, requestEbayPermission } from './ebayData.js';
 import { ebayHost, isEbayUrl } from '../core/ebaySold.js';
-import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, testPsaKey, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
+import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, testPsaKey, psaCallsToday, PSA_DAILY_LIMIT, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
 import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken, testPptKey } from './pptApi.js';
 import { isPokemon, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
 import { wireInputs } from './inputs.js';
@@ -982,6 +982,7 @@ function showView(name) {
   if (settingsView) {
     refreshSites();
     refreshShortcut();
+    renderPsaUsage();
     $('settings-heading').focus();
   } else {
     $('settings-button').focus();
@@ -997,6 +998,12 @@ function renderPsaKey(status = null, subs = [], detail = '') {
   $('psa-key-remove').hidden = !psaToken;
   const text = status ? t(status, subs) : (psaToken ? t('setting_psa_key_saved') : '');
   $('psa-key-status').textContent = detail ? `${text} ${t('setting_psa_key_answer', [detail])}` : text; // PSA's own words
+  renderPsaUsage();
+}
+/** How many of PSA's daily calls this extension used today (counted on this device). */
+async function renderPsaUsage() {
+  const n = psaToken ? await psaCallsToday() : 0;
+  $('psa-key-usage').textContent = psaToken ? t('setting_psa_key_usage', [String(n), String(PSA_DAILY_LIMIT)]) : '';
 }
 $('psa-key-save').addEventListener('click', () => {
   const v = $('setting-psa-key').value.trim();

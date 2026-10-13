@@ -1639,5 +1639,18 @@
         "example": "application/json “Forbidden”"
       }
     }
+  },
+  "setting_psa_key_usage": {
+    "message": "Aanvragen die CertScanner vandaag naar PSA stuurde: $COUNT$ van $LIMIT$ (geteld op dit apparaat; PSA telt per dag).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      },
+      "limit": {
+        "content": "$2",
+        "example": "100"
+      }
+    }
   }
 }

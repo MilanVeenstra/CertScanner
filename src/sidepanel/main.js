@@ -848,7 +848,8 @@ function focusCertInput() {
   input.focus();
 }
 
-$('task').addEventListener('click', (e) => {
+/** Actions in the task card and in the result sections under it (design v2: Value, eBay sales, Market). */
+function onTaskClick(e) {
   const b = e.target.closest?.('[data-action]');
   if (!b) return;
   const a = b.dataset.action;
@@ -859,7 +860,7 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'reload') location.reload();
   else if (a === 'copy') copyNumber();
   else if (a === 'open-again') openAgain();
-  else if (a === 'edit') ui.showEdit({ number: last.opened.number, grader: last.opened.grader });
+  else if (a === 'edit') ui.showEdit({ number: last.opened.number, grader: last.opened.grader, method: last.opened.method });
   else if (a === 'edit-cancel') cancelEdit();
   else if (a === 'go-to-tab' && Number.isInteger(last.opened?.tabId)) chrome.tabs.update(last.opened.tabId, { active: true }).catch(() => ui.showOpenError());
   else if (a === 'larger') ui.toggleLarger(last.fullBlob);
@@ -873,7 +874,9 @@ $('task').addEventListener('click', (e) => {
   else if (a === 'report') saveReport();
   else if (a.startsWith('price-')) onPriceAction(a);
   else if (a.startsWith('ebay-')) onEbayAction(a, b);
-});
+}
+$('task').addEventListener('click', onTaskClick);
+$('result-extra').addEventListener('click', onTaskClick);
 $('choose-image').addEventListener('click', () => $('file-input').click());
 
 // ---------------------------------------------------------------- N1 sharper scans
@@ -993,11 +996,16 @@ $('settings-button').addEventListener('click', () => showView('settings'));
 $('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url: SHORTCUTS_URL }).catch(() => ui.announce(t('err_open_tab'))); });
 $('back-button').addEventListener('click', () => showView('home'));
 
+/** Key statuses that mean the key works; they get the check mark (design v2). */
+const KEY_OK = new Set(['setting_psa_key_works', 'setting_psa_key_saved', 'setting_ppt_key_works', 'setting_ppt_key_saved']);
+const keyOk = (id, on) => { const icon = $(id).parentElement?.querySelector('.key-ok'); if (icon) icon.toggleAttribute('hidden', !on || !$(id).textContent); };
+
 // PSA API key (optional): card name and population from the cert number. Saving asks for api.psacard.com access.
 function renderPsaKey(status = null, subs = [], detail = '') {
   $('psa-key-remove').hidden = !psaToken;
   const text = status ? t(status, subs) : (psaToken ? t('setting_psa_key_saved') : '');
   $('psa-key-status').textContent = detail ? `${text} ${t('setting_psa_key_answer', [detail])}` : text; // PSA's own words
+  keyOk('psa-key-status', !status || KEY_OK.has(status));
   renderPsaUsage();
 }
 /** How many of PSA's daily calls this extension used today (counted on this device). */
@@ -1034,6 +1042,7 @@ $('psa-key-remove').addEventListener('click', async () => {
 function renderPptKey(status = null) {
   $('ppt-key-remove').hidden = !pptToken;
   $('ppt-key-status').textContent = status ? t(status) : (pptToken ? t('setting_ppt_key_saved') : '');
+  keyOk('ppt-key-status', !status || KEY_OK.has(status));
 }
 $('ppt-key-save').addEventListener('click', () => {
   const v = $('setting-ppt-key').value.trim();

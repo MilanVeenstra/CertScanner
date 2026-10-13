@@ -12,100 +12,98 @@
 <script type="module" src="main.js"></script>
 </head>
 <body data-state="idle">
-<!-- In-panel icon set (UX spec §8): 16 px, 1.5 px stroke, currentColor; always aria-hidden where used. -->
+<!-- Icon set of the v2 design (docs/design/v2: 24 px grid, round caps and joins, square corners, currentColor);
+     sized by CSS, always aria-hidden where used. -->
 <svg class="sprite" aria-hidden="true" focusable="false">
-  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.75v1.5M8 12.75v1.5M1.75 8h1.5M12.75 8h1.5M3.6 3.6l1.05 1.05M11.35 11.35l1.05 1.05M3.6 12.4l1.05-1.05M11.35 4.65l1.05-1.05"/><circle cx="8" cy="8" r="4.75"/></symbol>
-  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13 8H3M7 4 3 8l4 4"/></symbol>
-  <symbol id="i-upload" viewBox="0 0 16 16"><path d="M8 10.5V2.5M4.75 5.75 8 2.5l3.25 3.25M2.5 10.5v3h11v-3"/></symbol>
-  <symbol id="i-image" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1.25"/><path d="m2.5 12 3.5-3.5 2.5 2.5 2-2 3 3"/></symbol>
-  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></symbol>
-  <symbol id="i-external" viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M13.5 2.5l-6 6M12 9.5v3a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/></symbol>
-  <symbol id="i-pencil" viewBox="0 0 16 16"><path d="m10.5 2.5 3 3-8 8h-3v-3zM9 4l3 3"/></symbol>
-  <symbol id="i-check" viewBox="0 0 16 16"><path d="m3 8.5 3 3 7-7"/></symbol>
-  <symbol id="i-circle-check" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m5.5 8.25 1.75 1.75 3.25-3.5"/></symbol>
-  <symbol id="i-circle-i" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.25v3.75M8 4.9v.1"/></symbol>
-  <symbol id="i-triangle" viewBox="0 0 16 16"><path d="M8 2.25 14.25 13H1.75z"/><path d="M8 6.5v3M8 11.15v.1"/></symbol>
-  <symbol id="i-circle-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m6 6 4 4M10 6l-4 4"/></symbol>
-  <symbol id="i-spinner" viewBox="0 0 16 16"><path d="M8 2a6 6 0 1 1-6 6"/></symbol>
-  <symbol id="i-half" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></symbol>
-  <symbol id="i-circle" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/></symbol>
-  <symbol id="i-circle-dash" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" stroke-dasharray="2.6 1.7"/><path d="M5.5 8h5"/></symbol>
-  <symbol id="i-step-done" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="currentColor" stroke="none"/><path d="m5.25 8.25 1.75 1.75 3.75-4" stroke="var(--cs-bg)"/></symbol>
-  <symbol id="i-wifi-off" viewBox="0 0 16 16"><path d="m2 2 12 12M5.75 10.75a3.25 3.25 0 0 1 4.5 0M3 8.25a7 7 0 0 1 3.25-1.9M13 8.25a7 7 0 0 0-2.6-1.7M8 13.25v.1"/></symbol>
-  <symbol id="i-tab" viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9.5" rx="1.5"/><path d="M2 6.5h5v-3"/></symbol>
-  <symbol id="i-scan-page" viewBox="0 0 16 16"><path d="M2 5V3a1 1 0 0 1 1-1h2M11 2h2a1 1 0 0 1 1 1v2M14 11v2a1 1 0 0 1-1 1h-2M5 14H3a1 1 0 0 1-1-1v-2"/><rect x="5.5" y="4.5" width="5" height="7" rx="1"/><path d="M5.5 6.5h5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8"/><path d="M4 16V4h12"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v8H3V6h8"/></symbol>
+  <symbol id="i-triangle" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-circle-i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
+  <symbol id="i-scan-page" viewBox="0 0 24 24"><path d="M15 2H6v20h12V5z"/><path d="M14 2v4h4"/></symbol>
+  <symbol id="i-spinner" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></symbol>
+  <symbol id="i-half" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+  <symbol id="i-step-done" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/><path d="m8 12 3 3 5-6" style="stroke:var(--cs-bg)"/></symbol>
+  <symbol id="i-circle-dash" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v6H3v-6"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v6H3v-6"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3 21 7 8 20H4v-4z"/><path d="m15 5 4 4"/></symbol>
+  <symbol id="i-tab" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15"/><path d="M3 10h8V5"/></symbol>
+  <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/></symbol>
   <symbol id="i-logo" viewBox="0 0 24 24"><rect x="3" y="1.75" width="13.5" height="19" style="fill:var(--cs-bg);stroke:var(--cs-text)" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"/><rect x="3" y="1.75" width="13.5" height="4.5" style="fill:var(--cs-accent);stroke:none"/><circle cx="15" cy="15" r="4.75" style="fill:var(--cs-bg);stroke:var(--cs-text)" stroke-width="2"/><path d="M18.6 18.6 22 22" style="stroke:var(--cs-text)" stroke-width="2.5" stroke-linecap="butt"/></symbol>
-  <symbol id="i-ban" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m3.75 3.75 8.5 8.5"/></symbol>
-  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
-  <symbol id="i-chevron" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
-  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v8M4.75 7.25 8 10.5l3.25-3.25M2.5 10.5v3h11v-3"/></symbol>
 </svg>
 
 <header class="app-header">
-  <svg class="logo" aria-hidden="true" focusable="false"><use href="#i-logo"/></svg>
-  <h1 data-i18n="ext_name">CertScanner</h1>
-  <button type="button" class="icon-btn btn-header" id="settings-button" data-testid="settings-button">
-    <svg class="icon icon-lg" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg><span class="visually-hidden" data-i18n="nav_settings">Settings</span>
-  </button>
+  <div class="header-home">
+    <svg class="logo" aria-hidden="true" focusable="false"><use href="#i-logo"/></svg>
+    <h1 data-i18n="ext_name">CertScanner</h1>
+    <button type="button" class="icon-btn" id="settings-button" data-testid="settings-button" data-i18n-attr="title:nav_settings">
+      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg><span class="visually-hidden" data-i18n="nav_settings">Settings</span>
+    </button>
+  </div>
+  <div class="header-settings">
+    <button type="button" class="header-back" id="back-button" data-testid="back-button">
+      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="nav_back">Back</span>
+    </button>
+    <h1 id="settings-heading" tabindex="-1" data-i18n="nav_settings">Settings</h1>
+  </div>
 </header>
 
 <p id="status" data-testid="status-live" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
 
 <main id="home">
   <section id="task" class="task-card" data-state="idle" aria-labelledby="task-heading">
-    <h2 id="task-heading" class="task-heading" tabindex="-1"><svg class="icon state-icon" aria-hidden="true" focusable="false" hidden><use href="#i-circle-check"/></svg><span class="chip heading-badge" id="task-heading-badge" data-testid="price-grade-chip" hidden></span><span id="task-heading-text" data-i18n="idle_heading">Scan a slab</span></h2>
+    <h2 id="task-heading" class="task-heading" tabindex="-1"><svg class="icon state-icon" aria-hidden="true" focusable="false" hidden><use href="#i-triangle"/></svg><span class="heading-row"><span class="chip heading-badge" id="task-heading-badge" data-testid="price-grade-chip" hidden></span><span id="task-heading-text" data-i18n="idle_heading">Scan a slab</span></span></h2>
     <div id="task-body"></div>
   </section>
 
-  <section id="other-ways" class="section disclosure" data-open="true" aria-labelledby="other-heading">
-  <h2 class="disclosure-heading"><button type="button" class="disclosure-toggle" id="other-toggle" data-testid="other-ways-toggle" aria-expanded="true" aria-controls="other-ways-body"><span id="other-heading" data-i18n="other_ways_heading">Other ways to scan</span><svg class="icon disclosure-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></button></h2>
-  <div class="disclosure-body" id="other-ways-body">
-  <p class="muted other-tip" id="right-click-tip"></p>
-  <section id="image-input" class="subsection" aria-labelledby="input-heading">
-    <h3 id="input-heading" data-i18n="input_heading">Scan an image</h3>
-    <div id="drop-zone" class="drop-zone">
-      <svg class="icon drop-icon" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>
-      <p class="drop-title" id="drop-title" data-i18n="drop_title">Drop a slab photo here</p>
-      <p class="drop-hint" id="paste-hint"></p>
-      <button type="button" class="btn btn-secondary" id="choose-image" data-action="choose">
-        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button">Choose image</span>
-      </button>
-      <input type="file" id="file-input" data-testid="upload-input" class="visually-hidden" tabindex="-1" aria-hidden="true" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/bmp">
-      <p class="hint" id="drop-formats"></p>
+  <!-- Result only: Value, eBay sales, Price per grade and "This went wrong", each its own section under the task card. -->
+  <div id="result-extra"></div>
+
+  <section id="other-ways" class="fold" data-open="true" aria-labelledby="other-heading">
+    <h2 class="fold-heading"><button type="button" class="fold-toggle" id="other-toggle" data-testid="other-ways-toggle" aria-expanded="true" aria-controls="other-ways-body"><span class="fold-title" id="other-heading" data-i18n="other_ways_heading">Other ways to scan</span><svg class="icon fold-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></button></h2>
+    <div class="fold-body" id="other-ways-body">
+      <p class="other-tip" id="right-click-tip"></p>
+      <div id="drop-zone" class="drop-zone">
+        <p class="drop-title"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span id="drop-title" data-i18n="drop_title">Drop a slab photo here</span></p>
+        <p class="drop-hint" id="paste-hint"></p>
+        <button type="button" class="btn btn-secondary btn-sm drop-choose" id="choose-image" data-action="choose"><span data-i18n="upload_button">Choose image</span></button>
+        <input type="file" id="file-input" data-testid="upload-input" class="visually-hidden" tabindex="-1" aria-hidden="true" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/bmp">
+        <p class="hint" id="drop-formats"></p>
+      </div>
+      <form id="manual-form" class="cert-form manual-form" novalidate>
+        <div class="field">
+          <label for="cert-input" data-i18n="manual_heading">Type a cert number</label>
+          <input type="text" id="cert-input" data-testid="manual-input" class="cert-field" autocomplete="off" spellcheck="false" maxlength="64" dir="ltr" inputmode="text" aria-describedby="cert-error" data-i18n-attr="placeholder:field_cert_hint">
+          <p class="field-error" id="cert-error" data-testid="manual-error" aria-live="polite"></p>
+        </div>
+        <fieldset class="segmented" id="grader-group" data-testid="manual-grader" data-value="">
+          <legend class="visually-hidden" data-i18n="grader_legend">Grader</legend>
+          <div class="segments">
+            <label class="segment"><input type="radio" name="manual-grader" value="psa"><span data-i18n="grader_psa">PSA</span></label>
+            <label class="segment"><input type="radio" name="manual-grader" value="cgc-comics"><span data-i18n="grader_cgc_comics">CGC Comics</span></label>
+            <label class="segment"><input type="radio" name="manual-grader" value="cgc-cards"><span data-i18n="grader_cgc_cards">CGC Cards</span></label>
+            <label class="segment"><input type="radio" name="manual-grader" value="bgs"><span data-i18n="grader_bgs">BGS</span></label>
+          </div>
+          <p class="hint grader-hint" id="manual-grader-hint"></p>
+        </fieldset>
+        <button type="submit" class="btn btn-primary btn-block" id="manual-submit" data-testid="manual-submit">
+          <span data-i18n="open_button">Open cert page</span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span>
+        </button>
+        <p class="hint url-preview" id="url-preview" dir="auto"></p>
+      </form>
     </div>
   </section>
 
-  <section id="manual" class="subsection" aria-labelledby="manual-heading">
-    <h3 id="manual-heading" data-i18n="manual_heading">Type a cert number</h3>
-    <form id="manual-form" novalidate>
-      <div class="field">
-        <label for="cert-input" data-i18n="field_cert_label">Cert number</label>
-        <input type="text" id="cert-input" data-testid="manual-input" class="cert-field" autocomplete="off" spellcheck="false" maxlength="64" dir="ltr" aria-describedby="cert-hint cert-error">
-        <p class="hint" id="cert-hint" data-i18n="field_cert_hint"></p>
-        <p class="field-error" id="cert-error" data-testid="manual-error" aria-live="polite"></p>
-      </div>
-      <fieldset class="segmented" id="grader-group" data-testid="manual-grader" data-value="">
-        <legend data-i18n="grader_legend">Grader</legend>
-        <div class="segments">
-          <label class="segment"><input type="radio" name="manual-grader" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa">PSA</span></label>
-          <label class="segment"><input type="radio" name="manual-grader" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics">CGC Comics</span></label>
-          <label class="segment"><input type="radio" name="manual-grader" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards">CGC Cards</span></label>
-          <label class="segment"><input type="radio" name="manual-grader" value="bgs"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_bgs">BGS</span></label>
-        </div>
-        <p class="hint grader-hint" id="manual-grader-hint"></p>
-      </fieldset>
-      <div class="actions">
-        <button type="submit" class="btn btn-primary" id="manual-submit" data-testid="manual-submit">
-          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="open_button">Open cert page</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span>
-        </button>
-      </div>
-      <p class="hint url-preview" id="url-preview" dir="auto"></p>
-    </form>
-  </section>
-  </div>
-  </section>
-
-  <section id="recent" class="section" aria-labelledby="recent-heading">
+  <section id="recent" class="section recent" aria-labelledby="recent-heading">
     <h2 id="recent-heading" data-i18n="recent_heading">Recent scans</h2>
     <p class="hint" id="recent-empty" data-i18n="recent_empty">No scans yet.</p>
     <ul id="recent-list" data-testid="history-list" class="recent-list"></ul>
@@ -114,47 +112,41 @@
 </main>
 
 <main id="settings" hidden aria-labelledby="settings-heading">
-  <div class="settings-top">
-    <button type="button" class="btn btn-secondary" id="back-button" data-testid="back-button">
-      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="nav_back">Back</span>
-    </button>
-    <h2 id="settings-heading" tabindex="-1" data-i18n="nav_settings">Settings</h2>
-  </div>
-
-  <section class="section" aria-labelledby="toolbar-heading">
-    <h3 id="toolbar-heading" data-i18n="settings_toolbar_heading">Toolbar button and shortcut</h3>
+  <section class="section settings-section" aria-labelledby="toolbar-heading">
+    <h2 id="toolbar-heading" data-i18n="settings_toolbar_heading">Toolbar button and shortcut</h2>
     <label class="switch-row" for="setting-scan-on-click">
-      <span class="switch-text" data-i18n="setting_scan_on_click">Toolbar button scans the page</span>
+      <span class="switch-text"><span class="switch-label" data-i18n="setting_scan_on_click">Toolbar button scans the page</span><span class="switch-hint" id="hint-scan-on-click" data-i18n="setting_scan_on_click_hint"></span></span>
       <input type="checkbox" role="switch" id="setting-scan-on-click" data-testid="setting-scanOnToolbarClick" data-setting="scanOnToolbarClick" aria-describedby="hint-scan-on-click">
       <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
     </label>
-    <p class="hint switch-hint" id="hint-scan-on-click" data-i18n="setting_scan_on_click_hint"></p>
-    <p class="shortcut-current" id="shortcut-current" data-testid="shortcut-current" dir="auto"></p>
-    <p class="hint" id="shortcut-help" data-i18n="setting_shortcut_hint"></p>
-    <button type="button" class="btn btn-secondary" id="shortcut-button" data-testid="shortcut-button" aria-describedby="shortcut-help"><span data-i18n="setting_shortcut_button">Change shortcut</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <div class="shortcut-block">
+      <div class="shortcut-row">
+        <p class="shortcut-current" id="shortcut-current" data-testid="shortcut-current" dir="auto"></p>
+        <button type="button" class="btn btn-secondary btn-sm" id="shortcut-button" data-testid="shortcut-button" aria-describedby="shortcut-help"><span data-i18n="setting_shortcut_button">Change shortcut</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+      <p class="hint" id="shortcut-help" data-i18n="setting_shortcut_hint"></p>
+    </div>
   </section>
 
-  <section class="section" aria-labelledby="opening-heading">
-    <h3 id="opening-heading" data-i18n="settings_opening_heading">Opening cert pages</h3>
+  <section class="section settings-section" aria-labelledby="opening-heading">
+    <h2 id="opening-heading" data-i18n="settings_opening_heading">Opening cert pages</h2>
     <label class="switch-row" for="setting-always-ask">
-      <span class="switch-text" data-i18n="setting_always_ask">Always ask before opening</span>
+      <span class="switch-text"><span class="switch-label" data-i18n="setting_always_ask">Always ask before opening</span><span class="switch-hint" id="hint-always-ask" data-i18n="setting_always_ask_hint"></span></span>
       <input type="checkbox" role="switch" id="setting-always-ask" data-testid="setting-autoOpen" data-setting="autoOpen" data-inverted="true" aria-describedby="hint-always-ask">
       <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
     </label>
-    <p class="hint switch-hint" id="hint-always-ask" data-i18n="setting_always_ask_hint"></p>
     <label class="switch-row" for="setting-background">
-      <span class="switch-text" data-i18n="setting_background">Open in a background tab</span>
+      <span class="switch-text"><span class="switch-label" data-i18n="setting_background">Open in a background tab</span><span class="switch-hint" id="hint-background" data-i18n="setting_background_hint"></span></span>
       <input type="checkbox" role="switch" id="setting-background" data-testid="setting-openInBackground" data-setting="openInBackground" aria-describedby="hint-background">
       <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
     </label>
-    <p class="hint switch-hint" id="hint-background" data-i18n="setting_background_hint"></p>
   </section>
 
-  <section class="section" aria-labelledby="prices-settings-heading">
-    <h3 id="prices-settings-heading" data-i18n="settings_prices_heading">Prices &amp; listings</h3>
+  <section class="section settings-section" aria-labelledby="prices-settings-heading">
+    <h2 id="prices-settings-heading" data-i18n="settings_prices_heading">Prices &amp; listings</h2>
     <label class="select-row" for="setting-ebay-site">
-      <span class="switch-text" data-i18n="setting_ebay_site">eBay site</span>
-      <select id="setting-ebay-site" data-testid="setting-ebaySite">
+      <span class="switch-label" data-i18n="setting_ebay_site">eBay site</span>
+      <select id="setting-ebay-site" data-testid="setting-ebaySite" aria-describedby="hint-ebay-site">
         <option value="com">ebay.com</option>
         <option value="co.uk">ebay.co.uk</option>
         <option value="de">ebay.de</option>
@@ -163,74 +155,75 @@
         <option value="ca">ebay.ca</option>
         <option value="com.au">ebay.com.au</option>
       </select>
+      <span class="switch-hint" id="hint-ebay-site" data-i18n="setting_ebay_site_hint"></span>
     </label>
-    <p class="hint switch-hint" data-i18n="setting_ebay_site_hint"></p>
     <label class="switch-row" for="setting-ebay-sold">
-      <span class="switch-text" data-i18n="setting_ebay_sold">Show eBay sales in the panel</span>
+      <span class="switch-text"><span class="switch-label" data-i18n="setting_ebay_sold">Show eBay sales in the panel</span><span class="switch-hint" id="hint-ebay-sold" data-i18n="setting_ebay_sold_hint"></span></span>
       <input type="checkbox" role="switch" id="setting-ebay-sold" data-testid="setting-ebaySold" data-setting="ebaySold" aria-describedby="hint-ebay-sold">
       <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
     </label>
-    <p class="hint switch-hint" id="hint-ebay-sold" data-i18n="setting_ebay_sold_hint"></p>
     <label class="switch-row" for="setting-read-via-tab">
-      <span class="switch-text" data-i18n="setting_read_via_tab">Pass site checks in a background tab</span>
+      <span class="switch-text"><span class="switch-label" data-i18n="setting_read_via_tab">Pass site checks in a background tab</span><span class="switch-hint" id="hint-read-via-tab" data-i18n="setting_read_via_tab_hint"></span></span>
       <input type="checkbox" role="switch" id="setting-read-via-tab" data-testid="setting-readViaTab" data-setting="readViaTab" aria-describedby="hint-read-via-tab">
       <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
     </label>
-    <p class="hint switch-hint" id="hint-read-via-tab" data-i18n="setting_read_via_tab_hint"></p>
-    <div class="field psa-key">
-      <label for="setting-psa-key" data-i18n="setting_psa_key">PSA API key (optional)</label>
-      <input type="password" id="setting-psa-key" class="cert-field" data-testid="setting-psa-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="psa-key-hint psa-key-status">
-      <div class="actions">
-        <button type="button" class="btn btn-secondary btn-sm" id="psa-key-save" data-testid="psa-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
-        <button type="button" class="link" id="psa-key-remove" data-testid="psa-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
-        <button type="button" class="link" id="psa-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <div class="key-row">
+      <label class="switch-label" for="setting-psa-key" data-i18n="setting_psa_key">PSA API key (optional)</label>
+      <div class="key-input">
+        <input type="password" id="setting-psa-key" class="key-field" data-testid="setting-psa-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="psa-key-hint psa-key-status" data-i18n-attr="placeholder:setting_key_placeholder">
+        <button type="button" class="btn btn-strong key-save" id="psa-key-save" data-testid="psa-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
       </div>
+      <p class="key-status" data-ref="psa-key-status-row"><svg class="icon key-ok" aria-hidden="true" focusable="false" hidden><use href="#i-check"/></svg><span id="psa-key-status" data-testid="psa-key-status" aria-live="polite"></span></p>
       <p class="hint" id="psa-key-hint" data-i18n="setting_psa_key_hint"></p>
-      <p class="hint" id="psa-key-status" data-testid="psa-key-status" aria-live="polite"></p>
       <p class="hint" id="psa-key-usage" data-testid="psa-key-usage"></p>
-    </div>
-    <div class="field psa-key">
-      <label for="setting-ppt-key" data-i18n="setting_ppt_key">PokemonPriceTracker API key (optional, Pokémon)</label>
-      <input type="password" id="setting-ppt-key" class="cert-field" data-testid="setting-ppt-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="ppt-key-hint ppt-key-status">
-      <div class="actions">
-        <button type="button" class="btn btn-secondary btn-sm" id="ppt-key-save" data-testid="ppt-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
-        <button type="button" class="link" id="ppt-key-remove" data-testid="ppt-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
-        <button type="button" class="link" id="ppt-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <div class="key-links">
+        <button type="button" class="link" id="psa-key-remove" data-testid="psa-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
+        <button type="button" class="link" id="psa-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       </div>
+    </div>
+    <div class="key-row">
+      <label class="switch-label" for="setting-ppt-key" data-i18n="setting_ppt_key">PokemonPriceTracker API key (optional, Pokémon)</label>
+      <div class="key-input">
+        <input type="password" id="setting-ppt-key" class="key-field" data-testid="setting-ppt-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="ppt-key-hint ppt-key-status" data-i18n-attr="placeholder:setting_key_placeholder">
+        <button type="button" class="btn btn-strong key-save" id="ppt-key-save" data-testid="ppt-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
+      </div>
+      <p class="key-status" data-ref="ppt-key-status-row"><svg class="icon key-ok" aria-hidden="true" focusable="false" hidden><use href="#i-check"/></svg><span id="ppt-key-status" data-testid="ppt-key-status" aria-live="polite"></span></p>
       <p class="hint" id="ppt-key-hint" data-i18n="setting_ppt_key_hint"></p>
-      <p class="hint" id="ppt-key-status" data-testid="ppt-key-status" aria-live="polite"></p>
+      <div class="key-links">
+        <button type="button" class="link" id="ppt-key-remove" data-testid="ppt-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
+        <button type="button" class="link" id="ppt-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="history-heading">
-    <h3 id="history-heading" data-i18n="settings_history_heading">Scan history</h3>
+  <section class="section settings-section" aria-labelledby="history-heading">
+    <h2 id="history-heading" data-i18n="settings_history_heading">Scan history</h2>
     <label class="switch-row" for="setting-history">
-      <span class="switch-text" data-i18n="setting_history">Keep scan history</span>
+      <span class="switch-text"><span class="switch-label" data-i18n="setting_history">Keep scan history</span><span class="switch-hint" id="hint-history"></span></span>
       <input type="checkbox" role="switch" id="setting-history" data-testid="setting-saveHistory" data-setting="saveHistory" aria-describedby="hint-history">
       <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
     </label>
-    <p class="hint switch-hint" id="hint-history"></p>
-    <button type="button" class="btn btn-secondary" id="clear-history" data-testid="history-clear" aria-describedby="history-empty-hint" data-i18n="clear_history">Clear history</button>
+    <button type="button" class="btn btn-secondary btn-sm settings-button" id="clear-history" data-testid="history-clear" aria-describedby="history-empty-hint" data-i18n="clear_history">Clear history</button>
     <p class="hint" id="history-empty-hint" data-i18n="history_empty" hidden>No saved scans.</p>
   </section>
 
-  <section class="section" aria-labelledby="sites-heading">
-    <h3 id="sites-heading" tabindex="-1" data-i18n="settings_sites_heading">Sharper scans</h3>
-    <p class="hint" id="sites-body" data-i18n="settings_sites_body"></p>
+  <section class="section settings-section" aria-labelledby="sites-heading">
+    <h2 id="sites-heading" tabindex="-1" data-i18n="settings_sites_heading">Sites with full access</h2>
     <ul id="sites-list" class="sites-list" aria-labelledby="sites-heading"></ul>
+    <p class="hint sites-empty" id="sites-empty" data-i18n="settings_sites_empty"></p>
     <p class="field-error" id="sites-error"></p>
-    <p class="hint" id="sites-empty" data-i18n="settings_sites_empty"></p>
+    <p class="hint" id="sites-body" data-i18n="settings_sites_body"></p>
   </section>
 
-  <section class="section about" aria-labelledby="about-heading">
-    <h3 id="about-heading" data-i18n="settings_about_heading">About</h3>
+  <section class="section settings-section about" aria-labelledby="about-heading">
+    <h2 id="about-heading" data-i18n="settings_about_heading">About</h2>
     <p data-i18n="about_privacy"></p>
     <p data-i18n="about_lookup"></p>
     <p data-i18n="about_disclaimer"></p>
     <p data-i18n="about_trademarks"></p>
     <p data-i18n="about_language"></p>
     <p data-i18n="about_uninstall"></p>
-    <p class="hint" id="about-version"></p>
+    <p class="about-version" id="about-version"></p>
   </section>
 </main>
 
@@ -238,156 +231,156 @@
   <p><span data-i18n="about_disclaimer">Not affiliated with PSA, CGC or Beckett.</span> · <span data-i18n="footer_local">Images stay on this device</span></p>
 </footer>
 
-<!-- ============================ task-card templates (UX spec §3) ============================
+<!-- ============================ task-card templates (design v2) ============================
      Elements carrying ADR §13 test ids are singletons kept in #parking and moved into [data-slot] placeholders,
      so each id exists exactly once in the document at all times (e2e presence + Playwright strict locators). -->
 <template id="tpl-idle">
-  <p data-i18n="page_scan_lead"></p>
-  <div class="actions"><span data-slot="pagescan"></span></div>
-  <p class="muted" data-ref="shortcut-hint"></p>
+  <p class="lead" data-i18n="page_scan_lead"></p>
+  <span data-slot="pagescan"></span>
+  <p class="small muted" data-ref="shortcut-hint"></p>
 </template>
 
 <template id="tpl-scanning">
   <span data-slot="pageprogress"></span>
   <div class="seg-bar" data-ref="segbar" aria-hidden="true" hidden></div>
-  <div class="media-row"><span data-slot="thumb"></span><span data-slot="steps"></span></div>
-  <p class="caption muted" data-ref="caption"></p>
-  <p class="muted" data-ref="slow" data-i18n="scan_slow" hidden></p>
-  <div class="actions"><span data-slot="cancel"></span></div>
+  <div class="media-row scan-row" data-ref="scan-media">
+    <div class="thumb-col"><span data-slot="thumb"></span><p class="caption" data-ref="caption"></p></div>
+    <span data-slot="steps"></span>
+  </div>
+  <p class="small muted" data-ref="slow" data-i18n="scan_slow" hidden></p>
+  <span data-slot="cancel"></span>
 </template>
 
 <template id="tpl-result">
-  <!-- Layout A (docs/design/ui-candidates.md §3): identity → Value → Cert check → Market. -->
-  <div class="media-row identity"><span data-slot="thumb"></span><div class="identity-text"><span data-slot="read"></span><p class="muted identity-set" data-ref="price-set" hidden></p><p class="muted identity-set" data-ref="psa-info" data-testid="psa-info" hidden></p></div></div>
-  <div data-ref="value-slot"></div>
-  <section class="verify" aria-labelledby="verify-heading">
-    <h3 id="verify-heading" data-i18n="verify_heading">Cert check</h3>
-    <p class="verify-line" data-ref="verify-line"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-ref="verify-text"></span></p>
-    <p class="verify-url" data-ref="verify-url"><span class="muted" data-ref="verify-url-prefix" hidden></span></p>
-    <div class="note" data-ref="bg-note" hidden>
-      <p class="muted" data-i18n="result_bg_note"></p>
-      <button type="button" class="btn btn-secondary" data-action="go-to-tab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-tab"/></svg><span data-i18n="go_to_tab"></span></button>
+  <!-- Design v2: identity, then the cert check right under the number; Value, eBay sales and Market follow in #result-extra. -->
+  <div class="media-row identity"><span data-slot="thumb"></span><div class="identity-text"><span data-slot="read"></span><p class="identity-set" data-ref="price-set" hidden></p><p class="identity-set" data-ref="psa-info" data-testid="psa-info" hidden></p></div></div>
+  <div class="verify" data-testid="cert-check">
+    <div class="verify-line" data-ref="verify-line">
+      <svg class="icon verify-icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>
+      <div class="verify-col">
+        <div class="verify-main"><span class="verify-text" data-ref="verify-text"></span> <span class="verify-url" data-ref="verify-url"><span data-ref="verify-url-prefix" hidden></span></span></div>
+        <div class="verify-src" data-ref="verify-src"></div>
+      </div>
     </div>
-    <div class="alert alert-info" data-ref="lookup-note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><p data-i18n="result_lookup_note"></p></div>
-    <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
-    <div class="actions">
-      <button type="button" class="btn btn-secondary" data-testid="open-again-button" data-action="open-again" data-ref="open-again"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-again-label" data-i18n="open_again"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <div class="bg-note" data-ref="bg-note" hidden><span data-i18n="result_bg_note"></span> <button type="button" class="link" data-action="go-to-tab"><span data-i18n="go_to_tab"></span></button></div>
+    <p class="small muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+    <div class="actions verify-actions">
+      <button type="button" class="btn btn-secondary btn-sm" data-testid="open-again-button" data-action="open-again" data-ref="open-again"><svg class="icon" data-ref="open-again-lead" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-again-label" data-i18n="open_again"></span><svg class="icon" data-ref="open-again-trail" aria-hidden="true" focusable="false" hidden><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <span data-slot="copy"></span>
+      <button type="button" class="link" data-testid="edit-button" data-action="edit"><span data-i18n="edit_link"></span></button>
     </div>
     <p class="field-error" data-ref="copy-error" aria-live="polite"></p>
-    <button type="button" class="link" data-testid="edit-button" data-action="edit"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="edit_link"></span></button>
     <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
-    <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
-  </section>
-  <div data-ref="market-slot"></div>
-  <div class="report" data-ref="report-box" hidden>
-    <button type="button" class="link" data-testid="report-button" data-action="report" aria-describedby="report-hint"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span data-i18n="report_button"></span></button>
-    <p class="hint" id="report-hint" data-ref="report-hint" data-i18n="report_hint"></p>
+    <div class="note" data-ref="lookup-note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><p data-i18n="result_lookup_note"></p></div>
+    <div class="note note-sm"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
   </div>
 </template>
 
 <template id="tpl-edit">
+  <p class="muted" data-ref="edit-method"></p>
   <span data-slot="certform"></span>
-  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+  <p class="small muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
 </template>
 
 <template id="tpl-confirm">
-  <button type="button" class="link" data-ref="back-to-page" data-action="back-to-page" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="page_back_to_results"></span></button>
-  <div data-ref="qr-slot"></div>
-  <div class="alert alert-info" data-ref="reasons" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><div data-ref="reason-list"></div></div>
-  <div class="media-row">
+  <button type="button" class="link" data-ref="back-to-page" data-action="back-to-page" hidden><span aria-hidden="true">← </span><span data-i18n="page_back_to_results"></span></button>
+  <div class="note reasons" data-ref="reasons" hidden></div>
+  <div class="media-row check-row">
     <span data-slot="thumb"></span>
     <div class="read-wrap"><span data-slot="read"></span>
-      <button type="button" class="link" data-ref="larger" data-action="larger" aria-expanded="false" hidden></button>
-      <p class="caption muted" data-ref="caption"></p>
+      <button type="button" class="link" data-ref="larger" data-action="larger" aria-expanded="false" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-zoom"/></svg><span data-ref="larger-label"></span></button>
     </div>
   </div>
   <span data-slot="candidates"></span>
   <span data-slot="certform"></span>
   <div data-ref="lowres-slot"></div>
-  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+  <p class="small muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
-  <button type="button" class="link" data-testid="scan-other" data-action="scan-other"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg><span data-i18n="confirm_scan_other"></span></button>
-  <div class="report" data-ref="report-box" hidden>
-    <button type="button" class="link" data-testid="report-button" data-action="report" aria-describedby="report-hint"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span data-i18n="report_button"></span></button>
-    <p class="hint" id="report-hint" data-ref="report-hint" data-i18n="report_hint"></p>
+  <div class="bottom-links">
+    <button type="button" class="link" data-testid="scan-other" data-action="scan-other"><span aria-hidden="true">← </span><span data-i18n="confirm_scan_other"></span></button>
+    <button type="button" class="link link-muted" data-testid="report-button" data-action="report" data-ref="report-box" hidden><span data-i18n="report_button"></span></button>
   </div>
+  <p class="report-saved" id="report-hint" data-ref="report-hint" role="status" hidden></p>
+</template>
+
+<template id="tpl-reason">
+  <div class="reason"><svg class="icon" aria-hidden="true" focusable="false"><use data-ref="reason-icon" href="#i-triangle"/></svg><span data-ref="reason-text"><b class="reason-title" data-ref="reason-title" hidden></b></span></div>
 </template>
 
 <template id="tpl-candidate">
-  <div class="candidate"><span class="cand-body"><span class="cand-top"><span class="cert cert-sm" dir="ltr" data-ref="number"></span><span class="chip" data-ref="best" data-i18n="candidate_best" hidden></span></span><span class="muted cand-meta" data-ref="meta"></span></span><button type="button" class="btn btn-secondary btn-sm cand-use" data-ref="use"><span data-ref="use-label"></span></button></div>
+  <div class="candidate"><span class="cand-body"><span class="cand-top"><span class="cert cert-cand" dir="ltr" data-ref="number"></span><span class="chip" data-ref="best" data-i18n="candidate_best" hidden></span></span><span class="cand-meta" data-ref="meta"></span></span><button type="button" class="btn btn-cand" data-ref="use"><span data-ref="use-label"></span></button></div>
 </template>
 
 <template id="tpl-none">
-  <div class="media-row"><span data-slot="thumb"></span><p data-i18n="none_body"></p></div>
+  <div class="media-row"><span data-slot="thumb"></span><p class="none-body" data-i18n="none_body"></p></div>
   <div data-ref="qr-slot"></div>
-  <p class="muted" data-ref="ocr-note" data-i18n="ocr_unavailable_note" hidden></p>
+  <p class="small muted" data-ref="ocr-note" data-i18n="ocr_unavailable_note" hidden></p>
   <div class="actions" data-ref="none-actions">
-    <button type="button" class="btn btn-secondary" data-action="type"><span data-i18n="type_number_button"></span></button>
-    <button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
+    <button type="button" class="btn btn-strong" data-action="type"><span data-i18n="type_number_button"></span></button>
+    <button type="button" class="btn btn-secondary" data-action="choose"><span data-i18n="upload_button"></span></button>
   </div>
   <div data-ref="lowres-slot"></div>
-  <div class="report" data-ref="report-box" hidden>
-    <button type="button" class="link" data-testid="report-button" data-action="report" aria-describedby="report-hint"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span data-i18n="report_button"></span></button>
-    <p class="hint" id="report-hint" data-ref="report-hint" data-i18n="report_hint"></p>
+  <div class="bottom-links">
+    <button type="button" class="link link-muted" data-testid="report-button" data-action="report" data-ref="report-box" hidden><span data-i18n="report_button"></span></button>
   </div>
+  <p class="report-saved" id="report-hint" data-ref="report-hint" role="status" hidden></p>
 </template>
 
 <template id="tpl-error">
   <span data-slot="error"></span>
   <div class="actions" data-ref="error-actions">
-    <button type="button" class="btn btn-strong" data-testid="retry-button" data-action="retry" hidden><span data-i18n="retry_button"></span></button>
-    <button type="button" class="btn btn-strong" data-action="page-scan" hidden><span data-i18n="page_scan_button"></span></button>
-    <button type="button" class="btn btn-strong" data-action="reload" hidden><span data-i18n="reload_button"></span></button>
-    <button type="button" class="btn btn-secondary" data-action="choose" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
-    <button type="button" class="btn btn-secondary" data-action="type" hidden><span data-i18n="type_number_button"></span></button>
+    <button type="button" class="btn" data-testid="retry-button" data-action="retry" hidden><span data-i18n="retry_button"></span></button>
+    <button type="button" class="btn" data-action="reload" hidden><span data-i18n="reload_button"></span></button>
+    <button type="button" class="btn" data-action="choose" hidden><span data-i18n="upload_button"></span></button>
+    <button type="button" class="btn" data-action="page-scan" hidden><span data-i18n="page_scan_button"></span></button>
+    <button type="button" class="btn" data-action="type" hidden><span data-i18n="type_number_button"></span></button>
   </div>
 </template>
 
 <template id="tpl-qr-warning">
-  <div class="alert alert-warning"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-triangle"/></svg><div><p class="alert-title" data-i18n="qr_offsite_title"></p><p data-ref="qr-body"></p><p data-ref="qr-number" data-i18n="qr_offsite_number" hidden></p></div></div>
+  <div class="note note-warn"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-triangle"/></svg><div><p class="note-title" data-i18n="qr_offsite_title"></p><p data-ref="qr-body"></p><p data-ref="qr-number" data-i18n="qr_offsite_number" hidden></p></div></div>
 </template>
 
 <template id="tpl-lowres">
-  <div class="alert alert-info" data-ref="lowres-box" tabindex="-1">
+  <div class="note note-box" data-ref="lowres-box" tabindex="-1">
     <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i" data-ref="lowres-icon"/></svg>
-    <div>
-      <p class="alert-title" data-ref="lowres-title"></p>
-      <p data-ref="lowres-body"></p>
-      <div class="actions" data-ref="lowres-actions"><span data-slot="sharper"></span></div>
-      <p class="hint" data-ref="lowres-fine"></p>
-      <button type="button" class="link" data-action="not-now" data-i18n="lowres_dismiss"></button>
-      <div class="actions" data-ref="rescan-row" hidden><button type="button" class="btn btn-secondary" data-testid="rescan-button" data-action="rescan"><span data-i18n="rescan_button"></span></button></div>
+    <div class="note-col">
+      <p class="note-title" data-ref="lowres-title"></p>
+      <p class="note-sub" data-ref="lowres-body"></p>
+      <div class="note-actions" data-ref="lowres-actions"><span data-slot="sharper"></span><button type="button" class="link" data-action="not-now"><span data-i18n="lowres_dismiss"></span></button></div>
+      <p class="hint" data-ref="lowres-fine" hidden></p>
+      <div class="actions" data-ref="rescan-row" hidden><button type="button" class="btn btn-secondary btn-sm" data-testid="rescan-button" data-action="rescan"><span data-i18n="rescan_button"></span></button></div>
     </div>
   </div>
 </template>
 
 <template id="tpl-recent-row">
   <li class="recent-row">
-    <div class="recent-main"><span class="chip" data-ref="chip"></span> <span class="cert cert-row" dir="ltr" data-ref="number"></span><span class="muted recent-time" data-ref="time"></span></div>
-    <div class="recent-actions">
-      <button type="button" class="link" data-ref="open"><span data-ref="open-label" data-i18n="recent_open"></span></button>
-      <button type="button" class="link" data-ref="copy"><span data-ref="copy-label" data-i18n="recent_copy"></span></button>
-    </div>
+    <span class="chip chip-xs" data-ref="chip"></span>
+    <span class="recent-main"><span class="cert cert-row" dir="ltr" data-ref="number"></span><span class="recent-time" data-ref="time"></span></span>
+    <button type="button" class="link link-sm" data-ref="open"><span data-ref="open-label" data-i18n="recent_open"></span></button>
+    <button type="button" class="link link-sm" data-ref="copy"><span data-ref="copy-label" data-i18n="recent_copy"></span></button>
   </li>
 </template>
 
 <template id="tpl-site-row">
-  <li class="site-row"><span class="site-host" dir="ltr" data-ref="host"></span><button type="button" class="link" data-ref="remove"><span data-ref="remove-label" data-i18n="remove_button"></span></button></li>
+  <li class="site-row"><span class="site-host" dir="ltr" data-ref="host"></span><button type="button" class="link link-sm" data-ref="remove"><span data-ref="remove-label" data-i18n="remove_button"></span></button></li>
 </template>
 
+<!-- Result sections (#result-extra). -->
 <template id="tpl-value">
-  <section class="value" aria-labelledby="value-heading">
-    <h3 id="value-heading" data-i18n="value_heading">Value</h3>
+  <section class="rsec value" aria-labelledby="value-heading">
+    <div class="rsec-head"><h3 id="value-heading" data-i18n="value_heading">Value</h3><span class="value-source" data-ref="value-source"></span></div>
     <!-- No aria-live here: one value summary is announced through #status (D6). -->
     <div class="price-data" data-ref="price-data" data-testid="price-data" aria-busy="false">
       <div class="price-state" data-ref="price-state" hidden>
-        <p data-ref="price-state-text"></p>
-        <div class="price-links">
+        <p class="state-line"><svg class="icon spin" data-ref="price-spin" aria-hidden="true" focusable="false" hidden><use href="#i-spinner"/></svg><span data-ref="price-state-text"></span></p>
+        <div class="state-actions">
           <button type="button" class="btn btn-strong btn-sm" data-action="price-allow" data-testid="price-allow" data-ref="price-allow" hidden><span data-i18n="prices_allow">Show prices here</span></button>
+          <button type="button" class="btn btn-strong btn-sm" data-ref="price-change" hidden><span data-i18n="value_change_short">Change</span></button>
           <button type="button" class="link" data-action="price-retry" data-ref="price-retry" hidden><span data-i18n="retry_button">Try again</span></button>
-          <button type="button" class="link" data-action="price-pc-search" data-ref="price-pc-search" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_search">Open PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+          <button type="button" class="link" data-action="price-pc-search" data-ref="price-pc-search" hidden><span data-i18n="prices_pc_search">Open PriceCharting</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
         </div>
       </div>
       <div class="price-stats" data-ref="price-found" hidden>
@@ -402,137 +395,148 @@
         </div>
       </div>
     </div>
-    <p class="value-meta muted"><span data-ref="value-source" data-i18n="value_source"></span><span data-ref="pc-col"></span></p>
-    <p class="value-match" data-ref="value-match"><span class="muted" data-i18n="value_match"></span> <span class="price-card-text" data-ref="price-card-text" data-testid="price-card-text"></span></p>
-    <button type="button" class="link" data-ref="price-edit" data-testid="price-edit" aria-expanded="false" aria-controls="price-fields"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span data-i18n="value_change"></span></button>
+    <p class="value-match" data-ref="value-match"><span data-i18n="value_match"></span> <span class="price-card-text" data-ref="price-card-text" data-testid="price-card-text"></span> · <button type="button" class="link" data-ref="price-edit" data-testid="price-edit" aria-expanded="false" aria-controls="price-fields"><span data-ref="price-edit-label"></span></button></p>
+    <p class="value-note" data-ref="pc-col" hidden></p>
     <form class="price-fields" id="price-fields" data-ref="price-fields" novalidate hidden>
-      <div class="field price-card">
+      <div class="field">
         <label for="price-card" data-ref="price-card-label" data-i18n="prices_card_label">Card</label>
-        <input type="text" id="price-card" class="cert-field price-query" data-testid="price-card" data-ref="price-card" maxlength="100" autocomplete="off" spellcheck="false" dir="auto" aria-describedby="price-error" data-i18n-attr="placeholder:prices_card_placeholder">
+        <input type="text" id="price-card" class="text-field" data-testid="price-card" data-ref="price-card" maxlength="100" autocomplete="off" spellcheck="false" dir="auto" aria-describedby="price-error" data-i18n-attr="placeholder:prices_card_placeholder">
       </div>
-      <div class="field price-grade">
+      <div class="field">
         <label for="price-grade" data-i18n="prices_grade_label">Grade</label>
-        <select id="price-grade" data-testid="price-grade" data-ref="price-grade"></select>
+        <select id="price-grade" class="text-field" data-testid="price-grade" data-ref="price-grade"></select>
       </div>
-      <button type="submit" class="btn btn-strong btn-sm price-show" data-testid="price-show"><span data-i18n="value_show"></span></button>
+      <button type="submit" class="btn btn-primary btn-block price-show" data-testid="price-show"><span data-i18n="value_show"></span></button>
     </form>
     <p class="field-error" id="price-error" data-ref="price-error" aria-live="polite"></p>
-    <!-- A21: recent eBay sales of this card in this grade, read from eBay's public sold search on this device. -->
-    <div class="ebay-block" data-ref="ebay-block" data-testid="ebay-sold" data-status="" hidden>
-      <h4 data-ref="ebay-heading"></h4>
-      <div class="ebay-state" data-ref="ebay-state" hidden>
-        <p data-ref="ebay-state-text"></p>
-        <div class="price-links">
-          <button type="button" class="btn btn-strong btn-sm" data-action="ebay-allow" data-testid="ebay-allow" data-ref="ebay-allow" hidden><span data-ref="ebay-allow-label"></span></button>
-          <button type="button" class="btn btn-strong btn-sm" data-action="ebay-pick" data-testid="ebay-pick" data-ref="ebay-pick" hidden><span data-ref="ebay-pick-label"></span></button>
-          <button type="button" class="link" data-action="ebay-retry" data-ref="ebay-retry" hidden><span data-i18n="retry_button">Try again</span></button>
-        </div>
-      </div>
-      <div class="ebay-found" data-ref="ebay-found" hidden>
-        <dl class="ebay-stats">
-          <div><dt data-i18n="ebay_last">Last sold</dt><dd><strong data-ref="ebay-last" data-testid="ebay-last"></strong> <span class="muted" data-ref="ebay-last-date"></span></dd></div>
-          <div><dt data-ref="ebay-median-label"></dt><dd><strong data-ref="ebay-median" data-testid="ebay-median"></strong></dd></div>
-          <div><dt data-i18n="ebay_for_sale">For sale from</dt><dd><strong data-ref="ebay-low" data-testid="ebay-low"></strong> <span class="muted" data-ref="ebay-low-count"></span></dd></div>
-        </dl>
-        <ol class="sales ebay-sales" data-ref="ebay-sales" data-testid="ebay-sales"></ol>
-      </div>
-      <div class="price-links">
-        <button type="button" class="link" data-action="ebay-open-sold" data-ref="ebay-open-sold"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="ebay_all_sales">All sales on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-        <button type="button" class="link" data-action="ebay-open-active" data-ref="ebay-open-active"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="ebay_all_offers">For sale on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      </div>
-    </div>
   </section>
-</template>
-
-<template id="tpl-market">
-  <section class="market" aria-labelledby="market-heading">
-    <h3 id="market-heading" data-i18n="market_heading">Market</h3>
-    <div class="market-data" data-ref="market-data" hidden>
-      <h4 data-i18n="grades_heading">Price per grade</h4>
-      <ul class="price-grid" data-ref="pc-grid" data-testid="price-grid"></ul>
-      <h4 class="sales-heading" data-ref="pc-sales-heading"></h4>
-      <ol class="sales" data-ref="pc-sales" data-testid="price-sales"></ol>
-      <p class="hint" data-ref="pc-no-sales" hidden></p>
-      <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open" data-ref="price-pc-open"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pc_open">View on PriceCharting</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+  <!-- A21: recent eBay sales of this card in this grade (setting "Show eBay sales in the panel"); the eBay searches below. -->
+  <section class="rsec ebay-sec" data-ref="ebay-block" data-testid="ebay-sold" data-status="" aria-labelledby="ebay-heading">
+    <h3 id="ebay-heading" data-ref="ebay-heading"></h3>
+    <div class="state-box" data-ref="ebay-state" hidden>
+      <p class="state-line"><svg class="icon spin" data-ref="ebay-spin" aria-hidden="true" focusable="false" hidden><use href="#i-spinner"/></svg><span data-ref="ebay-state-text"></span></p>
+      <div class="state-actions">
+        <button type="button" class="btn btn-strong btn-sm" data-action="ebay-allow" data-testid="ebay-allow" data-ref="ebay-allow" hidden><span data-ref="ebay-allow-label"></span></button>
+        <button type="button" class="btn btn-strong btn-sm" data-action="ebay-pick" data-testid="ebay-pick" data-ref="ebay-pick" hidden><span data-ref="ebay-pick-label"></span></button>
+        <button type="button" class="link" data-action="ebay-retry" data-ref="ebay-retry" hidden><span data-i18n="retry_button">Try again</span></button>
+      </div>
     </div>
-    <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_pop">Population report</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-    <h4 data-i18n="ebay_heading">Search eBay</h4>
-    <div class="actions">
-      <button type="button" class="btn btn-secondary btn-sm" data-testid="price-sold" data-action="price-sold"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_sold">Sold on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      <button type="button" class="btn btn-secondary btn-sm" data-testid="price-active" data-action="price-active"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_ebay_active">For sale on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <div class="ebay-found" data-ref="ebay-found" hidden>
+      <dl class="ebay-stats">
+        <div><dt data-i18n="ebay_last">Last sold</dt><dd><strong data-ref="ebay-last" data-testid="ebay-last"></strong><span data-ref="ebay-last-date"></span></dd></div>
+        <div><dt data-ref="ebay-median-label"></dt><dd><strong data-ref="ebay-median" data-testid="ebay-median"></strong></dd></div>
+        <div><dt data-i18n="ebay_for_sale">For sale from</dt><dd><strong data-ref="ebay-low" data-testid="ebay-low"></strong><span data-ref="ebay-low-count"></span></dd></div>
+      </dl>
+      <ul class="sale-list" data-ref="ebay-sales" data-testid="ebay-sales"></ul>
     </div>
-    <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-i18n="prices_slab">This slab on eBay</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <div class="ext-links">
+      <button type="button" class="link" data-testid="price-sold" data-action="price-sold"><span data-i18n="prices_ebay_sold">Sold on eBay</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-testid="price-active" data-action="price-active"><span data-i18n="prices_ebay_active">For sale on eBay</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><span data-i18n="prices_slab">This slab on eBay</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    </div>
     <p class="hint" data-ref="price-note"></p>
   </section>
 </template>
 
+<template id="tpl-market">
+  <section class="fold market" data-ref="market" aria-labelledby="market-heading" hidden>
+    <h3 class="fold-heading"><button type="button" class="fold-toggle" data-ref="market-toggle" aria-expanded="false" aria-controls="market-data"><span class="fold-title-col"><span class="fold-title" id="market-heading" data-i18n="grades_heading">Price per grade</span><span class="fold-preview" data-ref="market-preview"></span></span><svg class="icon fold-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></button></h3>
+    <div class="fold-body market-data" id="market-data" data-ref="market-data" hidden>
+      <ul class="price-grid" data-ref="pc-grid" data-testid="price-grid"></ul>
+      <div class="pc-sales-block">
+        <h4 class="sales-heading" data-ref="pc-sales-heading"></h4>
+        <ol class="sale-list" data-ref="pc-sales" data-testid="price-sales"></ol>
+        <p class="hint" data-ref="pc-no-sales" hidden></p>
+      </div>
+      <div class="ext-links">
+        <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open" data-ref="price-pc-open"><span data-i18n="prices_pc_open">View on PriceCharting</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+        <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><span data-i18n="prices_pop">Population report (copies the name)</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-result-foot">
+  <div class="result-foot">
+    <button type="button" class="link link-muted" data-testid="report-button" data-action="report" data-ref="report-box" hidden><span data-i18n="report_button"></span></button>
+    <p class="report-saved" id="report-hint" data-ref="report-hint" role="status" hidden></p>
+  </div>
+</template>
+
 <template id="tpl-page-results">
-  <div data-ref="summary"></div>
+  <div class="page-summary" data-ref="summary"></div>
   <div data-ref="qr-slot"></div>
   <span data-slot="pageresults"></span>
   <div class="alert alert-danger" data-ref="open-error" role="alert" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-x"/></svg><p data-i18n="err_open_tab"></p></div>
-  <p class="muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
-  <div class="actions"><button type="button" class="btn btn-secondary" data-action="page-scan"><span data-i18n="page_scan_again"></span></button></div>
-  <div class="alert alert-info"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
+  <p class="small muted offline" data-ref="offline" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi-off"/></svg><span data-i18n="offline_note"></span></p>
+  <button type="button" class="btn btn-secondary btn-start" data-action="page-scan"><span data-i18n="page_scan_again"></span></button>
+  <div class="note note-sm"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-i18n="verify_note"></p></div>
 </template>
 
 <template id="tpl-page-row">
   <li class="page-row">
-    <div class="thumb thumb-sm" data-ref="thumb-box" hidden><img data-ref="thumb" alt=""></div>
-    <div class="page-row-main">
-      <div class="cand-top"><span class="chip" data-ref="chip"></span><span class="cert cert-sm" dir="ltr" data-ref="number"></span><span class="opened-mark muted" data-ref="opened" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="page_result_opened"></span></span></div>
-      <p class="muted cand-meta" data-ref="meta"></p>
-      <p class="row-note" data-ref="note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-triangle"/></svg><span data-ref="note-text"></span></p>
-      <p class="muted path" dir="ltr" data-ref="path"></p>
-      <div class="actions">
-        <button type="button" class="btn btn-strong btn-sm" data-ref="open"><span data-ref="open-label" data-i18n="recent_open"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-        <button type="button" class="btn btn-strong btn-sm" data-ref="choose" hidden><span data-ref="choose-label" data-i18n="page_result_choose"></span></button>
-        <button type="button" class="link" data-ref="copy"><span data-ref="copy-label" data-i18n="recent_copy"></span></button>
-        <button type="button" class="link" data-ref="prices"><span data-ref="prices-label" data-i18n="page_row_prices">eBay sold</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <div class="page-row-top">
+      <div class="thumb thumb-sm" data-ref="thumb-box"><img data-ref="thumb" alt="" hidden></div>
+      <div class="page-row-main">
+        <span class="chip" data-ref="chip"></span>
+        <span class="cert cert-page" dir="ltr" data-ref="number"></span>
+        <span class="cand-meta" data-ref="meta"></span>
+        <span class="path" dir="ltr" data-ref="path"></span>
+      </div>
+      <div class="page-row-actions">
+        <span class="opened-mark" data-ref="opened" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="page_result_opened"></span></span>
+        <button type="button" class="btn btn-strong btn-xs" data-ref="open"><span data-ref="open-label" data-i18n="recent_open"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+        <button type="button" class="btn btn-strong btn-xs" data-ref="choose" hidden><span data-ref="choose-label" data-i18n="page_result_choose"></span></button>
+        <button type="button" class="link link-xs" data-ref="copy"><span data-ref="copy-label" data-i18n="recent_copy"></span></button>
+        <button type="button" class="link link-xs" data-ref="prices"><span data-ref="prices-label" data-i18n="page_row_prices">eBay sold</span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       </div>
     </div>
+    <p class="note note-row" data-ref="note" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-triangle"/></svg><span data-ref="note-text"></span></p>
   </li>
 </template>
 
 <template id="tpl-page-none">
   <p data-ref="none-reason"></p>
   <div data-ref="qr-slot"></div>
-  <ul class="tips">
+  <ol class="tips">
     <li data-i18n="page_tip_open_photo"></li>
     <li data-ref="tip-right-click"></li>
     <li data-i18n="page_tip_upload"></li>
-  </ul>
+  </ol>
   <div class="actions">
-    <button type="button" class="btn btn-secondary" data-action="page-scan"><span data-i18n="page_scan_again"></span></button>
-    <button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button>
+    <button type="button" class="btn btn-strong" data-action="page-scan"><span data-i18n="page_scan_again"></span></button>
+    <button type="button" class="btn btn-secondary" data-action="choose"><span data-i18n="upload_button"></span></button>
   </div>
 </template>
 
 <template id="tpl-page-access">
   <p data-ref="access-body"></p>
-  <p class="muted" data-i18n="page_access_why"></p>
-  <div data-ref="always" hidden>
-    <div class="actions"><button type="button" class="btn btn-strong btn-sm host-btn" data-testid="always-allow-button" data-action="always-allow"><span data-ref="always-label"></span></button></div>
+  <p class="small muted" data-i18n="page_access_why"></p>
+  <div class="note" data-ref="always-status" tabindex="-1" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-ref="always-status-text"></p></div>
+  <div class="note-box note-offer" data-ref="always" hidden>
+    <button type="button" class="btn btn-strong btn-sm host-btn" data-testid="always-allow-button" data-action="always-allow"><span data-ref="always-label"></span></button>
     <p class="hint" data-ref="always-fine"></p>
   </div>
-  <div class="alert" data-ref="always-status" tabindex="-1" hidden><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg><p data-ref="always-status-text"></p></div>
-  <div class="actions"><button type="button" class="btn btn-secondary" data-action="page-scan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="retry_button"></span></button><button type="button" class="btn btn-secondary" data-action="choose"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span data-i18n="upload_button"></span></button></div>
+  <div class="actions">
+    <button type="button" class="btn btn-strong" data-action="page-scan"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-scan-page"/></svg><span data-i18n="retry_button"></span></button>
+    <button type="button" class="btn btn-secondary" data-action="choose"><span data-i18n="upload_button"></span></button>
+  </div>
 </template>
 
 <!-- Parking for the §13 singletons while their state is not shown (hidden; not in the tab order). -->
 <div id="parking" hidden>
-  <div class="thumb" data-single="thumb"><svg class="icon thumb-placeholder" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><img data-testid="preview" alt="" hidden></div>
+  <div class="thumb" data-single="thumb"><img data-testid="preview" alt="" hidden></div>
   <ol class="steps" data-testid="progress" data-single="steps">
-    <li data-step="load"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_load"></span><span class="step-state visually-hidden"></span></li>
-    <li data-step="barcode"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_barcode"></span><span class="step-state visually-hidden"></span></li>
-    <li data-step="text"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_text"></span><span class="step-state visually-hidden"></span><span class="step-sub muted" data-i18n="step_text_starting" hidden></span></li>
-    <li data-step="match"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-label" data-i18n="step_match"></span><span class="step-state visually-hidden"></span></li>
+    <li data-step="load"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-text"><span class="step-label" data-i18n="step_load"></span></span><span class="step-state"></span></li>
+    <li data-step="barcode"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-text"><span class="step-label" data-i18n="step_barcode"></span></span><span class="step-state"></span></li>
+    <li data-step="text"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-text"><span class="step-label" data-i18n="step_text"></span><span class="step-sub" data-i18n="step_text_starting" hidden></span></span><span class="step-state"></span></li>
+    <li data-step="match"><svg class="icon step-icon" aria-hidden="true" focusable="false"><use href="#i-circle"/></svg><span class="step-text"><span class="step-label" data-i18n="step_match"></span></span><span class="step-state"></span></li>
   </ol>
   <div class="read" data-single="read">
     <span class="chip" data-testid="result-grader" data-ref="chip"></span>
     <p class="cert" dir="ltr" data-testid="result-number" data-ref="number"></p>
-    <p class="muted" data-ref="method"></p>
-    <p class="muted path" dir="ltr" data-testid="result-url" data-ref="path"></p>
+    <p class="read-method" data-ref="method"></p>
+    <p class="path" dir="ltr" data-testid="result-url" data-ref="path"></p>
   </div>
   <fieldset class="candidates" data-testid="candidate-list" data-single="candidates">
     <legend data-i18n="candidates_legend"></legend>
@@ -547,15 +551,15 @@
     <fieldset class="segmented" data-testid="grader-select" data-ref="graders" data-value="">
       <legend data-i18n="grader_legend"></legend>
       <div class="segments">
-        <label class="segment"><input type="radio" name="task-grader" value="psa"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_psa"></span></label>
-        <label class="segment"><input type="radio" name="task-grader" value="cgc-comics"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_comics"></span></label>
-        <label class="segment"><input type="radio" name="task-grader" value="cgc-cards"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_cgc_cards"></span></label>
-        <label class="segment"><input type="radio" name="task-grader" value="bgs"><svg class="icon seg-check" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-i18n="grader_bgs"></span></label>
+        <label class="segment"><input type="radio" name="task-grader" value="psa"><span data-i18n="grader_psa"></span></label>
+        <label class="segment"><input type="radio" name="task-grader" value="cgc-comics"><span data-i18n="grader_cgc_comics"></span></label>
+        <label class="segment"><input type="radio" name="task-grader" value="cgc-cards"><span data-i18n="grader_cgc_cards"></span></label>
+        <label class="segment"><input type="radio" name="task-grader" value="bgs"><span data-i18n="grader_bgs"></span></label>
       </div>
       <p class="hint grader-hint" data-ref="grader-hint"></p>
     </fieldset>
-    <div class="actions" data-ref="form-actions">
-      <button type="submit" class="btn btn-primary" data-testid="open-button"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span data-ref="open-label" data-i18n="open_button"></span><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+    <div class="actions form-actions" data-ref="form-actions">
+      <button type="submit" class="btn btn-primary form-submit" data-testid="open-button"><span data-ref="open-label" data-i18n="open_button"></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <span data-ref="form-copy-slot"></span>
       <button type="button" class="btn btn-secondary" data-action="edit-cancel" data-testid="edit-cancel" data-ref="form-cancel" hidden><span data-i18n="cancel_button"></span></button>
     </div>
@@ -563,7 +567,7 @@
     <p class="hint url-preview" data-ref="preview-line" dir="auto"></p>
   </form>
   <button type="button" class="btn btn-secondary" data-testid="copy-button" data-action="copy" data-single="copy"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><span data-ref="copy-label" data-i18n="copy_button"></span></button>
-  <button type="button" class="btn btn-secondary" data-testid="cancel-button" data-action="cancel" data-single="cancel" data-i18n="cancel_button">Cancel</button>
+  <button type="button" class="btn btn-secondary btn-start" data-testid="cancel-button" data-action="cancel" data-single="cancel" data-i18n="cancel_button">Cancel</button>
   <button type="button" class="btn btn-strong btn-sm host-btn" data-testid="sharper-button" data-action="sharper" data-single="sharper"><span data-ref="sharper-label"></span></button>
   <p data-testid="error-message" data-single="error" tabindex="-1"></p>
   <button type="button" class="btn btn-primary btn-block" data-testid="page-scan-button" data-action="page-scan" data-single="pagescan"><span data-i18n="page_scan_button">Scan this page</span><span class="btn-kbd" data-ref="kbd" hidden></span></button>

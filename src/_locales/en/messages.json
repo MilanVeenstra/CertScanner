@@ -1630,5 +1630,14 @@
   },
   "psa_info_server": {
     "message": "PSA answered with an error: check the key in Settings, or try again later."
+  },
+  "setting_psa_key_answer": {
+    "message": "PSA said: $ANSWER$",
+    "placeholders": {
+      "answer": {
+        "content": "$1",
+        "example": "application/json “Forbidden”"
+      }
+    }
   }
 }

@@ -1,8 +1,7 @@
 // Card details for a PSA cert from PSA's official Public API (user request: "als je de cert hebt kan je gewoon de kaart
 // naam hebben"). Needs the user's own free access token (psacard.com/publicapi), kept in chrome.storage.local on this
 // device only, and the optional host permission for api.psacard.com (asked when the key is saved).
-// Only the cert number and the token are sent, with the browser's psacard.com cookies like a normal visit (PSA's site
-// protection may answer a cookieless request with its own 403 page); the response is validated field by field.
+// Only the cert number and the token are sent (no cookies, no referrer); the response is validated field by field.
 export const PSA_API_ORIGIN = 'https://api.psacard.com';
 export const PSA_API_PERMISSION = `${PSA_API_ORIGIN}/*`;
 export const PSA_API_SIGNUP = 'https://www.psacard.com/publicapi';
@@ -29,26 +28,29 @@ export async function clearPsaToken(chromeApi = globalThis.chrome) {
 export const isPsaToken = okToken;
 
 /**
- * What a non-2xx PSA answer means, or null for a usable one. PSA's API docs: 500 = invalid credentials or a server
- * error, 4xx = a wrong request path, 429 = the daily limit. A 403/503 that is an HTML page (a bot check in front of the
- * API) is PSA's site protection, not a verdict on the key (user report 2026-10-13: a valid key was refused as "not
- * accepted").
- * @returns {Promise<'auth'|'blocked'|'limit'|'server'|'error'|null>}
+ * What a failed PSA answer means, or null for a usable one or another 4xx (the caller decides). PSA's API docs: 500 =
+ * invalid credentials or a server error, 4xx = a wrong request path, 429 = the daily limit. A 403/503 that is an HTML
+ * page (a bot check in front of the API) is PSA's site protection, not a verdict on the key. `detail` = the answer's
+ * type and first words, shown with a key check so a refusal can be read (user report 2026-10-13: three keys refused
+ * with 403; from this build the request carries no Origin header, measured).
+ * @returns {Promise<{kind:'auth'|'blocked'|'limit'|'server'|'error', detail:string}|null>}
  */
 async function verdict(res) {
-  if (res.status === 429) return 'limit';
-  if (res.status === 401) return 'auth';
-  if (res.status === 403 || res.status === 503) {
-    const type = res.headers?.get?.('content-type') ?? '';
-    const head = (await res.text().catch(() => '')).slice(0, 2000).trimStart();
-    const page = /html/i.test(type) || head.startsWith('<') || Boolean(res.headers?.get?.('cf-mitigated'));
-    return page ? 'blocked' : res.status === 403 ? 'auth' : 'error';
-  }
-  if (res.status >= 500) return 'server';
-  return null;
+  if (res.ok) return null;
+  const type = (res.headers?.get?.('content-type') ?? '').split(';')[0].trim();
+  const text = (await res.text().catch(() => '')).slice(0, 4000);
+  const page = /html/i.test(type) || text.trimStart().startsWith('<') || Boolean(res.headers?.get?.('cf-mitigated'));
+  const said = text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140);
+  const detail = [type, said && `“${said}”`].filter(Boolean).join(' ');
+  let kind = null;
+  if (res.status === 429) kind = 'limit';
+  else if (res.status === 401) kind = 'auth';
+  else if (res.status === 403 || res.status === 503) kind = page ? 'blocked' : res.status === 403 ? 'auth' : 'error';
+  else if (res.status >= 500) kind = 'server';
+  return kind ? { kind, detail } : null;
 }
 const psaInit = (token, signal) => ({
-  headers: { Authorization: `bearer ${token}`, Accept: 'application/json' }, credentials: 'include', referrerPolicy: 'no-referrer', signal,
+  headers: { Authorization: `bearer ${token}`, Accept: 'application/json' }, credentials: 'omit', referrerPolicy: 'no-referrer', signal,
 });
 
 /**
@@ -92,7 +94,7 @@ export async function fetchPsaCert(number, { token, signal, fetchImpl = globalTh
   try {
     const res = await fetchImpl(`${PSA_API_ORIGIN}/publicapi/cert/GetByCertNumber/${number}`, psaInit(token, sig));
     const bad = await verdict(res);
-    if (bad) return { ok: false, reason: bad };
+    if (bad) return { ok: false, reason: bad.kind };
     if (!res.ok) return { ok: false, reason: res.status === 404 ? 'not-found' : 'error' };
     const card = parsePsaCert(JSON.parse((await res.text()).slice(0, 200_000)));
     out = card ? { ok: true, card } : { ok: false, reason: 'not-found' };
@@ -106,14 +108,15 @@ export async function fetchPsaCert(number, { token, signal, fetchImpl = globalTh
 
 /**
  * Checks a key right after it is saved (uses 1 of the day's lookups); the test number itself doesn't have to exist.
- * `status` is PSA's HTTP status (0 = no answer), shown with the result so a refusal can be told apart from a block.
- * @returns {Promise<{result:'ok'|'auth'|'blocked'|'server'|'limit'|'error'|'no-permission', status:number}>}
+ * `status` is PSA's HTTP status (0 = no answer) and `detail` its answer's type and first words, shown with the result.
+ * @returns {Promise<{result:'ok'|'auth'|'blocked'|'server'|'limit'|'error'|'no-permission', status:number, detail:string}>}
  */
 export async function testPsaKey(token, { fetchImpl = globalThis.fetch.bind(globalThis), chromeApi = globalThis.chrome } = {}) {
-  if (!okToken(token)) return { result: 'auth', status: 0 };
+  if (!okToken(token)) return { result: 'auth', status: 0, detail: '' };
   try {
-    if (!(await chromeApi.permissions.contains({ origins: [PSA_API_PERMISSION] }))) return { result: 'no-permission', status: 0 };
+    if (!(await chromeApi.permissions.contains({ origins: [PSA_API_PERMISSION] }))) return { result: 'no-permission', status: 0, detail: '' };
     const res = await fetchImpl(`${PSA_API_ORIGIN}/publicapi/cert/GetByCertNumber/10000000`, psaInit(token.trim(), AbortSignal.timeout(TIMEOUT_MS)));
-    return { result: (await verdict(res)) ?? 'ok', status: res.status };
-  } catch { return { result: 'error', status: 0 }; }
+    const bad = await verdict(res);
+    return { result: bad?.kind ?? 'ok', status: res.status, detail: bad?.detail ?? '' };
+  } catch { return { result: 'error', status: 0, detail: '' }; }
 }

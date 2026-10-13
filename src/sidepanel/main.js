@@ -993,9 +993,10 @@ $('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url:
 $('back-button').addEventListener('click', () => showView('home'));
 
 // PSA API key (optional): card name and population from the cert number. Saving asks for api.psacard.com access.
-function renderPsaKey(status = null, subs = []) {
+function renderPsaKey(status = null, subs = [], detail = '') {
   $('psa-key-remove').hidden = !psaToken;
-  $('psa-key-status').textContent = status ? t(status, subs) : (psaToken ? t('setting_psa_key_saved') : '');
+  const text = status ? t(status, subs) : (psaToken ? t('setting_psa_key_saved') : '');
+  $('psa-key-status').textContent = detail ? `${text} ${t('setting_psa_key_answer', [detail])}` : text; // PSA's own words
 }
 $('psa-key-save').addEventListener('click', () => {
   const v = $('setting-psa-key').value.trim();
@@ -1005,14 +1006,14 @@ $('psa-key-save').addEventListener('click', () => {
     renderPsaKey('setting_key_checking');
     // Saved whatever the check says (a site block or a PSA error is not proof of a bad key); the status line says what PSA
     // answered, with its HTTP status, and Remove key undoes it.
-    const { result, status } = await testPsaKey(v);
+    const { result, status, detail } = await testPsaKey(v);
     await savePsaToken(v);
     psaToken = v;
     $('setting-psa-key').value = '';
     renderPsaKey({
       ok: 'setting_psa_key_works', limit: 'setting_key_saved_limit', 'no-permission': 'setting_psa_key_denied',
       auth: 'setting_psa_key_rejected', blocked: 'setting_psa_key_blocked', server: 'setting_psa_key_server',
-    }[result] ?? 'setting_key_saved_unchecked', [String(status)]);
+    }[result] ?? 'setting_key_saved_unchecked', [String(status)], detail);
     if (last.opened) refreshPrices(); // the result on screen gets the PSA data now
   }, () => renderPsaKey('setting_psa_key_denied'));
 });

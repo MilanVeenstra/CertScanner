@@ -1661,5 +1661,8 @@
   },
   "prices_need_grade": {
     "message": "Choose the grade to see its value."
+  },
+  "new_scan": {
+    "message": "New scan"
   }
 }

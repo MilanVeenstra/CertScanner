@@ -21,6 +21,11 @@ and `ui.js`; behaviour, test ids, i18n (EN/NL) and permissions are unchanged unl
 | Recent scans | Start only | `ui.setTaskState` |
 | Settings | Toggles 38×22 with the hint under the label; shortcut and "Change shortcut" on one row; keys with the input and "Save key" side by side, a check mark when the key works; shorter texts from the design | `#settings` |
 
+## Added after the design
+
+- Header button "New scan" (refresh icon, left of Settings): back to a clean Start screen, as when the panel is opened fresh; cancels a running scan and forgets the last result (user request 2026-10-14).
+- "Show value" applies the card and grade and closes Change; picking a grade alone changes nothing; the grade list has no "All grades".
+
 ## Deliberate differences
 
 - Thumbnails show the scanned photo; the striped box is the placeholder while scanning or without a photo.

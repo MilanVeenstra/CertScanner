@@ -192,6 +192,17 @@ function scanOther() {
   if (windowId !== null) clearLastResult(windowId);
 }
 
+/**
+ * Header "New scan" (user: "een refresh knop die een gloednieuwe scan start"): a clean Start screen, as when the panel
+ * is opened fresh. A running scan is cancelled, Settings closes and the last result is forgotten.
+ */
+function newScan() {
+  if (!$('settings').hidden) showView('home');
+  current?.controller.abort();
+  priceRun++;
+  scanOther();
+}
+
 function showCancelled() {
   ui.thumbnail(null);
   showIdleCard({ focus: true });
@@ -992,6 +1003,7 @@ function showView(name) {
   }
 }
 $('settings-button').addEventListener('click', () => showView('settings'));
+$('new-scan-button').addEventListener('click', newScan);
 // Extensions can't link to chrome:// pages, but tabs.create may open the shortcut editor.
 $('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url: SHORTCUTS_URL }).catch(() => ui.announce(t('err_open_tab'))); });
 $('back-button').addEventListener('click', () => showView('home'));

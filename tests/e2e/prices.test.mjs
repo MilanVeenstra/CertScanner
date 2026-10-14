@@ -295,4 +295,24 @@ describe('Prices for this card', { concurrency: false }, () => {
     assert.equal(v.ebay, 'eBay sales · PSA\u00a09');
     assert.equal(v.focus, 'price-edit', 'focus back on "Wrong card or grade? Change"');
   });
+  test('header "New scan": from a result back to a clean Start screen that stays clean after a reload', T, async () => {
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    const r = await pasteImage(page, await readFile(path.join(E.FIXTURES, 'psa-8digit-leading-zero.png')));
+    assert.equal(r.state, 'auto-open');
+    await settled();
+    const btn = page.locator('[data-testid="new-scan-button"]');
+    assert.ok(await btn.isVisible(), 'in the header, next to Settings');
+    assert.equal(await btn.getAttribute('title'), 'New scan');
+    await btn.click();
+    const v = await page.evaluate(() => ({
+      task: document.getElementById('task').dataset.state, body: document.body.dataset.state,
+      extra: document.getElementById('result-extra').childElementCount, other: document.getElementById('other-ways').dataset.open,
+      recent: !document.getElementById('recent').hidden, focus: document.activeElement?.id,
+    }));
+    assert.deepEqual(v, { task: 'idle', body: 'idle', extra: 0, other: 'true', recent: true, focus: 'task-heading' });
+    await page.reload();
+    await page.waitForSelector('body[data-ready="1"]', { state: 'attached' });
+    assert.equal(await page.evaluate(() => document.getElementById('task').dataset.state), 'idle', 'the last result is not restored');
+  });
 });

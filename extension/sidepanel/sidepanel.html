@@ -16,6 +16,7 @@
      sized by CSS, always aria-hidden where used. -->
 <svg class="sprite" aria-hidden="true" focusable="false">
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
   <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8"/><path d="M4 16V4h12"/></symbol>
@@ -45,6 +46,9 @@
   <div class="header-home">
     <svg class="logo" aria-hidden="true" focusable="false"><use href="#i-logo"/></svg>
     <h1 data-i18n="ext_name">CertScanner</h1>
+    <button type="button" class="icon-btn" id="new-scan-button" data-testid="new-scan-button" data-i18n-attr="title:new_scan">
+      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-refresh"/></svg><span class="visually-hidden" data-i18n="new_scan">New scan</span>
+    </button>
     <button type="button" class="icon-btn" id="settings-button" data-testid="settings-button" data-i18n-attr="title:nav_settings">
       <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg><span class="visually-hidden" data-i18n="nav_settings">Settings</span>
     </button>

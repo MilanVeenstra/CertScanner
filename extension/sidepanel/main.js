@@ -17,10 +17,11 @@ import { decide } from '../core/routing.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, openedStatusKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardInfo, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrade, gradeLabel, graderShort, POP_URLS } from '../core/priceLinks.js';
+import { cardInfo, cardQuery, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrade, gradeLabel, graderShort, POP_URLS } from '../core/priceLinks.js';
 import { isPcUrl, searchUrl as pcSearchUrl } from '../core/pricecharting.js';
 import { loadPrices, requestPricePermission } from './priceData.js';
 import { loadEbay, requestEbayPermission } from './ebayData.js';
+import { closeReaderTabs } from './tabReader.js';
 import { ebayHost, isEbayUrl } from '../core/ebaySold.js';
 import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, testPsaKey, psaCallsToday, PSA_DAILY_LIMIT, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
 import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken, testPptKey } from './pptApi.js';
@@ -28,7 +29,7 @@ import { isPokemon, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { reportData, reportFileName, imageExtension, zipStore } from './scanReport.js';
-import { requestSharper, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
+import { requestSharper, requestAllSites, hasAllSites, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
 import {
   SHORTCUTS_URL, scanShortcut, panelScanPlan, alwaysAllowHost, accessBody, noAccessBody, idleShortcutHint, pageSummary,
   pageNoneReason, pageQrInfo, pageErrorCode, persistablePage,
@@ -47,7 +48,8 @@ let history = { v: 1, entries: [] };
 let current = null;
 /** Last completed scan context: what Try again / Scan again / Copy / Edit act on. `page`: the A9 results list. */
 /** thumbUrl: small preview (<= 240 px); fullBlob: the original image, decoded only for "Show larger" (perf rec. 1). */
-const blankLast = () => ({ input: null, job: null, result: null, opened: null, thumbUrl: null, fullBlob: null, thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null, page: null, labelLines: null, labelFor: null });
+/** userCard: card + grade the user set with "Show value" (kept through Edit → Cancel). */
+const blankLast = () => ({ input: null, job: null, result: null, opened: null, thumbUrl: null, fullBlob: null, thumbAlt: '', caption: '', imageHost: null, picked: null, lowres: null, page: null, labelLines: null, labelFor: null, userCard: null });
 let last = blankLast();
 const autoOpened = new Set();
 const declined = new Set(); // hosts where "Sharper scans" was denied or dismissed this session
@@ -57,8 +59,10 @@ let shortcut = '';
 let pageThumbs = [];
 /** Original blobs of the current page scan's images (for "Show larger" after "Choose grader"); dropped with the thumbs. */
 let pageBlobs = [];
-/** A9 page-access state: the tab it is about and the https host that "Always allow" would grant. */
+/** A9 page-access state: the tab it is about and the https host that "Always allow" would grant (all: every https site). */
 let access = null;
+/** Access to every https site was granted (then "Scan this page" can read any https tab); kept current by the bootstrap. */
+let allSites = false;
 /**
  * Last URL this panel saw for a tab (from a job or a readable tabs.query). Chrome hides the URL of tabs CertScanner
  * can't read, so this is the only way to name the host for "Always allow"; dropped as soon as the tab navigates
@@ -70,7 +74,7 @@ const ui = createUi(doc, {
   submitTaskForm: () => onTaskFormSubmit(),
   candidatePicked: (c) => { last.picked = c; },
   candidateChosen: (c) => { openChosen({ grader: c.grader, number: c.number }); },
-  pricesChanged: () => refreshPrices({ fromCert: false }),
+  pricesChanged: () => { last.userCard = ui.priceInput(); refreshPrices({ fromCert: false }); },
 });
 
 // ---------------------------------------------------------------- static texts with substitutions
@@ -100,6 +104,17 @@ function revokePageThumbs() {
   pageBlobs = [];
 }
 
+/**
+ * Something new replaces the result on screen (a scan, Start, a typed or recent number): its price work stops and the
+ * page scan's photos are let go. Code that awaited something checks `last` afterwards and drops a stale outcome.
+ */
+function resetLast(fields = {}) {
+  stopPrices();
+  choosing = false;
+  revokePageThumbs();
+  last = { ...blankLast(), thumbUrl: ui.thumbnail(null), ...fields };
+}
+
 function showIdleCard({ focus = false } = {}) {
   setBody('idle');
   ui.showIdle({ focus, hint: idleHint() });
@@ -126,13 +141,6 @@ function describeInput(input) {
   return name ? { caption: name, alt: t('image_alt_file', [name]), host: null } : { caption: t('image_alt_pasted'), alt: t('image_alt_pasted'), host: null };
 }
 
-function qrInfo(result) {
-  const w = (result.warnings ?? []).find((x) => x.code === 'qr-untrusted-host');
-  if (!w) return { qrHost: null, qrNumberUsed: false };
-  const used = (result.candidates ?? []).some((c) => (c.evidence ?? []).includes(`qr-untrusted:${w.detail}`));
-  return { qrHost: w.detail ?? null, qrNumberUsed: used };
-}
-
 function persist(view) {
   if (windowId === null) return;
   saveLastResult(windowId, { ...view, imageHost: last.imageHost });
@@ -154,10 +162,9 @@ async function startScan(input) {
   current = { id, controller, input, job };
   const isCurrent = () => current?.id === id;
   if (job) rememberTab(job.tabId, job.pageUrl);
-  revokePageThumbs();
   const d = describeInput(input);
   // The preview is a small copy made once the scanner has decoded the image (never the full photo, perf rec. 1).
-  last = { ...blankLast(), input, job, thumbUrl: ui.thumbnail(null), thumbAlt: d.alt, caption: d.caption, imageHost: d.host };
+  resetLast({ input, job, thumbAlt: d.alt, caption: d.caption, imageHost: d.host });
   setBody('scanning');
   ui.showScanning({ caption: d.caption, thumbUrl: null, thumbAlt: d.alt });
   let thumbDone = Promise.resolve();
@@ -187,7 +194,7 @@ async function startScan(input) {
 
 /** Confirm → Idle without opening anything (the read is dropped and not restored). */
 function scanOther() {
-  last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
+  resetLast();
   showIdleCard({ focus: true });
   if (windowId !== null) clearLastResult(windowId);
 }
@@ -199,7 +206,7 @@ function scanOther() {
 function newScan() {
   if (!$('settings').hidden) showView('home');
   current?.controller.abort();
-  priceRun++;
+  current = null; // the cancelled scan ends silently: Start is already on screen
   scanOther();
 }
 
@@ -219,7 +226,7 @@ async function handleResult(result, openKey) {
     showErrorState(result.error?.code ?? 'engine-failed');
     return;
   }
-  const { qrHost } = qrInfo(result);
+  const { qrHost } = pageQrInfo(result);
   const offer = sharperOfferHost(result, declined);
   last.lowres = offer ? { host: offer, state: 'offer', origin: result.imageInfo.origin } : null;
   if (result.status === 'none') {
@@ -232,20 +239,22 @@ async function handleResult(result, openKey) {
   // BGS read clearly: Beckett has no page per number, so nothing opens; the result (number + prices) shows at once
   // and "Open Beckett lookup" copies the number and opens the form.
   if (result.status === 'confirm' && top?.grader === 'bgs' && decide(result.candidates, settings, result.warnings ?? [], undefined, { lookupOk: true }) === 'auto-open') {
-    showOpened({ grader: top.grader, number: top.number, method: top.source, url: buildCertUrl(top.grader, top.number), lookupPending: true }, 'opened');
+    showOpened({ grader: top.grader, number: top.number, method: top.source, url: buildCertUrl(top.grader, top.number), background: false, lookupPending: true }, 'opened');
     return;
   }
   // SEC-06: at most one automatic tab per context-menu job (a Sharper-scans re-run keeps the job id).
   if (result.status === 'auto-open' && !autoOpened.has(openKey)) {
     autoOpened.add(openKey);
+    const shown = last;
+    let r;
     try {
-      const r = await openCert(top, last.job, settings, { windowId });
-      showOpened({ grader: top.grader, number: top.number, method: top.source, url: r.url, background: !r.active, tabId: r.tabId }, 'auto-open');
-      return;
+      r = await openCert(top, last.job, settings, { windowId });
     } catch {
-      showConfirmState(result, { openFailed: true });
+      if (last === shown) showConfirmState(result, { openFailed: true });
       return;
     }
+    if (last === shown) showOpened({ grader: top.grader, number: top.number, method: top.source, url: r.url, background: !r.active, tabId: r.tabId }, 'auto-open');
+    return;
   }
   showConfirmState(result, {});
 }
@@ -254,7 +263,7 @@ function showConfirmState(result, { openFailed = false, moveFocus = true, restor
   const top = result.candidates[0];
   last.picked = top;
   setBody('confirm', { restored });
-  const { qrHost, qrNumberUsed } = qrInfo(result);
+  const { qrHost, qrNumberUsed } = pageQrInfo(result);
   ui.showConfirm({
     result, candidates: result.candidates, reasons: confirmReasons(result, settings),
     thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, caption: restored ? '' : last.caption,
@@ -268,6 +277,7 @@ function showConfirmState(result, { openFailed = false, moveFocus = true, restor
 
 function showOpened(opened, bodyState, { moveFocus = true, restored = false } = {}) {
   last.opened = opened;
+  last.userCard = null;
   setBody(bodyState, { restored });
   ui.showResult({ opened, thumbUrl: restored ? null : last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(opened), report: !restored && canReport() }, { moveFocus });
   if (!restored) persist({ task: 'result', body: bodyState, result: last.result, opened });
@@ -294,9 +304,11 @@ async function saveReport() {
     version: chrome.runtime.getManifest().version, createdAt: now.toISOString(), language: chrome.i18n.getUILanguage(),
     image: { file, type: img.type, bytes: img.size },
   });
+  let bytes;
+  try { bytes = new Uint8Array(await img.arrayBuffer()); } catch { ui.announce(t('report_failed')); return; }
   const zip = zipStore([
     { name: 'scan-report.json', data: new TextEncoder().encode(`${JSON.stringify(data, null, 2)}\n`), date: now },
-    { name: file, data: new Uint8Array(await img.arrayBuffer()), date: now },
+    { name: file, data: bytes, date: now },
   ]);
   const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
   const name = reportFileName(now);
@@ -315,7 +327,15 @@ async function saveReport() {
 
 let psaToken = null;
 let pptToken = null;
+/** Bumped (and the running price work aborted) whenever the price block is refilled or its result goes away. */
 let priceRun = 0;
+let priceCtl = null;
+
+function stopPrices() {
+  priceRun++;
+  priceCtl?.abort();
+  priceCtl = null;
+}
 let lastPrices = null;
 let lastEbay = null;
 
@@ -323,7 +343,7 @@ let lastEbay = null;
  * eBay sales overview (A21), next to the PriceCharting / PokemonPriceTracker value: runs alongside it, shown in its own
  * block so neither waits for the other. `run` ties it to the result on screen.
  */
-async function refreshEbay(run, { grader, desc, grade }) {
+async function refreshEbay(run, signal, { grader, desc, grade }) {
   if (!settings.ebaySold) { ui.showEbay({ status: 'off' }); return; }
   const label = grade ? gradeLabel(grader, grade) : graderShort(grader);
   const host = ebayHost(settings.ebaySite);
@@ -331,7 +351,7 @@ async function refreshEbay(run, { grader, desc, grade }) {
   let r;
   try {
     r = await loadEbay({
-      site: settings.ebaySite, grader, desc, grade, windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
+      site: settings.ebaySite, grader, desc, grade, signal, windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
       onStage: (s) => { if (run === priceRun && s === 'check') ui.showEbay({ status: 'check', label }); },
     });
   } catch { r = { status: 'error' }; }
@@ -366,25 +386,29 @@ function onEbayAction(a, el) {
 async function refreshPrices({ fromCert = true } = {}) {
   const o = last.opened;
   if (!o) return;
-  const run = ++priceRun;
+  stopPrices();
+  const run = priceRun;
+  priceCtl = new AbortController();
+  const { signal } = priceCtl;
   let psa = null;
   if (fromCert && o.grader === 'psa' && psaToken) {
     ui.showPriceData({ status: 'loading' });
-    const r = await fetchPsaCert(o.number, { token: psaToken }).catch(() => null);
+    const r = await fetchPsaCert(o.number, { token: psaToken, signal }).catch(() => null);
     if (run !== priceRun) return;
     if (r?.ok) { psa = r.card; ui.applyCertCard(r.card); }
     ui.showPsaInfo(r?.ok ? { card: r.card } : { reason: r?.reason ?? 'error' }); // visible either way: what the PSA key did
   }
   // Card name from the label itself, read at text size (the full-image pass reads it poorly on small photos, and a
-  // QR/barcode read skips OCR altogether). Runs once per result, before the prices are looked up.
-  if (fromCert && !psa && o.method !== 'manual' && last.fullBlob && last.labelFor !== o) {
-    last.labelFor = o;
-    ui.showPriceData({ status: 'reading' });
-    const ok = (lines) => cardInfo({ grader: o.grader, number: o.number, lines }).desc !== null;
-    const lines = await readLabel(last.fullBlob, { accept: ok, decimalGrade: o.grader !== 'psa' }).catch(() => []);
-    if (run !== priceRun) return;
-    const info = cardInfo({ grader: o.grader, number: o.number, lines });
-    last.labelLines = lines;
+  // QR/barcode read skips OCR altogether). Read once per result (a superseded read is tried again), before the prices.
+  if (fromCert && !psa && o.method !== 'manual' && last.fullBlob) {
+    if (last.labelFor !== o) {
+      ui.showPriceData({ status: 'reading' });
+      const ok = (lines) => cardInfo({ grader: o.grader, number: o.number, lines }).desc !== null;
+      const lines = await readLabel(last.fullBlob, { accept: ok, decimalGrade: o.grader !== 'psa', signal }).catch(() => null);
+      if (run !== priceRun) return;
+      if (lines) { last.labelFor = o; last.labelLines = lines; }
+    }
+    const info = cardInfo({ grader: o.grader, number: o.number, lines: last.labelLines ?? [] });
     // Keep the scan's own reading when it has the card number and this pass lost it (small photos).
     const prev = ui.priceInput().desc;
     const better = info.desc && (cardNoFrom(info.desc) || !cardNoFrom(prev));
@@ -392,7 +416,7 @@ async function refreshPrices({ fromCert = true } = {}) {
     else if (info.grade && !ui.priceInput().grade) ui.applyCertCard({ query: '', grade: info.grade, title: null });
   }
   const { grader, desc, grade } = ui.priceInput();
-  refreshEbay(run, { grader, desc, grade }); // its own block, in parallel
+  refreshEbay(run, signal, { grader, desc, grade }); // its own block, in parallel
   if (!desc) { ui.showPriceData({ status: 'need-card' }); return; }
   ui.showPriceData({ status: 'loading' });
   let res = null;
@@ -404,7 +428,7 @@ async function refreshPrices({ fromCert = true } = {}) {
       // With a PokemonPriceTracker key the value line always says why it was or wasn't used.
       if (!pokemon) note = { key: 'prices_ppt_not_pokemon', subs: [] };
       else {
-        ppt = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken });
+        ppt = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken, signal });
         if (run !== priceRun) return;
         if (ppt.status === 'ok') res = ppt;
         else note = pptNote(ppt, grader, grade);
@@ -414,7 +438,7 @@ async function refreshPrices({ fromCert = true } = {}) {
       const read = pricesFor(o);
       res = await loadPrices({
         query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null,
-        windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
+        signal, windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
         onStage: (s) => { if (run === priceRun && s === 'check') ui.showPriceData({ status: 'check' }); },
       });
       // PokemonPriceTracker knew the card but had no sale in this grade: its other grades beat an error.
@@ -422,7 +446,7 @@ async function refreshPrices({ fromCert = true } = {}) {
       // Not recognised as a Pokémon card, but PriceCharting gave nothing (its check, no match): with a key saved,
       // PokemonPriceTracker may still know the card (user: "werkende pokemon api key ingevoerd en ik krijg niks te zien").
       else if (res.status !== 'ok' && !ppt && pptToken && grader !== 'cgc-comics') {
-        const late = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken });
+        const late = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken, signal });
         if (run !== priceRun) return;
         if (late.status === 'ok') { res = late; note = null; } else if (late.status === 'no-grade') { res = late.result; note = pptNote(late, grader, grade); }
       }
@@ -527,11 +551,10 @@ async function startPageScan(job) {
   current = { id, controller, input, job };
   const isCurrent = () => current?.id === id;
   rememberTab(job.tabId, job.pageUrl);
-  revokePageThumbs();
   access = null;
   const host = hostOf(job.pageUrl);
   const caption = host ? t('image_source_page', [host]) : '';
-  last = { ...blankLast(), input, job, thumbUrl: ui.thumbnail(null), caption, imageHost: host };
+  resetLast({ input, job, caption, imageHost: host });
   setBody('scanning');
   ui.showScanning({ caption, page: true });
   const thumbs = [];
@@ -589,13 +612,17 @@ async function handlePageResult(result, openKey) {
     last.thumbUrl = pageThumbs[top.imageIndex] ?? null;
     last.fullBlob = pageBlobs[top.imageIndex] ?? null;
     last.thumbAlt = t('page_result_photo', [String(top.imageIndex + 1)]);
+    const shown = last;
+    let r;
     try {
-      const r = await openCert(top, job, settings, { windowId });
-      last.page.opened.add(result.items.indexOf(top));
-      showOpened({ grader: top.grader, number: top.number, method: top.source, url: r.url, background: !r.active, tabId: r.tabId }, 'auto-open');
+      r = await openCert(top, job, settings, { windowId });
     } catch {
-      showPageResultsState({ openFailed: true });
+      if (last === shown) showPageResultsState({ openFailed: true });
+      return;
     }
+    if (last !== shown) return;
+    last.page.opened.add(result.items.indexOf(top));
+    showOpened({ grader: top.grader, number: top.number, method: top.source, url: r.url, background: !r.active, tabId: r.tabId }, 'auto-open');
     return;
   }
   showPageResultsState();
@@ -628,8 +655,7 @@ async function openPageItem(item, i) {
 
 /** "eBay sold" on a results row: sales of that card in that grade (read from its photo), else of that exact slab. */
 async function pricesPageItem(item) {
-  const { desc, grade } = cardInfo({ grader: item.grader, number: item.number, lines: last.page?.result.labels?.[item.imageIndex] });
-  const card = desc ? gradeQuery(item.grader, desc, grade) : null;
+  const card = cardQuery({ grader: item.grader, number: item.number, lines: last.page?.result.labels?.[item.imageIndex] });
   const q = card ?? slabQuery(item.grader, item.number);
   if (!q) return;
   try {
@@ -704,30 +730,35 @@ async function panelScan() {
   }
   current?.controller.abort();
   current = null;
-  last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
+  resetLast();
   if (plan.action === 'restricted') showErrorState('restricted', { pageError: true });
   else showAccessState(tab?.id ?? null);
 }
 
 function showAccessState(tabId, { moveFocus = true } = {}) {
   const host = Number.isInteger(tabId) ? alwaysAllowHost(tabSites.get(tabId)) : null;
-  access = { tabId, host };
+  // Chrome hides the address of a tab CertScanner can't read (e.g. one opened after the last scan, user: "nadat ik op
+  // het refresh knopje heb gedrukt zegt hij kan deze pagina niet scannen"), so no single site can be offered: the
+  // panel button can only work there with access to all https sites, offered as the user's choice.
+  const all = !host && !allSites;
+  access = { tabId, host, all };
   setBody('idle');
-  ui.showPageAccess({ host, body: accessCopy() }, { moveFocus });
+  ui.showPageAccess({ host, all, body: accessCopy() }, { moveFocus });
   if (windowId !== null) clearLastResult(windowId);
 }
 
-/** "Always allow on ‹host›": permissions.request is the first call in the click (user gesture); then scan. */
+/** "Always allow on ‹host›" / "on all sites": permissions.request is the first call in the click (user gesture); then scan. */
 function onAlwaysAllow() {
   const a = access;
-  if (!a?.host) return;
-  requestSharper(`https://${a.host}`).then((granted) => {
+  if (!a?.host && !a?.all) return;
+  (a.host ? requestSharper(`https://${a.host}`) : requestAllSites()).then((granted) => {
     if (granted) {
-      ui.announce(t('page_access_granted', [a.host]));
+      if (!a.host) allSites = true;
+      ui.announce(a.host ? t('page_access_granted', [a.host]) : t('page_access_granted_all'));
       onPageScanButton();
     } else {
       ui.setAccessOffer('denied', a.host);
-      ui.announce(t('page_access_denied', [a.host]));
+      ui.announce(a.host ? t('page_access_denied', [a.host]) : t('page_access_denied_all'));
     }
   }, () => {
     ui.setAccessOffer('failed', a.host);
@@ -753,28 +784,26 @@ function showErrorState(code, { moveFocus = true, restored = false, pageError = 
   if (!restored) persist({ task: 'error', body: 'error', result: null, error: { code }, opened: null });
 }
 
+/** The tab of an in-memory job is still on the job's site, so its activeTab grant still applies. */
+async function onJobSite(job) {
+  try {
+    const tab = await chrome.tabs.get(job.tabId);
+    return Boolean(tab?.url) && imageOriginOf(tab.url) === imageOriginOf(job.pageUrl);
+  } catch {
+    return false;
+  }
+}
+
 /** Try again (A5): re-run the in-memory job while the activeTab grant still applies; else the upload path (E1). */
 async function retry() {
   const input = last.input;
   if (!input) return;
   if (input.kind === 'page') {
-    let ok = false;
-    try {
-      const tab = await chrome.tabs.get(input.job.tabId);
-      ok = Boolean(tab?.url) && imageOriginOf(tab.url) === imageOriginOf(input.job.pageUrl);
-    } catch { ok = false; }
-    if (ok) startPageScan(input.job);
+    if (await onJobSite(input.job)) startPageScan(input.job);
     else showAccessState(input.job.tabId);
     return;
   }
-  if (input.kind === 'job') {
-    let ok = false;
-    try {
-      const tab = await chrome.tabs.get(input.job.tabId);
-      ok = Boolean(tab?.url) && imageOriginOf(tab.url) === imageOriginOf(input.job.pageUrl);
-    } catch { ok = false; }
-    if (!ok) { showErrorState('restricted'); return; }
-  }
+  if (input.kind === 'job' && !(await onJobSite(input.job))) { showErrorState('restricted'); return; }
   startScan(input);
 }
 
@@ -788,21 +817,32 @@ async function onTaskFormSubmit() {
   await openChosen(v, { editing: ui.taskState === 'edit' });
 }
 
+/** A choice is being opened: a second click (or a row click plus Enter) opens no second tab. */
+let choosing = false;
+
 /**
- * The user settled the number (form or a possible-number row): from here it is the normal process, as after a sure
- * scan: the cert page opens and the result shows with value, cert check and market.
+ * The user settled the number (form, a grader, or a possible-number row): from here it is the normal process, as
+ * after a sure scan: the cert page opens and the result shows with value, cert check and market.
  */
 async function openChosen(v, { editing = false } = {}) {
+  if (choosing) return;
   // "Corrected by you" when editing a result or when the number is not one the scan read.
   const read = (last.result?.candidates ?? []).find((c) => c.number === v.number);
   const method = editing || !read ? 'edited' : read.source;
   const source = method === 'edited' ? 'manual' : method;
+  const shown = last;
+  let r;
+  choosing = true;
   try {
-    const r = await openCert({ grader: v.grader, number: v.number, source }, last.job, settings, { windowId, replaceLatest: editing });
-    showOpened({ grader: v.grader, number: v.number, method, url: r.url, background: !r.active, tabId: r.tabId }, 'opened');
+    r = await openCert({ grader: v.grader, number: v.number, source }, last.job, settings, { windowId, replaceLatest: editing });
   } catch {
-    ui.showOpenError();
+    ui.showOpenError(); // only a failed tab keeps the choice on screen
+    return;
+  } finally {
+    choosing = false;
   }
+  if (last !== shown) return; // a new scan started meanwhile
+  showOpened({ grader: v.grader, number: v.number, method, url: r.url, background: !r.active, tabId: r.tabId }, 'opened');
 }
 
 async function copyNumber() {
@@ -845,10 +885,18 @@ async function openAgain() {
   }
 }
 
+/** Edit → Cancel: the same result again, with the card the label read gave or the one the user set. */
 function cancelEdit() {
-  if (!last.opened) return;
-  ui.showResult({ opened: last.opened, thumbUrl: last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(last.opened) }, { moveFocus: false });
-  refreshPrices();
+  const o = last.opened;
+  if (!o) return;
+  ui.showResult({ opened: o, thumbUrl: last.thumbUrl, thumbAlt: last.thumbAlt, prices: pricesFor(o), report: canReport() }, { moveFocus: false });
+  const kept = last.userCard;
+  if (kept) {
+    ui.applyCertCard({ query: kept.desc, grade: kept.grade, title: null });
+    refreshPrices({ fromCert: false });
+  } else {
+    refreshPrices();
+  }
   doc.querySelector('#task [data-action="edit"]')?.focus();
 }
 
@@ -945,12 +993,14 @@ $('manual-form').addEventListener('submit', async (e) => {
   if (!v) return;
   current?.controller.abort();
   current = null;
+  const shown = last;
   try {
     const r = await openCert({ grader: v.grader, number: v.number, source: 'manual' }, null, settings, { windowId });
     manualField.reset();
+    if (last !== shown) return; // a scan started meanwhile
     // The form collapses with "Other ways to scan" in the result: focus moves to the result heading (QA P2-4).
     if (doc.activeElement instanceof HTMLElement) doc.activeElement.blur();
-    last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
+    resetLast();
     showOpened({ grader: v.grader, number: v.number, method: 'manual', url: r.url, background: !r.active, tabId: r.tabId }, 'opened');
   } catch {
     $('cert-error').textContent = t('err_open_tab');
@@ -964,9 +1014,11 @@ function renderRecent() {
     historyOn: settings.saveHistory,
     locale: t('locale_code'),
     onOpen: async (entry) => {
+      const shown = last;
       try {
         const r = await openCert({ grader: entry.grader, number: entry.number, source: entry.source }, null, settings, { windowId });
-        last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
+        if (last !== shown) return; // a scan started meanwhile
+        resetLast();
         showOpened({ grader: entry.grader, number: entry.number, method: entry.source, url: r.url, background: !r.active, tabId: r.tabId }, 'opened', { moveFocus: false });
       } catch {
         ui.announce(t('err_open_tab'));
@@ -1034,7 +1086,7 @@ $('psa-key-save').addEventListener('click', () => {
     // Saved whatever the check says (a site block or a PSA error is not proof of a bad key); the status line says what PSA
     // answered, with its HTTP status, and Remove key undoes it.
     const { result, status, detail } = await testPsaKey(v);
-    await savePsaToken(v);
+    try { await savePsaToken(v); } catch { renderPsaKey('setting_key_not_saved'); return; }
     psaToken = v;
     $('setting-psa-key').value = '';
     renderPsaKey({
@@ -1064,7 +1116,7 @@ $('ppt-key-save').addEventListener('click', () => {
     renderPptKey('setting_key_checking');
     const check = await testPptKey(v);
     if (check === 'auth') { renderPptKey('setting_ppt_key_rejected'); return; } // not saved
-    await savePptToken(v);
+    try { await savePptToken(v); } catch { renderPptKey('setting_key_not_saved'); return; }
     pptToken = v;
     $('setting-ppt-key').value = '';
     renderPptKey({ ok: 'setting_ppt_key_works', limit: 'setting_key_saved_limit', format: 'setting_ppt_key_format', 'no-permission': 'setting_ppt_key_denied' }[check] ?? 'setting_key_saved_unchecked');
@@ -1151,7 +1203,7 @@ const inputs = wireInputs({
   onError: (code) => {
     current?.controller.abort();
     current = null;
-    last = { ...blankLast(), thumbUrl: ui.thumbnail(null) };
+    resetLast();
     showErrorState(code);
   },
 });
@@ -1169,6 +1221,8 @@ window.addEventListener('online', () => doc.querySelectorAll('#task [data-ref="o
 window.addEventListener('offline', () => doc.querySelectorAll('#task [data-ref="offline"]').forEach((el) => { el.hidden = false; }));
 window.addEventListener('pagehide', () => {
   current?.controller.abort();
+  stopPrices();
+  closeReaderTabs(); // a read in a background tab must not outlive the panel
   revokePageThumbs();
   disposeEngines();
 });
@@ -1194,7 +1248,7 @@ function restore(saved) {
     showConfirmState(result, { moveFocus: false, restored: true });
   } else if (saved.task === 'none') {
     setBody('none', { restored: true });
-    ui.showNone({ thumbUrl: null, qrHost: qrInfo(result).qrHost, lowres: null, ocrUnavailable: saved.warnings.some((w) => w.code === 'ocr-unavailable') }, { moveFocus: false });
+    ui.showNone({ thumbUrl: null, qrHost: pageQrInfo(result).qrHost, lowres: null, ocrUnavailable: saved.warnings.some((w) => w.code === 'ocr-unavailable') }, { moveFocus: false });
   } else if (saved.task === 'error' && saved.error) {
     showErrorState(saved.error.code, { moveFocus: false, restored: true });
   }
@@ -1217,7 +1271,11 @@ function restore(saved) {
     ui.updateNoAccessBody(noAccessCopy());
   });
   onHistoryChanged((h) => { history = h; renderRecent(); });
-  onPermissionsChanged(() => { if (!$('settings').hidden) refreshSites(); });
+  allSites = await hasAllSites();
+  onPermissionsChanged(async () => {
+    allSites = await hasAllSites();
+    if (!$('settings').hidden) refreshSites();
+  });
   try {
     const got = await chrome.storage.session.get(DECLINED_KEY);
     for (const h of got?.[DECLINED_KEY] ?? []) if (typeof h === 'string') declined.add(h);

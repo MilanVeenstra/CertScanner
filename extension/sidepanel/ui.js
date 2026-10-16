@@ -7,7 +7,7 @@ import { createCertField } from './certField.js';
 import { GRADER_LABEL, methodKey, displayUrl, relativeTime, stepStates, openedStatusKey } from './viewModel.js';
 import { pageRowNote } from './pageView.js';
 import { buildCertUrl, hasDirectUrl } from '../core/certUrls.js';
-import { ebayHostLabel, GRADE_SCALES, gradeLabel, graderShort, matchGrade, POP_URLS } from '../core/priceLinks.js';
+import { ebayHostLabel, GRADE_SCALES, gradeLabel, matchGrade, POP_URLS } from '../core/priceLinks.js';
 
 // A9 adds body 'page-results' and task 'page-results' / 'page-access'.
 export const BODY_STATES = Object.freeze(['idle', 'scanning', 'auto-open', 'confirm', 'none', 'error', 'opened', 'page-results']);
@@ -85,6 +85,18 @@ export function createUi(doc, actions) {
   /** Unfold "Other ways to scan" (e.g. the task card's "Type a number" action); no-op while the task card shows the form. */
   function openOtherWays() { if (!otherWays.hidden) setOtherWays('open'); }
   singles.certform.addEventListener('submit', (e) => { e.preventDefault(); actions.submitTaskForm(); });
+  // Check the number: a grader picked with the mouse or a tap is the choice, so it continues at once, as Open does
+  // (user: "als je hebt gekozen dat hij ook doorgaat"). The arrow keys only move the choice; Enter opens.
+  const graderGroup = ref(singles.certform, 'graders');
+  let pointerPick = false;
+  graderGroup.addEventListener('pointerdown', () => { pointerPick = true; });
+  graderGroup.addEventListener('keydown', () => { pointerPick = false; });
+  graderGroup.addEventListener('click', (e) => {
+    if (!pointerPick || !e.target.matches?.('input[type="radio"]')) return;
+    pointerPick = false;
+    // After the click's change event, so the field submits the grader that was just picked.
+    if (task.dataset.state === 'confirm') setTimeout(() => { if (task.dataset.state === 'confirm') actions.submitTaskForm(); });
+  });
   // Possible numbers (confirm): one click on a row continues with it. With a known grader that is the normal process
   // (open + result with value); without one the number goes into the form and focus moves to the grader choice.
   singles.candidates.addEventListener('click', (e) => {
@@ -478,11 +490,8 @@ export function createUi(doc, actions) {
   /** Grade badge in the heading: the slab's grade as read (label or PSA), not the grade chosen for prices; none while the
    * grade is unknown (design v2: "BGS 0012345678" without a chip). */
   function setBadge(grader, grade) {
-    if (!grader || !grade) { headingBadge.hidden = true; return; }
-    headingBadge.hidden = false;
-    headingBadge.textContent = grade ? gradeLabel(grader, grade) : graderShort(grader);
-    headingBadge.dataset.unknown = String(!grade);
-    headingBadge.title = grade ? '' : t('identity_grade_unknown');
+    headingBadge.hidden = !grader || !grade;
+    if (!headingBadge.hidden) headingBadge.textContent = gradeLabel(grader, grade);
   }
 
   /**
@@ -605,9 +614,13 @@ export function createUi(doc, actions) {
     syncPriceSummary(card.title || null);
   }
 
-  const money = (n, currency = 'USD') => new Intl.NumberFormat(t('locale_code') || undefined, { style: 'currency', currency }).format(n);
+  /** Number and date formats, made once per kind (a price list formats every row). */
+  const formats = new Map();
+  const format = (key, make) => formats.get(key) ?? formats.set(key, make()).get(key);
+  const locale = () => t('locale_code') || undefined;
+  const money = (n, currency = 'USD') => format(`money:${currency}`, () => new Intl.NumberFormat(locale(), { style: 'currency', currency })).format(n);
   const saleDate = (d) => (/^\d{4}-\d{2}-\d{2}$/.test(d)
-    ? new Intl.DateTimeFormat(t('locale_code') || undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${d}T00:00:00Z`))
+    ? format('date', () => new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })).format(new Date(`${d}T00:00:00Z`))
     : d);
 
   const PRICE_STATE_KEY = {
@@ -1114,19 +1127,19 @@ export function createUi(doc, actions) {
   }
 
   /**
-   * A9: the panel button can't read the active tab. Explains the icon/shortcut (body: {key, subs}) and, when the
-   * panel knows the tab's https host, offers "Always allow on ‹host›".
+   * A9: the panel button can't read the active tab. Explains the icon/shortcut (body: {key, subs}) and offers
+   * "Always allow on ‹host›" when the panel knows the tab's https host, else (all) "Always allow on all sites".
    */
-  function showPageAccess({ host = null, body: copy }, { moveFocus = true } = {}) {
+  function showPageAccess({ host = null, all = false, body: copy }, { moveFocus = true } = {}) {
     setTaskState('page-access');
     setHeading(t('page_access_heading'), 'warning');
     const frag = clone('tpl-page-access');
     ref(frag, 'access-body').textContent = t(copy.key, copy.subs);
-    if (host) {
+    if (host || all) {
       ref(frag, 'always').hidden = false;
-      ref(frag, 'always-label').textContent = t('page_access_always', [host]);
-      ref(frag, 'always-fine').textContent = t('page_access_fineprint', [host]);
-      frag.querySelector('[data-action="always-allow"]').title = host;
+      ref(frag, 'always-label').textContent = host ? t('page_access_always', [host]) : t('page_access_always_all');
+      ref(frag, 'always-fine').textContent = host ? t('page_access_fineprint') : t('page_access_fineprint_all');
+      if (host) frag.querySelector('[data-action="always-allow"]').title = host;
     }
     body.appendChild(frag);
     settle(`${t('page_access_heading')}. ${ref(body, 'access-body').textContent}`, { moveFocus });
@@ -1153,7 +1166,7 @@ export function createUi(doc, actions) {
     if (state === 'denied') {
       ref(body, 'always').hidden = true;
       note.className = 'note';
-      ref(note, 'always-status-text').textContent = t('page_access_denied', [host]);
+      ref(note, 'always-status-text').textContent = host ? t('page_access_denied', [host]) : t('page_access_denied_all');
     } else {
       note.className = 'note note-warn';
       ref(note, 'always-status-text').textContent = t('perm_failed');
@@ -1270,13 +1283,12 @@ export function createUi(doc, actions) {
 
   return {
     openOtherWays,
-    announce, settle, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
+    announce, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
     showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, showEbay, openPriceFields, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     reportSaved,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,
     get field() { return field; },
     get taskState() { return task.dataset.state; },
-    heading,
   };
 }

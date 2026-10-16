@@ -1,11 +1,10 @@
 // Service worker (ADR-001 §4, A9): stateless trigger. Every listener is registered synchronously at the
 // module top level. No runtime messaging listeners exist in v1 (ADR §10).
-import { MENU_ID, createScanJob, createPageJob, jobKey } from '../shared/jobContract.js';
+import { MENU_ID, PAGE_COMMAND, createScanJob, createPageJob, jobKey } from '../shared/jobContract.js';
 import { seenJobsKey } from '../shared/seenJobs.js';
 import { SETTINGS_KEY, migrateSettings } from '../shared/settings.js';
 import { lastResultKey } from '../shared/lastResult.js';
 
-export const PAGE_COMMAND = 'scan-page';
 
 function registerMenus() {
   chrome.contextMenus.removeAll(() => {

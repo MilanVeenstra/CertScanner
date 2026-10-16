@@ -153,16 +153,28 @@ export async function labelImage(bitmap, { which = 'top', rotation = 0, binarize
   const w0 = swap ? bitmap.height : bitmap.width;
   const target = binarize ? Math.min(width, LABEL_BINARIZE_MAX_WIDTH) : width;
   const scale = Math.min(LABEL_MAX_UPSCALE, target / Math.max(1, w0));
-  const full = drawRotated(bitmap, bitmap.width, bitmap.height, rotation, scale);
-  const bandH = Math.max(1, Math.round(full.height * LABEL_FRACTION));
-  const out = new OffscreenCanvas(full.width, bandH);
+  // drawRotated()'s geometry, but only the label band is drawn (the canvas clips the rest): no full-size copy of the
+  // photo per call (a 2400 x 3200 copy is about 30 MB).
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const fullW = swap ? h : w;
+  const fullH = swap ? w : h;
+  const bandH = Math.max(1, Math.round(fullH * LABEL_FRACTION));
+  const out = new OffscreenCanvas(fullW, bandH);
   const ctx = out.getContext('2d', { willReadFrequently: true });
-  if (which === 'bottom') { ctx.translate(full.width, bandH); ctx.rotate(Math.PI); } // upside-down photo
-  ctx.drawImage(full, 0, which === 'bottom' ? full.height - bandH : 0, full.width, bandH, 0, 0, full.width, bandH);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, fullW, bandH);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  // Upside-down photo: the bottom band, turned 180° so the label reads upright.
+  if (which === 'bottom') { ctx.translate(fullW, bandH); ctx.rotate(Math.PI); ctx.translate(0, bandH - fullH); }
+  ctx.translate(fullW / 2, fullH / 2);
+  ctx.rotate((rotation * Math.PI) / 180);
+  ctx.drawImage(bitmap, -w / 2, -h / 2, w, h);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const gray = stretchContrast(toLuma(ctx.getImageData(0, 0, full.width, bandH).data));
-  if (binarize) adaptiveThreshold(gray, full.width, bandH); // coloured labels (BGS gold, CGC blue): print stays dark
-  ctx.putImageData(grayToImageData(gray, full.width, bandH), 0, 0);
+  const gray = stretchContrast(toLuma(ctx.getImageData(0, 0, fullW, bandH).data));
+  if (binarize) adaptiveThreshold(gray, fullW, bandH); // coloured labels (BGS gold, CGC blue): print stays dark
+  ctx.putImageData(grayToImageData(gray, fullW, bandH), 0, 0);
   return out.convertToBlob({ type: 'image/png' });
 }
 

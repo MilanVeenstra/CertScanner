@@ -220,10 +220,10 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
       assert.ok(directForeign.candidates.every((c) => c.confidence <= 0.5), 'untrusted QR digits capped at 0.50');
     }
     if (b.result.state === 'confirm') {
-      // The user may still open the number, but only through the rebuilt official URL.
-      if (!b.result.grader) await chooseGrader(panel.page, 'psa');
+      // The user may still open the number, but only through the rebuilt official URL (picking a grader opens it).
       const beforeTabs = await E.graderTabs(env);
-      await panel.page.locator(tid('open-button')).click();
+      if (!b.result.grader) await chooseGrader(panel.page, 'psa');
+      else await panel.page.locator(tid('open-button')).click();
       await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'tab from confirm' });
       const [t] = await newGraderTabsSince(beforeTabs);
       assert.equal(t.url, 'https://www.psacard.com/cert/12345678', 'URL rebuilt from grader + digits');
@@ -249,7 +249,7 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     assert.ok(!(await E.allTabs(env)).some((t) => t.url.includes('evil.example')));
   });
 
-  test('J5 ambiguous 10 digits: confirm with the best guess preselected, no tab; the user can switch grader → opens rebuilt URL', T, async () => {
+  test('J5 ambiguous 10 digits: confirm with the best guess preselected, no tab; picking another grader opens the rebuilt URL and the result', T, async () => {
     await E.closeGraderTabs(env);
     const { result, opened } = await runJob({ srcUrl: `${servers.A}/ambiguous-10digit.png`, settle: 2000 });
     assert.equal(result.state, 'confirm');
@@ -257,12 +257,15 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     assert.equal(result.grader, 'cgc-comics', 'most likely grader preselected (no keywords: tie order)');
     assert.equal(opened.length, 0, 'no automatic tab');
     const beforeTabs = await E.graderTabs(env);
+    // User: after choosing it goes on to the normal result page, without a second click on Open.
     await chooseGrader(panel.page, 'cgc-cards');
-    await panel.page.locator(tid('open-button')).click();
-    await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'tab after confirm' });
+    await E.poll(async () => (await newGraderTabsSince(beforeTabs)).length === 1, { message: 'tab after picking the grader' });
     const [t] = await newGraderTabsSince(beforeTabs);
     assert.equal(t.url, 'https://www.cgccards.com/certlookup/5012345678/');
     await E.poll(async () => (await panel.page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'state opened' });
+    await E.sleep(500);
+    assert.equal((await newGraderTabsSince(beforeTabs)).length, 1, 'one tab for one choice');
+    assert.equal(await panel.page.evaluate(() => document.getElementById('task').dataset.state), 'result', 'the normal result view');
   });
 
   test('J5b confirm → "Scan something else" returns to Idle without a tab; typed number → focus on the result heading', T, async () => {
@@ -733,8 +736,7 @@ describe('J7b "Sharper scans" offer for an https image read at screen resolution
     if (await p.page.locator('#other-ways').isHidden()) {
       // Confirm state: the task card itself holds the number form (design: "Other ways to scan" is hidden there).
       await p.page.locator(tid('number-input')).fill('01234567');
-      await p.page.locator(`${tid('grader-select')} label:has(input[value="psa"])`).click();
-      await p.page.locator(tid('open-button')).click();
+      await p.page.locator(`${tid('grader-select')} label:has(input[value="psa"])`).click(); // picking the grader opens it
     } else {
       await expandOtherWays(p.page);
       await p.page.locator(tid('manual-input')).fill('PSA 01234567');

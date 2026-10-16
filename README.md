@@ -131,14 +131,14 @@ After pulling new code, run `npm run build` again and click the reload button on
 | Prices & listings | **Pass site checks in a background tab** | on | When PriceCharting or eBay checks the browser first, the page is read in an inactive tab that closes again; off: the panel asks you to open the site |
 | Scan history | **Keep scan history** | on | Keeps the last 25 numbers on this device only; turning it off deletes them. **Clear history** empties the list. |
 
-Under **Sites with full access**, Settings lists the sites you allowed through **Sharper scans on ‹site›** or **Always allow on ‹site›**, each with a **Remove** button. An **All sites** row appears if broader access was granted in Chrome.
+Under **Sites with full access**, Settings lists the sites you allowed through **Sharper scans on ‹site›** or **Always allow on ‹site›**, each with a **Remove** button. An **All sites** row appears after **Always allow on all sites**, or if broader access was granted in Chrome.
 
 ## Troubleshooting
 
 | You see | What to do |
 |---|---|
 | "Chrome doesn't allow reading this page" | Chrome blocks extensions on `chrome://` pages, the Chrome Web Store, other extensions' pages and local files. Save or copy the image, then drop, paste or upload it in the panel. |
-| "CertScanner can't read this page yet" | The panel's **Scan this page** button works only on a page CertScanner may read: after you used the icon, shortcut or right-click menu there (until you go to another site), or on a site you allowed. Click the icon or press the shortcut. In rare cases the panel also offers **Always allow on ‹site›**; you can remove that access later in Settings → **Sites with full access**. |
+| "CertScanner can't read this page yet" | The panel's **Scan this page** button works only on a page CertScanner may read: after you used the icon, shortcut or right-click menu there (until you go to another site), or on a site you allowed. Click the icon or press the shortcut, or allow it once: the panel offers **Always allow on ‹site›** when it knows the site, else **Always allow on all sites**. You can remove that access later in Settings → **Sites with full access**. |
 | "No cert numbers found on this page" | Thumbnails are too small to read, so open the listing's large photo first. Scroll lazy-loaded photos into view. Photos inside embedded frames aren't found by a page scan; right-click the photo instead. |
 | "Scanned at screen resolution" / "Sharper scans on ‹site›" | The image host refused a direct download, so the visible screen was used. Click **Sharper scans on ‹site›** and allow that one site in Chrome's prompt, then **Scan again**. You can remove the access any time in Settings → **Sites with full access**. |
 | Wrong number, or the wrong grader | Click **Wrong number? Edit** on the result, or pick the right number and grader in the list. Always compare the number with the slab label. |

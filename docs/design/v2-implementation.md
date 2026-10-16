@@ -25,6 +25,8 @@ and `ui.js`; behaviour, test ids, i18n (EN/NL) and permissions are unchanged unl
 
 - Header button "New scan" (refresh icon, left of Settings): back to a clean Start screen, as when the panel is opened fresh; cancels a running scan and forgets the last result (user request 2026-10-14).
 - "Show value" applies the card and grade and closes Change; picking a grade alone changes nothing; the grade list has no "All grades".
+- "Check the number": clicking a grader opens that cert page and shows the result at once, as Open does (user request 2026-10-16); with the keyboard the arrows move the choice and Enter opens.
+- "CertScanner can't read this page yet": when the panel can't name the site, the offer is "Always allow on all sites" (same box and fine print as "Always allow on ‹site›").
 
 ## Deliberate differences
 

@@ -205,10 +205,15 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
 
     let t = now();
     let acq;
-    // SEC-03: the acquire call itself is raced so Cancel and the 25 s budget always settle.
-    if (typeof acquire === 'function') acq = await raceAbort(acquire(input, { signal: sig }), sig);
-    else if (input?.kind === 'job') acq = await raceAbort(acquireFromJob(input.job, { signal: sig, ...(acquire ?? {}) }), sig);
-    else acq = await raceAbort(acquireFromBlob(input?.blob, input?.method ?? 'upload', { signal: sig }), sig);
+    // SEC-03: the acquire call itself is raced so Cancel and the 25 s budget always settle. A decoded image that only
+    // arrives after the scan stopped is closed (a 40 MP photo holds about 160 MB).
+    const raced = (p) => {
+      Promise.resolve(p).then((r) => { if (sig.aborted) try { r?.bitmap?.close?.(); } catch { /* closed */ } }, () => {});
+      return raceAbort(p, sig);
+    };
+    if (typeof acquire === 'function') acq = await raced(acquire(input, { signal: sig }));
+    else if (input?.kind === 'job') acq = await raced(acquireFromJob(input.job, { signal: sig, ...(acquire ?? {}) }));
+    else acq = await raced(acquireFromBlob(input?.blob, input?.method ?? 'upload', { signal: sig }));
     timings.acquireMs = ms(now() - t);
     if (!acq.ok) {
       if (acq.reason === 'aborted' || acq.reason === 'timeout') throw new ScanStop(sig.aborted ? stopCode() : acq.reason);
@@ -296,7 +301,12 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
         }
       }
     };
-    const analysis = () => analyze({ pages, barcodes, hints });
+    let analyzed = null;
+    /** analyze() of the pages read so far; pages are only appended, so it is redone only after a new one. */
+    const analysis = () => {
+      if (analyzed?.n !== pages.length) analyzed = { n: pages.length, a: analyze({ pages, barcodes, hints }) };
+      return analyzed.a;
+    };
     /** Second-opinion pages run so far (A20), in order. */
     const opinions = [];
     const opinion = async (p, o) => {

@@ -7,6 +7,14 @@ export class Blocked extends Error {}
 const POLL_MS = 600;
 export const TAB_TIMEOUT_MS = 30_000;
 export const MAX_HTML = 4_000_000;
+/** Tabs open for a read right now (a closed panel never runs the `finally` that closes them). */
+const openTabs = new Set();
+
+/** Close every reader tab at once: the panel is going away (pagehide). */
+export function closeReaderTabs(chromeApi = globalThis.chrome) {
+  for (const id of openTabs) chromeApi.tabs.remove(id).catch(() => {});
+  openTabs.clear();
+}
 
 /**
  * Injected into the tab: its state and, once the page is past any check, its HTML. Self-contained (runs in the page).
@@ -30,6 +38,7 @@ export function pageState(maxHtml, readySelector) {
  */
 export async function readViaTab(url, { isAllowedUrl, readySelector, signal, chromeApi = globalThis.chrome, windowId, timeoutMs = TAB_TIMEOUT_MS }) {
   const tab = await chromeApi.tabs.create({ url, active: false, ...(Number.isInteger(windowId) ? { windowId } : {}) });
+  openTabs.add(tab.id);
   try {
     const end = Date.now() + timeoutMs;
     let sawChallenge = false;
@@ -47,6 +56,7 @@ export async function readViaTab(url, { isAllowedUrl, readySelector, signal, chr
     }
     throw new Blocked(sawChallenge ? 'challenge-not-passed' : 'tab-timeout');
   } finally {
+    openTabs.delete(tab.id);
     chromeApi.tabs.remove(tab.id).catch(() => {});
   }
 }

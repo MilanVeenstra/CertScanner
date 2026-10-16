@@ -71,3 +71,16 @@ export function onPermissionsChanged(cb, chromeApi = globalThis.chrome) {
     chromeApi.permissions.onRemoved.removeListener(cb);
   };
 }
+
+/** Access to every https site: what "Always allow on all sites" asks for when the panel can't name the tab's site. */
+export const ALL_SITES = 'https://*/*';
+
+/** Call directly from a click handler (user gesture), like requestSharper(). */
+export function requestAllSites(chromeApi = globalThis.chrome) {
+  return chromeApi.permissions.request({ origins: [ALL_SITES] });
+}
+
+/** True when every https site may be read (granted from the panel or in chrome://extensions). */
+export function hasAllSites(chromeApi = globalThis.chrome) {
+  return chromeApi.permissions.contains({ origins: [ALL_SITES] }).catch(() => false);
+}

@@ -171,6 +171,11 @@ describe('Prices for this card', { concurrency: false }, () => {
       assert.ok(!/\d{8,}/.test(u.search), `no cert number sent to eBay: ${h.url}`);
       assert.ok(!h.referer, 'no referrer sent');
     }
+    // A click on a sale opens that listing (review: the price opener refused every /itm/ link).
+    await page.locator('[data-testid="ebay-sold"] [data-action="ebay-item"]').first().click();
+    const listing = await E.poll(async () => (await E.allTabs(env)).find((t) => t.url === v.urls[0]), { message: 'listing tab opened' });
+    assert.equal(await page.evaluate(() => document.querySelector('#task [data-ref="open-error"]:not([hidden])') !== null), false, 'no "couldn\'t open" error');
+    await env.sw.evaluate((id) => chrome.tabs.remove(id), listing.id);
   });
 
   test("eBay's bot check: read once in an inactive tab (setting on); with the setting off the panel reports it", T, async () => {

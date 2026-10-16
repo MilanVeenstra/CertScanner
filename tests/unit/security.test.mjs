@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { raceAbort } from '../../src/shared/raceAbort.js';
 import { sniffDimensions, dimensionPolicy, sniffBlob, decodeBlob, acquireFromJob, SNIFF_UNKNOWN_MAX_BYTES, SNIFF_HEAD_BYTES, SNIFF_DEEP_BYTES } from '../../src/pipeline/acquire.js';
 import { autoOpenKey } from '../../src/sidepanel/viewModel.js';
-import { listGrantedSites, removeSite, removeAllSites, removalStatus } from '../../src/sidepanel/permissionsUi.js';
+import { listGrantedSites, removeSite, removeAllSites, removalStatus, requestAllSites, hasAllSites } from '../../src/sidepanel/permissionsUi.js';
 
 // ---------------------------------------------------------------- SEC-03 raceAbort
 test('raceAbort resolves with the promise when not aborted', async () => {
@@ -262,6 +262,15 @@ test('listGrantedSites leaves out install-time hosts and origins with their own 
     runtime: { getManifest: () => ({ host_permissions: ['https://www.pricecharting.com/*'] }) },
   };
   assert.deepEqual(await listGrantedSites(api, { exclude: ['https://api.psacard.com/*'] }), { hosts: ['i.ebayimg.com'], allSites: [] });
+});
+
+test('"Always allow on all sites" asks for https sites only; a failing check counts as not granted', async () => {
+  const asked = [];
+  const api = { permissions: { request: async (p) => { asked.push(p); return true; }, contains: async (p) => p.origins[0] === 'https://*/*' } };
+  assert.equal(await requestAllSites(api), true);
+  assert.deepEqual(asked, [{ origins: ['https://*/*'] }]);
+  assert.equal(await hasAllSites(api), true);
+  assert.equal(await hasAllSites({ permissions: { contains: async () => { throw new Error('gone'); } } }), false);
 });
 
 // ---------------------------------------------------------------- SEC-17 removal announcement from the resolved result

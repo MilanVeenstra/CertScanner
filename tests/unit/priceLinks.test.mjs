@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { POP_URLS, cardQuery, cardInfo, gradeQuery, matchGrade, GRADE_SCALES, slabQuery, gradeFromLines, ebaySearchUrl, pricechartingUrl, psaAuctionUrl, isPriceUrl, POINT130_URL, ebayHostLabel, isEbaySite } from '../../src/core/priceLinks.js';
+import { POP_URLS, cardQuery, cardInfo, gradeQuery, matchGrade, GRADE_SCALES, slabQuery, gradeFromLines, ebaySearchUrl, isPriceUrl, ebayHostLabel, isEbaySite } from '../../src/core/priceLinks.js';
+import { searchUrl as pcSearchUrl } from '../../src/core/pricecharting.js';
 
 test('slab query: grader short name + cert number', () => {
   assert.equal(slabQuery('psa', '01234567'), 'PSA 01234567');
@@ -56,12 +57,10 @@ test('grade scales and grade queries', () => {
   assert.equal(gradeQuery('psa', '   ', '10'), null);
 });
 
-test('PriceCharting and PSA auction price links', () => {
-  assert.equal(pricechartingUrl('2023 POKEMON SV 151 CHARIZARD ex #199'), 'https://www.pricecharting.com/search-products?q=POKEMON+SV+151+CHARIZARD+ex+%23199&type=prices');
-  assert.equal(psaAuctionUrl('MICHAEL JORDAN #57'), 'https://www.psacard.com/auctionprices/search?q=MICHAEL+JORDAN+%2357');
-  assert.throws(() => pricechartingUrl(' '), RangeError);
-  assert.ok(isPriceUrl(pricechartingUrl('Pikachu')) && isPriceUrl(psaAuctionUrl('Pikachu')));
+test('PriceCharting links pass the price opener; cert and other pages do not', () => {
+  assert.ok(isPriceUrl(pcSearchUrl('Pikachu')));
   assert.ok(!isPriceUrl('https://www.psacard.com/cert/01234567'), 'cert pages go through openCert, not the price opener');
+  assert.ok(!isPriceUrl('https://www.psacard.com/auctionprices/search?q=x'), 'nothing in the panel opens PSA auction prices');
   assert.ok(!isPriceUrl('https://www.pricecharting.com/game/x'));
 });
 
@@ -96,8 +95,10 @@ test('eBay links: sold and active, site switch, encoding', () => {
 
 test('isPriceUrl only accepts the links this module builds', () => {
   assert.ok(isPriceUrl(ebaySearchUrl('de', 'PSA 1', { sold: true })));
-  assert.ok(isPriceUrl(POINT130_URL));
-  for (const bad of ['https://evil.example/sch/i.html', 'http://www.ebay.com/sch/i.html?_nkw=x', 'https://www.ebay.com/itm/123', 'https://user@www.ebay.com/sch/i.html', 'https://www.ebay.com:444/sch/i.html', 'https://130point.com/other', 'javascript:alert(1)', '']) {
+  assert.ok(isPriceUrl('https://www.ebay.com/itm/356000000001'), 'one sold listing from the eBay sales list');
+  for (const bad of ['https://evil.example/sch/i.html', 'http://www.ebay.com/sch/i.html?_nkw=x', 'https://www.ebay.com/itm/123', 'https://www.ebay.com/itm/356000000001?x=1',
+    'https://www.ebay.com/itm/356000000001#a', 'https://www.ebay.com/itm/356000000001/x', 'https://user@www.ebay.com/sch/i.html', 'https://www.ebay.com:444/sch/i.html',
+    'https://130point.com/sales/', 'javascript:alert(1)', '']) {
     assert.equal(isPriceUrl(bad), false, bad);
   }
 });

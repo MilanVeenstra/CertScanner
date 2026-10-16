@@ -533,7 +533,7 @@ describe('A9 page access on the release build (no host access): the panel button
     await variant?.cleanup();
   });
 
-  test('page-access state: no scan, no request, no "Always allow" for an unknown host; copy names the icon and the shortcut', T, async () => {
+  test('page-access state: no scan, no request; for an unknown host "Always allow on all sites"; copy names the icon and the shortcut', T, async () => {
     console.log(`# page-access build under test: ${identity}`);
     const en = messages(E.DIST_E2E, 'en');
     assert.deepEqual((await env.sw.evaluate(() => chrome.permissions.getAll())).origins, ['https://www.pricecharting.com/*'], 'no page access (PriceCharting only)');
@@ -560,13 +560,23 @@ describe('A9 page access on the release build (no host access): the panel button
     assert.equal(v.body, 'idle');
     assert.equal(v.heading, msg(en, 'page_access_heading'));
     assert.equal(v.accessBody, shortcut ? msg(en, 'page_access_body_keys', [shortcut]) : msg(en, 'page_access_body'));
-    assert.equal(v.alwaysAllowVisible, false, 'no host offer when the https host is unknown');
+    assert.ok(v.alwaysAllowVisible, 'an offer even when the https host is unknown (user: "kan deze pagina niet scannen")');
+    assert.equal((await p.page.locator(tid('always-allow-button')).textContent()).trim(), msg(en, 'page_access_always_all'), 'all sites, as no single site can be named');
     assert.ok(v.actions.includes('page-scan') && v.actions.includes('choose'), 'Try again + Choose image');
     assert.equal(v.focusId, 'task-heading');
     assert.ok(!(await E.stateLog(p.page, mark)).includes('scanning'), 'no scan started');
     assert.deepEqual(servers.log.slice(logStart).filter((r) => r.path !== '/favicon.ico'), [], 'the extension requested nothing from the page origins');
     assert.deepEqual(env.net.slice(netStart).filter((n) => !n.url.startsWith('chrome-extension://')).map((n) => n.url), [], 'no network request from any context');
     assert.deepEqual(p.errors.filter((e) => e.startsWith('pageerror')), []);
+    // The offer asks for every https site, and only from the click; declining withdraws it.
+    assert.ok(await stubPermissions(p.page, { grant: false }), 'chrome.permissions stubbed in the panel realm');
+    await p.page.locator(tid('always-allow-button')).click();
+    await E.poll(() => p.page.evaluate(() => window.__perm.requests === 1), { message: 'permission requested' });
+    assert.deepEqual(await p.page.evaluate(() => window.__perm.origins), [['https://*/*']]);
+    await E.sleep(300);
+    const declined = await readPage(p.page);
+    assert.equal(declined.alwaysAllowVisible, false, 'offer withdrawn after decline');
+    assert.ok(await p.page.evaluate((t) => document.querySelector('#task [data-ref="always-status"]')?.textContent.includes(t), msg(en, 'page_access_denied_all')), 'denied note shown');
     await p.page.close(); // one panel per window in the next test
   });
 
@@ -627,7 +637,7 @@ describe('A9 page access on the release build (no host access): the panel button
     console.log(`# after a cross-origin navigation: task ${nav.task}; Always allow visible: ${nav.alwaysAllowVisible}; old note visible: ${noteVisible}`);
     assert.equal(nav.task, 'page-access');
     assert.equal(noteVisible, false, 'page-access card re-rendered');
-    assert.equal(nav.alwaysAllowVisible, false, 'no offer after the tab left the known host (observation O12)');
+    assert.equal((await p.page.locator(tid('always-allow-button')).textContent()).trim(), msg(en, 'page_access_always_all'), 'after the tab left the known host (observation O12) only all sites can be offered');
 
     // O11: a toolbar job on the new site (no grant) → E12 again; E12 is not restored when the panel is reopened.
     mark = await E.logMark(p.page);

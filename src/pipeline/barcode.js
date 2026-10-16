@@ -22,16 +22,21 @@ function prepareZxing(getURL) {
   return zxingReady;
 }
 
-async function nativeDetector() {
-  const BD = globalThis.BarcodeDetector;
-  if (typeof BD !== 'function' || typeof BD.getSupportedFormats !== 'function') return null;
-  try {
-    const supported = await BD.getSupportedFormats();
-    if (!Object.keys(NATIVE).every((f) => supported.includes(f))) return null;
-    return new BD({ formats: Object.keys(NATIVE) });
-  } catch {
-    return null;
-  }
+let nativeOnce = null;
+/** Chrome's own detector when it reads every format we need, else null; made once and reused for every image. */
+function nativeDetector() {
+  nativeOnce ??= (async () => {
+    const BD = globalThis.BarcodeDetector;
+    if (typeof BD !== 'function' || typeof BD.getSupportedFormats !== 'function') return null;
+    try {
+      const supported = await BD.getSupportedFormats();
+      if (!Object.keys(NATIVE).every((f) => supported.includes(f))) return null;
+      return new BD({ formats: Object.keys(NATIVE) });
+    } catch {
+      return null;
+    }
+  })();
+  return nativeOnce;
 }
 
 /** Warm the zxing module (no-op when the native detector is used). */
@@ -50,9 +55,9 @@ export async function detectBarcodes(imageData, { signal, getURL = (p) => global
   const clean = (format, text, engine) => (typeof text === 'string' && text.length > 0
     ? { format: String(format).slice(0, 32), text: text.slice(0, MAX_TEXT), engine } : null);
 
-  const native = preferNative ? await nativeDetector() : null;
-  if (native) {
-    const found = await native.detect(imageData);
+  const detector = preferNative ? await nativeDetector() : null;
+  if (detector) {
+    const found = await detector.detect(imageData);
     signal?.throwIfAborted();
     return found.slice(0, MAX_SYMBOLS).map((b) => clean(NATIVE[b.format] ?? b.format, b.rawValue, 'native')).filter(Boolean);
   }

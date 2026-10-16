@@ -68,7 +68,7 @@ Holds three kinds of data:
 - **Optional host access `https://www.pokemonpricetracker.com/*`:** requested only when the user saves their own PokemonPriceTracker API key; used for Pokémon slabs to get eBay sales prices per grade from its official API (card name and number only). Removed again with the key.
 - **Optional `https://www.ebay.com/*` (or the user's eBay site)** (within the declared optional `https://*/*`): requested only when the user clicks "Show eBay sales here". The panel then reads two public eBay searches for the card in its grade (sold listings newest first, Buy It Now cheapest first) to show the last sale, median, cheapest offer and latest sales. No cert number is sent. eBay has no open sold-listings API since the Finding API was retired (February 2025); the user chose this for personal use, knowing eBay's user agreement restricts automated reading. Nothing is stored.
 - **Optional `https://api.psacard.com/*`** (within the declared optional `https://*/*`): requested only when the user saves their own PSA API key, to look up a PSA cert's name, grade and population.
-- **`chrome.storage.sync`:** four on/off settings ("Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history") and the eBay site used by the price links. The price links (eBay search, 130point sales page) open in a new tab only on a click and need no extra permission.
+- **`chrome.storage.sync`:** four on/off settings ("Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history") and the eBay site used by the price links. The price links (eBay searches, an eBay sale from the panel's list, PriceCharting, the population reports) open in a new tab only on a click and need no extra permission.
 - **`chrome.storage.local`:** an optional list of recent scans on this device. Each entry holds grader, cert number, how it was read and time; the list keeps at most 25. Users can switch it off or clear it ("Clear history").
 - **`chrome.storage.session`:** short-lived data, cleared when Chrome closes: the toolbar/shortcut/menu → panel hand-off (page address without query or fragment, image address, tab and window ids); the last result per window (cert numbers, grader, method and one image or page host name, at most 12 hours); and the sites where the user dismissed "Sharper scans on ‹site›".
 
@@ -81,12 +81,13 @@ Defines a keyboard shortcut that starts a page scan, the same action as clicking
 
 ## Optional host permission
 
-### `https://*/*` (optional, requested for one site at a time)
-Nothing is granted at install. CertScanner asks for one exact origin (`https://<site>/*`) through Chrome's permission prompt. It asks only after the user clicks one of two visible buttons:
+### `https://*/*` (optional, requested for one site at a time, or for all https sites when the user picks that)
+Nothing is granted at install. CertScanner asks for one exact origin (`https://<site>/*`) through Chrome's permission prompt. It asks only after the user clicks one of these visible buttons:
 - **"Sharper scans on ‹site›"**, shown only when a photo could only be read at screen resolution. Access to that image host lets CertScanner load the full-size image for a more reliable reading.
 - **"Always allow on ‹site›"**, which can appear when the user presses the panel's "Scan this page" button on a page the extension cannot read yet and the panel still knows that page's site from an earlier scan in the same tab. QA found this offer rarely reachable (test report O12). Access to that site lets the button work there without clicking the toolbar icon first.
+- **"Always allow on all sites"**, shown in the same place when the panel cannot name the page's site (Chrome hides the address of a tab the extension may not read, e.g. a listing opened after the last scan). This is the only grant that asks for `https://*/*` as a whole. The fine print says what it does ("Scan this page" then works on every https site) and that it can be removed in Settings.
 
-Neither grant makes CertScanner scan anything automatically. A scan always starts from the user's click or shortcut. Extension downloads are made without cookies or referrer.
+No grant makes CertScanner scan anything automatically. A scan always starts from the user's click or shortcut. Extension downloads are made without cookies or referrer.
 
 Granted sites are listed in the extension's Settings under "Sites with full access", each with a Remove button. An "All sites" row appears if a broader grant exists. Users can also remove access in Chrome's Site access settings.
 

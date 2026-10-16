@@ -30,6 +30,15 @@ test('opened results round-trip', () => {
   assert.deepEqual(p.value.opened, { grader: 'psa', number: '01234567', method: 'ocr', background: false });
 });
 
+test('a BGS result whose lookup was not opened yet round-trips with lookupPending (restored after a reopen)', () => {
+  const opened = { grader: 'bgs', number: '0012345678', method: 'ocr', url: 'https://www.beckett.com/grading/card-lookup', background: false, lookupPending: true };
+  const p = parseLastResult(makeLastResult({ task: 'result', body: 'opened', result: { ...scan, warnings: [] }, opened, imageHost: null }, NOW), { now: NOW });
+  assert.equal(p.ok, true);
+  assert.deepEqual(p.value.opened, { grader: 'bgs', number: '0012345678', method: 'ocr', background: false, lookupPending: true });
+  const psa = makeLastResult({ task: 'result', body: 'opened', result: scan, opened: { ...opened, grader: 'psa', number: '01234567' }, imageHost: null }, NOW);
+  assert.equal(psa.opened.lookupPending, undefined, 'only Beckett has a lookup form');
+});
+
 test('errors round-trip with their code only', () => {
   const v = makeLastResult({ task: 'error', body: 'error', result: null, error: { code: 'restricted' }, opened: null, imageHost: null }, NOW);
   assert.deepEqual(parseLastResult(v, { now: NOW }).value.error, { code: 'restricted' });

@@ -770,6 +770,18 @@
   "page_access_fineprint": {
     "message": "Chrome asks you to confirm. You can remove it in Settings."
   },
+  "page_access_always_all": {
+    "message": "Always allow on all sites"
+  },
+  "page_access_fineprint_all": {
+    "message": "Then “Scan this page” works on every https site. Chrome asks you to confirm. You can remove it in Settings."
+  },
+  "page_access_granted_all": {
+    "message": "Access allowed on all sites. Scanning this page."
+  },
+  "page_access_denied_all": {
+    "message": "No access given."
+  },
   "settings_toolbar_heading": {
     "message": "Toolbar button and shortcut"
   },
@@ -1208,9 +1220,6 @@
   "identity_title_unknown": {
     "message": "Title unknown"
   },
-  "identity_grade_unknown": {
-    "message": "Grade not read"
-  },
   "value_source": {
     "message": "PriceCharting · US dollars"
   },
@@ -1451,6 +1460,9 @@
   "setting_key_saved_unchecked": {
     "message": "Key saved, but the service couldn't be reached to check it."
   },
+  "setting_key_not_saved": {
+    "message": "Couldn't save the key. Try again."
+  },
   "setting_psa_key_works": {
     "message": "Key saved and working. PSA slabs now show their grade and population from PSA."
   },
@@ -1500,6 +1512,9 @@
         "example": "certscanner-report-20261012-153000.zip"
       }
     }
+  },
+  "report_failed": {
+    "message": "Couldn't save the file. Try again."
   },
   "ebay_sales_heading": {
     "message": "eBay sales · $GRADE$",

@@ -770,6 +770,18 @@
   "page_access_fineprint": {
     "message": "Chrome vraagt je dit te bevestigen. Je kunt het weghalen in Instellingen."
   },
+  "page_access_always_all": {
+    "message": "Altijd toestaan op alle sites"
+  },
+  "page_access_fineprint_all": {
+    "message": "Dan werkt “Deze pagina scannen” op elke https-site. Chrome vraagt je dit te bevestigen. Je kunt het weghalen in Instellingen."
+  },
+  "page_access_granted_all": {
+    "message": "Toegang toegestaan op alle sites. Deze pagina wordt gescand."
+  },
+  "page_access_denied_all": {
+    "message": "Geen toegang gegeven."
+  },
   "settings_toolbar_heading": {
     "message": "Werkbalkknop en sneltoets"
   },
@@ -1208,9 +1220,6 @@
   "identity_title_unknown": {
     "message": "Titel onbekend"
   },
-  "identity_grade_unknown": {
-    "message": "Grade niet gelezen"
-  },
   "value_source": {
     "message": "PriceCharting · Amerikaanse dollars"
   },
@@ -1451,6 +1460,9 @@
   "setting_key_saved_unchecked": {
     "message": "Sleutel opgeslagen, maar de dienst was niet bereikbaar om hem te controleren."
   },
+  "setting_key_not_saved": {
+    "message": "Kon de sleutel niet opslaan. Probeer het opnieuw."
+  },
   "setting_psa_key_works": {
     "message": "Sleutel opgeslagen en werkt. PSA-slabs tonen nu grade en populatie van PSA."
   },
@@ -1500,6 +1512,9 @@
         "example": "certscanner-report-20261012-153000.zip"
       }
     }
+  },
+  "report_failed": {
+    "message": "Kon het bestand niet opslaan. Probeer het opnieuw."
   },
   "ebay_sales_heading": {
     "message": "eBay-verkopen · $GRADE$",

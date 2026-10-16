@@ -68,6 +68,8 @@ test('pageQrInfo: off-site QR host and whether a listed number came from it', ()
   const r = { warnings: [{ code: 'qr-untrusted-host', detail: 'evil.example' }], items: [{ evidence: ['qr-untrusted:evil.example'] }] };
   assert.deepEqual(pageQrInfo(r), { qrHost: 'evil.example', qrNumberUsed: true });
   assert.deepEqual(pageQrInfo({ ...r, items: [{ evidence: ['len:8'] }] }), { qrHost: 'evil.example', qrNumberUsed: false });
+  // A single scan lists candidates instead of items.
+  assert.deepEqual(pageQrInfo({ warnings: r.warnings, candidates: r.items }), { qrHost: 'evil.example', qrNumberUsed: true });
 });
 
 test('pageErrorCode: lost access asks for a click (panel: page-access; toolbar/shortcut: E12, O11); Chrome-refused pages stay restricted', () => {

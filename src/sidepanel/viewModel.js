@@ -91,16 +91,15 @@ const ERRORS = {
  */
 export function errorView(code, { retryable = false, menuTitle = '', page = false, body: bodyOverride = null } = {}) {
   const e = ERRORS[code] ?? { id: 'E9', tone: 'danger', k: 'err_generic', actions: ['retry?', 'type'] };
-  if (bodyOverride?.key) {
-    const actions = e.actions.flatMap((a) => (a === 'retry?' ? (retryable ? ['retry'] : []) : a === 'page?' ? (page ? ['page-scan'] : []) : [a]));
-    return { id: e.id, tone: e.tone, heading: `${e.k}_heading`, body: bodyOverride.key, bodySubs: [...(bodyOverride.subs ?? [])], actions };
-  }
-  const bodySubs = e.size ? [`${MAX_IMAGE_MB} MB`] : e.menu ? [menuTitle] : [];
   const actions = e.actions.flatMap((a) => {
     if (a === 'retry?') return retryable ? ['retry'] : [];
     if (a === 'page?') return page ? ['page-scan'] : [];
     return [a];
   });
+  if (bodyOverride?.key) {
+    return { id: e.id, tone: e.tone, heading: `${e.k}_heading`, body: bodyOverride.key, bodySubs: [...(bodyOverride.subs ?? [])], actions };
+  }
+  const bodySubs = e.size ? [`${MAX_IMAGE_MB} MB`] : e.menu ? [menuTitle] : [];
   const body = page && e.pageBody ? e.pageBody : `${e.k}_body`;
   return { id: e.id, tone: e.tone, heading: `${e.k}_heading`, body, bodySubs, actions };
 }

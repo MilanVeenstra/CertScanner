@@ -1,6 +1,6 @@
 // The only caller of chrome.tabs.create (ADR-001 §8). Decoded/page URLs are never navigated:
 // cert URLs are always rebuilt by buildCertUrl() from a validated grader + digit string, and price links must pass
-// isPriceUrl() (allow-listed eBay/130point search URLs built by priceLinks.js).
+// isPriceUrl() (allow-listed PriceCharting, population report and eBay search/listing URLs, see priceLinks.js).
 import { buildCertUrl, hasDirectUrl } from '../core/certUrls.js';
 import { isPriceUrl } from '../core/priceLinks.js';
 import { addHistoryEntry, makeEntry } from '../shared/history.js';
@@ -27,7 +27,7 @@ export async function openCert(candidate, job, settings, { windowId, chromeApi =
 }
 
 /**
- * Open a price/listing search (eBay, 130point) next to the source tab. Only links built by priceLinks.js pass, and
+ * Open a price page or eBay search/listing next to the source tab. Only links isPriceUrl() allows pass, and
  * nothing is added to the scan history (these are searches, not cert pages).
  */
 export async function openPriceLink(url, job, settings, { windowId, chromeApi = globalThis.chrome } = {}) {

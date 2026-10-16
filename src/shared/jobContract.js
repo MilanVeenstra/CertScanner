@@ -2,6 +2,8 @@
 // chrome.storage.session. Pure: imported by the SW, the side panel and unit tests.
 
 export const MENU_ID = 'certscanner-scan';
+/** Manifest command name of the page-scan shortcut (service worker and panel). */
+export const PAGE_COMMAND = 'scan-page';
 export const SCAN_JOB_VERSION = 1;
 export const JOB_TTL_MS = 120_000;
 export const MAX_SRC_URL_CHARS = 2_000_000; // larger data: URLs -> srcUrl:null -> 'too-large'

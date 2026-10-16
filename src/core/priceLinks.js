@@ -14,11 +14,6 @@ export const EBAY_SITES = Object.freeze({
   'com.au': 'www.ebay.com.au',
 });
 export const DEFAULT_EBAY_SITE = 'com';
-/** 130point has no documented search link: the panel copies the query and opens its sales page. */
-export const POINT130_URL = 'https://130point.com/sales/';
-/** Search pages whose results show a price per grade (PriceCharting) or PSA's own auction prices realized. */
-const PRICECHARTING_HOST = 'www.pricecharting.com';
-const PSA_HOST = 'www.psacard.com';
 /**
  * Population reports (how many copies exist per grade). None has a documented search link, so the panel copies the
  * card name and opens the report. Beckett's report has no stable public address and is left out.
@@ -29,8 +24,9 @@ export const POP_URLS = Object.freeze({
   'cgc-cards': 'https://www.cgccards.com/population-report/',
 });
 const POP_HREFS = new Set(Object.values(POP_URLS));
-export const PRICE_HOSTS = Object.freeze(new Set([...Object.values(EBAY_SITES), '130point.com', PRICECHARTING_HOST, PSA_HOST,
-  ...Object.values(POP_URLS).map((u) => new URL(u).hostname)]));
+const EBAY_HOSTS = new Set(Object.values(EBAY_SITES));
+/** One sold listing in the panel's eBay sales: /itm/<item number>, nothing else. */
+const EBAY_ITEM_PATH = /^\/itm\/\d{9,15}$/;
 
 const GRADER_SHORT = Object.freeze({ psa: 'PSA', 'cgc-comics': 'CGC', 'cgc-cards': 'CGC', bgs: 'BGS' });
 const MAX_QUERY = 120;
@@ -227,22 +223,6 @@ export function ebaySearchUrl(site, query, { sold = false, single = false } = {}
   return `https://${host}/sch/i.html?${params.toString()}`;
 }
 
-/** PriceCharting search: its product pages list the price per grade (ungraded ... PSA 10). The year is left out. */
-export function pricechartingUrl(desc) {
-  const q = normQuery(desc).replace(/\b(19|20)\d\d\b/g, ' ').replace(/\s+/g, ' ').trim();
-  if (!q) throw new RangeError('empty query');
-  return `https://${PRICECHARTING_HOST}/search-products?${new URLSearchParams({ q, type: 'prices' }).toString()}`;
-}
-
-/** PSA Auction Prices Realized search (PSA-graded sales by grade; PSA may ask the user to sign in). */
-export function psaAuctionUrl(desc) {
-  const q = normQuery(desc);
-  if (!q) throw new RangeError('empty query');
-  return `https://${PSA_HOST}/auctionprices/search?${new URLSearchParams({ q }).toString()}`;
-}
-
-const PRICE_PATHS = Object.freeze({ '130point.com': '/sales/', [PRICECHARTING_HOST]: '/search-products', [PSA_HOST]: '/auctionprices/search' });
-
 /** Card number in search terms ("POKEMON CHARIZARD ex 199" -> "199"), else null. */
 export function cardNoFrom(desc) {
   const words = String(desc ?? '').trim().split(/\s+/);
@@ -250,15 +230,17 @@ export function cardNoFrom(desc) {
   return null;
 }
 
-/** True only for URLs this module builds (allow-listed host and path, https, no credentials or port). */
+/**
+ * True only for the links the panel opens (https, no credentials or port): PriceCharting's product/search pages, the
+ * population reports, eBay searches and one eBay listing from the sales list.
+ */
 export function isPriceUrl(url) {
   if (isPcUrl(url)) return true; // PriceCharting product/search page shown in the panel
+  if (POP_HREFS.has(url)) return true;
   try {
     const u = new URL(url);
-    if (u.protocol !== 'https:' || u.username || u.password || u.port || !PRICE_HOSTS.has(u.hostname)) return false;
-    if (u.hostname === '130point.com') return u.href === POINT130_URL;
-    if (POP_HREFS.has(u.href)) return true;
-    return u.pathname === (PRICE_PATHS[u.hostname] ?? '/sch/i.html') && !u.hash;
+    if (u.protocol !== 'https:' || u.username || u.password || u.port || u.hash || !EBAY_HOSTS.has(u.hostname)) return false;
+    return u.pathname === '/sch/i.html' || (EBAY_ITEM_PATH.test(u.pathname) && !u.search);
   } catch { return false; }
 }
 

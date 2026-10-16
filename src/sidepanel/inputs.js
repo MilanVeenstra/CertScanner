@@ -1,8 +1,6 @@
 // Image input (UX spec §5): drop anywhere in Home, paste (image -> scan, text -> cert field), Choose image.
 // Size/decode validation happens in acquireFromBlob(); here we only route files and classify bad drops.
 
-export const ACCEPTED_TYPES = Object.freeze(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'image/bmp']);
-
 /** 'image' | 'other' for a File (an empty type is tried as an image; decoding decides). */
 export function classifyFile(file) {
   if (!file) return 'other';

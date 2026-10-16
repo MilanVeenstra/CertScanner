@@ -13,6 +13,12 @@ import { readViaTab } from './tabReader.js';
 const TIMEOUT_MS = 15_000;
 const MAX_HTML = 4_000_000;
 const cache = new Map();
+const MAX_CACHED = 40;
+function remember(key, out) {
+  cache.set(key, out);
+  if (cache.size > MAX_CACHED) cache.delete(cache.keys().next().value);
+  return out;
+}
 
 export const hasPricePermission = (chromeApi = globalThis.chrome) =>
   chromeApi.permissions.contains({ origins: [PC_PERMISSION] }).catch(() => false);
@@ -59,30 +65,24 @@ export async function loadPrices({ query, cardNo = null, grader, grade = null, s
       return { doc: parse(page.html), url: page.url };
     }
   };
-  let out;
   try {
     let page = await get(searchUrl(query));
     if (!isProductUrl(page.url)) {
       const href = bestSearchResult(page.doc, query, cardNo);
-      if (!href) { out = { status: 'not-found', url: page.url }; cache.set(key, out); return out; }
+      if (!href) return remember(key, { status: 'not-found', url: page.url });
       page = await get(href);
     }
     const p = parseProduct(page.doc);
-    if (!p.prices.length && !Object.keys(p.sales).length) {
-      out = { status: 'unreadable', url: page.url };
-    } else {
-      const labels = gradeLabels(grader, grade, special);
-      const sales = pickSales(p.sales, labels);
-      out = {
-        status: 'ok', source: 'pc', url: page.url, name: p.name, set: p.set, prices: p.prices, current: pickPrice(p.prices, labels),
-        lastSold: sales?.rows[0] ?? null, sales, labels,
-      };
-    }
+    // Not cached: after "Open PriceCharting" (the browser passes its check) "Try again" may read it.
+    if (!p.prices.length && !Object.keys(p.sales).length) return { status: 'unreadable', url: page.url };
+    const labels = gradeLabels(grader, grade, special);
+    const sales = pickSales(p.sales, labels);
+    return remember(key, {
+      status: 'ok', source: 'pc', url: page.url, name: p.name, set: p.set, prices: p.prices, current: pickPrice(p.prices, labels),
+      lastSold: sales?.rows[0] ?? null, sales, labels,
+    });
   } catch (e) {
     if (signal?.aborted) throw e;
     return { status: e instanceof Challenge ? 'challenge' : 'error' }; // not cached: may pass on a retry
   }
-  cache.set(key, out);
-  if (cache.size > 40) cache.delete(cache.keys().next().value);
-  return out;
 }

@@ -40,12 +40,16 @@ function cleanWarning(w) {
 function cleanOpened(o) {
   if (o === null || o === undefined) return null;
   if (!isObj(o) || !isValidCert(o.grader, o.number) || !METHODS.has(o.method) || typeof o.background !== 'boolean') return undefined;
-  return { grader: o.grader, number: o.number, method: o.method, background: o.background };
+  const out = { grader: o.grader, number: o.number, method: o.method, background: o.background };
+  // Beckett: the lookup form was not opened yet (the result says "Not opened yet" and offers it).
+  if (o.lookupPending === true && o.grader === 'bgs') out.lookupPending = true;
+  return out;
 }
 
 /**
  * @param {{task:string, body:string, result:import('../core/types.js').ScanResult|null, error?:{code:string}|null,
- *   opened:{grader:string, number:string, method:string, background:boolean}|null, imageHost:string|null}} view
+ *   opened:{grader:string, number:string, method:string, background:boolean, lookupPending?:boolean}|null,
+ *   imageHost:string|null}} view
  */
 export function makeLastResult(view, now) {
   const r = view.result;

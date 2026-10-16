@@ -1,9 +1,9 @@
 // Pure page-scan view logic for the side panel (ADR A9). No chrome, no DOM: unit-tested in Node.
 import { isRestrictedPage } from '../core/certUrls.js';
 import { DEFAULT_RULES } from '../core/certRules.js';
+import { PAGE_COMMAND } from '../shared/jobContract.js';
 
-/** Manifest command name of the page-scan shortcut. */
-export const PAGE_COMMAND = 'scan-page';
+export { PAGE_COMMAND };
 /** Chrome's shortcut editor. Extensions can't link to chrome:// pages, but may open them with tabs.create. */
 export const SHORTCUTS_URL = 'chrome://extensions/shortcuts';
 
@@ -99,11 +99,14 @@ export function pageNoneReason(result) {
   return cov ? { key: 'page_none_checked_some', subs: [String(cov.checked), String(cov.total)] } : { key: 'page_none_checked', subs: [] };
 }
 
-/** Off-site QR warning for a page result (N2): host, and whether a listed number was taken from it. */
+/**
+ * Off-site QR warning (N2) of a page result (its items) or a single scan (its candidates): the host, and whether a
+ * listed number was taken from it.
+ */
 export function pageQrInfo(result) {
   const w = (result?.warnings ?? []).find((x) => x && x.code === 'qr-untrusted-host');
   if (!w) return { qrHost: null, qrNumberUsed: false };
-  const used = (result.items ?? []).some((i) => (i.evidence ?? []).includes(`qr-untrusted:${w.detail}`));
+  const used = (result.items ?? result.candidates ?? []).some((i) => (i.evidence ?? []).includes(`qr-untrusted:${w.detail}`));
   return { qrHost: w.detail ?? null, qrNumberUsed: used };
 }
 

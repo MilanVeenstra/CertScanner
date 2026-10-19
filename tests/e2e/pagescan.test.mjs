@@ -518,7 +518,7 @@ describe('A9 page access on the release build (no host access): the panel button
       dir = path.join(E.ROOT, 'dist');
       identity = `dist/ (release, ${rel.gitCommit?.slice(0, 7)}${rel.gitDirty ? '+dirty' : ''}, built ${rel.builtAt})`;
     } else {
-      variant = await E.makeVariant((m) => { m.host_permissions = ['https://www.pricecharting.com/*']; });
+      variant = await E.makeVariant((m) => { delete m.host_permissions; });
       dir = variant.dir;
       identity = 'release-equivalent copy of dist-e2e with the release host_permissions (dist/ missing or from another source state)';
     }
@@ -536,7 +536,7 @@ describe('A9 page access on the release build (no host access): the panel button
   test('page-access state: no scan, no request; for an unknown host "Always allow on all sites"; copy names the icon and the shortcut', T, async () => {
     console.log(`# page-access build under test: ${identity}`);
     const en = messages(E.DIST_E2E, 'en');
-    assert.deepEqual((await env.sw.evaluate(() => chrome.permissions.getAll())).origins, ['https://www.pricecharting.com/*'], 'no page access (PriceCharting only)');
+    assert.deepEqual((await env.sw.evaluate(() => chrome.permissions.getAll())).origins, [], 'no page access at install');
     const page0 = env.context.pages()[0];
     await page0.goto(`${servers.A}/pages/gallery.html`);
     await page0.waitForSelector('html[data-ready="1"]', { state: 'attached', timeout: 15000 });
@@ -622,7 +622,7 @@ describe('A9 page access on the release build (no host access): the panel button
     assert.ok(await p.page.evaluate((t) => document.querySelector('#task [data-ref="always-status"]')?.textContent.includes(t), msg(en, 'page_access_denied', ['127.0.0.1'])), 'denied note shown');
     assert.equal(await p.page.evaluate(() => document.activeElement?.dataset.ref ?? null), 'always-status', 'focus on the note');
     assert.ok(!(await E.stateLog(p.page, mark)).includes('scanning'), 'no scan without access');
-    assert.deepEqual((await env.sw.evaluate(() => chrome.permissions.getAll())).origins, ['https://www.pricecharting.com/*'], 'nothing else granted');
+    assert.deepEqual((await env.sw.evaluate(() => chrome.permissions.getAll())).origins, [], 'nothing granted');
 
     // Release-checklist PS4 scenario: the tab moves to another https site. Without access Chrome hides the new URL
     // (tabs.onUpdated has no url), so the panel can no longer name the host: page-access copy without the offer.

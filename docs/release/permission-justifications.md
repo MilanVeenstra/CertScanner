@@ -8,7 +8,6 @@ _The Developer Dashboard lists the permissions found in the uploaded package. Ch
 
 ```json
 "permissions": ["contextMenus", "activeTab", "scripting", "storage", "sidePanel"],
-"host_permissions": ["https://www.pricecharting.com/*"],
 "optional_host_permissions": ["https://*/*"],
 "commands": { "scan-page": { "suggested_key": { "default": "Alt+Shift+S" } } },
 "incognito": "not_allowed",
@@ -16,7 +15,7 @@ _The Developer Dashboard lists the permissions found in the uploaded package. Ch
 ```
 
 **Deliberately not requested:**
-- `host_permissions` beyond `www.pricecharting.com`, and `<all_urls>`
+- any `host_permissions` (no site access at install), and `<all_urls>`
 - `content_scripts`
 - `tabs`, `webRequest`, `downloads`, `offscreen`, `clipboardRead`, `clipboardWrite`
 - `web_accessible_resources` and `externally_connectable`
@@ -48,8 +47,6 @@ It returns that data and exits. No listeners or code stay on the page. It does n
 
 When the user presses the panel's "Scan this page" button, a trivial function (`return true`) is first injected only to test whether CertScanner may read that tab; it reads nothing.
 
-Prices (setting "Pass site checks in a background tab", on by default; ADR A21): when PriceCharting's Cloudflare check or eBay's bot check blocks the panel's own request, the same public page is opened once in an inactive tab of the user's window (`tabs.create`, `active: false`). A self-contained function reports the page state and, once the browser has passed the check, the page's HTML (`XMLSerializer`, read only); the tab is then closed (at most 30 s). This only runs on `www.pricecharting.com` and the eBay site the user allowed, both covered by host access. The HTML is parsed inert in the panel; only prices, dates and titles are kept in memory.
-
 ### `contextMenus`
 Adds one item, "Scan slab cert number", to the right-click menu, only for images. Choosing it scans that specific photo and opens its official cert page. This is one of the two main ways to use the extension.
 
@@ -64,11 +61,9 @@ The text-recognition engine runs inside this panel, so the panel must stay open 
 
 ### `storage`
 Holds three kinds of data:
-- **`host_permissions: https://www.pricecharting.com/*`:** the panel reads the scanned card's public PriceCharting search and product page (current price, price per grade, last sales) right after a scan. The user's PriceCharting cookies go along, as on a normal visit, because PriceCharting is behind Cloudflare's bot check; when the check still has to run, the page is read once in an inactive tab (see `scripting`), or, with that setting off, the panel asks the user to open PriceCharting and try again. Nothing is stored.
-- **Optional host access `https://www.pokemonpricetracker.com/*`:** requested only when the user saves their own PokemonPriceTracker API key; used for Pokémon slabs to get eBay sales prices per grade from its official API (card name and number only). Removed again with the key.
-- **Optional `https://www.ebay.com/*` (or the user's eBay site)** (within the declared optional `https://*/*`): requested only when the user clicks "Show eBay sales here". The panel then reads two public eBay searches for the card in its grade (sold listings newest first, Buy It Now cheapest first) to show the last sale, median, cheapest offer and latest sales. No cert number is sent. eBay has no open sold-listings API since the Finding API was retired (February 2025); the user chose this for personal use, knowing eBay's user agreement restricts automated reading. Nothing is stored.
+- **Optional host access `https://www.pokemonpricetracker.com/*`** (within the declared optional `https://*/*`): requested only when the user saves their own PokemonPriceTracker API key; used for Pokémon slabs to get eBay sales prices per grade from its official API (card name and number only). It is the only source of the value shown in the panel; without a key the panel shows links instead. Removed again with the key.
 - **Optional `https://api.psacard.com/*`** (within the declared optional `https://*/*`): requested only when the user saves their own PSA API key, to look up a PSA cert's name, grade and population.
-- **`chrome.storage.sync`:** four on/off settings ("Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history") and the eBay site used by the price links. The price links (eBay searches, an eBay sale from the panel's list, PriceCharting, the population reports) open in a new tab only on a click and need no extra permission.
+- **`chrome.storage.sync`:** four on/off settings ("Toolbar button scans the page", "Always ask before opening", "Open in a background tab" and "Keep scan history") and the eBay site used by the price links. The links under a result (eBay searches, PriceCharting's search, the population reports) open in a new tab only on a click and need no extra permission. No PriceCharting or eBay page is read by the extension.
 - **`chrome.storage.local`:** an optional list of recent scans on this device. Each entry holds grader, cert number, how it was read and time; the list keeps at most 25. Users can switch it off or clear it ("Clear history").
 - **`chrome.storage.session`:** short-lived data, cleared when Chrome closes: the toolbar/shortcut/menu → panel hand-off (page address without query or fragment, image address, tab and window ids); the last result per window (cert numbers, grader, method and one image or page host name, at most 12 hours); and the sites where the user dismissed "Sharper scans on ‹site›".
 

@@ -356,23 +356,12 @@ legend + * { clear: both; }
 .value-note { font-size: var(--cs-text-xs); color: var(--cs-text-muted); text-wrap: pretty; }
 .price-fields { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: var(--cs-space-3); border: var(--cs-line) solid var(--cs-border-control); }
 .price-show { text-align: start; justify-content: flex-start; }
-/* eBay sales: three figures without boxes, sales as single lines */
-.ebay-sec { gap: 10px; }
-.state-box { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: var(--cs-space-3); background: var(--cs-surface); }
-.ebay-stats { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: 10px 12px; }
-.ebay-stats > div { display: flex; flex-direction: column; gap: 1px; }
-.ebay-stats dt { font-size: var(--cs-text-xs); color: var(--cs-text-muted); }
-.ebay-stats dd { margin: 0; display: flex; flex-direction: column; gap: 1px; }
-.ebay-stats strong { font: 800 17px/1.25 var(--cs-font-sans); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ebay-stats dd span { font-size: var(--cs-text-xs); color: var(--cs-text-muted); }
-.ebay-stats dd span:empty { display: none; }
-.ebay-found { display: flex; flex-direction: column; gap: 10px; }
+/* Links to sales elsewhere (A25) and sales as single lines */
+.links-sec { gap: 10px; }
 .sale-list { list-style: none; display: flex; flex-direction: column; }
 .sale-list li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 6px 0; border-block-start: 1px solid var(--cs-row); font-size: var(--cs-text-sm); }
 .sale-date { font-size: var(--cs-text-xs); color: var(--cs-text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .sale-title { position: relative; min-inline-size: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sale-list .link.sale-title { display: block; min-block-size: 0; padding: 0 0 2px; font-weight: 400; line-height: 1.4; text-decoration-color: var(--cs-border-control); }
-.sale-list .link.sale-title:hover { text-decoration-color: var(--cs-text); text-decoration-thickness: 1px; }
 .sale-price { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* Price per grade: folded by default, one-line preview */
 .fold { border-block-end: 1px solid var(--cs-border-subtle); }

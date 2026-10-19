@@ -1,6 +1,6 @@
 # CertScanner 0.1.0: Chrome Web Store listing draft (EN + NL)
 
-> **Out of date (2026-10-19): rewrite before submitting.** This draft predates the price features. The single purpose, description, permission justifications and data-use answers must cover the price lookups (the card name and grade go to price sources), and the price sources themselves change for the public release (see `docs/research/price-sources-2026.md`). Publishing steps: [`publishing.md`](publishing.md).
+> **Out of date (2026-10-19): rewrite before submitting.** This draft predates the price features. The single purpose, description and data-use answers must cover the value lookup: with the user's own PokemonPriceTracker key the card name and number go to its API; PSA's key sends the cert number to PSA; links open eBay and PriceCharting searches on a click (ADR A25, `docs/research/price-sources-2026.md`). The manifest has no install-time host access any more. Publishing steps: [`publishing.md`](publishing.md).
 
 _Role: release-manager · Date: 2026-10-10 · Status: **draft, not submitted**. Nothing has been uploaded to the Chrome Web Store, and no developer account was used._
 _Inputs: `src/manifest.json` and `src/_locales/{en,nl}/messages.json` at `44ea7bf` (`src/` identical to `03d9589`); ADR-001 (A7–A9); design spec §6.1/§11; security review rounds 1–2 (SEC-16 label fixes applied here); QA test report (52/52 at `03d9589`). An improvement round (SEC-13…19) is in progress; re-check the quoted strings against the final commit._

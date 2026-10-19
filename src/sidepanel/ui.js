@@ -20,7 +20,6 @@ const OTHER_WAYS = { idle: 'open', scanning: 'hidden', result: 'closed', 'page-r
 /** Reasons on "Check the number" that only inform (grey icon); the others are what to check (red triangle). */
 const INFO_REASONS = new Set(['reason_unclear', 'reason_always_ask', 'reason_bgs_lookup']);
 const RECENT_VISIBLE = 5;
-const SHOWN_EBAY_SALES = 4;
 const COPIED_MS = 2000;
 const SLOW_MS = 8000;
 
@@ -543,7 +542,7 @@ export function createUi(doc, actions) {
       setPriceFields(open);
       if (open) input.focus();
     });
-    ref(mf, 'price-pop').hidden = !POP_URLS[prices.grader];
+    ref(vf, 'price-pop').hidden = !POP_URLS[prices.grader];
     ref(vf, 'price-note').textContent = t('find_note', [ebayHostLabel(prices.site)]);
     const toggle = ref(mf, 'market-toggle');
     toggle.addEventListener('click', () => {
@@ -623,92 +622,34 @@ export function createUi(doc, actions) {
     ? format('date', () => new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })).format(new Date(`${d}T00:00:00Z`))
     : d);
 
+  /** Value states (A25: PokemonPriceTracker with the user's key; the links below cover everything else). */
   const PRICE_STATE_KEY = {
-    loading: 'prices_loading', reading: 'prices_reading', check: 'prices_checking', 'no-permission': 'prices_allow_text', 'not-found': 'prices_not_found',
-    unreadable: 'prices_unreadable', error: 'prices_error', challenge: 'prices_challenge', 'need-card': 'prices_need_card_data',
+    loading: 'prices_loading', reading: 'prices_reading', 'need-card': 'prices_need_card_data', 'no-key': 'prices_no_key', 'no-source': 'prices_no_source',
+    'not-found': 'prices_not_found', auth: 'prices_key_auth', limit: 'prices_key_limit', 'no-permission': 'prices_key_permission',
+    format: 'prices_key_format', error: 'prices_error',
   };
-  /** States announced once through #status (a tab that opens, and the ones that need the user). */
-  const ANNOUNCED_STATES = new Set(['check', 'not-found', 'unreadable', 'error', 'challenge']);
-
-  const EBAY_STATE_KEY = {
-    loading: 'ebay_loading', check: 'ebay_checking', 'no-permission': 'ebay_allow_text', blocked: 'ebay_blocked', error: 'ebay_error',
-    'need-card': 'ebay_need_card', 'need-grade': 'ebay_need_grade', none: 'ebay_none',
-  };
+  /** States announced once through #status (the ones that need the user). */
+  const ANNOUNCED_STATES = new Set(['not-found', 'auth', 'limit', 'no-permission', 'format', 'error']);
 
   /** A sale line: date · title · price (design v2: one line each, the title cut with an ellipsis). */
-  function saleRow(list, { date, title, price, url = null }) {
+  function saleRow(list, { date, title, price }) {
     const li = doc.createElement('li');
     const d = doc.createElement('span');
+    const ti = doc.createElement('span');
     const v = doc.createElement('span');
     d.className = 'sale-date';
+    ti.className = 'sale-title';
     v.className = 'sale-price';
     d.textContent = saleDate(date);
-    v.textContent = price;
-    let ti;
-    if (url) {
-      ti = doc.createElement('button');
-      ti.type = 'button';
-      ti.className = 'link sale-title';
-      ti.dataset.action = 'ebay-item';
-      ti.dataset.url = url;
-      ti.textContent = title;
-      const nt = doc.createElement('span');
-      nt.className = 'visually-hidden';
-      nt.textContent = ` ${t('a11y_new_tab')}`;
-      ti.append(nt);
-    } else {
-      ti = doc.createElement('span');
-      ti.className = 'sale-title';
-      ti.textContent = title;
-    }
+    ti.textContent = title;
     ti.title = title;
+    v.textContent = price;
     li.append(d, ti, v);
     list.appendChild(li);
   }
 
-  /**
-   * eBay sales section (A21). st: {status:'off'} (setting off: only the eBay searches), a state from EBAY_STATE_KEY,
-   * or the ok result of ebayData.loadEbay(); plus {label} (the grade asked for, "PSA 10") and {host} (the eBay site).
-   */
-  function showEbay(st) {
-    const box = ref(extra, 'ebay-block');
-    if (!box) return;
-    const off = st.status === 'off';
-    const ov = st.status === 'ok' ? st.overview : null;
-    const status = ov && !ov.count && !ov.forSale ? 'none' : st.status;
-    box.dataset.status = status;
-    box.setAttribute('aria-busy', String(['loading', 'check'].includes(status)));
-    ref(box, 'ebay-heading').textContent = off ? t('ebay_heading') : t('ebay_sales_heading', [keepTogether(st.label || '')]);
-    const found = status === 'ok';
-    ref(box, 'ebay-state').hidden = found || off;
-    ref(box, 'ebay-found').hidden = !found;
-    if (off) return;
-    ref(box, 'ebay-spin').toggleAttribute('hidden', !['loading', 'check'].includes(status));
-    ref(box, 'ebay-allow').hidden = status !== 'no-permission';
-    ref(box, 'ebay-allow-label').textContent = t('ebay_allow');
-    ref(box, 'ebay-retry').hidden = !['blocked', 'error'].includes(status);
-    // Grade or card name not read: the button opens Change with that field focused (user: "kies hierboven de grade, maar
-    // ik zie niks staan" - the fields are folded away under Change).
-    const pick = ref(box, 'ebay-pick');
-    pick.hidden = !['need-grade', 'need-card'].includes(status);
-    pick.dataset.focus = status === 'need-grade' ? 'grade' : 'card';
-    ref(box, 'ebay-pick-label').textContent = t(status === 'need-grade' ? 'ebay_pick_grade' : 'ebay_pick_card');
-    if (!found) {
-      ref(box, 'ebay-state-text').textContent = t(EBAY_STATE_KEY[status] ?? 'ebay_error', [status === 'no-permission' ? (st.host ?? '') : keepTogether(st.label || '')]);
-      if (['check', 'blocked'].includes(status)) announce(t(EBAY_STATE_KEY[status]));
-      return;
-    }
-    const cur = ov.currency;
-    ref(box, 'ebay-last').textContent = ov.last ? money(ov.last.price.value, cur) : '—';
-    ref(box, 'ebay-last-date').textContent = ov.last ? saleDate(ov.last.soldDate) : '';
-    ref(box, 'ebay-median-label').textContent = t('ebay_median_label', [String(ov.count)]);
-    ref(box, 'ebay-median').textContent = ov.median != null ? money(ov.median, cur) : '—';
-    ref(box, 'ebay-low').textContent = ov.forSale ? money(ov.forSale.low.price.value, cur) : '—';
-    ref(box, 'ebay-low-count').textContent = ov.forSale ? t('ebay_offers_count', [String(ov.forSale.count)]) : '';
-    const list = ref(box, 'ebay-sales');
-    while (list.firstChild) list.firstChild.remove();
-    for (const s of ov.sales.slice(0, SHOWN_EBAY_SALES)) saleRow(list, { date: s.soldDate, title: s.title, price: money(s.price.value, cur), url: s.url });
-  }
+  /** Grade labels as shown: the price source's "Ungraded" in the panel's language; "PSA 10" stays as it is. */
+  const gradeName = (label) => (label === 'Ungraded' ? t('grade_ungraded') : label);
 
   /** "Price per grade" preview while folded: the grade below this slab's, the highest price, and how many more. */
   function marketPreview(prices, current) {
@@ -721,13 +662,12 @@ export function createUi(doc, actions) {
     if (top !== own && !picks.includes(top)) picks.push(top);
     if (!picks.length) picks.push(prices[0]);
     const more = prices.length - picks.length - (at >= 0 ? 1 : 0);
-    return [...picks.map((p) => `${p.label} ${money(p.price)}`), ...(more > 0 ? [t('market_more', [String(more)])] : [])].join(' · ');
+    return [...picks.map((p) => `${gradeName(p.label)} ${money(p.price)}`), ...(more > 0 ? [t('market_more', [String(more)])] : [])].join(' · ');
   }
 
   /**
-   * Value section (+ Price per grade). st: {status:'loading'|'reading'|'no-permission'|'not-found'|'unreadable'|'error'|
-   * 'challenge'|'need-card'} or an ok result (source 'pc': priceData.loadPrices(), 'ppt': pptApi.loadPptPrices()) plus
-   * {psa} (PSA API card with population) and {note} (why PokemonPriceTracker wasn't used, e.g. its daily limit).
+   * Value section (+ Price per grade). st: a state from PRICE_STATE_KEY, or the ok result of pptApi.loadPptPrices() plus
+   * {psa} (PSA API card with population) and {note} (e.g. no sale in this grade, other grades shown).
    */
   function showPriceData(st) {
     const box = ref(extra, 'price-data');
@@ -735,19 +675,21 @@ export function createUi(doc, actions) {
     if (!box) return;
     const ok = st.status === 'ok';
     const comic = priceGrader === 'cgc-comics';
-    const busy = ['loading', 'reading', 'check'].includes(st.status);
+    const busy = ['loading', 'reading'].includes(st.status);
     box.setAttribute('aria-busy', String(busy));
     box.dataset.status = st.status;
     ref(box, 'price-state').hidden = ok;
     ref(box, 'price-found').hidden = !ok;
     if (market) market.hidden = !ok;
     ref(box, 'price-spin').toggleAttribute('hidden', !busy);
-    ref(box, 'price-allow').hidden = st.status !== 'no-permission';
+    // No key yet, or the key failed: one button to Settings with the key field focused.
+    const keyAction = { 'no-key': 'prices_key_add', auth: 'prices_key_check', 'no-permission': 'prices_key_check' }[st.status];
+    ref(box, 'price-key').hidden = !keyAction;
+    if (keyAction) ref(box, 'price-key-label').textContent = t(keyAction);
     ref(box, 'price-change').hidden = !['need-card', 'not-found'].includes(st.status);
-    ref(box, 'price-retry').hidden = !['error', 'challenge', 'unreadable'].includes(st.status);
-    ref(box, 'price-pc-search').hidden = !['challenge', 'unreadable', 'not-found'].includes(st.status);
+    ref(box, 'price-retry').hidden = !['error', 'format'].includes(st.status);
     ref(extra, 'value-match').hidden = !ok && st.status === 'need-card';
-    ref(extra, 'value-source').textContent = ok ? t(st.source === 'ppt' ? 'value_source_ppt' : 'value_source') : '';
+    ref(extra, 'value-source').textContent = ok ? t('value_source_ppt') : '';
     const notes = st.note ? [t(st.note.key, st.note.subs)] : [];
     const col = ref(extra, 'pc-col');
     const showNotes = () => { col.textContent = notes.join(' · '); col.hidden = !notes.length; };
@@ -768,15 +710,11 @@ export function createUi(doc, actions) {
       set.textContent = st.set ? t('prices_set_line', [st.set]) : '';
       set.hidden = !st.set;
     }
-    // Tiles name the grade asked for (e.g. "PSA 9"); PriceCharting's own column name is shown when it differs.
+    // Tiles name the grade asked for (e.g. "PSA 9").
     const grade = ref(extra, 'price-grade')?.value ?? '';
-    const pcLabel = st.current?.label ?? st.labels?.[0] ?? '';
-    const asked = grade ? gradeLabel(priceGrader, grade) : '';
-    const label = asked || pcLabel;
+    const label = grade ? gradeLabel(priceGrader, grade) : (st.current?.label ?? st.labels?.[0] ?? '');
     if (!grade) notes.push(t('value_pick_grade'));
-    else if (st.current && pcLabel && pcLabel.toLowerCase() !== asked.toLowerCase()) notes.push(t('value_column', [pcLabel]));
     showNotes();
-    if (market) ref(market, 'price-pc-open').hidden = !st.url;
     ref(box, 'pc-label').textContent = label ? t('prices_current_label', [keepTogether(label)]) : t('prices_current_unknown');
     ref(box, 'pc-price').textContent = st.current ? money(st.current.price) : '—';
     // Second tile: the newest single sale; PokemonPriceTracker plans without single sales give the median sale instead.
@@ -795,7 +733,7 @@ export function createUi(doc, actions) {
         const li = doc.createElement('li');
         const l = doc.createElement('span');
         const v = doc.createElement('strong');
-        l.textContent = p.label;
+        l.textContent = gradeName(p.label);
         v.textContent = money(p.price);
         li.append(l, v);
         if (st.current && p.label === st.current.label) {
@@ -812,9 +750,8 @@ export function createUi(doc, actions) {
       const rows = st.sales?.rows ?? [];
       ref(market, 'pc-sales-heading').textContent = t('prices_sales_heading', [st.sales?.label ?? label]);
       for (const r of rows) saleRow(list, { date: r.date, title: r.title, price: money(r.price) });
-      const none = ref(market, 'pc-no-sales');
-      none.hidden = rows.length > 0;
-      none.textContent = t('prices_no_sales', [label || t('prices_grade_all')]);
+      // Plans without single sales give the median instead (second tile); the list is then left out.
+      ref(market, 'pc-sales-block').hidden = !rows.length;
     }
     // One spoken summary per result (D6): the grid and sales list are not a live region.
     if (!valueAnnounced) {
@@ -1250,8 +1187,6 @@ export function createUi(doc, actions) {
     $('setting-background').checked = Boolean(s.openInBackground);
     $('setting-history').checked = Boolean(s.saveHistory);
     $('setting-ebay-site').value = s.ebaySite ?? 'com';
-    $('setting-ebay-sold').checked = s.ebaySold !== false;
-    $('setting-read-via-tab').checked = s.readViaTab !== false;
     const clear = $('clear-history');
     const empty = historyCount === 0;
     if (empty) clear.setAttribute('aria-disabled', 'true'); else clear.removeAttribute('aria-disabled');
@@ -1284,7 +1219,7 @@ export function createUi(doc, actions) {
   return {
     openOtherWays,
     announce, setBodyState, thumbnail, progress, updateScanThumb, toggleLarger, toggleRecent, lowresFocus, renderLowres,
-    showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, showEbay, openPriceFields, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
+    showIdle, showScanning, showResult, markLookupOpened, showPsaInfo, priceInput, showPriceError, showPriceData, openPriceFields, applyCertCard, showOpenError, showCopyState, showEdit, showConfirm, showNone, showError,
     reportSaved,
     pageProgress, showPageResults, markPageOpened, showPageNone, showPageAccess, updateAccessBody, updateNoAccessBody, setAccessOffer, updateIdleHint,
     renderRecent, renderSettings, renderSites, renderShortcut,

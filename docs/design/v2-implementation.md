@@ -27,12 +27,12 @@ and `ui.js`; behaviour, test ids, i18n (EN/NL) and permissions are unchanged unl
 - "Show value" applies the card and grade and closes Change; picking a grade alone changes nothing; the grade list has no "All grades".
 - "Check the number": clicking a grader opens that cert page and shows the result at once, as Open does (user request 2026-10-16); with the keyboard the arrows move the choice and Enter opens.
 - "CertScanner can't read this page yet": when the panel can't name the site, the offer is "Always allow on all sites" (same box and fine print as "Always allow on ‹site›").
+- Public release (ADR A25): the eBay sales section became "Look up sales" (eBay sold / for sale, This slab on eBay, PriceCharting, population report). The Value section is filled by PokemonPriceTracker with the user's key; without one it says how to add it ("Add key" opens Settings at the key field).
 
 ## Deliberate differences
 
 - Thumbnails show the scanned photo; the striped box is the placeholder while scanning or without a photo.
 - Beckett: "The number is copied. Paste it into Beckett's lookup form." appears after the lookup was opened (the copy happens on that click), not before.
-- With "Show eBay sales in the panel" off, the eBay section stays with only the three eBay searches under "Search eBay" (the design hides the whole section, which would drop the links).
 - Value notes the design has no place for (why PokemonPriceTracker wasn't used, a different PriceCharting column, "grade not read") are a muted line under "For: …".
 - The PSA key keeps today's usage line ("Lookups CertScanner sent to PSA today: n of 100").
 - With several possible numbers the number form is folded away (as designed); it comes back when a chosen row still needs a grader.

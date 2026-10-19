@@ -299,7 +299,7 @@ describe('CertScanner e2e journeys', { concurrency: false }, () => {
     const beforeTabs = await E.graderTabs(env);
     await page.locator('[data-testid="candidate-1"] [data-ref="use"]').click();
     await E.poll(async () => (await page.evaluate(() => document.body.dataset.state)) === 'opened', { message: 'result after choosing' });
-    const [t] = await newGraderTabsSince(beforeTabs);
+    const [t] = await E.poll(async () => { const x = await newGraderTabsSince(beforeTabs); return x.length ? x : null; }, { message: 'tab after choosing' });
     assert.equal(t?.url, `https://www.psacard.com/cert/${pick}`, 'the chosen number opened, nothing else');
     const v = await page.evaluate(() => ({
       task: document.getElementById('task').dataset.state,

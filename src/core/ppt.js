@@ -36,6 +36,15 @@ export function isPokemon({ lines = [], desc = '', brand = '' } = {}) {
   return /\bPOK[EÉ]MON\b|\bPKMN\b/i.test([...(Array.isArray(lines) ? lines : []), desc, brand].join(' '));
 }
 
+/** Brands of sports cards and other card games: PokemonPriceTracker has no prices for them, so no credits are spent. */
+const OTHER_GAMES = /\b(TOPPS|PANINI|UPPER DECK|FLEER|BOWMAN|DONRUSS|PRIZM|SKYBOX|LEAF|SCORE|MAGIC THE GATHERING|MTG|YU-?GI-?OH!?|ONE PIECE|LORCANA|DRAGON BALL|DIGIMON)\b/i;
+
+/** Clearly not a Pokémon card: another brand on the label and no Pokémon word. */
+export function isOtherGame({ lines = [], desc = '', brand = '' } = {}) {
+  const parts = [...(Array.isArray(lines) ? lines : []), desc, brand];
+  return !isPokemon({ lines, desc, brand }) && OTHER_GAMES.test(parts.join(' '));
+}
+
 /** Search words for the API: the card name and number without the brand ("POKEMON CHARIZARD ex 199" -> "CHARIZARD ex 199"). */
 export function pptSearch(desc) {
   const words = str(desc, 100).replace(/[#()]/g, ' ').split(' ')

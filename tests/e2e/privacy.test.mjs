@@ -22,18 +22,11 @@ const OFFICIAL = {
   card1401036622258: 'https://www.cgccards.com/certlookup/1401036622258/',
 };
 
-/**
- * Prices in the panel (ADR A15): PriceCharting search/product pages, fetched by the panel only with host access to
- * www.pricecharting.com. dist-e2e has <all_urls> granted, so they appear here; release builds need the user's
- * "Show prices here" click first (unit: loadPrices -> 'no-permission').
- */
-const isPcFetch = (u) => { try { const x = new URL(u); return x.origin === 'https://www.pricecharting.com' && (x.pathname === '/search-products' || x.pathname.startsWith('/game/')); } catch { return false; } };
-/** eBay sales overview (ADR A21): the sold search and the Buy It Now search for the card in its grade, on the eBay site. */
-const isEbaySalesFetch = (u) => { try { const x = new URL(u); return x.origin === 'https://www.ebay.com' && x.pathname === '/sch/i.html'; } catch { return false; } };
-const isPriceFetch = (u) => isPcFetch(u) || isEbaySalesFetch(u);
+// ADR A25: prices come only from PokemonPriceTracker with the user's own key (none is saved in these runs), so the
+// extension fetches nothing from PriceCharting, eBay or any other site: those are links opened on a click.
 
 function checkNetLog(reqs, { allowedOrigins, expectedGrader }) {
-  const ok = (u) => u.startsWith('chrome') || u.startsWith('blob:') || u.startsWith('data:') || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u) || isPriceFetch(u);
+  const ok = (u) => u.startsWith('chrome') || u.startsWith('blob:') || u.startsWith('data:') || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u);
   const renderer = reqs.filter((r) => r.renderer);
   assert.deepEqual(renderer.filter((r) => !ok(r.url)).map((r) => r.url), [], 'renderer/extension traffic only to local origins and official grader pages');
   const grader = reqs.filter((r) => E.isGraderUrl(r.url));
@@ -48,16 +41,13 @@ function checkNetLog(reqs, { allowedOrigins, expectedGrader }) {
   const background = [...new Set(nonLocal.filter((r) => !r.renderer).map((r) => `${E.hostOf(r.url)} [${r.annotationName}]`))];
   // Requests the extension itself initiated (fetches from the panel/worker): only local fixture origins, never elsewhere.
   const byExtension = reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url));
-  assert.deepEqual(byExtension.filter((r) => !allowedOrigins.has(new URL(r.url).origin) && !isPriceFetch(r.url)).map((r) => r.url), [], 'extension-initiated requests stay on the page/image origins (and PriceCharting / eBay card searches)');
-  for (const r of byExtension.filter((x) => (isPcFetch(x.url) && x.url.includes('/search-products')) || isEbaySalesFetch(x.url))) {
-    assert.ok(!/\d{8,}/.test(new URL(r.url).search), `${r.url}: card search terms only, never a cert number`);
-  }
+  assert.deepEqual(byExtension.filter((r) => !allowedOrigins.has(new URL(r.url).origin)).map((r) => r.url), [], 'extension-initiated requests stay on the page/image origins (no price site is read, A25)');
   return { total: reqs.length, renderer: renderer.length, grader: grader.length, background, byExtension: byExtension.length };
 }
 
 function checkPlaywrightLog(env, allowedOrigins) {
   const ok = (u) => u.startsWith(`chrome-extension://${env.extensionId}/`) || u.startsWith('blob:') || u.startsWith('data:')
-    || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u) || isPriceFetch(u);
+    || allowedOrigins.has(new URL(u).origin) || E.isGraderUrl(u);
   assert.deepEqual(env.net.filter((n) => !ok(n.url)).map((n) => `${n.url} (${n.where})`), [], 'unexpected requests in extension/page contexts');
   assert.ok(env.net.filter((n) => n.where === 'service-worker').every((n) => n.url.startsWith(`chrome-extension://${env.extensionId}/`)),
     'service worker only loads its own files');
@@ -129,7 +119,7 @@ describe('J11 privacy on the release build (PriceCharting access only): upload +
       identity = `dist/ (release, ${rel.gitCommit?.slice(0, 7)}${rel.gitDirty ? '+dirty' : ''}, built ${rel.builtAt})`;
     } else {
       // dist/ and dist-e2e/ differ only in manifest host_permissions + build-info (security review round 1).
-      variant = await E.makeVariant((m) => { m.host_permissions = ['https://www.pricecharting.com/*']; });
+      variant = await E.makeVariant((m) => { delete m.host_permissions; });
       releaseDir = variant.dir;
       identity = `release-equivalent copy of dist-e2e with the release host_permissions (dist/ missing or from another source state)`;
     }
@@ -144,12 +134,12 @@ describe('J11 privacy on the release build (PriceCharting access only): upload +
     await variant?.cleanup();
   });
 
-  test('release manifest: only PriceCharting access; panel page scan without page access reads nothing; uploads request nothing but the opened official pages and PriceCharting card searches', T, async () => {
+  test('release manifest: no host access at install; panel page scan without page access reads nothing; uploads request nothing but the opened official pages', T, async () => {
     console.log(`# J11 release build under test: ${identity}`);
     const perms = await env.sw.evaluate(() => chrome.permissions.getAll());
-    assert.deepEqual(perms.origins, ['https://www.pricecharting.com/*'], 'only PriceCharting access at install (ADR A16)');
+    assert.deepEqual(perms.origins, [], 'no site access at install (ADR A25)');
     const manifest = await env.sw.evaluate(() => chrome.runtime.getManifest());
-    assert.deepEqual(manifest.host_permissions, ['https://www.pricecharting.com/*']);
+    assert.equal(manifest.host_permissions, undefined);
     const windowId = await env.sw.evaluate(async () => (await chrome.windows.getAll())[0].id);
     // A9: a web page is open; the panel's "Scan this page" without access → page-access state, nothing is read.
     const page0 = env.context.pages()[0];
@@ -172,7 +162,7 @@ describe('J11 privacy on the release build (PriceCharting access only): upload +
     await env.close();
     const reqs = E.parseNetLog(await readFile(path.join(dir, 'netlog.json'), 'utf8'));
     const summary = checkNetLog(reqs, { allowedOrigins: local, expectedGrader: [OFFICIAL.psa01234567, OFFICIAL.comicQr4012347003] });
-    assert.deepEqual(reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url) && !isPcFetch(r.url)).map((r) => r.url), [], 'release build: the extension initiated no http(s) request other than PriceCharting card searches (eBay needs the optional permission first)');
+    assert.deepEqual(reqs.filter((r) => (r.initiator ?? '').startsWith('chrome-extension://') && /^https?:/.test(r.url)).map((r) => r.url), [], 'release build: the extension initiated no http(s) request of its own');
     console.log(`# J11 release NetLog: ${summary.total} URL requests, renderer ${summary.renderer}, extension-initiated ${summary.byExtension}, grader navigations ${summary.grader}; Chromium background services (not extension, all DNS-blocked): ${summary.background.join(', ') || 'none'}`);
   });
 });

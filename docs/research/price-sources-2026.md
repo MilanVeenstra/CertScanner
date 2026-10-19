@@ -1,5 +1,7 @@
 # Price sources for the public release (research, 2026-10-19)
 
+> **Decision (2026-10-19): option A, the user's own keys only, no server** (ADR A25). The value comes from PokemonPriceTracker with the user's key; PSA's key gives the cert data; everything else is a link. The rest of this page is the research behind it.
+
 Question: which APIs can give CertScanner the value of a graded card in its grade, and how should a public Chrome Web Store version get prices compared with today? Three research passes (other providers; eBay and PriceCharting; Store publishing) on 2026-10-19. The researchers could not open most pages directly (DNS blocked) and worked from search extracts of the providers' own pages; the Chrome Web Store API was read directly. Re-read the terms before signing up. Not legal advice.
 
 ## Today

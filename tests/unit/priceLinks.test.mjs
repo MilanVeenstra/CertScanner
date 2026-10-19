@@ -95,9 +95,8 @@ test('eBay links: sold and active, site switch, encoding', () => {
 
 test('isPriceUrl only accepts the links this module builds', () => {
   assert.ok(isPriceUrl(ebaySearchUrl('de', 'PSA 1', { sold: true })));
-  assert.ok(isPriceUrl('https://www.ebay.com/itm/356000000001'), 'one sold listing from the eBay sales list');
-  for (const bad of ['https://evil.example/sch/i.html', 'http://www.ebay.com/sch/i.html?_nkw=x', 'https://www.ebay.com/itm/123', 'https://www.ebay.com/itm/356000000001?x=1',
-    'https://www.ebay.com/itm/356000000001#a', 'https://www.ebay.com/itm/356000000001/x', 'https://user@www.ebay.com/sch/i.html', 'https://www.ebay.com:444/sch/i.html',
+  for (const bad of ['https://evil.example/sch/i.html', 'http://www.ebay.com/sch/i.html?_nkw=x', 'https://www.ebay.com/itm/356000000001',
+    'https://www.ebay.com/sch/i.html?_nkw=x#a', 'https://user@www.ebay.com/sch/i.html', 'https://www.ebay.com:444/sch/i.html',
     'https://130point.com/sales/', 'javascript:alert(1)', '']) {
     assert.equal(isPriceUrl(bad), false, bad);
   }

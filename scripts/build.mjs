@@ -78,7 +78,7 @@ const ALLOWED_URL_HOSTS = new Set([
   'api.psacard.com', // PSA Public API (optional, user's own key)
   'www.pokemonpricetracker.com', // PokemonPriceTracker API (optional, user's own key; ADR A18)
   // Price & listing links (src/core/priceLinks.js): opened only on a user click, never fetched.
-  '130point.com', 'www.pricecharting.com', 'www.ebay.com', 'www.ebay.co.uk', 'www.ebay.de', 'www.ebay.nl', 'www.ebay.fr', 'www.ebay.ca', 'www.ebay.com.au',
+  'www.pricecharting.com', 'www.ebay.com', 'www.ebay.co.uk', 'www.ebay.de', 'www.ebay.nl', 'www.ebay.fr', 'www.ebay.ca', 'www.ebay.com.au',
 ]);
 const REQUIRED_PERMISSIONS = ['contextMenus', 'activeTab', 'scripting', 'storage', 'sidePanel'];
 const RELEASE_CSP = "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'";
@@ -225,8 +225,8 @@ function manifestProblems(manifestRaw, has) {
   let m;
   try { m = JSON.parse(manifestRaw); } catch { return ['manifest.json is not valid JSON']; }
   if (m.manifest_version !== 3) out.push('manifest_version must be 3');
-  // ADR A16: the only install-time host access is PriceCharting (prices in the panel right after a scan).
-  if (JSON.stringify(m.host_permissions) !== JSON.stringify(['https://www.pricecharting.com/*'])) out.push('host_permissions must be exactly ["https://www.pricecharting.com/*"]');
+  // ADR A25: no install-time host access (A16's PriceCharting access went with the page reading); all access is optional.
+  if ('host_permissions' in m) out.push('release manifest must not declare host_permissions');
   if (manifestRaw.includes('<all_urls>')) out.push('release manifest must not mention <all_urls>');
   for (const k of ['content_scripts', 'web_accessible_resources', 'externally_connectable']) if (k in m) out.push(`manifest must not declare ${k}`);
   const perms = [...(m.permissions ?? [])].sort();

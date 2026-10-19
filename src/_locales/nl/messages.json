@@ -978,13 +978,13 @@
     "message": "eBay verkocht"
   },
   "settings_prices_heading": {
-    "message": "Prijzen & listings"
+    "message": "Waarde & links"
   },
   "setting_ebay_site": {
     "message": "eBay-site"
   },
   "setting_ebay_site_hint": {
-    "message": "Gebruikt door de links Verkocht op eBay en Te koop op eBay."
+    "message": "Gebruikt door de eBay-links onder een resultaat."
   },
   "prices_card_label": {
     "message": "Kaart"
@@ -1041,38 +1041,20 @@
       }
     }
   },
-  "prices_grade_any": {
-    "message": "$GRADER$ · alle grades",
-    "placeholders": {
-      "grader": {
-        "content": "$1",
-        "example": "PSA"
-      }
-    }
-  },
-  "prices_allow": {
-    "message": "Prijzen hier tonen"
-  },
-  "prices_allow_text": {
-    "message": "Zie hier de prijs per grade en de laatste verkopen van deze kaart. CertScanner leest daarvoor de PriceCharting-pagina van deze kaart op je apparaat (Chrome vraagt het één keer)."
-  },
   "prices_loading": {
-    "message": "Waarde opzoeken op PriceCharting…"
+    "message": "Waarde opzoeken bij PokemonPriceTracker…"
   },
   "prices_not_found": {
-    "message": "Geen resultaat op PriceCharting voor ‘$QUERY$’. Pas de naam aan en probeer het opnieuw.",
+    "message": "PokemonPriceTracker vond geen kaart voor ‘$QUERY$’. Pas de naam aan, of gebruik de links hieronder als het geen Pokémon-kaart is.",
     "placeholders": {
       "query": {
         "content": "$1",
-        "example": "POKEMON CHARIZARD ex 199"
+        "example": "Charizard ex 199"
       }
     }
   },
-  "prices_unreadable": {
-    "message": "De PriceCharting-pagina kon niet gelezen worden. Open hem zelf of probeer het later opnieuw."
-  },
   "prices_error": {
-    "message": "Prijzen konden niet geladen worden. Controleer je verbinding en probeer het opnieuw."
+    "message": "PokemonPriceTracker was niet bereikbaar. Controleer je verbinding en probeer het opnieuw."
   },
   "prices_need_card_data": {
     "message": "Kaartnaam onbekend. Typ hem om de waarde te zien."
@@ -1107,18 +1089,6 @@
       }
     }
   },
-  "prices_no_sales": {
-    "message": "Geen recente verkopen voor $GRADE$ op PriceCharting.",
-    "placeholders": {
-      "grade": {
-        "content": "$1",
-        "example": "PSA 10"
-      }
-    }
-  },
-  "prices_pc_open": {
-    "message": "Bekijk op PriceCharting"
-  },
   "setting_psa_key": {
     "message": "PSA API-sleutel (optioneel)"
   },
@@ -1146,11 +1116,8 @@
   "setting_psa_key_denied": {
     "message": "Niet opgeslagen: CertScanner heeft toestemming nodig om api.psacard.com te bereiken."
   },
-  "prices_challenge": {
-    "message": "PriceCharting wil eerst je browser controleren. Open PriceCharting, wacht tot de pagina verschijnt en klik dan op Opnieuw."
-  },
   "prices_pc_search": {
-    "message": "PriceCharting openen"
+    "message": "Op PriceCharting"
   },
   "prices_last_sold_label": {
     "message": "Laatst verkocht · $GRADE$",
@@ -1191,9 +1158,6 @@
   "grades_heading": {
     "message": "Prijs per grade"
   },
-  "ebay_heading": {
-    "message": "Zoeken op eBay"
-  },
   "verify_opened": {
     "message": "Geopend"
   },
@@ -1220,9 +1184,6 @@
   "identity_title_unknown": {
     "message": "Titel onbekend"
   },
-  "value_source": {
-    "message": "PriceCharting · Amerikaanse dollars"
-  },
   "value_match": {
     "message": "Voor:"
   },
@@ -1234,14 +1195,6 @@
   },
   "value_pick_grade": {
     "message": "grade niet gelezen: kies hem met Wijzigen"
-  },
-  "value_column": {
-    "message": "kolom ‘$LABEL$’",
-    "placeholders": {
-      "label": {
-        "content": "$1"
-      }
-    }
   },
   "grid_current_sr": {
     "message": "(grade van deze slab)"
@@ -1278,10 +1231,11 @@
     }
   },
   "find_note": {
-    "message": "Zoekt op $SITE$ naar dezelfde kaart of titel in deze grade, zonder lots. Alleen de naam, grade of het certnummer wordt verstuurd.",
+    "message": "Opent $SITE$ of PriceCharting in een nieuw tabblad met de kaartnaam en grade (of het certnummer bij Deze slab).",
     "placeholders": {
       "site": {
-        "content": "$1"
+        "content": "$1",
+        "example": "ebay.com"
       }
     }
   },
@@ -1319,10 +1273,10 @@
     "message": "Verkeerde titel of grade? Wijzigen"
   },
   "setting_ppt_key": {
-    "message": "PokemonPriceTracker API-sleutel (optioneel, Pokémon)"
+    "message": "PokemonPriceTracker API-sleutel (waarde van Pokémon-slabs)"
   },
   "setting_ppt_key_hint": {
-    "message": "Voor Pokémon-slabs: de waarde komt uit recente eBay-verkopen."
+    "message": "Toont de waarde direct na een scan, uit recente eBay-verkopen per grade. Een gratis sleutel dekt PSA-grades; een betaald plan ook CGC, BGS en SGC. Je sleutel blijft op dit apparaat."
   },
   "setting_ppt_key_saved": {
     "message": "Sleutel opgeslagen. Pokémon-slabs krijgen hun waarde nu van PokemonPriceTracker."
@@ -1338,15 +1292,6 @@
   },
   "value_source_ppt": {
     "message": "eBay-verkopen via PokemonPriceTracker · Amerikaanse dollars"
-  },
-  "prices_ppt_auth": {
-    "message": "PokemonPriceTracker accepteerde de sleutel niet, PriceCharting gebruikt"
-  },
-  "prices_ppt_limit": {
-    "message": "daglimiet van PokemonPriceTracker bereikt, PriceCharting gebruikt"
-  },
-  "prices_ppt_no_permission": {
-    "message": "geen toegang tot PokemonPriceTracker (sla de sleutel opnieuw op), PriceCharting gebruikt"
   },
   "prices_median_label": {
     "message": "Mediaan verkocht · $GRADE$",
@@ -1426,30 +1371,14 @@
   "psa_info_error": {
     "message": "PSA was niet bereikbaar voor de kaartgegevens."
   },
-  "prices_ppt_not_pokemon": {
-    "message": "niet herkend als Pokémon-kaart, dus PriceCharting gebruikt"
-  },
-  "prices_ppt_not_found": {
-    "message": "PokemonPriceTracker vond geen kaart voor ‘$QUERY$’, PriceCharting gebruikt",
-    "placeholders": {
-      "query": {
-        "content": "$1"
-      }
-    }
-  },
   "prices_ppt_no_grade": {
-    "message": "PokemonPriceTracker heeft geen recente verkopen in $GRADE$, PriceCharting gebruikt",
+    "message": "geen recente verkopen in $GRADE$ bij PokemonPriceTracker; andere grades hieronder",
     "placeholders": {
       "grade": {
-        "content": "$1"
+        "content": "$1",
+        "example": "PSA 10"
       }
     }
-  },
-  "prices_ppt_format": {
-    "message": "het antwoord van PokemonPriceTracker werd niet begrepen, PriceCharting gebruikt"
-  },
-  "prices_ppt_error": {
-    "message": "PokemonPriceTracker was niet bereikbaar, PriceCharting gebruikt"
   },
   "setting_key_checking": {
     "message": "Sleutel controleren…"
@@ -1515,100 +1444,6 @@
   },
   "report_failed": {
     "message": "Kon het bestand niet opslaan. Probeer het opnieuw."
-  },
-  "ebay_sales_heading": {
-    "message": "eBay-verkopen · $GRADE$",
-    "placeholders": {
-      "grade": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_last": {
-    "message": "Laatst verkocht"
-  },
-  "ebay_median_label": {
-    "message": "Mediaan van $COUNT$ verkopen",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_for_sale": {
-    "message": "Te koop vanaf"
-  },
-  "ebay_offers_count": {
-    "message": "($COUNT$ advertenties)",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_all_sales": {
-    "message": "Alle verkopen op eBay"
-  },
-  "ebay_all_offers": {
-    "message": "Te koop op eBay"
-  },
-  "ebay_loading": {
-    "message": "Recente verkopen op eBay opzoeken…"
-  },
-  "ebay_checking": {
-    "message": "eBay controleert de browser (er opent kort een tabblad op de achtergrond)…"
-  },
-  "ebay_allow_text": {
-    "message": "CertScanner kan de recente eBay-verkopen van deze kaart hier tonen. Chrome vraagt je één keer om $HOST$ toe te staan.",
-    "placeholders": {
-      "host": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_allow": {
-    "message": "eBay-verkopen hier tonen"
-  },
-  "ebay_blocked": {
-    "message": "eBay wil eerst je browser controleren. Open eBay en klik daarna op Opnieuw proberen."
-  },
-  "ebay_error": {
-    "message": "eBay-verkopen konden niet geladen worden. Probeer het later opnieuw."
-  },
-  "ebay_need_card": {
-    "message": "De kaartnaam is niet van het label gelezen. Typ hem om eBay-verkopen te zien."
-  },
-  "ebay_need_grade": {
-    "message": "De grade is niet van het label gelezen. Kies hem om eBay-verkopen te zien."
-  },
-  "ebay_none": {
-    "message": "Geen recente eBay-verkopen van deze kaart in $GRADE$.",
-    "placeholders": {
-      "grade": {
-        "content": "$1"
-      }
-    }
-  },
-  "prices_checking": {
-    "message": "PriceCharting controleert de browser (er opent kort een tabblad op de achtergrond)…"
-  },
-  "setting_ebay_sold": {
-    "message": "eBay-verkopen in het paneel tonen"
-  },
-  "setting_ebay_sold_hint": {
-    "message": "Leest de openbare 'verkocht'-zoekresultaten van eBay; dit is voor eigen gebruik."
-  },
-  "setting_read_via_tab": {
-    "message": "Controles van sites in een achtergrondtabblad doorlopen"
-  },
-  "setting_read_via_tab_hint": {
-    "message": "Als PriceCharting of eBay eerst je browser wil controleren, opent de pagina kort in een inactief tabblad."
-  },
-  "ebay_pick_grade": {
-    "message": "Grade kiezen"
-  },
-  "ebay_pick_card": {
-    "message": "Kaartnaam typen"
   },
   "setting_psa_key_blocked": {
     "message": "Sleutel bewaard. De beveiliging van PSA blokkeerde de controle (HTTP $STATUS$), dus de sleutel zelf is niet getest. Open psacard.com één keer in een tabblad en bewaar de sleutel daarna opnieuw.",
@@ -1679,5 +1514,44 @@
   },
   "new_scan": {
     "message": "Nieuwe scan"
+  },
+  "links_heading": {
+    "message": "Verkopen bekijken"
+  },
+  "prices_no_key": {
+    "message": "Voeg je gratis PokemonPriceTracker-sleutel toe om hier de waarde van Pokémon-slabs te zien. Voor andere kaarten: gebruik de links hieronder."
+  },
+  "prices_no_source": {
+    "message": "Voor deze kaart is er geen prijsbron in het paneel. Gebruik de links hieronder."
+  },
+  "prices_key_auth": {
+    "message": "PokemonPriceTracker accepteerde je sleutel niet. Controleer hem in Instellingen."
+  },
+  "prices_key_limit": {
+    "message": "Je PokemonPriceTracker-sleutel heeft de daglimiet bereikt. Morgen werkt hij weer."
+  },
+  "prices_key_permission": {
+    "message": "CertScanner heeft geen toegang meer tot PokemonPriceTracker. Sla je sleutel opnieuw op in Instellingen."
+  },
+  "prices_key_format": {
+    "message": "Het antwoord van PokemonPriceTracker werd niet begrepen. Probeer het later opnieuw."
+  },
+  "prices_key_add": {
+    "message": "Sleutel toevoegen"
+  },
+  "prices_key_check": {
+    "message": "Sleutel controleren"
+  },
+  "prices_ppt_no_grade_plan": {
+    "message": "geen recente verkopen in $GRADE$ bij PokemonPriceTracker (een gratis sleutel dekt alleen PSA-grades); andere grades hieronder",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "CGC 10"
+      }
+    }
+  },
+  "grade_ungraded": {
+    "message": "Ongegradeerd"
   }
 }

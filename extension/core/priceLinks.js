@@ -25,8 +25,6 @@ export const POP_URLS = Object.freeze({
 });
 const POP_HREFS = new Set(Object.values(POP_URLS));
 const EBAY_HOSTS = new Set(Object.values(EBAY_SITES));
-/** One sold listing in the panel's eBay sales: /itm/<item number>, nothing else. */
-const EBAY_ITEM_PATH = /^\/itm\/\d{9,15}$/;
 
 const GRADER_SHORT = Object.freeze({ psa: 'PSA', 'cgc-comics': 'CGC', 'cgc-cards': 'CGC', bgs: 'BGS' });
 const MAX_QUERY = 120;
@@ -77,20 +75,10 @@ const JUNK = /[^\p{L}\p{N}#&'\-./:+, ]/gu;
 const PSA_GRADE = /\b(GEM MT|GEM MINT|MINT|NM-MT\+?|NM\+?|EX-MT\+?|EX\+?|VG-EX\+?|VG\+?|GOOD\+?|FR|FAIR|PR|POOR)\s*(10|[1-9](?:\.5)?)\b/i;
 const CGC_CARD_GRADE = /\b(PRISTINE|GEM MINT|MINT\+?|NM\/MINT\+?|NEAR MINT\+?|EX\/NM\+?|EXCELLENT\+?|VG\/EX\+?|VERY GOOD\+?|GOOD\+?|FAIR|POOR)\s*(10|[1-9](?:\.5)?)\b/i;
 const CGC_GRADE = /(?<![\d.])(10(?:\.0)?|[0-9]\.[0-9])(?![\d.])/;
-const SUBGRADES = /\b(CENTERING|CORNERS|EDGES|SURFACE)\b/i;
 // "CENTERING 9.5": a BGS subgrade pair. OCR often puts it on the same line as the card name or the overall grade,
 // so the pair is cut out of the line instead of dropping the whole line.
 const SUBGRADE_PAIR = /\b(CENTERING|CORNERS|EDGES|SURFACE)\b\s*:?\s*(10(?:\.0)?|\d(?:\.5)?)?/gi;
 const withoutSubgrades = (line) => String(line).replace(SUBGRADE_PAIR, ' ').replace(/\s+/g, ' ').trim();
-
-/** BGS subgrades printed on the label: {CENTERING:'10', CORNERS:'9.5', ...} (only pairs with a value). */
-export function subgradesFrom(lines) {
-  const out = {};
-  for (const raw of Array.isArray(lines) ? lines : []) {
-    for (const m of String(raw).matchAll(SUBGRADE_PAIR)) if (m[2]) out[m[1].toUpperCase()] = m[2].replace(/\.0$/, '');
-  }
-  return out;
-}
 
 /** Grade printed on the label ("10", "9.8") or null. */
 export function gradeFromLines(grader, lines) {
@@ -178,19 +166,6 @@ export function cardInfo({ grader, number, lines }) {
   return { desc, grade: matchGrade(grader, grade) };
 }
 
-/** "Pristine" (CGC 10 Pristine) or "Black" (BGS 10 Black Label) when the label says so: PriceCharting prices them apart. */
-export function specialGrade(grader, lines) {
-  const text = Array.isArray(lines) ? lines.filter((l) => typeof l === 'string').join(' ').toUpperCase() : '';
-  if (grader === 'cgc-cards' && /\bPRISTINE\s*10\b/.test(text)) return 'Pristine';
-  if (grader === 'bgs' && /\bBLACK\s*LABEL\b/.test(text)) return 'Black';
-  // A BGS Pristine 10 with all four subgrades 10 is the Black Label (printed in gold on black; the words are not).
-  if (grader === 'bgs' && /\bPRISTINE\b/.test(text)) {
-    const subs = Object.values(subgradesFrom(lines));
-    if (subs.length === 4 && subs.every((v) => v === '10')) return 'Black';
-  }
-  return null;
-}
-
 /** Card + grade as one search, e.g. "2023 POKEMON SV 151 CHARIZARD ex #199 PSA 10" (null without a card description). */
 export function cardQuery(p) {
   const { desc, grade } = cardInfo(p);
@@ -231,8 +206,8 @@ export function cardNoFrom(desc) {
 }
 
 /**
- * True only for the links the panel opens (https, no credentials or port): PriceCharting's product/search pages, the
- * population reports, eBay searches and one eBay listing from the sales list.
+ * True only for the links the panel opens (https, no credentials or port): PriceCharting's search, the population
+ * reports and eBay searches.
  */
 export function isPriceUrl(url) {
   if (isPcUrl(url)) return true; // PriceCharting product/search page shown in the panel
@@ -240,7 +215,7 @@ export function isPriceUrl(url) {
   try {
     const u = new URL(url);
     if (u.protocol !== 'https:' || u.username || u.password || u.port || u.hash || !EBAY_HOSTS.has(u.hostname)) return false;
-    return u.pathname === '/sch/i.html' || (EBAY_ITEM_PATH.test(u.pathname) && !u.search);
+    return u.pathname === '/sch/i.html';
   } catch { return false; }
 }
 

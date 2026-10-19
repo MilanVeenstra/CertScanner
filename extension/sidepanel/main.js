@@ -17,15 +17,11 @@ import { decide } from '../core/routing.js';
 import { confirmReasons, errorView, sharperOfferHost, autoOpenKey, openedStatusKey, MAX_IMAGE_MB } from './viewModel.js';
 import { resolveTargetWindowId, startJobIntake } from './jobIntake.js';
 import { openCert, openPriceLink, recordHistory } from './opener.js';
-import { cardInfo, cardQuery, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, specialGrade, gradeLabel, graderShort, POP_URLS } from '../core/priceLinks.js';
-import { isPcUrl, searchUrl as pcSearchUrl } from '../core/pricecharting.js';
-import { loadPrices, requestPricePermission } from './priceData.js';
-import { loadEbay, requestEbayPermission } from './ebayData.js';
-import { closeReaderTabs } from './tabReader.js';
-import { ebayHost, isEbayUrl } from '../core/ebaySold.js';
+import { cardInfo, cardQuery, gradeQuery, slabQuery, ebaySearchUrl, cardNoFrom, gradeLabel, graderShort, POP_URLS } from '../core/priceLinks.js';
+import { searchUrl as pcSearchUrl } from '../core/pricecharting.js';
 import { fetchPsaCert, loadPsaToken, savePsaToken, clearPsaToken, isPsaToken, testPsaKey, psaCallsToday, PSA_DAILY_LIMIT, PSA_API_PERMISSION, PSA_API_SIGNUP } from './psaApi.js';
 import { loadPptPrices, loadPptToken, savePptToken, clearPptToken, isPptToken, testPptKey } from './pptApi.js';
-import { isPokemon, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
+import { isOtherGame, PPT_PERMISSION, PPT_SIGNUP } from '../core/ppt.js';
 import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { reportData, reportFileName, imageExtension, zipStore } from './scanReport.js';
@@ -336,52 +332,12 @@ function stopPrices() {
   priceCtl?.abort();
   priceCtl = null;
 }
-let lastPrices = null;
-let lastEbay = null;
 
 /**
- * eBay sales overview (A21), next to the PriceCharting / PokemonPriceTracker value: runs alongside it, shown in its own
- * block so neither waits for the other. `run` ties it to the result on screen.
- */
-async function refreshEbay(run, signal, { grader, desc, grade }) {
-  if (!settings.ebaySold) { ui.showEbay({ status: 'off' }); return; }
-  const label = grade ? gradeLabel(grader, grade) : graderShort(grader);
-  const host = ebayHost(settings.ebaySite);
-  ui.showEbay({ status: 'loading', label });
-  let r;
-  try {
-    r = await loadEbay({
-      site: settings.ebaySite, grader, desc, grade, signal, windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
-      onStage: (s) => { if (run === priceRun && s === 'check') ui.showEbay({ status: 'check', label }); },
-    });
-  } catch { r = { status: 'error' }; }
-  if (run !== priceRun) return;
-  lastEbay = r;
-  ui.showEbay({ ...r, label, host });
-}
-
-/** eBay block actions: allow the eBay site (from the click), try again, open the searches or one sold listing. */
-function onEbayAction(a, el) {
-  if (a === 'ebay-allow') {
-    // permissions.request must be the first call inside the click (user gesture).
-    requestEbayPermission(settings.ebaySite).then((granted) => { if (granted) refreshPrices({ fromCert: false }); }, () => {});
-    return;
-  }
-  if (a === 'ebay-retry') { refreshPrices({ fromCert: false }); return; }
-  if (a === 'ebay-pick') { ui.openPriceFields(el?.dataset.focus); return; }
-  if (a === 'ebay-open-sold' && lastEbay?.urls) { openPrice(() => lastEbay.urls.sold); return; }
-  if (a === 'ebay-open-active' && lastEbay?.urls) { openPrice(() => lastEbay.urls.active); return; }
-  if (a === 'ebay-item') {
-    const url = el?.dataset.url ?? '';
-    if (isEbayUrl(url, settings.ebaySite) && /^\/itm\/\d{9,15}$/.test(new URL(url).pathname)) openPrice(() => url);
-  }
-}
-
-/**
- * Fill Value + Market: first the card from the cert (PSA API, when a key is saved), then the prices. Pokémon slabs with
- * a PokemonPriceTracker key: its eBay sales per grade (ADR A18); everything else, and Pokémon cards it doesn't know or
- * has no sales for in that grade: PriceCharting's price per grade and recent sales, read on this device.
- * fromCert=false keeps what the user typed.
+ * Fill Value + Price per grade (ADR A25: only the user's own keys, no server, nothing read from other sites' pages).
+ * First the card from the cert (PSA key) or from the label, then the value from PokemonPriceTracker with the user's key.
+ * Without that key, for comics and for other card games the panel says so, and the links below search eBay and
+ * PriceCharting. fromCert=false keeps what the user typed.
  */
 async function refreshPrices({ fromCert = true } = {}) {
   const o = last.opened;
@@ -399,7 +355,7 @@ async function refreshPrices({ fromCert = true } = {}) {
     ui.showPsaInfo(r?.ok ? { card: r.card } : { reason: r?.reason ?? 'error' }); // visible either way: what the PSA key did
   }
   // Card name from the label itself, read at text size (the full-image pass reads it poorly on small photos, and a
-  // QR/barcode read skips OCR altogether). Read once per result (a superseded read is tried again), before the prices.
+  // QR/barcode read skips OCR altogether). Read once per result (a superseded read is tried again), before the value.
   if (fromCert && !psa && o.method !== 'manual' && last.fullBlob) {
     if (last.labelFor !== o) {
       ui.showPriceData({ status: 'reading' });
@@ -416,63 +372,35 @@ async function refreshPrices({ fromCert = true } = {}) {
     else if (info.grade && !ui.priceInput().grade) ui.applyCertCard({ query: '', grade: info.grade, title: null });
   }
   const { grader, desc, grade } = ui.priceInput();
-  refreshEbay(run, signal, { grader, desc, grade }); // its own block, in parallel
+  const lines = [...(last.result?.labelText ?? []), ...(last.labelLines ?? [])];
+  if (grader === 'cgc-comics' || isOtherGame({ lines, desc, brand: psa?.brand ?? '' })) { ui.showPriceData({ status: 'no-source' }); return; }
+  if (!pptToken) { ui.showPriceData({ status: 'no-key' }); return; }
   if (!desc) { ui.showPriceData({ status: 'need-card' }); return; }
   ui.showPriceData({ status: 'loading' });
-  let res = null;
-  let note = null;
-  const pokemon = isPokemon({ lines: [...(last.result?.labelText ?? []), ...(last.labelLines ?? [])], desc, brand: psa?.brand ?? '' });
+  let res;
   try {
-    let ppt = null;
-    if (pptToken && grader !== 'cgc-comics') {
-      // With a PokemonPriceTracker key the value line always says why it was or wasn't used.
-      if (!pokemon) note = { key: 'prices_ppt_not_pokemon', subs: [] };
-      else {
-        ppt = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken, signal });
-        if (run !== priceRun) return;
-        if (ppt.status === 'ok') res = ppt;
-        else note = pptNote(ppt, grader, grade);
-      }
-    }
-    if (!res) {
-      const read = pricesFor(o);
-      res = await loadPrices({
-        query: desc, cardNo: cardNoFrom(desc), grader, grade, special: grade === read.grade ? read.special : null,
-        signal, windowId: windowId ?? undefined, allowTab: settings.readViaTab !== false,
-        onStage: (s) => { if (run === priceRun && s === 'check') ui.showPriceData({ status: 'check' }); },
-      });
-      // PokemonPriceTracker knew the card but had no sale in this grade: its other grades beat an error.
-      if (res.status !== 'ok' && ppt?.status === 'no-grade') res = ppt.result;
-      // Not recognised as a Pokémon card, but PriceCharting gave nothing (its check, no match): with a key saved,
-      // PokemonPriceTracker may still know the card (user: "werkende pokemon api key ingevoerd en ik krijg niks te zien").
-      else if (res.status !== 'ok' && !ppt && pptToken && grader !== 'cgc-comics') {
-        const late = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken, signal });
-        if (run !== priceRun) return;
-        if (late.status === 'ok') { res = late; note = null; } else if (late.status === 'no-grade') { res = late.result; note = pptNote(late, grader, grade); }
-      }
-    }
-  } catch { res = { status: 'error' }; }
+    res = await loadPptPrices({ desc, cardNo: cardNoFrom(desc), grader, grade, token: pptToken, signal });
+  } catch {
+    res = { status: 'error' };
+  }
   if (run !== priceRun) return;
-  lastPrices = res;
-  ui.showPriceData({ ...res, psa, note });
+  // The card is known but has no recent sale in this grade: its other grades, and why this one is empty.
+  if (res.status === 'no-grade') ui.showPriceData({ ...res.result, psa, note: noGradeNote(grader, grade) });
+  else if (res.status === 'ok') ui.showPriceData({ ...res, psa });
+  else ui.showPriceData({ status: res.status === 'no-match' ? 'not-found' : res.status });
 }
 
-/** Why PokemonPriceTracker wasn't used for this card ({key, subs} for the value line). */
-function pptNote(r, grader, grade) {
-  const q = r.search ?? '';
-  const key = {
-    auth: 'prices_ppt_auth', limit: 'prices_ppt_limit', 'no-permission': 'prices_ppt_no_permission', 'not-found': 'prices_ppt_not_found',
-    'no-match': 'prices_ppt_not_found', 'no-grade': 'prices_ppt_no_grade', format: 'prices_ppt_format',
-  }[r.status] ?? 'prices_ppt_error';
-  return { key, subs: key === 'prices_ppt_not_found' ? [q] : key === 'prices_ppt_no_grade' ? [grade ? gradeLabel(grader, grade) : graderShort(grader)] : [] };
+/** Value line when PokemonPriceTracker has the card but no sale in this grade (a free key covers PSA grades only). */
+function noGradeNote(grader, grade) {
+  const label = grade ? gradeLabel(grader, grade) : graderShort(grader);
+  return { key: grader === 'psa' ? 'prices_ppt_no_grade' : 'prices_ppt_no_grade_plan', subs: [label] };
 }
 
 /** Price block for an opened cert: the card and grade read from the label (same photo only; empty for typed numbers). */
 function pricesFor(opened) {
   const lines = opened.method === 'manual' ? null : last.result?.labelText;
   const { desc, grade } = cardInfo({ grader: opened.grader, number: opened.number, lines });
-  const special = specialGrade(opened.grader, lines) ?? specialGrade(opened.grader, last.labelLines);
-  return { grader: opened.grader, desc, grade, special, site: settings.ebaySite };
+  return { grader: opened.grader, desc, grade, site: settings.ebaySite };
 }
 
 async function openPrice(makeUrl) {
@@ -484,26 +412,18 @@ async function openPrice(makeUrl) {
 }
 
 /**
- * Price block actions: allow/retry the in-panel prices, open the PriceCharting page that was read, eBay sold/for sale
- * for the card in the chosen grade ("... PSA 10"), the population report, and "This slab" (cert number) on eBay.
+ * Price block actions: try the value again, add or check the PokemonPriceTracker key (Settings), and the links: eBay
+ * sold / for sale for the card in the chosen grade ("... PSA 10"), "This slab" (cert number) on eBay, PriceCharting's
+ * search and the population report.
  */
 function onPriceAction(a) {
   const o = last.opened;
   if (!o) return;
-  if (a === 'price-allow') {
-    // permissions.request must be the first call inside the click (user gesture).
-    requestPricePermission().then((granted) => { if (granted) refreshPrices(); }, () => {});
-    return;
-  }
   if (a === 'price-retry') { refreshPrices({ fromCert: false }); return; }
-  if (a === 'price-pc-open') {
-    if (lastPrices?.url && isPcUrl(lastPrices.url)) openPrice(() => lastPrices.url);
-    return;
-  }
+  if (a === 'price-key') { openKeySetting(); return; }
   if (a === 'price-pc-search') {
-    // Opening PriceCharting in a normal tab also lets the browser pass PriceCharting's bot check; then "Try again".
     const { desc } = ui.priceInput();
-    openPrice(() => (lastPrices?.url && isPcUrl(lastPrices.url) ? lastPrices.url : pcSearchUrl(desc || slabQuery(o.grader, o.number))));
+    openPrice(() => pcSearchUrl(desc || slabQuery(o.grader, o.number)));
     return;
   }
   if (a === 'price-pop') {
@@ -932,7 +852,6 @@ function onTaskClick(e) {
   else if (a === 'scan-other') scanOther();
   else if (a === 'report') saveReport();
   else if (a.startsWith('price-')) onPriceAction(a);
-  else if (a.startsWith('ebay-')) onEbayAction(a, b);
 }
 $('task').addEventListener('click', onTaskClick);
 $('result-extra').addEventListener('click', onTaskClick);
@@ -1053,6 +972,13 @@ function showView(name) {
   } else {
     $('settings-button').focus();
   }
+}
+/** Value block "Add your key" / "Check your key": Settings with the PokemonPriceTracker key field focused. */
+function openKeySetting() {
+  showView('settings');
+  const input = $('setting-ppt-key');
+  input.scrollIntoView({ block: 'center' });
+  input.focus();
 }
 $('settings-button').addEventListener('click', () => showView('settings'));
 $('new-scan-button').addEventListener('click', newScan);
@@ -1222,7 +1148,6 @@ window.addEventListener('offline', () => doc.querySelectorAll('#task [data-ref="
 window.addEventListener('pagehide', () => {
   current?.controller.abort();
   stopPrices();
-  closeReaderTabs(); // a read in a background tab must not outlive the panel
   revokePageThumbs();
   disposeEngines();
 });

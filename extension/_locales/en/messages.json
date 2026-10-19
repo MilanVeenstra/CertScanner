@@ -978,13 +978,13 @@
     "message": "eBay sold"
   },
   "settings_prices_heading": {
-    "message": "Prices & listings"
+    "message": "Value & links"
   },
   "setting_ebay_site": {
     "message": "eBay site"
   },
   "setting_ebay_site_hint": {
-    "message": "Used by the Sold on eBay and For sale on eBay links."
+    "message": "Used by the eBay links under a result."
   },
   "prices_card_label": {
     "message": "Card"
@@ -1041,38 +1041,20 @@
       }
     }
   },
-  "prices_grade_any": {
-    "message": "$GRADER$ · any grade",
-    "placeholders": {
-      "grader": {
-        "content": "$1",
-        "example": "PSA"
-      }
-    }
-  },
-  "prices_allow": {
-    "message": "Show prices here"
-  },
-  "prices_allow_text": {
-    "message": "See the price per grade and recent sales of this card right here. CertScanner reads this card's PriceCharting page on your device (Chrome asks once)."
-  },
   "prices_loading": {
-    "message": "Looking up the value on PriceCharting…"
+    "message": "Looking up the value on PokemonPriceTracker…"
   },
   "prices_not_found": {
-    "message": "No match on PriceCharting for “$QUERY$”. Change the name and try again.",
+    "message": "PokemonPriceTracker found no card for ‘$QUERY$’. Change the name, or use the links below if it isn't a Pokémon card.",
     "placeholders": {
       "query": {
         "content": "$1",
-        "example": "POKEMON CHARIZARD ex 199"
+        "example": "Charizard ex 199"
       }
     }
   },
-  "prices_unreadable": {
-    "message": "Couldn't read the PriceCharting page. Open it yourself, or try again later."
-  },
   "prices_error": {
-    "message": "Couldn't load prices. Check your connection and try again."
+    "message": "PokemonPriceTracker couldn't be reached. Check your connection and try again."
   },
   "prices_need_card_data": {
     "message": "Card name unknown. Type it to see the value."
@@ -1107,18 +1089,6 @@
       }
     }
   },
-  "prices_no_sales": {
-    "message": "No recent sales for $GRADE$ on PriceCharting.",
-    "placeholders": {
-      "grade": {
-        "content": "$1",
-        "example": "PSA 10"
-      }
-    }
-  },
-  "prices_pc_open": {
-    "message": "View on PriceCharting"
-  },
   "setting_psa_key": {
     "message": "PSA API key (optional)"
   },
@@ -1146,11 +1116,8 @@
   "setting_psa_key_denied": {
     "message": "Not saved: CertScanner needs permission to contact api.psacard.com."
   },
-  "prices_challenge": {
-    "message": "PriceCharting wants to check your browser first. Open PriceCharting, wait until the page shows, then click Try again."
-  },
   "prices_pc_search": {
-    "message": "Open PriceCharting"
+    "message": "On PriceCharting"
   },
   "prices_last_sold_label": {
     "message": "Last sold · $GRADE$",
@@ -1191,9 +1158,6 @@
   "grades_heading": {
     "message": "Price per grade"
   },
-  "ebay_heading": {
-    "message": "Search eBay"
-  },
   "verify_opened": {
     "message": "Opened"
   },
@@ -1220,9 +1184,6 @@
   "identity_title_unknown": {
     "message": "Title unknown"
   },
-  "value_source": {
-    "message": "PriceCharting · US dollars"
-  },
   "value_match": {
     "message": "For:"
   },
@@ -1234,14 +1195,6 @@
   },
   "value_pick_grade": {
     "message": "grade not read: choose it with Change"
-  },
-  "value_column": {
-    "message": "column “$LABEL$”",
-    "placeholders": {
-      "label": {
-        "content": "$1"
-      }
-    }
   },
   "grid_current_sr": {
     "message": "(this slab's grade)"
@@ -1278,10 +1231,11 @@
     }
   },
   "find_note": {
-    "message": "Searches $SITE$ for the same card or title in this grade, without lots. Only the name, grade or cert number is sent.",
+    "message": "Opens $SITE$ or PriceCharting in a new tab with the card name and grade (or the cert number for This slab).",
     "placeholders": {
       "site": {
-        "content": "$1"
+        "content": "$1",
+        "example": "ebay.com"
       }
     }
   },
@@ -1319,10 +1273,10 @@
     "message": "Wrong title or grade? Change"
   },
   "setting_ppt_key": {
-    "message": "PokemonPriceTracker API key (optional, Pokémon)"
+    "message": "PokemonPriceTracker API key (value of Pokémon slabs)"
   },
   "setting_ppt_key_hint": {
-    "message": "For Pokémon slabs: the value comes from recent eBay sales."
+    "message": "Shows the value right after a scan, from recent eBay sales per grade. A free key covers PSA grades; a paid plan adds CGC, BGS and SGC. Your key stays on this device."
   },
   "setting_ppt_key_saved": {
     "message": "Key saved. Pokémon slabs now get their value from PokemonPriceTracker."
@@ -1338,15 +1292,6 @@
   },
   "value_source_ppt": {
     "message": "eBay sales via PokemonPriceTracker · US dollars"
-  },
-  "prices_ppt_auth": {
-    "message": "PokemonPriceTracker didn't accept the key, PriceCharting used"
-  },
-  "prices_ppt_limit": {
-    "message": "PokemonPriceTracker daily limit reached, PriceCharting used"
-  },
-  "prices_ppt_no_permission": {
-    "message": "no access to PokemonPriceTracker (save the key again), PriceCharting used"
   },
   "prices_median_label": {
     "message": "Median sold · $GRADE$",
@@ -1426,30 +1371,14 @@
   "psa_info_error": {
     "message": "PSA couldn't be reached for the card data."
   },
-  "prices_ppt_not_pokemon": {
-    "message": "not recognised as a Pokémon card, so PriceCharting is used"
-  },
-  "prices_ppt_not_found": {
-    "message": "PokemonPriceTracker found no card for “$QUERY$”, PriceCharting used",
-    "placeholders": {
-      "query": {
-        "content": "$1"
-      }
-    }
-  },
   "prices_ppt_no_grade": {
-    "message": "PokemonPriceTracker has no recent $GRADE$ sales, PriceCharting used",
+    "message": "no recent sales in $GRADE$ on PokemonPriceTracker; other grades below",
     "placeholders": {
       "grade": {
-        "content": "$1"
+        "content": "$1",
+        "example": "PSA 10"
       }
     }
-  },
-  "prices_ppt_format": {
-    "message": "PokemonPriceTracker's answer wasn't understood, PriceCharting used"
-  },
-  "prices_ppt_error": {
-    "message": "PokemonPriceTracker couldn't be reached, PriceCharting used"
   },
   "setting_key_checking": {
     "message": "Checking the key…"
@@ -1515,100 +1444,6 @@
   },
   "report_failed": {
     "message": "Couldn't save the file. Try again."
-  },
-  "ebay_sales_heading": {
-    "message": "eBay sales · $GRADE$",
-    "placeholders": {
-      "grade": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_last": {
-    "message": "Last sold"
-  },
-  "ebay_median_label": {
-    "message": "Median of $COUNT$ sales",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_for_sale": {
-    "message": "For sale from"
-  },
-  "ebay_offers_count": {
-    "message": "($COUNT$ listings)",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_all_sales": {
-    "message": "All sales on eBay"
-  },
-  "ebay_all_offers": {
-    "message": "For sale on eBay"
-  },
-  "ebay_loading": {
-    "message": "Looking up recent sales on eBay…"
-  },
-  "ebay_checking": {
-    "message": "eBay is checking the browser (a tab opens briefly in the background)…"
-  },
-  "ebay_allow_text": {
-    "message": "CertScanner can show this card's recent eBay sales here. Chrome asks you once to allow $HOST$.",
-    "placeholders": {
-      "host": {
-        "content": "$1"
-      }
-    }
-  },
-  "ebay_allow": {
-    "message": "Show eBay sales here"
-  },
-  "ebay_blocked": {
-    "message": "eBay wants to check your browser first. Open eBay, then click Try again."
-  },
-  "ebay_error": {
-    "message": "Couldn't load eBay sales. Try again later."
-  },
-  "ebay_need_card": {
-    "message": "The card name wasn't read from the label. Type it to see eBay sales."
-  },
-  "ebay_need_grade": {
-    "message": "The grade wasn't read from the label. Choose it to see eBay sales."
-  },
-  "ebay_none": {
-    "message": "No recent eBay sales of this card in $GRADE$.",
-    "placeholders": {
-      "grade": {
-        "content": "$1"
-      }
-    }
-  },
-  "prices_checking": {
-    "message": "PriceCharting is checking the browser (a tab opens briefly in the background)…"
-  },
-  "setting_ebay_sold": {
-    "message": "Show eBay sales in the panel"
-  },
-  "setting_ebay_sold_hint": {
-    "message": "Reads eBay's public sold search; this is for your own use."
-  },
-  "setting_read_via_tab": {
-    "message": "Pass site checks in a background tab"
-  },
-  "setting_read_via_tab_hint": {
-    "message": "When PriceCharting or eBay wants to check your browser first, the page opens briefly in an inactive tab."
-  },
-  "ebay_pick_grade": {
-    "message": "Choose grade"
-  },
-  "ebay_pick_card": {
-    "message": "Type card name"
   },
   "setting_psa_key_blocked": {
     "message": "Key saved. PSA's site protection blocked the check (HTTP $STATUS$), so the key itself wasn't tested. Open psacard.com in a tab once, then save the key again.",
@@ -1679,5 +1514,44 @@
   },
   "new_scan": {
     "message": "New scan"
+  },
+  "links_heading": {
+    "message": "Look up sales"
+  },
+  "prices_no_key": {
+    "message": "Add your free PokemonPriceTracker key to see the value of Pokémon slabs here. For other cards, use the links below."
+  },
+  "prices_no_source": {
+    "message": "There is no price source in the panel for this card. Use the links below."
+  },
+  "prices_key_auth": {
+    "message": "PokemonPriceTracker didn't accept your key. Check it in Settings."
+  },
+  "prices_key_limit": {
+    "message": "Your PokemonPriceTracker key has reached today's limit. It works again tomorrow."
+  },
+  "prices_key_permission": {
+    "message": "CertScanner no longer has access to PokemonPriceTracker. Save your key again in Settings."
+  },
+  "prices_key_format": {
+    "message": "PokemonPriceTracker's answer wasn't understood. Try again later."
+  },
+  "prices_key_add": {
+    "message": "Add key"
+  },
+  "prices_key_check": {
+    "message": "Check key"
+  },
+  "prices_ppt_no_grade_plan": {
+    "message": "no recent sales in $GRADE$ on PokemonPriceTracker (a free key covers PSA grades only); other grades below",
+    "placeholders": {
+      "grade": {
+        "content": "$1",
+        "example": "CGC 10"
+      }
+    }
+  },
+  "grade_ungraded": {
+    "message": "Ungraded"
   }
 }

@@ -148,29 +148,19 @@
 
   <section class="section settings-section" aria-labelledby="prices-settings-heading">
     <h2 id="prices-settings-heading" data-i18n="settings_prices_heading">Prices &amp; listings</h2>
-    <label class="select-row" for="setting-ebay-site">
-      <span class="switch-label" data-i18n="setting_ebay_site">eBay site</span>
-      <select id="setting-ebay-site" data-testid="setting-ebaySite" aria-describedby="hint-ebay-site">
-        <option value="com">ebay.com</option>
-        <option value="co.uk">ebay.co.uk</option>
-        <option value="de">ebay.de</option>
-        <option value="nl">ebay.nl</option>
-        <option value="fr">ebay.fr</option>
-        <option value="ca">ebay.ca</option>
-        <option value="com.au">ebay.com.au</option>
-      </select>
-      <span class="switch-hint" id="hint-ebay-site" data-i18n="setting_ebay_site_hint"></span>
-    </label>
-    <label class="switch-row" for="setting-ebay-sold">
-      <span class="switch-text"><span class="switch-label" data-i18n="setting_ebay_sold">Show eBay sales in the panel</span><span class="switch-hint" id="hint-ebay-sold" data-i18n="setting_ebay_sold_hint"></span></span>
-      <input type="checkbox" role="switch" id="setting-ebay-sold" data-testid="setting-ebaySold" data-setting="ebaySold" aria-describedby="hint-ebay-sold">
-      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
-    </label>
-    <label class="switch-row" for="setting-read-via-tab">
-      <span class="switch-text"><span class="switch-label" data-i18n="setting_read_via_tab">Pass site checks in a background tab</span><span class="switch-hint" id="hint-read-via-tab" data-i18n="setting_read_via_tab_hint"></span></span>
-      <input type="checkbox" role="switch" id="setting-read-via-tab" data-testid="setting-readViaTab" data-setting="readViaTab" aria-describedby="hint-read-via-tab">
-      <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
-    </label>
+    <div class="key-row">
+      <label class="switch-label" for="setting-ppt-key" data-i18n="setting_ppt_key">PokemonPriceTracker API key (optional, Pokémon)</label>
+      <div class="key-input">
+        <input type="password" id="setting-ppt-key" class="key-field" data-testid="setting-ppt-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="ppt-key-hint ppt-key-status" data-i18n-attr="placeholder:setting_key_placeholder">
+        <button type="button" class="btn btn-strong key-save" id="ppt-key-save" data-testid="ppt-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
+      </div>
+      <p class="key-status" data-ref="ppt-key-status-row"><svg class="icon key-ok" aria-hidden="true" focusable="false" hidden><use href="#i-check"/></svg><span id="ppt-key-status" data-testid="ppt-key-status" aria-live="polite"></span></p>
+      <p class="hint" id="ppt-key-hint" data-i18n="setting_ppt_key_hint"></p>
+      <div class="key-links">
+        <button type="button" class="link" id="ppt-key-remove" data-testid="ppt-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
+        <button type="button" class="link" id="ppt-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+    </div>
     <div class="key-row">
       <label class="switch-label" for="setting-psa-key" data-i18n="setting_psa_key">PSA API key (optional)</label>
       <div class="key-input">
@@ -185,19 +175,19 @@
         <button type="button" class="link" id="psa-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       </div>
     </div>
-    <div class="key-row">
-      <label class="switch-label" for="setting-ppt-key" data-i18n="setting_ppt_key">PokemonPriceTracker API key (optional, Pokémon)</label>
-      <div class="key-input">
-        <input type="password" id="setting-ppt-key" class="key-field" data-testid="setting-ppt-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="ppt-key-hint ppt-key-status" data-i18n-attr="placeholder:setting_key_placeholder">
-        <button type="button" class="btn btn-strong key-save" id="ppt-key-save" data-testid="ppt-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
-      </div>
-      <p class="key-status" data-ref="ppt-key-status-row"><svg class="icon key-ok" aria-hidden="true" focusable="false" hidden><use href="#i-check"/></svg><span id="ppt-key-status" data-testid="ppt-key-status" aria-live="polite"></span></p>
-      <p class="hint" id="ppt-key-hint" data-i18n="setting_ppt_key_hint"></p>
-      <div class="key-links">
-        <button type="button" class="link" id="ppt-key-remove" data-testid="ppt-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
-        <button type="button" class="link" id="ppt-key-get"><span data-i18n="setting_psa_key_get">Get a free key</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-      </div>
-    </div>
+    <label class="select-row" for="setting-ebay-site">
+      <span class="switch-label" data-i18n="setting_ebay_site">eBay site</span>
+      <select id="setting-ebay-site" data-testid="setting-ebaySite" aria-describedby="hint-ebay-site">
+        <option value="com">ebay.com</option>
+        <option value="co.uk">ebay.co.uk</option>
+        <option value="de">ebay.de</option>
+        <option value="nl">ebay.nl</option>
+        <option value="fr">ebay.fr</option>
+        <option value="ca">ebay.ca</option>
+        <option value="com.au">ebay.com.au</option>
+      </select>
+      <span class="switch-hint" id="hint-ebay-site" data-i18n="setting_ebay_site_hint"></span>
+    </label>
   </section>
 
   <section class="section settings-section" aria-labelledby="history-heading">
@@ -381,10 +371,9 @@
       <div class="price-state" data-ref="price-state" hidden>
         <p class="state-line"><svg class="icon spin" data-ref="price-spin" aria-hidden="true" focusable="false" hidden><use href="#i-spinner"/></svg><span data-ref="price-state-text"></span></p>
         <div class="state-actions">
-          <button type="button" class="btn btn-strong btn-sm" data-action="price-allow" data-testid="price-allow" data-ref="price-allow" hidden><span data-i18n="prices_allow">Show prices here</span></button>
+          <button type="button" class="btn btn-strong btn-sm" data-action="price-key" data-testid="price-key" data-ref="price-key" hidden><span data-ref="price-key-label"></span></button>
           <button type="button" class="btn btn-strong btn-sm" data-ref="price-change" hidden><span data-i18n="value_change_short">Change</span></button>
           <button type="button" class="link" data-action="price-retry" data-ref="price-retry" hidden><span data-i18n="retry_button">Try again</span></button>
-          <button type="button" class="link" data-action="price-pc-search" data-ref="price-pc-search" hidden><span data-i18n="prices_pc_search">Open PriceCharting</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
         </div>
       </div>
       <div class="price-stats" data-ref="price-found" hidden>
@@ -414,29 +403,15 @@
     </form>
     <p class="field-error" id="price-error" data-ref="price-error" aria-live="polite"></p>
   </section>
-  <!-- A21: recent eBay sales of this card in this grade (setting "Show eBay sales in the panel"); the eBay searches below. -->
-  <section class="rsec ebay-sec" data-ref="ebay-block" data-testid="ebay-sold" data-status="" aria-labelledby="ebay-heading">
-    <h3 id="ebay-heading" data-ref="ebay-heading"></h3>
-    <div class="state-box" data-ref="ebay-state" hidden>
-      <p class="state-line"><svg class="icon spin" data-ref="ebay-spin" aria-hidden="true" focusable="false" hidden><use href="#i-spinner"/></svg><span data-ref="ebay-state-text"></span></p>
-      <div class="state-actions">
-        <button type="button" class="btn btn-strong btn-sm" data-action="ebay-allow" data-testid="ebay-allow" data-ref="ebay-allow" hidden><span data-ref="ebay-allow-label"></span></button>
-        <button type="button" class="btn btn-strong btn-sm" data-action="ebay-pick" data-testid="ebay-pick" data-ref="ebay-pick" hidden><span data-ref="ebay-pick-label"></span></button>
-        <button type="button" class="link" data-action="ebay-retry" data-ref="ebay-retry" hidden><span data-i18n="retry_button">Try again</span></button>
-      </div>
-    </div>
-    <div class="ebay-found" data-ref="ebay-found" hidden>
-      <dl class="ebay-stats">
-        <div><dt data-i18n="ebay_last">Last sold</dt><dd><strong data-ref="ebay-last" data-testid="ebay-last"></strong><span data-ref="ebay-last-date"></span></dd></div>
-        <div><dt data-ref="ebay-median-label"></dt><dd><strong data-ref="ebay-median" data-testid="ebay-median"></strong></dd></div>
-        <div><dt data-i18n="ebay_for_sale">For sale from</dt><dd><strong data-ref="ebay-low" data-testid="ebay-low"></strong><span data-ref="ebay-low-count"></span></dd></div>
-      </dl>
-      <ul class="sale-list" data-ref="ebay-sales" data-testid="ebay-sales"></ul>
-    </div>
+  <!-- A25: sales and prices of this card on other sites, opened in a new tab on a click (nothing is read from them). -->
+  <section class="rsec links-sec" data-ref="links-block" data-testid="price-links" aria-labelledby="links-heading">
+    <h3 id="links-heading" data-i18n="links_heading">Look up sales</h3>
     <div class="ext-links">
       <button type="button" class="link" data-testid="price-sold" data-action="price-sold"><span data-i18n="prices_ebay_sold">Sold on eBay</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-active" data-action="price-active"><span data-i18n="prices_ebay_active">For sale on eBay</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       <button type="button" class="link" data-testid="price-slab" data-action="price-slab"><span data-i18n="prices_slab">This slab on eBay</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-testid="price-pc-search" data-action="price-pc-search"><span data-i18n="prices_pc_search">On PriceCharting</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><span data-i18n="prices_pop">Population report (copies the name)</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
     </div>
     <p class="hint" data-ref="price-note"></p>
   </section>
@@ -447,14 +422,9 @@
     <h3 class="fold-heading"><button type="button" class="fold-toggle" data-ref="market-toggle" aria-expanded="false" aria-controls="market-data"><span class="fold-title-col"><span class="fold-title" id="market-heading" data-i18n="grades_heading">Price per grade</span><span class="fold-preview" data-ref="market-preview"></span></span><svg class="icon fold-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></button></h3>
     <div class="fold-body market-data" id="market-data" data-ref="market-data" hidden>
       <ul class="price-grid" data-ref="pc-grid" data-testid="price-grid"></ul>
-      <div class="pc-sales-block">
+      <div class="pc-sales-block" data-ref="pc-sales-block" hidden>
         <h4 class="sales-heading" data-ref="pc-sales-heading"></h4>
         <ol class="sale-list" data-ref="pc-sales" data-testid="price-sales"></ol>
-        <p class="hint" data-ref="pc-no-sales" hidden></p>
-      </div>
-      <div class="ext-links">
-        <button type="button" class="link" data-action="price-pc-open" data-testid="price-pc-open" data-ref="price-pc-open"><span data-i18n="prices_pc_open">View on PriceCharting</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
-        <button type="button" class="link" data-testid="price-pop" data-action="price-pop" data-ref="price-pop"><span data-i18n="prices_pop">Population report (copies the name)</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
       </div>
     </div>
   </section>

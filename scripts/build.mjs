@@ -21,6 +21,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isStoreVersion } from './version.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
@@ -359,6 +360,12 @@ async function check(info) {
   const manifestIssues = manifestProblems(manifestRaw, (f) => existsSync(path.join(OUT, f)));
   for (const p of manifestIssues) fail(p);
   if (!manifestIssues.length) pass('manifest: MV3, exact permissions, no host_permissions/<all_urls>, incognito not_allowed, ADR CSP, scan-page command, referenced files exist');
+  // 1b. Store version: valid for Chrome and the same as package.json (`npm version` bumps both, scripts/version.mjs).
+  const manifestVersion = JSON.parse(manifestRaw).version;
+  const packageVersion = JSON.parse(await readFile(path.join(ROOT, 'package.json'), 'utf8')).version;
+  if (!isStoreVersion(manifestVersion)) fail(`manifest version "${manifestVersion}" is not 1-4 integers 0-65535 without leading zeros`);
+  else if (manifestVersion !== packageVersion) fail(`manifest version ${manifestVersion} != package.json version ${packageVersion} (use npm version, which updates both)`);
+  else pass(`version ${manifestVersion} (manifest = package.json)`);
 
   // 2. No e2e harness in the release build
   if (existsSync(path.join(OUT, 'e2e-harness'))) fail('dist/ contains e2e-harness/'); else pass('no e2e-harness/ in dist/');

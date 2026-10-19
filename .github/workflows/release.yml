@@ -1,0 +1,99 @@
+# Release: push a version tag (made by `npm version patch|minor|major`, then `git push --follow-tags`).
+#   1. checks that the tag, src/manifest.json and package.json carry the same version
+#   2. unit tests, release check and the browser tests
+#   3. builds certscanner-<version>.zip (+ sha256) and attaches it to a GitHub Release
+#   4. uploads it to the Chrome Web Store and submits it for review (skipped until the Store settings exist;
+#      one-time setup: docs/release/publishing.md)
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Check and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Tag, manifest and package.json agree
+        id: version
+        run: |
+          M=$(node -p "require('./src/manifest.json').version")
+          P=$(node -p "require('./package.json').version")
+          if [ "v$M" != "$GITHUB_REF_NAME" ] || [ "$M" != "$P" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME, manifest $M and package.json $P must match. Make releases with npm version."
+            exit 1
+          fi
+          echo "version=$M" >> "$GITHUB_OUTPUT"
+      - run: npm ci
+      - run: npm test
+      - name: Package (runs the full release check; refuses a dirty tree)
+        run: SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) npm run package
+      - run: sha256sum "certscanner-${{ steps.version.outputs.version }}.zip" > "certscanner-${{ steps.version.outputs.version }}.zip.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-zip
+          path: certscanner-${{ steps.version.outputs.version }}.zip*
+          if-no-files-found: error
+
+  e2e:
+    name: Browser tests
+    needs: package
+    uses: ./.github/workflows/e2e.yml
+
+  github-release:
+    name: GitHub Release
+    needs: [package, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-zip
+      - name: Create the release with the ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.package.outputs.version }}
+        run: gh release create "$GITHUB_REF_NAME" "certscanner-$V.zip" "certscanner-$V.zip.sha256" --repo "$GITHUB_REPOSITORY" --title "CertScanner $V" --generate-notes
+
+  chrome-web-store:
+    name: Chrome Web Store
+    needs: [package, github-release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Add required reviewers to this environment (Settings → Environments) to approve each Store upload by hand.
+    environment: chrome-web-store
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-zip
+      - name: Upload and submit for review
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
+          CWS_PUBLISH_TYPE: ${{ vars.CWS_PUBLISH_TYPE }}
+        run: node scripts/cws-publish.mjs "certscanner-${{ needs.package.outputs.version }}.zip"

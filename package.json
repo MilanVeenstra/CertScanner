@@ -16,7 +16,8 @@
     "package": "node scripts/build.mjs --package",
     "test": "node --test \"tests/unit/**/*.test.mjs\"",
     "e2e": "node scripts/build.mjs --e2e && node --test --test-concurrency=1 \"tests/e2e/**/*.test.mjs\"",
-    "fixtures": "node scripts/gen-fixtures.mjs"
+    "fixtures": "node scripts/gen-fixtures.mjs",
+    "version": "node scripts/version.mjs --sync && git add src/manifest.json"
   },
   "devDependencies": {
     "@tesseract.js-data/eng": "1.0.0",

@@ -143,9 +143,9 @@ Status values: **pass** · **conditional** · **fail** · **not-run** · **exter
   1. Upload as **unlisted** or **trusted testers**, with **deferred publishing**.
   2. The user installs the Store-delivered build and runs `manual-test-checklist.md` §C.
   3. Publish publicly.
-  4. For later updates, use percentage rollout if offered (**verify live**).
+  4. For later updates: percentage rollout through the API exists only above 10,000 weekly users (checked 2026-10-19). The release pipeline and its setup are in [`publishing.md`](publishing.md).
 - **Permissions:** a new install-time permission in an update disables the extension until users accept it. Keep new access optional (ADR §16).
-- **Rollback:** no instant rollback. Re-upload the previous code under a **higher** version (for example 0.1.1); it goes through review. Chrome picks up updates over hours. Unpublishing stops new installs only. Keep every released ZIP and its sha256.
+- **Rollback:** the dashboard's **Rollback** re-publishes the previous version under a new, higher version number within about a minute, without review (corrected 2026-10-19; see [`publishing.md`](publishing.md)). Re-uploading the old code under a higher version still works but goes through review. Chrome picks up updates over hours. Unpublishing stops new installs only. GitHub Releases keep every ZIP and its sha256.
 - **Grader URL changes:** need an extension update; builders are in `src/core/certUrls.js`.
 - **Monitoring and support:** no telemetry, by design and as promised in `PRIVACY.md`. Feedback via the Store support hub and the support URL (G19).
 

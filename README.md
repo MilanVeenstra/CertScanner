@@ -45,6 +45,6 @@ Requires Chrome 116 or newer (desktop). The shortcut can be changed at `chrome:/
 
 ## More
 
-- Design and technical documents: [`docs/`](docs/)
+- Design and technical documents: [`docs/`](docs/); releases and updates: [`docs/release/publishing.md`](docs/release/publishing.md)
 - Bundled libraries: tesseract.js (Apache-2.0) and zxing-wasm (MIT); licence texts in [`third_party/licenses/`](third_party/licenses/)
 - License: MIT (declared in `package.json`)

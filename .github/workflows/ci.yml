@@ -1,0 +1,43 @@
+# Every push to main and every pull request: unit tests and the release check of the built extension.
+# The browser tests (Playwright + Chromium, about half an hour) run on pull requests, before every release
+# (release.yml) and on demand: Actions → CI → Run workflow.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      e2e:
+        description: Also run the browser tests
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Unit tests and release check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run check
+
+  e2e:
+    name: Browser tests (Chromium)
+    needs: check
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.e2e)
+    uses: ./.github/workflows/e2e.yml

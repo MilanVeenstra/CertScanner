@@ -16,7 +16,7 @@ const hasVendor = existsSync(path.join(ROOT, 'node_modules', 'zxing-wasm', 'pack
 
 function makeRepo() {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'certscanner-build-'));
-  for (const p of ['src', 'third_party', 'scripts/build.mjs', 'package.json', 'package-lock.json']) {
+  for (const p of ['src', 'third_party', 'scripts/build.mjs', 'scripts/version.mjs', 'package.json', 'package-lock.json']) {
     cpSync(path.join(ROOT, p), path.join(dir, p), { recursive: true });
   }
   symlinkSync(path.join(ROOT, 'node_modules'), path.join(dir, 'node_modules'), 'dir');

@@ -1,0 +1,36 @@
+# Browser tests in Chromium with the extension loaded (reused by ci.yml and release.yml).
+# Extensions need the full Chromium build, not Playwright's headless shell, so CERTSCANNER_CHROMIUM points at it.
+# The OCR benchmark is skipped here (CERTSCANNER_SKIP_BENCH); run `npm run e2e` locally for it.
+name: Browser tests
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      CERTSCANNER_SKIP_BENCH: '1'
+      CERTSCANNER_E2E_OUT: ${{ github.workspace }}/e2e-out
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: echo "CERTSCANNER_CHROMIUM=$(node -p "require('playwright').chromium.executablePath()")" >> "$GITHUB_ENV"
+      - run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-output
+          path: e2e-out
+          if-no-files-found: ignore
+          retention-days: 7

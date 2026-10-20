@@ -425,7 +425,7 @@ export function createUi(doc, actions) {
   }
 
   /**
-   * Result (layout A, docs/design/ui-candidates.md §3): the heading names the slab (grade badge + card name), then
+   * Result: the heading names the slab (grade badge + card name), then
    * Value, Cert check (how the number was read, the exact URL, Open again / Copy, the safety note) and Market.
    */
   function showResult(view, { moveFocus = true } = {}) {

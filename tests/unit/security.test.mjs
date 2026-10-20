@@ -1,4 +1,4 @@
-// S6 security fixes (docs/quality/security-review.md SEC-03, SEC-04, SEC-06, SEC-09, SEC-11).
+// S6 security fixes (security review SEC-03, SEC-04, SEC-06, SEC-09, SEC-11).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { raceAbort } from '../../src/shared/raceAbort.js';

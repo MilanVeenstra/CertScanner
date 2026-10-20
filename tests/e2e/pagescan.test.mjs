@@ -1,4 +1,4 @@
-// A9 page scan end-to-end (ADR-001 A9; docs/implementation/frontend-handoff.md "S7 page scan") on the real extension.
+// A9 page scan end-to-end (page scan, "S7") on the real extension.
 //
 // What is real and what is simulated:
 // - The toolbar icon (action.onClicked) and the Alt+Shift+S command grant activeTab and call sidePanel.open() inside a

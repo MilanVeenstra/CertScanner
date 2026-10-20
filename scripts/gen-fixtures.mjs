@@ -1481,7 +1481,7 @@ async function generateReal(outDir, browser, env, sourceDir = outDir) {
     synthetic: true,
     notice: 'Derived from the synthetic bench renders (abstract art, fictional names, printed grader names, no logos) and one HTML receipt. Cert numbers are test values. Never load live grader pages from tests.',
     environment: env,
-    // Frozen acceptance for the realistic set (docs/candidates.md, scan-accuracy round 2026-10-12).
+    // Frozen acceptance for the realistic set (scan-accuracy round 2026-10-12).
     gate: { wrongAutoOpensMax: 0, topCorrectMin: 60, wrongNumberShownMax: 1, hadToChooseMax: 5 },
     metrics: {
       classes: 'auto-ok / auto-WRONG (opened anything else, or any auto-open on mustNotAutoOpen) / opened-ok / opened-wrong (BGS: number shown as read, no tab) / confirm-ok (one number, right) / confirm-choose (>= 2 numbers offered, the preselected one right) / confirm-wrong (preselected number wrong) / none-ok / none-miss / fp (a number shown on a fixture with no number) / error.',
@@ -1638,7 +1638,7 @@ function galleryHtml(entries, lowresJpeg, sizes) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Security fixtures (docs/quality/security-review.md)
+// Security fixtures (security review)
 // ---------------------------------------------------------------------------------------------
 /** SEC-03: hostile page that blocks its own main thread after the image has rendered. */
 function busyHtml() {

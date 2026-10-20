@@ -1,4 +1,4 @@
-// S8 improvement round (docs/implementation/frontend-handoff.md "S8 improvement round", ADR-001 A10) on the real
+// S8 improvement round (ADR-001 A10) on the real
 // extension (dist-e2e):
 // - SEC-13: hostile page pages/hidden.html (slab A painted as a CSS background, the <img> of slab B hidden) never
 //   auto-opens B; the control variant (B visible) does.

@@ -3,7 +3,7 @@
 #   2. unit tests, release check and the browser tests
 #   3. builds certscanner-<version>.zip (+ sha256) and attaches it to a GitHub Release
 #   4. uploads it to the Chrome Web Store and submits it for review (skipped until the Store settings exist;
-#      one-time setup: docs/release/publishing.md)
+#      one-time setup: RELEASING.md)
 name: Release
 
 on:

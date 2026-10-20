@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Upload a release ZIP to the Chrome Web Store and submit it for review, with the Chrome Web Store API v2 (v1.1 support
-// ended on 2026-10-15). Run by .github/workflows/release.yml; the one-time setup is in docs/release/publishing.md.
+// ended on 2026-10-15). Run by .github/workflows/release.yml; the one-time setup is in RELEASING.md.
 //   node scripts/cws-publish.mjs certscanner-<version>.zip
 // Env: CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN (Google OAuth client; consent screen "In production", or the
 //      refresh token expires after 7 days), CWS_PUBLISHER_ID, CWS_EXTENSION_ID.
@@ -73,7 +73,7 @@ export async function waitForUpload(ctx, { tries = 36, delayMs = 5000, sleep = w
 export async function release({ env, zip, fetchImpl = fetch, sleep = wait, log = console.log }) {
   const missing = REQUIRED.filter((k) => !env[k]);
   if (missing.length) {
-    log(`Chrome Web Store upload not configured (missing ${missing.join(', ')}): skipped. See docs/release/publishing.md.`);
+    log(`Chrome Web Store upload not configured (missing ${missing.join(', ')}): skipped. See RELEASING.md.`);
     return { skipped: true };
   }
   const publishType = env.CWS_PUBLISH_TYPE || 'DEFAULT_PUBLISH';

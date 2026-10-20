@@ -1,4 +1,4 @@
-// Runtime checks for docs/quality/security-review.md round 1: SEC-03 (hang budgets), SEC-04 (decode
+// Runtime checks for security review round 1: SEC-03 (hang budgets), SEC-04 (decode
 // bomb), SEC-06 (Sharper re-run opens at most one tab), SEC-01 (incognito not allowed, manifest level).
 // Round 2: SEC-14 crafted JPEG (SOF0 beyond the first 64 KiB) and GIF (frame larger than the logical screen).
 import assert from 'node:assert/strict';

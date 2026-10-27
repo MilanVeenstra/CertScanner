@@ -178,7 +178,7 @@ class ScanStop extends Error {
  * @param {{settings?:import('../core/types.js').Settings, signal?:AbortSignal,
  *   onProgress?:(p:import('../core/types.js').ScanProgress)=>void,
  *   acquire?:((input:any, o:{signal:AbortSignal})=>Promise<import('../core/types.js').AcquireResult>) | {strategies?:string[]},
- *   onImage?:(blob:Blob, info:import('../core/types.js').ImageInfo)=>void,
+ *   onImage?:(blob:Blob, info:import('../core/types.js').ImageInfo, bitmap:ImageBitmap)=>void,
  *   engines?:{ocr:ReturnType<typeof createOcrEngine>, detectBarcodes:typeof defaultDetectBarcodes}}} [opts]
  * @returns {Promise<import('../core/types.js').ScanResult>}
  */
@@ -222,7 +222,8 @@ export async function scan(input, { settings, signal, onProgress, acquire, onIma
     bitmap = acq.bitmap;
     imageInfo = acq.info;
     if (Math.max(imageInfo.width, imageInfo.height) < LOW_RES_LONG_SIDE) warnings.push({ code: 'low-resolution' });
-    try { onImage?.(acq.blob, imageInfo); } catch { /* preview only */ }
+    // The decoded bitmap is valid during the call only (the preview draws it at once instead of decoding again).
+    try { onImage?.(acq.blob, imageInfo, bitmap); } catch { /* preview only */ }
     check();
 
     progress('decode');

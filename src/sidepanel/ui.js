@@ -59,6 +59,8 @@ export function createUi(doc, actions) {
   let slowTimer = null;
   let stages = [];
   let lastAnnounced = '';
+  /** Pending re-announcement of a repeated message (announce); cleared by the next message and by a state change. */
+  let announceTimer = null;
   let thumbUrl = null;
   /** URL the preview shows normally (a small thumbnail) and, while "Show larger" is open, the full image's URL. */
   let shownThumbUrl = null;
@@ -149,9 +151,10 @@ export function createUi(doc, actions) {
   /** F3: polite status; an identical message is cleared and re-set after 100 ms so it is read again. */
   function announce(text) {
     if (!text) return;
+    clearTimeout(announceTimer); // a newer message wins over a pending repeat
     if (status.textContent === text || lastAnnounced === text) {
       status.textContent = '';
-      setTimeout(() => { status.textContent = text; }, 100);
+      announceTimer = setTimeout(() => { status.textContent = text; }, 100);
     } else {
       status.textContent = text;
     }
@@ -188,7 +191,8 @@ export function createUi(doc, actions) {
     headingBadge.hidden = true;
     headingBadge.textContent = '';
     identity = null;
-    // QA P2-11: no announcement from the previous state stays readable in the live region.
+    // QA P2-11: no announcement from the previous state stays readable in the live region (nor arrives late).
+    clearTimeout(announceTimer);
     status.textContent = '';
     lastAnnounced = '';
     setOtherWays(OTHER_WAYS[state] ?? 'closed');
@@ -309,7 +313,6 @@ export function createUi(doc, actions) {
     const title = ref(frag, 'lowres-title');
     const bodyEl = ref(frag, 'lowres-body');
     const actionsRow = ref(frag, 'lowres-actions');
-    const fine = ref(frag, 'lowres-fine');
     const notNow = frag.querySelector('[data-action="not-now"]');
     const rescanRow = ref(frag, 'rescan-row');
     const host = lowres.host;
@@ -323,7 +326,7 @@ export function createUi(doc, actions) {
       box.className = 'note note-box alert-success';
       setIcon('i-circle-check');
       title.textContent = t('perm_granted', [host]);
-      bodyEl.hidden = true; actionsRow.hidden = true; fine.hidden = true; notNow.hidden = true;
+      bodyEl.hidden = true; actionsRow.hidden = true; notNow.hidden = true;
       rescanRow.hidden = false;
       if (lowres.primary) rescanRow.querySelector('button').className = 'btn btn-strong btn-sm';
     } else if (lowres.state === 'denied') {
@@ -331,12 +334,12 @@ export function createUi(doc, actions) {
       setIcon('i-circle-i');
       title.hidden = true;
       bodyEl.textContent = t('perm_denied', [host]);
-      actionsRow.hidden = true; fine.hidden = true; notNow.hidden = true;
+      actionsRow.hidden = true; notNow.hidden = true;
     } else if (lowres.state === 'failed') {
       box.className = 'note note-box note-warn';
       setIcon('i-circle-x');
       title.textContent = t('perm_failed');
-      bodyEl.hidden = true; fine.hidden = true;
+      bodyEl.hidden = true;
     }
     slot.appendChild(frag);
   }

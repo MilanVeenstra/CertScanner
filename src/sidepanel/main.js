@@ -165,15 +165,16 @@ async function startScan(input) {
   ui.showScanning({ caption: d.caption, thumbUrl: null, thumbAlt: d.alt });
   let thumbDone = Promise.resolve();
   const hints = job ? await tabTitle(job.tabId) : '';
+  if (!isCurrent()) return; // superseded while the tab title was read: don't start a scan nobody will see
   const result = await scan(input, {
     settings,
     hints,
     signal: controller.signal,
     onProgress: (p) => { if (isCurrent()) ui.progress(p.stage); },
-    onImage: (blob, info) => {
+    onImage: (blob, info, bitmap) => {
       if (!isCurrent()) return;
       last.fullBlob = blob;
-      thumbDone = makeThumbBlob(blob, info).then((small) => {
+      thumbDone = makeThumbBlob(blob, info, { decoded: bitmap }).then((small) => {
         if (!isCurrent() || !small) return;
         last.thumbUrl = ui.thumbnail(small);
         ui.updateScanThumb(last.thumbUrl, d.alt);
@@ -488,11 +489,11 @@ async function startPageScan(job) {
     signal: controller.signal,
     onProgress: (p) => { if (isCurrent()) ui.pageProgress(p); },
     onImageProgress: (_i, p) => { if (isCurrent()) ui.progress(p.stage); },
-    onImage: (i, blob, info) => {
+    onImage: (i, blob, info, bitmap) => {
       if (!isCurrent()) return;
       blobs[i] = blob;
       shownImage = i;
-      pending.push(makeThumbBlob(blob, info).then((small) => {
+      pending.push(makeThumbBlob(blob, info, { decoded: bitmap }).then((small) => {
         // Only URLs created while this scan is current end up in pageThumbs (revoked with them).
         if (!isCurrent() || !small || pageThumbs !== thumbs) return;
         thumbs[i] = URL.createObjectURL(small);
@@ -793,9 +794,10 @@ async function openAgain() {
   if (!o) return;
   try {
     await openCert({ grader: o.grader, number: o.number, source: o.method === 'edited' ? 'manual' : o.method }, last.job, settings, { windowId });
-    if (o.lookupPending) {
+    if (o.lookupPending && last.opened === o) { // not when another result replaced this one meanwhile
       // Beckett: the lookup is open now; Cert check updates in place and focus stays on the button (AC10).
       last.opened = { ...o, lookupPending: false };
+      if (last.labelFor === o) last.labelFor = last.opened; // same slab: its label read stays valid (no second OCR pass)
       ui.markLookupOpened(last.opened);
       persist({ task: 'result', body: doc.body.dataset.state, result: last.result, opened: last.opened });
     }
@@ -1180,12 +1182,28 @@ function restore(saved) {
 }
 
 (async () => {
-  try { settings = await loadSettings(); } catch { settings = { ...DEFAULT_SETTINGS }; }
-  psaToken = await loadPsaToken();
+  // Independent reads, all needed before the first job runs: started together instead of one round trip after another.
+  const windowP = resolveTargetWindowId(location.search);
+  const savedP = windowP.then((w) => loadLastResult(w));
+  const [stored, psa, ppt, hist, all] = await Promise.all([
+    loadSettings().catch(() => ({ ...DEFAULT_SETTINGS })),
+    loadPsaToken(),
+    loadPptToken(),
+    loadHistory().catch(() => ({ v: 1, entries: [] })),
+    hasAllSites(),
+    (async () => {
+      try {
+        const got = await chrome.storage.session.get(DECLINED_KEY);
+        for (const host of got?.[DECLINED_KEY] ?? []) if (typeof host === 'string') declined.add(host);
+      } catch { /* none */ }
+    })(),
+  ]);
+  settings = stored;
+  psaToken = psa;
   renderPsaKey();
-  pptToken = await loadPptToken();
+  pptToken = ppt;
   renderPptKey();
-  try { history = await loadHistory(); } catch { history = { v: 1, entries: [] }; }
+  history = hist;
   renderRecent();
   refreshShortcut();
   onSettingsChanged((s) => {
@@ -1196,19 +1214,15 @@ function restore(saved) {
     ui.updateNoAccessBody(noAccessCopy());
   });
   onHistoryChanged((h) => { history = h; renderRecent(); });
-  allSites = await hasAllSites();
+  allSites = all;
   onPermissionsChanged(async () => {
     allSites = await hasAllSites();
     if (!$('settings').hidden) refreshSites();
   });
-  try {
-    const got = await chrome.storage.session.get(DECLINED_KEY);
-    for (const h of got?.[DECLINED_KEY] ?? []) if (typeof h === 'string') declined.add(h);
-  } catch { /* none */ }
 
-  windowId = await resolveTargetWindowId(location.search);
+  windowId = await windowP;
   doc.body.dataset.windowId = String(windowId);
-  const saved = await loadLastResult(windowId);
+  const saved = await savedP;
   if (saved && !current) restore(saved);
   // A9: page jobs (toolbar icon, shortcut) and image jobs (context menu) share the slot; newest job wins.
   startJobIntake({ windowId, onJob: (job) => (job.kind === 'page' ? startPageScan(job) : startScan({ kind: 'job', job })) });

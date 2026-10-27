@@ -80,6 +80,8 @@ const ALLOWED_URL_HOSTS = new Set([
   // Price & listing links (src/core/priceLinks.js): opened only on a user click, never fetched.
   'www.pricecharting.com', 'www.ebay.com', 'www.ebay.co.uk', 'www.ebay.de', 'www.ebay.nl', 'www.ebay.fr', 'www.ebay.ca', 'www.ebay.com.au',
 ]);
+/** Files under src/ that nothing loads at runtime, left out of dist/: JSDoc typedefs and the icons' source art. */
+const SOURCE_ONLY = new Set(['core/types.js', 'icons/icon.svg']);
 const REQUIRED_PERMISSIONS = ['contextMenus', 'activeTab', 'scripting', 'storage', 'sidePanel'];
 const RELEASE_CSP = "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'";
 const TEXT_EXT = new Set(['.js', '.mjs', '.html', '.css', '.json']);
@@ -126,7 +128,7 @@ async function build() {
 
   await rm(OUT, { recursive: true, force: true });
   await mkdir(OUT, { recursive: true });
-  await cp(SRC, OUT, { recursive: true });
+  await cp(SRC, OUT, { recursive: true, filter: (from) => !SOURCE_ONLY.has(path.relative(SRC, from).split(path.sep).join('/')) });
 
   const vendorInfo = [];
   for (const v of VENDOR) {

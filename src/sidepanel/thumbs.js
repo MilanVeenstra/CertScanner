@@ -15,22 +15,37 @@ export function thumbSize(width, height, max = THUMB_MAX_SIDE) {
 
 /**
  * Downscaled PNG copy of an image blob. `size` is the decoded (EXIF-oriented) size the scanner reported.
+ * `decoded`: the scanner's own decode of `blob` (an ImageBitmap); it is drawn at the small size before this function
+ * first awaits (it is only valid during the scanner's onImage callback), so the photo is not decoded a second time
+ * (a 12 MP JPEG: ~200 ms and ~48 MB). Without it, or when drawing it fails, the blob is decoded to the small size.
  * Every intermediate ImageBitmap is closed, also on failure. Resolves null when the copy can't be made in time.
  * @param {Blob} blob
  * @param {{width:number, height:number}} size
- * @param {{max?:number, timeoutMs?:number, createImageBitmap?:typeof globalThis.createImageBitmap,
+ * @param {{max?:number, timeoutMs?:number, decoded?:ImageBitmap|null, createImageBitmap?:typeof globalThis.createImageBitmap,
  *   OffscreenCanvas?:typeof globalThis.OffscreenCanvas}} [opts]
  * @returns {Promise<Blob|null>}
  */
 export async function makeThumbBlob(blob, size, {
-  max = THUMB_MAX_SIDE, timeoutMs = THUMB_TIMEOUT_MS,
+  max = THUMB_MAX_SIDE, timeoutMs = THUMB_TIMEOUT_MS, decoded = null,
   createImageBitmap: cib = globalThis.createImageBitmap, OffscreenCanvas: Canvas = globalThis.OffscreenCanvas,
 } = {}) {
   const target = thumbSize(size?.width, size?.height, max);
-  if (!blob || !target || typeof cib !== 'function' || typeof Canvas !== 'function') return null;
+  if (!blob || !target || typeof Canvas !== 'function') return null;
+  let drawn = null;
+  if (decoded) {
+    try {
+      drawn = new Canvas(target.width, target.height);
+      const ctx = drawn.getContext('2d');
+      ctx.imageSmoothingQuality = 'medium'; // as resizeQuality below
+      ctx.drawImage(decoded, 0, 0, target.width, target.height);
+    } catch {
+      drawn = null; // e.g. already closed: decode the blob instead
+    }
+  }
+  if (!drawn && typeof cib !== 'function') return null;
   let timer;
   let timedOut = false;
-  const work = (async () => {
+  const work = drawn ? drawn.convertToBlob({ type: 'image/png' }).catch(() => null) : (async () => {
     let bitmap = null;
     try {
       bitmap = await cib(blob, { imageOrientation: 'from-image', resizeWidth: target.width, resizeHeight: target.height, resizeQuality: 'medium' });

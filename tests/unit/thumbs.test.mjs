@@ -45,6 +45,27 @@ test('makeThumbBlob decodes straight to the small size (EXIF orientation applied
   assert.equal(f.bitmaps[0].closed, 1);
 });
 
+test('makeThumbBlob draws the scanner\'s decoded bitmap before returning (no second decode); a failed draw decodes the blob', async () => {
+  const f = fakes();
+  const drawn = [];
+  const bitmap = { width: 4032, height: 3024, closed: 0, close() { this.closed++; } };
+  const Canvas = class extends f.OffscreenCanvas {
+    getContext() { return { drawImage: (src, _x, _y, w, h) => { if (src.closed) throw new Error('closed'); drawn.push({ src, w, h }); } }; }
+  };
+  const pending = makeThumbBlob(new Blob(['x']), { width: 4032, height: 3024 }, { ...f, OffscreenCanvas: Canvas, decoded: bitmap });
+  assert.deepEqual(drawn, [{ src: bitmap, w: 240, h: 180 }], 'drawn synchronously: the scanner closes the bitmap right after onImage');
+  bitmap.close();
+  assert.equal((await pending).type, 'image/png');
+  assert.deepEqual(f.calls, [], 'the photo is not decoded a second time');
+  assert.equal(bitmap.closed, 1, 'the scanner\'s bitmap is left to the scanner');
+
+  const g = fakes();
+  const out = await makeThumbBlob(new Blob(['x']), { width: 500, height: 800 }, { ...g, OffscreenCanvas: Canvas, decoded: bitmap });
+  assert.equal(out.type, 'image/png', 'a closed bitmap falls back to decoding the blob');
+  assert.equal(g.calls.length, 1);
+  assert.equal(g.bitmaps[0].closed, 1);
+});
+
 test('makeThumbBlob: failures resolve null and still close the bitmap', async () => {
   const f = fakes({ drawThrows: true });
   assert.equal(await makeThumbBlob(new Blob(['x']), { width: 500, height: 800 }, f), null);

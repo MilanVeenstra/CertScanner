@@ -42,7 +42,7 @@ const injectMessage = (e) => String(e?.message ?? '').slice(0, 300);
  * @param {{settings:object, signal?:AbortSignal,
  *   onProgress?:(p:{stage:'page-discover'}|{stage:'page', index:number, total:number})=>void,
  *   onImageProgress?:(index:number, p:import('../core/types.js').ScanProgress)=>void,
- *   onImage?:(index:number, blob:Blob, info:import('../core/types.js').ImageInfo)=>void, engines?:object, chromeApi?:typeof chrome,
+ *   onImage?:(index:number, blob:Blob, info:import('../core/types.js').ImageInfo, bitmap:ImageBitmap)=>void, engines?:object, chromeApi?:typeof chrome,
  *   maxImages?:number, budgetMs?:number, deps?:Partial<typeof DEFAULT_DEPS>}} opts  deps: test-only overrides
  * @returns {Promise<{jobId:string, kind:'page', status:'auto-open'|'page-results'|'none'|'error', items:object[], top:object|null,
  *   warnings:object[], images:object[], discovered:number, totalFound:number, partial:{checked:number, total:number}|null,
@@ -130,7 +130,7 @@ export async function scanPage(job, {
       const entry = { index: k, ok: false, acquireMs: ms(now() - ti) };
       let confident = false;
       if (acq.ok) {
-        try { onImage?.(k, acq.blob, acq.info); } catch { /* preview only */ }
+        try { onImage?.(k, acq.blob, acq.info, acq.bitmap); } catch { /* preview only */ }
         const ts = now();
         const r = await runScan(acq, k);
         if (r.status === 'error') {
@@ -155,7 +155,7 @@ export async function scanPage(job, {
           if (isStop(big)) throw sig.reason;
         }
         if (big.ok) {
-          if (!acq.ok) { try { onImage?.(k, big.blob, big.info); } catch { /* preview only */ } }
+          if (!acq.ok) { try { onImage?.(k, big.blob, big.info, big.bitmap); } catch { /* preview only */ } }
           const r2 = await runScan(big, k);
           if (r2.status === 'error') {
             if (sig.aborted) throw sig.reason;

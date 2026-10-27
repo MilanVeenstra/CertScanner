@@ -1550,7 +1550,7 @@
     "message": "Voor- en achterkant omgewisseld."
   },
   "grade_input_hint": {
-    "message": "Sleep of plak hier een foto, of klik met rechts op een kaartfoto op een pagina en kies ‘Grade van kaart schatten’. Uit de sleeve, plat, recht van boven, zonder flits. Foto's blijven op dit apparaat."
+    "message": "Sleep of plak hier een foto, of klik met rechts op een kaartfoto op een pagina en kies ‘Grade van kaart schatten’. Uit de sleeve, plat, recht van boven, op een donkere effen achtergrond, zonder flits. Foto's blijven op dit apparaat."
   },
   "grade_measuring": {
     "message": "Meten…"
@@ -1883,7 +1883,7 @@
     "message": "Hoeken, randen en oppervlak"
   },
   "grade_ai_off": {
-    "message": "Niet gecontroleerd. Een foto laat dit maar deels zien; een AI-check met je eigen key kan het schatten. Standaard uit: dan gaat er niets van dit apparaat af."
+    "message": "Voor het oppervlak of een tweede mening kan een AI-check met je eigen key naar de foto kijken. Standaard uit: dan gaat er niets van dit apparaat af."
   },
   "grade_ai_setup": {
     "message": "AI-check instellen"
@@ -2195,5 +2195,115 @@
   },
   "footer_local_ai": {
     "message": "Afbeeldingen blijven op dit apparaat, behalve bij AI-checks die je zelf start"
+  },
+  "grade_photo_front": {
+    "message": "voorkant"
+  },
+  "grade_photo_back": {
+    "message": "achterkant"
+  },
+  "grade_where": {
+    "message": "$P1$ ($P2$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "grade_corner_tl_short": {
+    "message": "hoek linksboven"
+  },
+  "grade_corner_tr_short": {
+    "message": "hoek rechtsboven"
+  },
+  "grade_corner_br_short": {
+    "message": "hoek rechtsonder"
+  },
+  "grade_corner_bl_short": {
+    "message": "hoek linksonder"
+  },
+  "grade_edge_top": {
+    "message": "bovenrand"
+  },
+  "grade_edge_bottom": {
+    "message": "onderrand"
+  },
+  "grade_edge_left": {
+    "message": "linkerrand"
+  },
+  "grade_edge_right": {
+    "message": "rechterrand"
+  },
+  "grade_dev_corners_none": {
+    "message": "Geen schade gezien"
+  },
+  "grade_dev_corners_minor": {
+    "message": "Licht versleten"
+  },
+  "grade_dev_corners_visible": {
+    "message": "Versleten of beschadigd"
+  },
+  "grade_dev_corners_unknown": {
+    "message": "Niet te zien op deze foto"
+  },
+  "grade_dev_edges_none": {
+    "message": "Geen witte randjes gezien"
+  },
+  "grade_dev_edges_minor": {
+    "message": "Een beetje wit"
+  },
+  "grade_dev_edges_visible": {
+    "message": "Witte randjes"
+  },
+  "grade_dev_edges_unknown": {
+    "message": "Niet te zien op deze foto"
+  },
+  "grade_dev_surface": {
+    "message": "Niet gecontroleerd op dit apparaat"
+  },
+  "grade_dev_why_too_small": {
+    "message": "De kaart is te klein op deze foto."
+  },
+  "grade_dev_why_light": {
+    "message": "De achtergrond is te licht: fotografeer de kaart op een donkere achtergrond."
+  },
+  "grade_dev_why_pale_border": {
+    "message": "Een zilveren, grijze of witte rand verbergt witte randjes."
+  },
+  "grade_dev_why_no_background": {
+    "message": "De foto laat geen achtergrond rond de kaart zien."
+  },
+  "grade_dev_why_no_border": {
+    "message": "De rand is niet gemeten."
+  },
+  "grade_dev_why_outside": {
+    "message": "Een hoek valt buiten de foto."
+  },
+  "grade_dev_why_low_contrast": {
+    "message": "Te weinig contrast tussen kaart en achtergrond."
+  },
+  "grade_dev_why_shape": {
+    "message": "De hoeken konden niet worden vergeleken."
+  },
+  "grade_device_note": {
+    "message": "Gecontroleerd op dit apparaat: witte randjes langs de randen en de vorm van elke hoek (rood gemarkeerd op de kaart). Een scherpe foto op een donkere, effen achtergrond, uit de sleeve, laat het meeste zien. Het oppervlak (krassen, deukjes) wordt hier niet beoordeeld."
+  },
+  "grade_ai_sub": {
+    "message": "AI-check (optioneel)"
+  },
+  "grade_reason_corners_device": {
+    "message": "Hoekslijtage gezien op dit apparaat."
+  },
+  "grade_reason_edges_device": {
+    "message": "Witte randjes gezien op dit apparaat."
+  },
+  "grade_reason_surface_device": {
+    "message": "Slijtage van het oppervlak gezien op dit apparaat."
+  },
+  "grade_note_device_clean": {
+    "message": "Geen witte randjes of hoekschade gezien. Dat bewijst nog geen 10, en het oppervlak is niet beoordeeld, dus dit blijft de grens van de centering."
   }
 }

@@ -65,6 +65,9 @@ describe('Grade check (raw cards)', { concurrency: false }, () => {
     assert.equal(caps.length, 3);
     assert.match(caps[0], /PSA[\s\S]*up to 9[\s\S]*10 possible/, caps[0]);
     assert.match(await page.locator('#grade-caps-note').textContent(), /Back not measured/);
+    // Wear checked on the device: this clean synthetic card has no whitening and no damaged corner.
+    assert.equal(await page.locator('[data-testid="grade-device"] li[data-area="edges"]').getAttribute('data-rating'), 'none');
+    assert.equal(await page.locator('[data-testid="grade-device"] li[data-area="corners"]').getAttribute('data-rating'), 'none');
     // AI check off (default): the section says so and offers Settings; no request left the browser.
     assert.match(await page.locator('[data-testid="grade-ai"]').innerText(), /Off by default/);
     assert.deepEqual(external().slice(before).map((r) => r.url), []);

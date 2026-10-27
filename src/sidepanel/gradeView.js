@@ -3,12 +3,14 @@
 // photos (drop, paste, Choose image, the context menu). Everything is rendered with textContent / DOM nodes only.
 import { createGradeEngine, preparePhoto, cardJpeg } from './gradeEngine.js';
 import { centeringFrom, ratioText, manualSide, SIDES } from '../pipeline/grade/measure.js';
-import { estimateGrades, CONDITION_AREAS } from '../core/gradeEstimate.js';
+import { estimateGrades, combineWear, mergeCondition, CONDITION_AREAS } from '../core/gradeEstimate.js';
 import { GRADERS, GRADER_ORDER, STANDARDS_AS_OF } from '../core/gradeStandards.js';
 import { PROVIDERS, VENDORS, loadKey, hasConsent, saveConsent, checkCondition, CLAUDE_IMAGE_SIDE, XIMILAR_IMAGE_SIDE } from './gradeAi.js';
 import { classifyFile } from './inputs.js';
 
 const PHOTO_SIDES = ['front', 'back'];
+const WEAR_CORNERS = ['tl', 'tr', 'br', 'bl'];
+const CORNER_R_MM = 3.2;
 const blankSide = () => ({ status: 'empty', key: null, input: null, previewUrl: null, size: null, result: null, card: null, manual: {}, error: null, run: 0, ctl: null });
 const fmtGrade = (g) => (Number.isInteger(g) ? String(g) : g.toFixed(1));
 const ERROR_KEYS = {
@@ -262,7 +264,31 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     if (!s.card) { canvas.width = 1; canvas.height = 1; return; }
     canvas.width = s.card.width;
     canvas.height = s.card.height;
-    canvas.getContext('2d').putImageData(new ImageData(s.card.data, s.card.width, s.card.height), 0, 0);
+    const ctx = canvas.getContext('2d');
+    ctx.putImageData(new ImageData(s.card.data, s.card.width, s.card.height), 0, 0);
+    // Where the device saw wear: a bar along each whitened stretch of edge, an arc round each worn corner.
+    const w = s.result?.wear;
+    if (w?.status !== 'ok') return;
+    const k = w.pxPerMm; const { width: W, height: H } = s.card;
+    ctx.strokeStyle = getComputedStyle(doc.documentElement).getPropertyValue('--cs-accent').trim() || '#B3122B';
+    ctx.lineWidth = Math.max(5, W / 45); // thick: it must stand out from the thin measuring lines
+    const h = ctx.lineWidth / 2;
+    for (const [side, e] of Object.entries(w.edges.sides)) {
+      for (const r of e.runs ?? []) {
+        const a = r.fromMm * k; const b = r.toMm * k;
+        ctx.beginPath();
+        if (side === 'top') { ctx.moveTo(a, h); ctx.lineTo(b, h); } else if (side === 'bottom') { ctx.moveTo(a, H - h); ctx.lineTo(b, H - h); } else if (side === 'left') { ctx.moveTo(h, a); ctx.lineTo(h, b); } else { ctx.moveTo(W - h, a); ctx.lineTo(W - h, b); }
+        ctx.stroke();
+      }
+    }
+    const R = CORNER_R_MM * k;
+    const arcs = { tl: [R, R, Math.PI, 1.5 * Math.PI], tr: [W - R, R, 1.5 * Math.PI, 2 * Math.PI], br: [W - R, H - R, 0, 0.5 * Math.PI], bl: [R, H - R, 0.5 * Math.PI, Math.PI] };
+    for (const c of WEAR_CORNERS) {
+      const v = w.corners.list[c];
+      if (v?.status !== 'ok' || v.rating === 'none') continue;
+      const [x, y, a0, a1] = arcs[c];
+      ctx.beginPath(); ctx.arc(x, y, R * 1.05, a0, a1); ctx.stroke();
+    }
   }
 
   function renderDetail() {
@@ -299,7 +325,9 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     const measured = Boolean(front?.lr || front?.tb || back?.lr || back?.tb);
     section.hidden = !measured;
     if (!measured) return;
-    const est = estimateGrades({ front, back, condition: ai.result?.condition ?? null });
+    const device = deviceRatings();
+    const merged = mergeCondition(device, ai.result?.condition ?? null);
+    const est = estimateGrades({ front, back, condition: merged.condition, sources: merged.sources });
     const withAi = Boolean(est.condition);
     $('grade-caps-heading').textContent = t(withAi ? 'grade_est_heading' : 'grade_caps_heading');
     const list = $('grade-caps-list');
@@ -331,8 +359,58 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     }
     const notes = [];
     if (!est.caps.psa.backChecked) notes.push(t('grade_note_front_only'));
-    if (!withAi) notes.push(t('grade_note_centering_only'));
+    if (!withAi) notes.push(t(device.corners === 'none' || device.edges === 'none' ? 'grade_note_device_clean' : 'grade_note_centering_only'));
     $('grade-caps-note').textContent = notes.join(' ');
+  }
+
+  // ------------------------------------------------------------ wear seen on the device
+
+  const wearOf = (name) => (sides[name].status === 'done' ? sides[name].result?.wear ?? null : null);
+  const deviceRatings = () => combineWear(PHOTO_SIDES.map(wearOf));
+
+  /** Where the device saw wear, e.g. "top-left (back)", per area; and why it couldn't look, per area. */
+  function wearDetails() {
+    const where = { corners: [], edges: [] };
+    const why = { corners: new Set(), edges: new Set() };
+    for (const name of PHOTO_SIDES) {
+      const w = wearOf(name);
+      if (!w) continue;
+      const photo = t(`grade_photo_${name}`);
+      if (w.status !== 'ok') { why.corners.add(w.status); why.edges.add(w.status); continue; }
+      for (const c of WEAR_CORNERS) {
+        const v = w.corners.list[c];
+        if (v?.status === 'ok' && v.rating !== 'none') where.corners.push(t('grade_where', [t(`grade_corner_${c}_short`), photo]));
+        else if (v?.status === 'unknown') why.corners.add(v.reason);
+        if (v?.status === 'ok' && v.whitening) why.corners.add(v.whitening);
+      }
+      for (const side of SIDES) {
+        const e = w.edges.sides[side];
+        if (e?.status === 'ok' && e.runs.length) where.edges.push(t('grade_where', [t(`grade_edge_${side}`), photo]));
+        else if (e?.status === 'unknown') why.edges.add(e.reason);
+      }
+    }
+    return { where, why };
+  }
+
+  function renderDevice(body) {
+    const ratings = deviceRatings();
+    const { where, why } = wearDetails();
+    const ul = el('ul', 'grade-ai-rows'); ul.dataset.testid = 'grade-device';
+    for (const a of ['corners', 'edges']) {
+      const li = el('li'); li.dataset.area = a; li.dataset.rating = ratings[a];
+      li.appendChild(el('span', 'grade-ai-area', t(`grade_area_${a}`)));
+      li.appendChild(el('span', 'grade-ai-rating', t(`grade_dev_${a}_${ratings[a]}`)));
+      const note = ratings[a] === 'minor' || ratings[a] === 'visible' ? where[a].join(', ')
+        : [...why[a]].filter(Boolean).map((r) => t(`grade_dev_why_${r.replace('-', '_')}`)).join(' ');
+      if (note) li.appendChild(el('span', 'grade-ai-note', note));
+      ul.appendChild(li);
+    }
+    const li = el('li'); li.dataset.area = 'surface';
+    li.append(el('span', 'grade-ai-area', t('grade_area_surface')), el('span', 'grade-ai-rating', t('grade_dev_surface')));
+    ul.appendChild(li);
+    body.appendChild(ul);
+    body.appendChild(el('p', 'hint', t('grade_device_note')));
+    body.appendChild(el('h4', 'grade-sub-heading', t('grade_ai_sub')));
   }
 
   // ------------------------------------------------------------ AI condition check
@@ -355,6 +433,7 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     if (run !== ai.run) return;
     const body = $('grade-ai-body');
     body.replaceChildren();
+    renderDevice(body);
     if (ai.state === 'running') {
       const p = el('p', 'small muted grade-busy');
       const spin = icon('i-spinner'); spin.classList.add('spin');

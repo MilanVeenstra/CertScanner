@@ -173,3 +173,76 @@ test('bgsOverall follows the 9.5 rule; normalizeCondition clamps and drops non-n
   assert.deepEqual(normalizeCondition({ corners: 12, edges: 'x', surface: 3 }), { corners: 10, edges: null, surface: 3 });
   assert.equal(normalizeCondition({ corners: null }), null);
 });
+
+// ---------------------------------------------------------------- wear seen on the device
+import { measureWear, whiteningTest, runsOf } from '../../src/pipeline/grade/wear.js';
+import { combineWear, mergeCondition } from '../../src/core/gradeEstimate.js';
+
+const wearOf = (o) => analyzeCard(renderCard({ width: 820, height: 1080, pxPerMm: 11, border: { l: 3.2, r: 2.8, t: 3, b: 3 }, ...o })).wear;
+
+test('wear: clean cards raise no alarm (yellow on grey, navy on dark, black on grey, rotated and noisy)', () => {
+  for (const o of [{}, { borderColor: COLORS.navy, bg: [40, 40, 45] }, { borderColor: COLORS.black, bg: [130, 130, 135] },
+    { angle: 6, tilt: 0.04, noise: 6, blur: 2 }]) {
+    const w = wearOf(o);
+    assert.equal(w.status, 'ok');
+    assert.equal(w.edges.rating, 'none', JSON.stringify(o));
+    assert.equal(w.corners.rating, 'none', JSON.stringify(o));
+  }
+});
+
+test('wear: whitening found where it is, on dark and on coloured borders', () => {
+  const navy = wearOf({ borderColor: COLORS.navy, bg: [40, 40, 45], whitening: [{ side: 'top', fromMm: 10, toMm: 14 }, { side: 'left', fromMm: 30, toMm: 31 }] });
+  assert.equal(navy.edges.rating, 'visible', '5 mm of whitening in all');
+  near(navy.edges.sides.top.runs[0].fromMm, 10, 0.3, 'top run start');
+  near(navy.edges.sides.top.runs[0].toMm, 14, 0.3, 'top run end');
+  assert.equal(navy.edges.sides.left.runs.length, 1);
+  assert.equal(navy.edges.sides.right.runs.length, 0);
+  assert.equal(wearOf({ borderColor: COLORS.navy, bg: [40, 40, 45], whitening: [{ side: 'bottom', fromMm: 25, toMm: 26 }] }).edges.rating, 'minor', 'one short stretch');
+  const yellow = wearOf({ blur: 2, whitening: [{ side: 'right', fromMm: 30, toMm: 32, depthMm: 0.22 }] });
+  assert.ok(['minor', 'visible'].includes(yellow.edges.rating), yellow.edges.rating);
+  const many = wearOf({ borderColor: COLORS.navy, bg: [40, 40, 45], whitening: [{ side: 'top', fromMm: 10, toMm: 12 }, { side: 'bottom', fromMm: 20, toMm: 22 }, { side: 'right', fromMm: 40, toMm: 45 }] });
+  assert.equal(many.edges.rating, 'visible');
+});
+
+test('wear: a damaged corner stands out against the other three', () => {
+  const cut = wearOf({ cornerCut: [{ corner: 'br', mm: 0.6 }] });
+  assert.equal(cut.corners.list.br.rating, 'visible');
+  near(cut.corners.list.br.shapeMm, 0.6, 0.12, 'missing tip');
+  for (const c of ['tl', 'tr', 'bl']) assert.equal(cut.corners.list[c].rating, 'none', c);
+  const small = wearOf({ borderColor: COLORS.navy, bg: [40, 40, 45], cornerCut: [{ corner: 'tr', mm: 0.3 }] });
+  assert.ok(['minor', 'visible'].includes(small.corners.list.tr.rating));
+  const white = wearOf({ borderColor: COLORS.black, bg: [130, 130, 135], cornerWhite: ['tl'] });
+  assert.notEqual(white.corners.list.tl.rating, 'none');
+});
+
+test('wear: says what it cannot see (light background, pale border, small photo, cropped photo)', () => {
+  const light = wearOf({ bg: [240, 240, 238] });
+  assert.equal(light.edges.rating, 'unknown');
+  assert.equal(light.edges.sides.top.reason, 'light');
+  assert.equal(wearOf({ borderColor: COLORS.silver, bg: [40, 40, 45] }).edges.sides.left.reason, 'pale-border');
+  assert.equal(analyzeCard(renderCard({ width: 420, height: 560, pxPerMm: 6, border: { l: 3, r: 3, t: 3, b: 3 } })).wear.status, 'too-small');
+  const crop = analyzeCard(renderCard({ fill: true, width: 504, height: 704, pxPerMm: 8, border: { l: 3.2, r: 2.8, t: 3, b: 3 } }));
+  assert.equal(crop.wear.edges.rating, 'unknown');
+});
+
+test('wear helpers: the whitening test refuses blends of border and background; runs bridge one-pixel gaps', () => {
+  const navy = [27, 12, -50]; const grey = [51, 0, -2];
+  const { test: t } = whiteningTest(navy, grey);
+  assert.equal(t([39, 6, -26]), false, 'half navy, half grey');
+  assert.equal(t([93, 0, 4]), true, 'paper');
+  assert.equal(whiteningTest([92, 0, 2], [30, 0, 0]).reason, 'light');
+  assert.deepEqual(runsOf([0, 1, 1, 0, 1, 1, 0, 0, 1].map(Boolean), 3), [[1, 5]]);
+  assert.deepEqual(runsOf([1, 0, 0, 1].map(Boolean), 2), []);
+});
+
+test('device wear joins the estimate: worst of front and back, seen wear caps, AI and device merge per area', () => {
+  assert.deepEqual(combineWear([{ corners: { rating: 'none' }, edges: { rating: 'minor' } }, { corners: { rating: 'visible' }, edges: { rating: 'unknown' } }]), { corners: 'visible', edges: 'minor' });
+  assert.deepEqual(combineWear([null, null]), { corners: 'unknown', edges: 'unknown' });
+  assert.deepEqual(mergeCondition({ corners: 'none', edges: 'none' }, null), { condition: null, sources: {} });
+  const m = mergeCondition({ corners: 'visible', edges: 'none' }, { corners: 9.5, edges: 9, surface: 9 });
+  assert.deepEqual(m.condition, { corners: 8, edges: 9, surface: 9 });
+  assert.deepEqual(m.sources, { corners: 'device', edges: 'ai', surface: 'ai' });
+  const est = estimateGrades({ front: side(53), back: side(70), ...mergeCondition({ corners: 'none', edges: 'visible' }, null) });
+  assert.equal(est.graders.psa.high, 8);
+  assert.ok(est.graders.psa.reasons.some((r) => r.key === 'grade_reason_edges_device'));
+});

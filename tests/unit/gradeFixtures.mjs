@@ -30,13 +30,16 @@ export const COLORS = Object.freeze({
  *   tilt: perspective (fraction the top side shrinks); border {l, r, t, b} in mm (null: borderless art to the edge);
  *   borderColor, bg (rgb), bgTexture (0..1), noise (± per channel), blur (3×3 box passes), seed, radiusMm (corner radius),
  *   cardMm [w, h]; fill: true = photo is cropped exactly to the card.
+ *   Wear: whitening [{side:'top'|'right'|'bottom'|'left', fromMm, toMm, depthMm}] (white paper showing along a cut edge,
+ *   positions measured along the side from its top/left end); cornerWhite ['tl'|'tr'|'br'|'bl'] (whitening around that
+ *   corner's curve); cornerCut [{corner, mm}] (the tip is missing: a straight cut that far inside the rounded corner).
  * @returns {{data:Uint8ClampedArray, width:number, height:number, corners:number[][], truth:{lr:number, tb:number}}}
  */
 export function renderCard(o = {}) {
   const {
     width = 1000, height = 1300, pxPerMm = 12, angle = 0, tilt = 0, border = { l: 3, r: 3, t: 3, b: 3 },
     borderColor = COLORS.yellow, bg = [120, 122, 128], bgTexture = 0, noise = 3, blur = 1, seed = 1, radiusMm = 3,
-    cardMm = [63, 88], fill = false,
+    cardMm = [63, 88], fill = false, whitening = [], cornerWhite = [], cornerCut = [],
   } = o;
   const [cw, ch] = cardMm;
   const center = o.center ?? [width / 2, height / 2];
@@ -52,14 +55,33 @@ export function renderCard(o = {}) {
   }
   const toCard = homography(corners, [[0, 0], [cw, 0], [cw, ch], [0, ch]]);
   const rand = rng(seed);
+  /** Corner frame: (a, b) = distance from that corner's two sides. */
+  const cornerAB = (u, v) => ({ tl: [u, v], tr: [cw - u, v], br: [cw - u, ch - v], bl: [u, ch - v] });
   const inCard = (u, v) => {
     if (u < 0 || v < 0 || u > cw || v > ch) return false;
     const r = radiusMm;
     const cx = u < r ? r : u > cw - r ? cw - r : u;
     const cy = v < r ? r : v > ch - r ? ch - r : v;
-    return (u - cx) ** 2 + (v - cy) ** 2 <= r * r;
+    if ((u - cx) ** 2 + (v - cy) ** 2 > r * r) return false;
+    const ab = cornerAB(u, v);
+    // The arc's point nearest the corner is at a + b = 2r(1 - 1/√2); a cut removes material `mm` further in.
+    for (const c of cornerCut) { const [a, b] = ab[c.corner]; if (a + b < 2 * r * (1 - Math.SQRT1_2) + c.mm * Math.SQRT2) return false; }
+    return true;
+  };
+  const WHITE = [238, 236, 228];
+  const worn = (u, v) => {
+    const along = { top: u, bottom: u, left: v, right: v };
+    const depth = { top: v, bottom: ch - v, left: u, right: cw - u };
+    for (const w of whitening) if (depth[w.side] < (w.depthMm ?? 0.25) && along[w.side] >= w.fromMm && along[w.side] <= w.toMm) return true;
+    const r = radiusMm; const ab = cornerAB(u, v);
+    for (const c of cornerWhite) {
+      const [a, b] = ab[c];
+      if (a < r && b < r && Math.hypot(r - a, r - b) > r - 0.3) return true;
+    }
+    return false;
   };
   const cardColor = (u, v) => {
+    if (worn(u, v)) return WHITE;
     if (border && (u < border.l || u > cw - border.r || v < border.t || v > ch - border.b)) return borderColor;
     // Art: blocks of colours unlike the border, with a dark frame line where the art starts.
     const fx = border ? u - border.l : u; const fy = border ? v - border.t : v;

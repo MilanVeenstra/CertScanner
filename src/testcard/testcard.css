@@ -1,0 +1,23 @@
+/* Printable test cards (scripts/gen-testcard.mjs). The cards print at true size: never scale them with CSS. */
+:root { color-scheme: light; }
+body { margin: 0; padding: 16px; background: #fff; color: #141414; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+.tc-screen { max-inline-size: 720px; margin-block-end: 16px; }
+.tc-screen h1 { margin: 0 0 8px; font-size: 20px; }
+.tc-screen ol { padding-inline-start: 22px; }
+#tc-print { min-block-size: 36px; padding: 6px 14px; border: 1.5px solid #141414; background: #141414; color: #fff; font: 600 14px/1 inherit; cursor: pointer; }
+#tc-print:hover { background: #b3122b; border-color: #b3122b; }
+.tc-sheet { display: grid; grid-template-columns: repeat(2, max-content); gap: 6mm 10mm; align-items: start; }
+.tc-figure { margin: 0; }
+.tc-card { display: block; }
+.tc-figure figcaption { margin-block-start: 1.5mm; font-size: 9pt; line-height: 1.35; max-inline-size: 83mm; }
+.tc-wear { color: #555; }
+.tc-ruler { grid-column: 1 / -1; margin: 0; }
+.tc-ruler svg { display: block; }
+.tc-ruler figcaption { font-size: 8pt; color: #555; }
+@page { size: A4; margin: 10mm; }
+@media print {
+  body { padding: 0; }
+  .tc-screen { display: none; }
+  .tc-sheet { gap: 4mm 8mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

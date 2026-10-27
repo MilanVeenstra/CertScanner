@@ -29,7 +29,8 @@ export const COLORS = Object.freeze({
  *   width/height: photo size; pxPerMm: card scale; center: card centre in the photo; angle: rotation (degrees);
  *   tilt: perspective (fraction the top side shrinks); border {l, r, t, b} in mm (null: borderless art to the edge);
  *   borderColor, bg (rgb), bgTexture (0..1), noise (± per channel), blur (3×3 box passes), seed, radiusMm (corner radius),
- *   cardMm [w, h]; fill: true = photo is cropped exactly to the card.
+ *   cardMm [w, h]; fill: true = photo is cropped exactly to the card; surround {mm, color}: a plain frame that far
+ *   around the card (a printed test card's black area), with `bg` beyond it.
  *   Wear: whitening [{side:'top'|'right'|'bottom'|'left', fromMm, toMm, depthMm}] (white paper showing along a cut edge,
  *   positions measured along the side from its top/left end); cornerWhite ['tl'|'tr'|'br'|'bl'] (whitening around that
  *   corner's curve); cornerCut [{corner, mm}] (the tip is missing: a straight cut that far inside the rounded corner).
@@ -39,7 +40,7 @@ export function renderCard(o = {}) {
   const {
     width = 1000, height = 1300, pxPerMm = 12, angle = 0, tilt = 0, border = { l: 3, r: 3, t: 3, b: 3 },
     borderColor = COLORS.yellow, bg = [120, 122, 128], bgTexture = 0, noise = 3, blur = 1, seed = 1, radiusMm = 3,
-    cardMm = [63, 88], fill = false, whitening = [], cornerWhite = [], cornerCut = [],
+    cardMm = [63, 88], fill = false, whitening = [], cornerWhite = [], cornerCut = [], surround = null,
   } = o;
   const [cw, ch] = cardMm;
   const center = o.center ?? [width / 2, height / 2];
@@ -103,7 +104,8 @@ export function renderCard(o = {}) {
       for (const sy of S) {
         for (const sx of S) {
           const [u, v] = applyH(toCard, x + sx, y + sy);
-          const c = inCard(u, v) ? cardColor(u, v) : bgColor(x, y);
+          const inSurround = surround && u >= -surround.mm && v >= -surround.mm && u <= cw + surround.mm && v <= ch + surround.mm;
+          const c = inCard(u, v) ? cardColor(u, v) : inSurround ? surround.color : bgColor(x, y);
           r += c[0]; g += c[1]; b += c[2];
         }
       }

@@ -7,6 +7,8 @@ import { centeringFrom, ratioText, manualSide } from '../../src/pipeline/grade/m
 import { GRADERS, centeringCaps, sideStatus, STANDARDS_AS_OF } from '../../src/core/gradeStandards.js';
 import { estimateGrades, bgsOverall, normalizeCondition } from '../../src/core/gradeEstimate.js';
 import { renderCard, COLORS } from './gradeFixtures.mjs';
+import { readFileSync } from 'node:fs';
+import { testcardHtml, TESTCARD_PATH, TEST_CARDS } from '../../scripts/gen-testcard.mjs';
 
 const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a.toFixed(2)} vs ${b.toFixed(2)} (±${tol})`);
 
@@ -70,6 +72,35 @@ test('analyzeCard: a photo cropped to the card uses the photo edges and says so'
   assert.ok(r.quality.flags.includes('cropped'));
   near(r.centering.lr.pct, img.truth.lr, 1.5, 'left/right');
   assert.ok(r.centering.lr.sigma >= 1, 'a crop line adds uncertainty');
+});
+
+test('analyzeCard: a card on a black surround (the printed test card) is not mixed up with the surround', () => {
+  // The surround's straight sides are longer than the card's: a quad of two surround sides and two card sides fits
+  // the card shape too. Its corners don't look like corners (one line runs on, the other starts late).
+  const img = renderCard({ width: 860, height: 1090, pxPerMm: 9, borderColor: COLORS.navy, bg: [244, 242, 236],
+    surround: { mm: 10, color: [0, 0, 0] }, border: { l: 3.6, r: 2.4, t: 3.3, b: 2.7 } });
+  const r = analyzeCard(img);
+  assert.equal(r.status, 'ok', r.status);
+  near(r.centering.lr.pct, img.truth.lr, 1, 'left/right');
+  near(r.centering.tb.pct, img.truth.tb, 1, 'top/bottom');
+});
+
+test('test card page: matches its generator; each card fits and states its true centering', () => {
+  assert.equal(readFileSync(TESTCARD_PATH, 'utf8'), testcardHtml(), 'run: node scripts/gen-testcard.mjs');
+  for (const c of TEST_CARDS) {
+    assert.ok(c.l + c.r < 63 && c.t + c.b < 88 && Math.min(c.l, c.r, c.t, c.b) > 1, c.id);
+    const lr = Math.round((Math.max(c.l, c.r) / (c.l + c.r)) * 100);
+    assert.ok(testcardHtml().includes(`<b>${lr}/${100 - lr}</b>`), `${c.id} left/right ${lr}`);
+  }
+});
+
+test('analyzeCard: a card that nearly fills a 3:4 photo is measured from its own edges, not the photo edges', () => {
+  // A 3:4 photo is close to card-shaped; the strip of background around the card is not a border.
+  const img = renderCard({ width: 540, height: 720, pxPerMm: 8, bg: [40, 40, 45], border: { l: 3.4, r: 2.6, t: 3.3, b: 2.7 } });
+  const r = analyzeCard(img);
+  assert.equal(r.source, 'detected');
+  near(r.centering.lr.pct, img.truth.lr, 1, 'left/right');
+  near(r.centering.tb.pct, img.truth.tb, 1, 'top/bottom');
 });
 
 test('analyzeCard: low resolution measures roughly and is flagged; borderless art is not given a number', () => {

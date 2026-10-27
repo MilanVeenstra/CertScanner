@@ -3,7 +3,7 @@
 import { detectCard, refineQuad, sampleRgb, CARD_RATIO } from './detect.js';
 import { warpCard, measureBorders, centeringFrom, toLab, CARD_MM, SIDES } from './measure.js';
 import { measureWear } from './wear.js';
-import { orderQuad, quadSkew, isConvex, quadArea } from './geometry.js';
+import { orderQuad, quadSkew, isConvex, quadArea, homography, applyH } from './geometry.js';
 
 /** Photos are analysed at most this large (long side); enough for ~30 px/mm on a card that fills the frame. */
 export const ANALYZE_MAX_SIDE = 2800;
@@ -20,6 +20,29 @@ export function validQuad(q, width, height) {
   if (q.some(([x, y]) => x < -m * width || x > (1 + m) * width || y < -m * height || y > (1 + m) * height)) return false;
   const o = orderQuad(q);
   return isConvex(o) && quadArea(o) >= 0.01 * width * height;
+}
+
+/**
+ * The photo's edge points in the upright card's pixels, per side: [position along the side, depth from the straight
+ * edge] (negative: the real edge lies outside it). refineQuad sides: 0 top, 1 right, 2 bottom, 3 left.
+ */
+export function outerOffsets(edgePoints, quad, card) {
+  const { width: W, height: H } = card;
+  const toCard = homography(quad, [[0, 0], [W, 0], [W, H], [0, H]]);
+  if (!toCard) return null;
+  const out = { top: [], right: [], bottom: [], left: [] };
+  const names = ['top', 'right', 'bottom', 'left'];
+  edgePoints.forEach((list, i) => {
+    for (const [x, y] of list) {
+      const [u, v] = applyH(toCard, x, y);
+      const name = names[i];
+      if (name === 'top') out.top.push([u, v]);
+      else if (name === 'right') out.right.push([v, W - u]);
+      else if (name === 'bottom') out.bottom.push([u, H - v]);
+      else out.left.push([v, u]);
+    }
+  });
+  return out;
 }
 
 /** Side of the quad (TL, TR, BR, BL) that each card side lies on: [from corner, to corner]. */
@@ -68,6 +91,7 @@ export function analyzeCard(img, { quad: given = null } = {}) {
   let quad;
   let source;
   let edgeWidthPx = null;
+  let edgePoints = null;
   if (given && validQuad(given, img.width, img.height)) {
     quad = orderQuad(given);
     source = 'manual';
@@ -79,12 +103,13 @@ export function analyzeCard(img, { quad: given = null } = {}) {
       const r = refineQuad(img, quad);
       quad = r.quad;
       edgeWidthPx = r.edgeWidthPx;
+      if (r.refined) edgePoints = r.edgePoints;
     }
   }
   const longSrc = (sideLen(quad[0], quad[3]) + sideLen(quad[1], quad[2])) / 2;
   const pxPerMm = longSrc / CARD_MM.height;
   const card = warpCard(img, quad);
-  const borders = measureBorders(card);
+  const borders = measureBorders(card, { outer: edgePoints ? outerOffsets(edgePoints, quad, card) : null });
   // A photo cropped to the card has no cut edge of its own: its crop line can be off by a few pixels.
   const centering = centeringFrom(borders.sides, { scale: card.scale, sysPx: source === 'image-edges' ? 2 : 0.5 });
 

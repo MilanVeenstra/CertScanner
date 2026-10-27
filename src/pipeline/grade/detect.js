@@ -160,28 +160,52 @@ export function houghLines(grad, mask, { maxLines = MAX_LINES } = {}) {
   return lines;
 }
 
+/**
+ * Fraction of `n` points on the line p→r, at t from t0 to t1 (t < 0 or > 1 lies beyond the ends), that are on an edge
+ * pixel whose direction matches the line. Points outside the image miss, or with `inside` are left out (null when
+ * fewer than 3 are inside).
+ */
+function lineSupport(p, r, t0, t1, n, grad, mask, { inside = false } = {}) {
+  const { ang, width: w, height: h } = grad;
+  const dx = r[0] - p[0]; const dy = r[1] - p[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len; const ny = dx / len;
+  const normal = Math.atan2(ny, nx);
+  let hits = 0; let count = 0;
+  for (let k = 0; k < n; k++) {
+    const t = t0 + ((t1 - t0) * k) / (n - 1);
+    const bx = p[0] + dx * t; const by = p[1] + dy * t;
+    if (inside && (bx < 1 || by < 1 || bx >= w - 1 || by >= h - 1)) continue;
+    count++;
+    for (let o = -2; o <= 2; o++) {
+      const x = Math.floor(bx + nx * o); const y = Math.floor(by + ny * o);
+      if (x < 1 || y < 1 || x >= w - 1 || y >= h - 1) continue;
+      const i = y * w + x;
+      if (mask[i] && angleDiff(ang[i], normal) <= 20 * DEG) { hits++; break; }
+    }
+  }
+  if (inside && count < 3) return null;
+  return count ? hits / count : 0;
+}
+
 /** Fraction of each side of `q` that lies on an edge pixel whose direction matches the side. */
 function sideSupport(q, grad, mask) {
-  const { ang, width: w, height: h } = grad;
+  return [0, 1, 2, 3].map((s) => lineSupport(q[s], q[(s + 1) % 4], 0.08, 0.92, SIDE_SAMPLES, grad, mask));
+}
+
+/**
+ * How much each corner of `q` looks like a real corner (0.2..1): both sides have an edge just past the rounded tip.
+ * A quad built from the lines of two different rectangles (the card's right side with the top of a box around it)
+ * has a corner where one of the edges only starts further on. (Whether a line runs on beyond the corner says less:
+ * a card lying along a table edge or a wood grain line has real corners too.)
+ */
+function cornerSupport(q, grad, mask) {
   const out = [];
-  for (let s = 0; s < 4; s++) {
-    const p = q[s]; const r = q[(s + 1) % 4];
-    const dx = r[0] - p[0]; const dy = r[1] - p[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len; const ny = dx / len;
-    const normal = Math.atan2(ny, nx);
-    let hits = 0;
-    for (let k = 0; k < SIDE_SAMPLES; k++) {
-      const t = 0.08 + (0.84 * k) / (SIDE_SAMPLES - 1);
-      const bx = p[0] + dx * t; const by = p[1] + dy * t;
-      for (let o = -2; o <= 2; o++) {
-        const x = Math.floor(bx + nx * o); const y = Math.floor(by + ny * o);
-        if (x < 1 || y < 1 || x >= w - 1 || y >= h - 1) continue;
-        const i = y * w + x;
-        if (mask[i] && angleDiff(ang[i], normal) <= 20 * DEG) { hits++; break; }
-      }
-    }
-    out.push(hits / SIDE_SAMPLES);
+  for (let i = 0; i < 4; i++) {
+    const prev = q[(i + 3) % 4]; const c = q[i]; const next = q[(i + 1) % 4];
+    const a = lineSupport(c, next, 0.07, 0.18, 8, grad, mask, { inside: true });
+    const b = lineSupport(prev, c, 0.82, 0.93, 8, grad, mask, { inside: true });
+    out.push(0.2 + 0.8 * Math.min(a ?? 1, b ?? 1));
   }
   return out;
 }
@@ -239,7 +263,8 @@ export function cardQuads(lines, grad, mask) {
     const support = sideSupport(c.quad, grad, mask);
     if (Math.min(...support) < 0.3) continue;
     const geo = Math.pow(support.reduce((s, v) => s * Math.max(v, 0.01), 1), 0.25);
-    const score = geo * c.bound;
+    const corners = Math.pow(cornerSupport(c.quad, grad, mask).reduce((s, v) => s * v, 1), 0.25);
+    const score = geo * corners * c.bound;
     best = Math.max(best, score);
     out.push({ quad: c.quad, support, ratio: c.ratio, area: c.area, score });
   }
@@ -304,41 +329,72 @@ function margins(inner, outer, tol = 0) {
  * Choose the card among the candidates. When the best quad has an enclosing quad up to 9 % of the card's short side
  * further out (some sides may coincide), and on the sides that moved the band between them has a colour unlike the
  * area outside, the inner quad was the print frame and the outer one is the card edge. A band that looks like the
- * outside is a sleeve or a shadow: the inner quad is kept.
+ * outside is a sleeve or a shadow: the inner quad is kept. Of several such outer quads the best supported wins (the
+ * biggest can mix the card's sides with lines in the background). The photo's own edges count as the card edge only
+ * when no detected quad does, the band to them is even all round and every side has one (a photo cropped to the card).
  */
 function chooseCard(cands, small, imageRect) {
   if (!cands.length) return imageRect ? { quad: imageRect, source: 'image-edges', score: 0 } : null;
   let best = cands[0];
-  let source = 'detected';
-  const pool = imageRect ? [...cands, { quad: imageRect, support: [1, 1, 1, 1], score: 0, imageEdges: true }] : cands;
   for (let round = 0; round < 3; round++) {
-    const short = Math.min(Math.hypot(best.quad[1][0] - best.quad[0][0], best.quad[1][1] - best.quad[0][1]),
-      Math.hypot(best.quad[3][0] - best.quad[2][0], best.quad[3][1] - best.quad[2][1]));
+    const short = shortSide(best.quad);
     let next = null;
-    for (const c of pool) {
-      if (c === best || (!c.imageEdges && (c.score < 0.35 * cands[0].score || Math.min(...c.support) < 0.4))) continue;
+    for (const c of cands) {
+      if (c === best || c.score < 0.35 * cands[0].score || Math.min(...c.support) < 0.4) continue;
       const m = margins(best.quad, c.quad, 1.5);
       if (!m || m.some((d) => d > 0.09 * short)) continue;
       const moved = [0, 1, 2, 3].filter((s) => m[s] >= 0.005 * short);
       if (!moved.length) continue;
-      if (!c.imageEdges) {
-        // A printed border: an even band whose colour differs from what lies beyond it.
-        let border = 0;
-        for (const s of moved) {
-          if (c.support[s] < 0.6) continue;
-          const band = medianColor(small, bandPoints(best.quad, c.quad, s, 0.5));
-          const outside = medianColor(small, bandPoints(best.quad, c.quad, s, 2.2));
-          if (band && band.spread < 14 && (!outside || rgbDist(band, outside) > 30)) border++;
-        }
-        if (border < Math.ceil(moved.length * 0.75)) continue;
+      // A printed border: an even band whose colour differs from what lies beyond it.
+      let border = 0;
+      for (const s of moved) {
+        if (c.support[s] < 0.6) continue;
+        const band = medianColor(small, bandPoints(best.quad, c.quad, s, 0.5));
+        const outside = medianColor(small, bandPoints(best.quad, c.quad, s, 2.2));
+        if (band && band.spread < 14 && (!outside || rgbDist(band, outside) > 30)) border++;
       }
-      if (!next || quadArea(c.quad) > quadArea(next.quad)) next = c;
+      if (border < Math.ceil(moved.length * 0.75)) continue;
+      if (!next || c.score > next.score) next = c;
+    }
+    if (!next && imageRect) {
+      const m = margins(best.quad, imageRect, 1.5);
+      const even = m && [0, 1, 2, 3].every((s) => {
+        if (m[s] < 0.01 * short || m[s] > 0.09 * short) return false;
+        const band = medianColor(small, bandPoints(best.quad, imageRect, s, 0.5));
+        return band && band.spread < 14;
+      });
+      if (even) return { quad: imageRect, source: 'image-edges', score: best.score, support: [1, 1, 1, 1], ratio: best.ratio };
     }
     if (!next) break;
     best = next;
-    if (next.imageEdges) { source = 'image-edges'; break; }
   }
-  return { quad: best.quad, source, score: best.score, support: best.support, ratio: best.ratio };
+  return { quad: best.quad, source: 'detected', score: best.score, support: best.support, ratio: best.ratio };
+}
+
+const shortSide = (q) => Math.min(Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]), Math.hypot(q[3][0] - q[2][0], q[3][1] - q[2][1]));
+
+/**
+ * True when `quad` is a line drawn on the surface (a playmat's card zone, a box printed around a card): just inside
+ * and just outside it the colour is the same on at least 3 sides. A card's edge has its border inside and the
+ * surface outside.
+ */
+function drawnOutline(quad, small) {
+  const d = 0.035 * shortSide(quad);
+  const c = [(quad[0][0] + quad[2][0]) / 2, (quad[0][1] + quad[2][1]) / 2];
+  let same = 0;
+  for (let s = 0; s < 4; s++) {
+    const p = quad[s]; const r = quad[(s + 1) % 4];
+    const len = Math.hypot(r[0] - p[0], r[1] - p[1]) || 1;
+    let nx = -(r[1] - p[1]) / len; let ny = (r[0] - p[0]) / len;
+    if ((c[0] - (p[0] + r[0]) / 2) * nx + (c[1] - (p[1] + r[1]) / 2) * ny > 0) { nx = -nx; ny = -ny; } // outward
+    const at = (o) => Array.from({ length: 12 }, (_, k) => {
+      const t = 0.15 + (0.7 * k) / 11;
+      return [p[0] + (r[0] - p[0]) * t + nx * o, p[1] + (r[1] - p[1]) * t + ny * o];
+    });
+    const inside = medianColor(small, at(-d)); const outside = medianColor(small, at(d));
+    if (inside && outside && rgbDist(inside, outside) < 20) same++;
+  }
+  return same >= 3;
 }
 
 /**
@@ -354,8 +410,14 @@ export function detectCard(img) {
   const cands = cardQuads(lines, grad, mask);
   const { width: w, height: h } = small;
   const ratio = Math.min(w, h) / Math.max(w, h);
-  const imageRect = Math.abs(ratio - CARD_RATIO) <= 0.04 ? orderQuad([[0, 0], [w, 0], [w, h], [0, h]]) : null;
-  const pick = chooseCard(cands, small, imageRect);
+  const imageRect = Math.abs(ratio - CARD_RATIO) <= 0.025 ? orderQuad([[0, 0], [w, 0], [w, h], [0, h]]) : null;
+  let pick = chooseCard(cands, small, imageRect);
+  if (pick?.source === 'detected' && drawnOutline(pick.quad, small)) {
+    // The card lies inside the outline: choose again among the quads clear of it (not sharing one of its lines).
+    const clear = 0.03 * shortSide(pick.quad);
+    const inside = cands.filter((c) => c.score >= 0.35 * cands[0].score && margins(c.quad, pick.quad, 0)?.every((m) => m > clear));
+    if (inside.length) pick = chooseCard(inside, small, null);
+  }
   if (!pick) return null;
   const k = 1 / small.scale;
   return { ...pick, quad: pick.quad.map(([x, y]) => [x * k, y * k]), candidates: cands.length };
@@ -389,6 +451,8 @@ export function refineQuad(img, quad, { searchPx } = {}) {
   const r = searchPx ?? Math.max(3, Math.min(0.015 * longSide, (4 * Math.max(img.width, img.height)) / DETECT_SIDE));
   const step = 0.5;
   const lines = [];
+  /** Per side (0 top, 1 right, 2 bottom, 3 left), the sub-pixel edge points that agree with the fitted line. */
+  const edgePoints = [];
   let points = 0;
   let widths = [];
   for (let s = 0; s < 4; s++) {
@@ -435,8 +499,12 @@ export function refineQuad(img, quad, { searchPx } = {}) {
       lines.push(fit);
       points += fit.inliers;
       widths = widths.concat(good.map((f) => f.width));
+      // Kept for the local edge position (a lens or a bent card curves the edge; the line can't follow that).
+      const lim = Math.max(1.5, 3 * fit.rms);
+      edgePoints.push(good.map((f) => f.pt).filter(([x, y]) => Math.abs(fit.a * x + fit.b * y - fit.c) <= lim));
     } else {
       lines.push(lineThrough(p, q));
+      edgePoints.push([]);
     }
   }
   const corners = [];
@@ -449,5 +517,5 @@ export function refineQuad(img, quad, { searchPx } = {}) {
   const moved = Math.max(...corners.map((c, i) => Math.hypot(c[0] - quad[i][0], c[1] - quad[i][1])));
   if (moved > 4 * r || !isConvex(corners)) return { quad, refined: false, edgeWidthPx: null };
   widths.sort((a, b) => a - b);
-  return { quad: corners, refined: points > 0, edgeWidthPx: widths.length ? widths[widths.length >> 1] : null, skew: quadSkew(corners) };
+  return { quad: corners, refined: points > 0, edgeWidthPx: widths.length ? widths[widths.length >> 1] : null, skew: quadSkew(corners), edgePoints };
 }

@@ -2305,5 +2305,62 @@
   },
   "grade_note_device_clean": {
     "message": "No whitening or corner damage seen. That isn't proof of a 10, and the surface isn't judged, so this is still the centering limit."
+  },
+  "tc_title": {
+    "message": "CertScanner test cards"
+  },
+  "tc_intro": {
+    "message": "Four printed test cards with a known centering, to check how precisely the grade check measures with your own camera or scanner. Card B also has known wear: whitening on two edges and a cut corner."
+  },
+  "tc_step_print": {
+    "message": "Print this page at actual size (100 %, not “fit to page”), in colour if you can."
+  },
+  "tc_step_check": {
+    "message": "Check with a ruler that the bar at the bottom is 100 mm."
+  },
+  "tc_step_photo": {
+    "message": "Photograph or scan one test card at a time, with the black area around it in the picture, as you would a real card."
+  },
+  "tc_step_compare": {
+    "message": "Add the photo in the grade check and compare its centering with the numbers under the card."
+  },
+  "tc_note_ratio": {
+    "message": "Centering is a ratio, so a slightly different print scale doesn't change it; the 100 mm bar only checks that nothing was stretched."
+  },
+  "tc_tolerance": {
+    "message": "A sharp photo or scan should come within about 1 point of the printed value; a small listing-size photo within 2 to 3. The ± shown in the grade check is its own estimate of that."
+  },
+  "tc_print": {
+    "message": "Print"
+  },
+  "tc_truth_lr": {
+    "message": "Left/right"
+  },
+  "tc_truth_tb": {
+    "message": "Top/bottom"
+  },
+  "tc_wear_none": {
+    "message": "No wear."
+  },
+  "tc_wear_b": {
+    "message": "Wear: whitening on the top edge (20–25 mm from the left) and the right edge (50–53 mm from the top); the bottom-left corner is cut 0.6 mm."
+  },
+  "tc_ruler": {
+    "message": "This bar is exactly 100 mm when printed at actual size."
+  },
+  "grade_testcard": {
+    "message": "Test the precision with printed test cards"
+  },
+  "tc_card_a": {
+    "message": "Test card A"
+  },
+  "tc_card_b": {
+    "message": "Test card B"
+  },
+  "tc_card_c": {
+    "message": "Test card C"
+  },
+  "tc_card_d": {
+    "message": "Test card D"
   }
 }

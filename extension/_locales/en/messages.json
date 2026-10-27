@@ -33,22 +33,6 @@
   "idle_heading": {
     "message": "Scan a slab"
   },
-  "idle_body": {
-    "message": "Right-click a slab photo on a web page and choose “$MENU$”.",
-    "description": "MENU is the context menu title.",
-    "placeholders": {
-      "menu": {
-        "content": "$1",
-        "example": "Scan slab cert number"
-      }
-    }
-  },
-  "idle_body_alt": {
-    "message": "Or drop, paste or upload an image below, or type the number."
-  },
-  "input_heading": {
-    "message": "Scan an image"
-  },
   "drop_title": {
     "message": "Drop a slab photo here"
   },
@@ -479,15 +463,6 @@
       }
     }
   },
-  "lowres_fineprint": {
-    "message": "Chrome will ask you to allow access to $HOST$. CertScanner only uses it to load images you scan. Remove it any time in Settings.",
-    "placeholders": {
-      "host": {
-        "content": "$1",
-        "example": "i.ebayimg.com"
-      }
-    }
-  },
   "lowres_dismiss": {
     "message": "Not now"
   },
@@ -637,10 +612,6 @@
         "example": "0.1.0"
       }
     }
-  },
-  "privacy_link": {
-    "message": "Privacy policy",
-    "description": "Link target is a release dependency."
   },
   "footer_local": {
     "message": "Images stay on this device"
@@ -1146,14 +1117,8 @@
   "url_preview_auto": {
     "message": "The grader is detected from the number."
   },
-  "verify_heading": {
-    "message": "Cert check"
-  },
   "value_heading": {
     "message": "Value"
-  },
-  "market_heading": {
-    "message": "Market"
   },
   "grades_heading": {
     "message": "Price per grade"
@@ -1163,9 +1128,6 @@
   },
   "verify_not_opened_bgs": {
     "message": "Not opened yet: Beckett has no page per number."
-  },
-  "lookup_preview": {
-    "message": "Copies the number, then opens"
   },
   "identity_fallback": {
     "message": "$GRADER$ $NUMBER$",
@@ -1429,9 +1391,6 @@
   "report_button": {
     "message": "This went wrong",
     "description": "A20: saves a local report of the scan (photo + what was read)."
-  },
-  "report_hint": {
-    "message": "Saves this photo and what was read as one file in your downloads, to send along with a problem report. CertScanner sends nothing."
   },
   "report_saved": {
     "message": "Saved $FILE$ to your downloads. Nothing was sent.",

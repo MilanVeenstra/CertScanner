@@ -386,15 +386,8 @@ export async function acquireFromJob(job, { signal, strategies, chromeApi = glob
 
 /** Strategy 4: screenshot of the visible tab, cropped to the image rectangle. Returns a PNG blob or null. */
 async function capture(job, chromeApi, sig, runProbe, fails) {
-  const pageOrigin = imageOriginOf(job.pageUrl);
   /** Same tab still active in its window, same origin as the click. */
-  const tabStillThere = async () => {
-    let tab;
-    try { tab = await raceAbort(chromeApi.tabs.get(job.tabId), sig); } catch { return null; }
-    let tabOrigin = null;
-    try { tabOrigin = tab.url ? new URL(tab.url).origin : null; } catch { tabOrigin = null; }
-    return tab.active && tab.windowId === job.windowId && tabOrigin && tabOrigin === pageOrigin ? tab : null;
-  };
+  const tabStillThere = () => activeSameOrigin(job, chromeApi, sig);
   const tab = await tabStillThere();
   if (!tab) { fails.add('tab-changed'); return null; }
 
@@ -422,15 +415,9 @@ async function capture(job, chromeApi, sig, runProbe, fails) {
   let shot;
   try { shot = await createImageBitmap(await dataUrlToBlob(dataUrl)); } catch { fails.add('capture-failed'); return null; }
   try {
-    const scale = shot.width / probe.viewport.width;
-    const x0 = Math.max(0, Math.floor(probe.rect.x * scale));
-    const y0 = Math.max(0, Math.floor(probe.rect.y * scale));
-    const x1 = Math.min(shot.width, Math.ceil((probe.rect.x + probe.rect.width) * scale));
-    const y1 = Math.min(shot.height, Math.ceil((probe.rect.y + probe.rect.height) * scale));
-    if (x1 - x0 < MIN_SIDE || y1 - y0 < MIN_SIDE) { fails.add('capture-failed'); return null; }
-    const canvas = new OffscreenCanvas(x1 - x0, y1 - y0);
-    canvas.getContext('2d').drawImage(shot, x0, y0, x1 - x0, y1 - y0, 0, 0, x1 - x0, y1 - y0);
-    return await canvas.convertToBlob({ type: 'image/png' });
+    const blob = await cropToBlob(shot, probe.rect, probe.viewport);
+    if (!blob) fails.add('capture-failed'); // image smaller than MIN_SIDE on screen
+    return blob;
   } finally {
     shot.close();
   }

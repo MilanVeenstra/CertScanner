@@ -33,22 +33,6 @@
   "idle_heading": {
     "message": "Slab scannen"
   },
-  "idle_body": {
-    "message": "Klik met rechts op een slabfoto op een webpagina en kies ‘$MENU$’.",
-    "description": "MENU is the context menu title.",
-    "placeholders": {
-      "menu": {
-        "content": "$1",
-        "example": "Scan slab cert number"
-      }
-    }
-  },
-  "idle_body_alt": {
-    "message": "Of sleep, plak of upload hieronder een afbeelding, of typ het nummer."
-  },
-  "input_heading": {
-    "message": "Afbeelding scannen"
-  },
   "drop_title": {
     "message": "Sleep een slabfoto hierheen"
   },
@@ -479,15 +463,6 @@
       }
     }
   },
-  "lowres_fineprint": {
-    "message": "Chrome vraagt of je toegang tot $HOST$ toestaat. CertScanner gebruikt die alleen om afbeeldingen te laden die je scant. Je kunt dit altijd intrekken in Instellingen.",
-    "placeholders": {
-      "host": {
-        "content": "$1",
-        "example": "i.ebayimg.com"
-      }
-    }
-  },
   "lowres_dismiss": {
     "message": "Niet nu"
   },
@@ -637,10 +612,6 @@
         "example": "0.1.0"
       }
     }
-  },
-  "privacy_link": {
-    "message": "Privacybeleid",
-    "description": "Link target is a release dependency."
   },
   "footer_local": {
     "message": "Afbeeldingen blijven op dit apparaat"
@@ -1146,14 +1117,8 @@
   "url_preview_auto": {
     "message": "De grader wordt herkend aan het nummer."
   },
-  "verify_heading": {
-    "message": "Certcontrole"
-  },
   "value_heading": {
     "message": "Waarde"
-  },
-  "market_heading": {
-    "message": "Markt"
   },
   "grades_heading": {
     "message": "Prijs per grade"
@@ -1163,9 +1128,6 @@
   },
   "verify_not_opened_bgs": {
     "message": "Nog niet geopend: Beckett heeft geen pagina per nummer."
-  },
-  "lookup_preview": {
-    "message": "Kopieert het nummer en opent dan"
   },
   "identity_fallback": {
     "message": "$GRADER$ $NUMBER$",
@@ -1429,9 +1391,6 @@
   "report_button": {
     "message": "Dit ging fout",
     "description": "A20: saves a local report of the scan (photo + what was read)."
-  },
-  "report_hint": {
-    "message": "Bewaart deze foto en wat er gelezen is als één bestand in je downloads, om mee te sturen met een melding. CertScanner verstuurt niets."
   },
   "report_saved": {
     "message": "$FILE$ staat in je downloads. Er is niets verstuurd.",

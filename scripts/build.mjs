@@ -77,6 +77,8 @@ const ALLOWED_URL_HOSTS = new Set([
   'www.beckett.com', 'beckett.com', // BGS lookup form (no per-number link)
   'api.psacard.com', // PSA Public API (optional, user's own key)
   'www.pokemonpricetracker.com', // PokemonPriceTracker API (optional, user's own key; ADR A18)
+  // Grade check, optional AI condition check (user's own key; src/sidepanel/gradeAi.js) and where to get a key.
+  'api.anthropic.com', 'console.anthropic.com', 'api.ximilar.com', 'app.ximilar.com',
   // Price & listing links (src/core/priceLinks.js): opened only on a user click, never fetched.
   'www.pricecharting.com', 'www.ebay.com', 'www.ebay.co.uk', 'www.ebay.de', 'www.ebay.nl', 'www.ebay.fr', 'www.ebay.ca', 'www.ebay.com.au',
 ]);

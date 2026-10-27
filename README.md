@@ -1,6 +1,6 @@
 # CertScanner
 
-**A Chrome extension that reads the cert number from photos of PSA, CGC and BGS slabs and opens the grader's official cert page, with the card's value (your own API key) and links to its sales in the side panel.**
+**A Chrome extension that reads the cert number from photos of PSA, CGC and BGS slabs and opens the grader's official cert page, with the card's value (your own API key) and links to its sales in the side panel. Its grade check estimates what a raw card's centering allows.**
 
 > Not affiliated with PSA, CGC or Beckett. A cert lookup does not prove a slab is genuine: always check that the cert page matches the slab in the photo.
 
@@ -10,6 +10,7 @@
 - **Scan one photo:** right-click a slab photo → **Scan slab cert number**.
 - **Other ways:** drop, paste or upload an image in the panel, or type a number such as `PSA 01234567`.
 - **Grader detected automatically:** from the label, the shape of the number and the listing title. If a number or grader is unclear, the panel asks you to choose. Your choice opens the cert page.
+- **Grade check (raw cards):** Start → **Raw card? Estimate its grade**, or right-click a card photo → **Estimate card grade**. Add the front and, if you have it, the back. CertScanner finds the card, straightens it and measures the four borders. It shows the centering (for example 55/45) and the highest grade that allows at PSA, BGS (centering subgrade) and CGC. Lines and corners can be moved by hand. It works for Pokémon, Lorcana, One Piece and other standard-size cards with a border; for borderless art it gives no number. Optional: an AI check of corners, edges and surface with your own key (Claude by Anthropic, or Ximilar's card grading). It is off by default and sends the card photo only when you press **Check condition**. Always an estimate, never a grade.
 - **Value:** with your own free PokemonPriceTracker API key (Settings), the panel shows a Pokémon slab's value in its grade, the price per grade and recent sales. A free PSA API key adds the card name, grade and population of PSA certs. For every card there are links to eBay's sold and for-sale searches, PriceCharting and the population report.
 
 | Grader | Page that opens |
@@ -21,10 +22,10 @@
 
 ## How it works
 
-- Everything runs in Chrome's side panel. The text reader (Tesseract OCR) and the barcode/QR reader are packaged with the extension and run on your device. Images are never uploaded.
+- Everything runs in Chrome's side panel. The text reader (Tesseract OCR) and the barcode/QR reader are packaged with the extension and run on your device, like the grade check's measurement. Images are never uploaded, except the card photo for an AI check you start yourself.
 - CertScanner only reads a page when you click the icon, press the shortcut or right-click a photo. A page you haven't used it on yet can be allowed once with **Always allow on ‹site›** or **Always allow on all sites**; remove that access in Settings.
 - The panel always shows the number it read, how it read it and the page that will open. **Wrong number? Edit** corrects it.
-- What leaves your device: the cert number when its cert page opens (and to PSA, with your PSA key), the card name and number to PokemonPriceTracker (with your key), and what a link you click contains. CertScanner reads no PriceCharting or eBay pages. There is no server, no account and no tracking. Recent scans stay on this device and can be turned off. Details: [`PRIVACY.md`](PRIVACY.md).
+- What leaves your device: the cert number when its cert page opens (and to PSA, with your PSA key), the card name and number to PokemonPriceTracker (with your key), the straightened card photo to Anthropic or Ximilar only when you start an AI check with your key, and what a link you click contains. CertScanner reads no PriceCharting or eBay pages. There is no server, no account and no tracking. Recent scans stay on this device and can be turned off. Details: [`PRIVACY.md`](PRIVACY.md).
 
 The panel is in English or Dutch, following your Chrome language.
 

@@ -26,6 +26,9 @@ import { wireInputs } from './inputs.js';
 import { makeThumbBlob } from './thumbs.js';
 import { reportData, reportFileName, imageExtension, zipStore } from './scanReport.js';
 import { requestSharper, requestAllSites, hasAllSites, listGrantedSites, removeSite, removeAllSites, removalStatus, onPermissionsChanged } from './permissionsUi.js';
+import { createGradeView } from './gradeView.js';
+import { wireGradeSettings } from './gradeSettings.js';
+import { AI_PERMISSIONS } from './gradeAi.js';
 import {
   SHORTCUTS_URL, scanShortcut, panelScanPlan, alwaysAllowHost, accessBody, noAccessBody, idleShortcutHint, pageSummary,
   pageNoneReason, pageQrInfo, pageErrorCode, persistablePage,
@@ -854,6 +857,8 @@ function onTaskClick(e) {
   else if (a === 'scan-other') scanOther();
   else if (a === 'report') saveReport();
   else if (a.startsWith('price-')) onPriceAction(a);
+  else if (a === 'grade-open') openGrade();
+  else if (a === 'grade-this') openGrade(last.fullBlob ? { kind: 'blob', blob: last.fullBlob, method: 'upload' } : null);
 }
 $('task').addEventListener('click', onTaskClick);
 $('result-extra').addEventListener('click', onTaskClick);
@@ -960,20 +965,56 @@ $('recent-toggle').addEventListener('click', () => { ui.toggleRecent(); renderRe
 
 // ---------------------------------------------------------------- settings view (V2)
 
+/** View Back returns to from Settings: the grade check when Settings was opened from it, else home. */
+let settingsReturn = 'home';
 function showView(name) {
-  const settingsView = name === 'settings';
-  $('home').hidden = settingsView;
-  $('settings').hidden = !settingsView;
-  $('settings-button').hidden = settingsView;
+  const view = name === 'settings' || name === 'grade' ? name : 'home';
+  $('home').hidden = view !== 'home';
+  $('settings').hidden = view !== 'settings';
+  $('grade').hidden = view !== 'grade';
+  $('settings-button').hidden = view === 'settings';
+  $('settings-heading').textContent = t(view === 'grade' ? 'grade_heading' : 'nav_settings');
   inputs.clearDrag();
-  if (settingsView) {
+  if (view === 'settings') {
     refreshSites();
     refreshShortcut();
     renderPsaUsage();
+    gradeSettings.render(settings);
     $('settings-heading').focus();
+  } else if (view === 'grade') {
+    grade.onShow();
   } else {
+    settingsReturn = 'home';
     $('settings-button').focus();
   }
+}
+function goBack() {
+  if (!$('settings').hidden && settingsReturn === 'grade') { settingsReturn = 'home'; showView('grade'); return; }
+  showView('home');
+}
+/** Grade check "Set up AI check" / "Add your key": Settings with that control focused; Back returns to the grade check. */
+function openGradeSetting(focusId) {
+  settingsReturn = 'grade';
+  showView('settings');
+  const target = $(focusId) ?? $('setting-grade-ai');
+  target.scrollIntoView({ block: 'center' });
+  target.focus();
+}
+const openTab = (url) => { chrome.tabs.create({ url }).catch(() => ui.announce(t('err_open_tab'))); };
+const grade = createGradeView({ doc, t, announce: (s) => ui.announce(s), getProvider: () => settings.gradeAi, openSettings: openGradeSetting, openTab });
+const gradeSettings = wireGradeSettings({
+  doc, t, getSettings: () => settings, openTab,
+  saveSettings: async (patch) => { settings = await saveSettings(patch); renderFooter(); return settings; },
+  onChange: () => grade.refreshAi(),
+});
+/** Footer privacy line: with an AI check chosen, photos can leave the device (only when the user starts a check). */
+function renderFooter() {
+  $('footer-local').textContent = t(settings.gradeAi && settings.gradeAi !== 'off' ? 'footer_local_ai' : 'footer_local');
+}
+/** A context-menu "Estimate card grade" job, or a photo the slab scan found no number on. */
+function openGrade(input = null) {
+  showView('grade');
+  if (input) grade.addInput(input);
 }
 /** Value block "Add your key" / "Check your key": Settings with the PokemonPriceTracker key field focused. */
 function openKeySetting() {
@@ -986,7 +1027,7 @@ $('settings-button').addEventListener('click', () => showView('settings'));
 $('new-scan-button').addEventListener('click', newScan);
 // Extensions can't link to chrome:// pages, but tabs.create may open the shortcut editor.
 $('shortcut-button').addEventListener('click', () => { chrome.tabs.create({ url: SHORTCUTS_URL }).catch(() => ui.announce(t('err_open_tab'))); });
-$('back-button').addEventListener('click', () => showView('home'));
+$('back-button').addEventListener('click', goBack);
 
 /** Key statuses that mean the key works; they get the check mark (design v2). */
 const KEY_OK = new Set(['setting_psa_key_works', 'setting_psa_key_saved', 'setting_ppt_key_works', 'setting_ppt_key_saved']);
@@ -1099,7 +1140,7 @@ $('clear-history').addEventListener('click', async () => {
 
 async function refreshSites({ focusAfterRemove = null } = {}) {
   let granted = { hosts: [], allSites: [] };
-  try { granted = await listGrantedSites(chrome, { exclude: [PSA_API_PERMISSION, PPT_PERMISSION] }); } catch { /* keep empty */ }
+  try { granted = await listGrantedSites(chrome, { exclude: [PSA_API_PERMISSION, PPT_PERMISSION, ...AI_PERMISSIONS] }); } catch { /* keep empty */ }
   ui.renderSites(granted, {
     // SEC-17: announce what Chrome actually did (remove() resolves false when nothing was removed).
     onRemove: async (host, index) => {
@@ -1139,7 +1180,8 @@ const inputs = wireInputs({
 doc.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (inputs.dragging) { inputs.clearDrag(); return; }
-  if (!$('settings').hidden) { e.preventDefault(); showView('home'); return; }
+  if (!$('grade').hidden) { e.preventDefault(); if (!grade.escape()) showView('home'); return; }
+  if (!$('settings').hidden) { e.preventDefault(); goBack(); return; }
   if (current) { e.preventDefault(); current.controller.abort(); return; }
   if (ui.taskState === 'edit') { e.preventDefault(); cancelEdit(); return; }
   if (ui.taskState === 'confirm' && doc.activeElement?.id !== 'cert-input') { e.preventDefault(); scanOther(); }
@@ -1152,6 +1194,7 @@ window.addEventListener('pagehide', () => {
   stopPrices();
   revokePageThumbs();
   disposeEngines();
+  grade.dispose();
 });
 // chrome.commands has no change event: re-read the shortcut when the user comes back to the panel.
 window.addEventListener('focus', () => { refreshShortcut(); });
@@ -1199,6 +1242,7 @@ function restore(saved) {
     })(),
   ]);
   settings = stored;
+  renderFooter();
   psaToken = psa;
   renderPsaKey();
   pptToken = ppt;
@@ -1212,6 +1256,9 @@ function restore(saved) {
     ui.updateIdleHint(idleHint());
     ui.updateAccessBody(accessCopy());
     ui.updateNoAccessBody(noAccessCopy());
+    grade.refreshAi();
+    renderFooter();
+    if (!$('settings').hidden) gradeSettings.render(s);
   });
   onHistoryChanged((h) => { history = h; renderRecent(); });
   allSites = all;
@@ -1225,6 +1272,13 @@ function restore(saved) {
   const saved = await savedP;
   if (saved && !current) restore(saved);
   // A9: page jobs (toolbar icon, shortcut) and image jobs (context menu) share the slot; newest job wins.
-  startJobIntake({ windowId, onJob: (job) => (job.kind === 'page' ? startPageScan(job) : startScan({ kind: 'job', job })) });
+  startJobIntake({
+    windowId,
+    onJob: (job) => {
+      if (job.kind === 'page') startPageScan(job);
+      else if (job.purpose === 'grade') openGrade({ kind: 'job', job });
+      else startScan({ kind: 'job', job });
+    },
+  });
   doc.body.dataset.ready = '1';
 })();

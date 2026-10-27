@@ -2,6 +2,8 @@
 // chrome.storage.session. Pure: imported by the SW, the side panel and unit tests.
 
 export const MENU_ID = 'certscanner-scan';
+/** Context-menu item that sends the image to the grade check (raw cards) instead of the cert scan. */
+export const GRADE_MENU_ID = 'certscanner-grade';
 /** Manifest command name of the page-scan shortcut (service worker and panel). */
 export const PAGE_COMMAND = 'scan-page';
 export const SCAN_JOB_VERSION = 1;
@@ -34,7 +36,7 @@ export function minimizePageUrl(url) {
  * Map contextMenus.OnClickData + tabs.Tab to a ScanJob.
  * @returns {import('../core/types.js').ScanJob}
  */
-export function createScanJob(info, tab, now, id) {
+export function createScanJob(info, tab, now, id, { purpose } = {}) {
   const raw = typeof info?.srcUrl === 'string' ? info.srcUrl : null;
   let src = null;
   let srcIssue;
@@ -55,6 +57,8 @@ export function createScanJob(info, tab, now, id) {
   };
   // Additive optional field (S6): why srcUrl is null, so the panel shows the right error.
   if (srcIssue) job.srcIssue = srcIssue;
+  // Additive optional field: 'grade' sends the image to the grade check.
+  if (purpose === 'grade') job.purpose = 'grade';
   return job;
 }
 
@@ -88,6 +92,7 @@ export function parseScanJob(raw, { now, windowId }) {
     pageUrl: raw.pageUrl, frameId: raw.frameId, tabId: raw.tabId, windowId: raw.windowId, mediaType: 'image',
   };
   if (raw.srcUrl === null && SRC_ISSUES.has(raw.srcIssue)) job.srcIssue = raw.srcIssue;
+  if (raw.purpose === 'grade') job.purpose = 'grade';
   return { ok: true, job };
 }
 

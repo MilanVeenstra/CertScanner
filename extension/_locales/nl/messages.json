@@ -586,7 +586,7 @@
     "message": "Over"
   },
   "about_privacy": {
-    "message": "Foto's worden op dit apparaat gelezen. Afbeeldingen worden nooit geüpload."
+    "message": "Foto's worden op dit apparaat gelezen. Afbeeldingen worden nooit geüpload, behalve de kaartfoto voor een AI-grade-check die je zelf start met je eigen key."
   },
   "about_lookup": {
     "message": "Een certcontrole laat zien dat een nummer bij de grader bestaat. Het bewijst niet dat deze slab echt is."
@@ -1512,5 +1512,688 @@
   },
   "grade_ungraded": {
     "message": "Ongegradeerd"
+  },
+  "context_menu_grade": {
+    "message": "Grade van kaart schatten (losse kaart)"
+  },
+  "grade_heading": {
+    "message": "Grade-check"
+  },
+  "grade_title": {
+    "message": "Grade van een losse kaart schatten"
+  },
+  "grade_estimate_chip": {
+    "message": "Schatting"
+  },
+  "grade_lead": {
+    "message": "Meet de centering van een losse Pokémon-, Lorcana-, One Piece- of andere kaart van standaardformaat op een foto en laat zien welke grade dat hoogstens toelaat bij PSA, BGS en CGC."
+  },
+  "grade_front": {
+    "message": "Voorkant"
+  },
+  "grade_back": {
+    "message": "Achterkant (optioneel)"
+  },
+  "grade_slot_empty": {
+    "message": "Nog geen foto"
+  },
+  "grade_replace": {
+    "message": "Vervangen"
+  },
+  "grade_remove": {
+    "message": "Verwijderen"
+  },
+  "grade_swap": {
+    "message": "Voor- en achterkant omwisselen"
+  },
+  "grade_swapped": {
+    "message": "Voor- en achterkant omgewisseld."
+  },
+  "grade_input_hint": {
+    "message": "Sleep of plak hier een foto, of klik met rechts op een kaartfoto op een pagina en kies ‘Grade van kaart schatten’. Uit de sleeve, plat, recht van boven, zonder flits. Foto's blijven op dit apparaat."
+  },
+  "grade_measuring": {
+    "message": "Meten…"
+  },
+  "grade_state_no_card": {
+    "message": "Kaart niet gevonden"
+  },
+  "grade_state_no_border": {
+    "message": "Geen rand gemeten"
+  },
+  "grade_err_too_large": {
+    "message": "Deze afbeelding is te groot (meer dan 15 MB of 40 megapixel)."
+  },
+  "grade_err_invalid": {
+    "message": "Dit is geen afbeelding die CertScanner kan lezen."
+  },
+  "grade_err_fetch": {
+    "message": "Deze foto kon niet van de pagina worden gehaald. Sla hem op en sleep hem hierheen."
+  },
+  "grade_err_failed": {
+    "message": "Meten is mislukt of duurde te lang. Probeer het opnieuw of gebruik een kleinere foto."
+  },
+  "grade_line_left": {
+    "message": "Binnenkant van de linkerrand"
+  },
+  "grade_line_right": {
+    "message": "Binnenkant van de rechterrand"
+  },
+  "grade_line_top": {
+    "message": "Binnenkant van de bovenrand"
+  },
+  "grade_line_bottom": {
+    "message": "Binnenkant van de onderrand"
+  },
+  "grade_line_value": {
+    "message": "$P1$ mm",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_axis_lr": {
+    "message": "Links/rechts"
+  },
+  "grade_axis_tb": {
+    "message": "Boven/onder"
+  },
+  "grade_axis_note": {
+    "message": "$P1$ breder · ±$P2$ punten",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "grade_side_left": {
+    "message": "links"
+  },
+  "grade_side_right": {
+    "message": "rechts"
+  },
+  "grade_side_top": {
+    "message": "boven"
+  },
+  "grade_side_bottom": {
+    "message": "onder"
+  },
+  "grade_axis_unmeasured": {
+    "message": "niet gemeten"
+  },
+  "grade_borders": {
+    "message": "Randen: links $P1$ · rechts $P2$ · boven $P3$ · onder $P4$ mm. Sleep een rode lijn (of selecteer hem en gebruik de pijltjestoetsen) als hij niet op de binnenkant van de rand ligt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      },
+      "p4": {
+        "content": "$4"
+      }
+    }
+  },
+  "grade_fix_corners": {
+    "message": "Kaartomtrek verkeerd? Hoeken aanpassen"
+  },
+  "grade_reset": {
+    "message": "Mijn aanpassingen ongedaan maken"
+  },
+  "grade_corners_hint": {
+    "message": "Sleep de vier vierkantjes op de hoeken van de kaart (of selecteer er een en gebruik de pijltjestoetsen) en meet opnieuw."
+  },
+  "grade_corner_0": {
+    "message": "Hoek linksboven"
+  },
+  "grade_corner_1": {
+    "message": "Hoek rechtsboven"
+  },
+  "grade_corner_2": {
+    "message": "Hoek rechtsonder"
+  },
+  "grade_corner_3": {
+    "message": "Hoek linksonder"
+  },
+  "grade_measure_corners": {
+    "message": "Meten met deze hoeken"
+  },
+  "grade_photo_alt": {
+    "message": "De foto, met de omtrek van de kaart"
+  },
+  "grade_note_no_card": {
+    "message": "De randen van de kaart zijn op deze foto niet gevonden. Zet de hoeken hieronder met de hand."
+  },
+  "grade_note_no_border": {
+    "message": "Geen gelijkmatige rand gevonden (een full-art- of randloze kaart, of een verkeerde omtrek). Graders beoordelen zulke kaarten op het ontwerp; CertScanner geeft dan geen getal."
+  },
+  "grade_note_partial": {
+    "message": "Niet elke rand kon worden gemeten. Sleep de lijnen op de binnenkant van de randen."
+  },
+  "grade_note_low_res": {
+    "message": "De kaart is klein op deze foto ($P1$ pixels per mm): de centering is een ruwe indicatie (±$P2$ punten). Een grotere of scherpere foto helpt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "grade_note_very_low_res": {
+    "message": "De kaart is erg klein op deze foto ($P1$ pixels per mm): de centering is maar een ruwe indicatie. Gebruik een grotere foto.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_note_blurry": {
+    "message": "De foto is onscherp bij de randen: de lijnen kunnen iets afwijken."
+  },
+  "grade_note_glare": {
+    "message": "Glans op een rand: kantel de kaart of het licht en maak de foto opnieuw."
+  },
+  "grade_note_skewed": {
+    "message": "Schuin gefotografeerd: rechtgezet, maar een foto recht van boven meet beter."
+  },
+  "grade_note_cropped": {
+    "message": "De foto is tot de kaart bijgesneden: de fotoranden gelden als kaartranden, dus de uitsnede beïnvloedt de uitkomst."
+  },
+  "grade_note_cut_off": {
+    "message": "Een deel van de kaart valt buiten de foto."
+  },
+  "grade_note_manual": {
+    "message": "Gemeten met de hoeken die je hebt gezet."
+  },
+  "grade_note_adjusted": {
+    "message": "Inclusief lijnen die je met de hand hebt verschoven."
+  },
+  "grade_caps_heading": {
+    "message": "Wat de centering toelaat"
+  },
+  "grade_est_heading": {
+    "message": "Schatting: centering en conditie"
+  },
+  "grade_cap_upto": {
+    "message": "hoogstens $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_bgs": {
+    "message": "centering-subgrade $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_at_best": {
+    "message": "hoogstens $P1$ (grensgeval)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_below": {
+    "message": "onder $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_unknown": {
+    "message": "niet gemeten"
+  },
+  "grade_cap_possible": {
+    "message": "$P1$ mogelijk: de centering zit precies op de grens",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_by_back": {
+    "message": "beperkt door de achterkant"
+  },
+  "grade_cap_guides": {
+    "message": "BGS-grenzen uit verzamelaarsgidsen"
+  },
+  "grade_est_centering": {
+    "message": "centering: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_bgs_subs": {
+    "message": "centering $P1$ · hoeken $P2$ · randen $P3$ · oppervlak $P4$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      },
+      "p4": {
+        "content": "$4"
+      }
+    }
+  },
+  "grade_reason_centering": {
+    "message": "De centering laat hoogstens $P1$ toe.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_centering_back": {
+    "message": "De centering van de achterkant laat hoogstens $P1$ toe.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_no_back": {
+    "message": "De achterkant is niet gemeten."
+  },
+  "grade_reason_corners": {
+    "message": "Hoeken: $P1$ van de 10.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_edges": {
+    "message": "Randen: $P1$ van de 10.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_surface": {
+    "message": "Oppervlak: $P1$ van de 10.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_unassessed": {
+    "message": "Niet te beoordelen op de foto: $P1$. Het bereik is daardoor breder.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_note_front_only": {
+    "message": "Achterkant niet gemeten: een PSA 10 vraagt ook ongeveer 75/25 of beter op de achterkant."
+  },
+  "grade_note_centering_only": {
+    "message": "Alleen centering: hoeken, randen en oppervlak bepalen de rest van de grade."
+  },
+  "grade_area_corners": {
+    "message": "Hoeken"
+  },
+  "grade_area_edges": {
+    "message": "Randen"
+  },
+  "grade_area_surface": {
+    "message": "Oppervlak"
+  },
+  "grade_rating_none": {
+    "message": "Geen slijtage zichtbaar"
+  },
+  "grade_rating_minor": {
+    "message": "Lichte slijtage"
+  },
+  "grade_rating_moderate": {
+    "message": "Zichtbare slijtage"
+  },
+  "grade_rating_heavy": {
+    "message": "Schade"
+  },
+  "grade_rating_unknown": {
+    "message": "Niet te zien op de foto"
+  },
+  "grade_ai_heading": {
+    "message": "Hoeken, randen en oppervlak"
+  },
+  "grade_ai_off": {
+    "message": "Niet gecontroleerd. Een foto laat dit maar deels zien; een AI-check met je eigen key kan het schatten. Standaard uit: dan gaat er niets van dit apparaat af."
+  },
+  "grade_ai_setup": {
+    "message": "AI-check instellen"
+  },
+  "grade_ai_no_key": {
+    "message": "Voeg je $P1$-key toe in Instellingen om hoeken, randen en oppervlak te laten controleren.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_add_key": {
+    "message": "Key toevoegen"
+  },
+  "grade_ai_check": {
+    "message": "Conditie controleren met $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_sends_front": {
+    "message": "Stuurt de rechtgezette foto van de voorkant naar $P1$, met jouw key.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_sends_both": {
+    "message": "Stuurt de rechtgezette foto's van voor- en achterkant naar $P1$, met jouw key.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_running": {
+    "message": "Controleren met $P1$…",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_done": {
+    "message": "Conditiecheck klaar."
+  },
+  "grade_ai_by": {
+    "message": "Gecontroleerd door $P1$ (AI; een schatting).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_again": {
+    "message": "Opnieuw controleren"
+  },
+  "grade_ai_photo_issues": {
+    "message": "Beperkt door de foto: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_card": {
+    "message": "Kaart gelezen als: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_open_settings": {
+    "message": "Instellingen openen"
+  },
+  "grade_ai_err_no_permission": {
+    "message": "CertScanner heeft nog geen toegang tot $P1$. Sla je key opnieuw op in Instellingen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_auth": {
+    "message": "$P1$ accepteerde je key niet. Controleer hem in Instellingen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_forbidden": {
+    "message": "Je $P1$-key mag deze check niet doen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_limit": {
+    "message": "Je limiet of tegoed bij $P1$ is op. Probeer het later of kijk in je account.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_too_large": {
+    "message": "De foto was te groot voor $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_overloaded": {
+    "message": "$P1$ is nu druk. Probeer het over een minuut opnieuw.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_refused": {
+    "message": "$P1$ weigerde deze check.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_format": {
+    "message": "$P1$ stuurde een antwoord dat CertScanner niet kon lezen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_error": {
+    "message": "De check bij $P1$ is mislukt. Controleer je verbinding en probeer het opnieuw.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_timeout": {
+    "message": "$P1$ deed er te lang over om te antwoorden.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_consent_title": {
+    "message": "De kaartfoto's naar $P1$ sturen?",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_consent_what": {
+    "message": "Wat er wordt verstuurd: de rechtgezette kaartfoto (voorkant, en achterkant als je die hebt toegevoegd) als JPEG, met jouw key."
+  },
+  "grade_consent_not": {
+    "message": "Niet verstuurd: het paginaadres, de bestandsnaam, locatie of andere fotogegevens."
+  },
+  "grade_consent_terms": {
+    "message": "De voorwaarden en het privacybeleid van $P1$ gelden, en de check wordt afgerekend op jouw account daar.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_consent_ximilar": {
+    "message": "Ximilar stuurt afbeeldingen van zijn analyse terug die het een tijd bewaart."
+  },
+  "grade_consent_send": {
+    "message": "Foto's versturen"
+  },
+  "grade_disclaimer": {
+    "message": "Een schatting, geen grade. Graders beoordelen ook op het oog, en foto's verbergen veel van de conditie. CertScanner is niet verbonden aan of goedgekeurd door PSA, Beckett (BGS), CGC of een ander gradingbedrijf."
+  },
+  "grade_fine_label": {
+    "message": "Over deze schatting"
+  },
+  "grade_sources": {
+    "message": "Centering-grenzen zoals gepubliceerd (gecontroleerd $P1$):",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_open": {
+    "message": "Losse kaart? Schat de grade"
+  },
+  "grade_this": {
+    "message": "Losse kaart zonder slab? Schat de grade"
+  },
+  "settings_grade_heading": {
+    "message": "Grade-check"
+  },
+  "setting_grade_ai": {
+    "message": "AI-check van hoeken, randen en oppervlak"
+  },
+  "setting_grade_ai_off": {
+    "message": "Uit (alleen centering, op dit apparaat)"
+  },
+  "setting_grade_ai_haiku": {
+    "message": "Claude Haiku 5.5 (Anthropic)"
+  },
+  "setting_grade_ai_sonnet": {
+    "message": "Claude Sonnet 5.5 (Anthropic)"
+  },
+  "setting_grade_ai_ximilar": {
+    "message": "Ximilar card grading"
+  },
+  "setting_grade_ai_hint_off": {
+    "message": "De centering wordt op dit apparaat gemeten en er gaat geen foto van af."
+  },
+  "setting_grade_ai_hint_claude_haiku": {
+    "message": "Beschrijft zichtbare slijtage; ongeveer $$0,003 per kaart op je Anthropic-account. Alleen als je op Conditie controleren drukt."
+  },
+  "setting_grade_ai_hint_claude_sonnet": {
+    "message": "Beschrijft zichtbare slijtage gedetailleerder; ongeveer $$0,04 per kaart op je Anthropic-account. Alleen als je op Conditie controleren drukt."
+  },
+  "setting_grade_ai_hint_ximilar": {
+    "message": "Een model dat voor het graden van kaarten is gemaakt: subgrades voor hoeken, randen en oppervlak; 100 credits (ongeveer € 0,06) per kaart op je Ximilar-abonnement. Alleen als je op Conditie controleren drukt."
+  },
+  "setting_anthropic_key": {
+    "message": "Anthropic API-key"
+  },
+  "setting_anthropic_key_hint": {
+    "message": "Begint met sk-ant-. Blijft alleen op dit apparaat. Stel desgewenst een bestedingslimiet in bij je Anthropic-account."
+  },
+  "setting_ximilar_key": {
+    "message": "Ximilar API-token"
+  },
+  "setting_ximilar_key_hint": {
+    "message": "Uit je Ximilar-account (app.ximilar.com). Blijft alleen op dit apparaat; wordt bij opslaan niet gecontroleerd."
+  },
+  "setting_key_get": {
+    "message": "Key aanvragen"
+  },
+  "setting_ai_key_saved": {
+    "message": "Key opgeslagen voor $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_works": {
+    "message": "Key werkt: $P1$ heeft hem geaccepteerd.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_saved_limit": {
+    "message": "Key opgeslagen; $P1$ meldt dat de limiet nu bereikt is.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_invalid": {
+    "message": "Dit lijkt geen $P1$-key.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_denied": {
+    "message": "Zonder toegang tot $P1$ kan de key niet worden gebruikt. Niet opgeslagen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_rejected": {
+    "message": "$P1$ heeft deze key geweigerd. Niet opgeslagen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_removed": {
+    "message": "Key verwijderd; toegang tot $P1$ teruggegeven.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "footer_local_ai": {
+    "message": "Afbeeldingen blijven op dit apparaat, behalve bij AI-checks die je zelf start"
   }
 }

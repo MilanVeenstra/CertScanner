@@ -8,11 +8,14 @@ export const SETTINGS_VERSION = 1;
 // ebaySite (2026-10-11): which eBay the price & listing links open (key of EBAY_SITES).
 // A25 removed ebaySold and readViaTab (eBay and PriceCharting pages are no longer read); stored values are ignored and
 // dropped at the next settings write.
+// gradeAi (2026-10-27): the optional AI check of the grade check; 'off' (default) keeps everything on the device.
+/** Grade check AI choices (src/sidepanel/gradeAi.js PROVIDERS, plus 'off'). */
+export const GRADE_AI_CHOICES = Object.freeze(['off', 'claude-haiku', 'claude-sonnet', 'ximilar']);
 export const DEFAULT_SETTINGS = Object.freeze({
-  v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: DEFAULT_EBAY_SITE,
+  v: 1, autoOpen: true, openInBackground: false, saveHistory: true, scanOnToolbarClick: true, ebaySite: DEFAULT_EBAY_SITE, gradeAi: 'off',
 });
 const FIELDS = ['autoOpen', 'openInBackground', 'saveHistory', 'scanOnToolbarClick'];
-const CHOICE_FIELDS = { ebaySite: isEbaySite };
+const CHOICE_FIELDS = { ebaySite: isEbaySite, gradeAi: (v) => GRADE_AI_CHOICES.includes(v) };
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
@@ -48,6 +51,7 @@ export function applySettingsPatch(raw, patch) {
 function pick(s) {
   return {
     autoOpen: s.autoOpen, openInBackground: s.openInBackground, saveHistory: s.saveHistory, scanOnToolbarClick: s.scanOnToolbarClick, ebaySite: s.ebaySite,
+    gradeAi: s.gradeAi,
   };
 }
 

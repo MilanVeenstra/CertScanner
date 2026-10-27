@@ -190,6 +190,46 @@
     </label>
   </section>
 
+  <section class="section settings-section" aria-labelledby="grade-settings-heading">
+    <h2 id="grade-settings-heading" data-i18n="settings_grade_heading">Grade check</h2>
+    <label class="select-row" for="setting-grade-ai">
+      <span class="switch-label" data-i18n="setting_grade_ai">AI check of corners, edges and surface</span>
+      <select id="setting-grade-ai" data-testid="setting-gradeAi" aria-describedby="hint-grade-ai">
+        <option value="off" data-i18n="setting_grade_ai_off">Off (centering only, on this device)</option>
+        <option value="claude-haiku" data-i18n="setting_grade_ai_haiku">Claude Haiku 5.5 (Anthropic)</option>
+        <option value="claude-sonnet" data-i18n="setting_grade_ai_sonnet">Claude Sonnet 5.5 (Anthropic)</option>
+        <option value="ximilar" data-i18n="setting_grade_ai_ximilar">Ximilar card grading</option>
+      </select>
+      <span class="switch-hint" id="hint-grade-ai"></span>
+    </label>
+    <div class="key-row" id="grade-key-row-anthropic" hidden>
+      <label class="switch-label" for="setting-anthropic-key" data-i18n="setting_anthropic_key">Anthropic API key</label>
+      <div class="key-input">
+        <input type="password" id="setting-anthropic-key" class="key-field" data-testid="setting-anthropic-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="anthropic-key-hint anthropic-key-status" data-i18n-attr="placeholder:setting_key_placeholder">
+        <button type="button" class="btn btn-strong key-save" id="anthropic-key-save" data-testid="anthropic-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
+      </div>
+      <p class="key-status"><svg class="icon key-ok" aria-hidden="true" focusable="false" hidden><use href="#i-check"/></svg><span id="anthropic-key-status" data-testid="anthropic-key-status" aria-live="polite"></span></p>
+      <p class="hint" id="anthropic-key-hint" data-i18n="setting_anthropic_key_hint"></p>
+      <div class="key-links">
+        <button type="button" class="link" id="anthropic-key-remove" data-testid="anthropic-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
+        <button type="button" class="link" id="anthropic-key-get"><span data-i18n="setting_key_get">Get a key</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+    </div>
+    <div class="key-row" id="grade-key-row-ximilar" hidden>
+      <label class="switch-label" for="setting-ximilar-key" data-i18n="setting_ximilar_key">Ximilar API token</label>
+      <div class="key-input">
+        <input type="password" id="setting-ximilar-key" class="key-field" data-testid="setting-ximilar-key" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="ximilar-key-hint ximilar-key-status" data-i18n-attr="placeholder:setting_key_placeholder">
+        <button type="button" class="btn btn-strong key-save" id="ximilar-key-save" data-testid="ximilar-key-save"><span data-i18n="setting_psa_key_save">Save key</span></button>
+      </div>
+      <p class="key-status"><svg class="icon key-ok" aria-hidden="true" focusable="false" hidden><use href="#i-check"/></svg><span id="ximilar-key-status" data-testid="ximilar-key-status" aria-live="polite"></span></p>
+      <p class="hint" id="ximilar-key-hint" data-i18n="setting_ximilar_key_hint"></p>
+      <div class="key-links">
+        <button type="button" class="link" id="ximilar-key-remove" data-testid="ximilar-key-remove" hidden><span data-i18n="setting_psa_key_remove">Remove key</span></button>
+        <button type="button" class="link" id="ximilar-key-get"><span data-i18n="setting_key_get">Get a key</span><svg class="icon icon-xs" aria-hidden="true" focusable="false"><use href="#i-external"/></svg><span class="visually-hidden" data-i18n="a11y_new_tab"></span></button>
+      </div>
+    </div>
+  </section>
+
   <section class="section settings-section" aria-labelledby="history-heading">
     <h2 id="history-heading" data-i18n="settings_history_heading">Scan history</h2>
     <label class="switch-row" for="setting-history">
@@ -221,17 +261,106 @@
   </section>
 </main>
 
+<main id="grade" hidden aria-labelledby="settings-heading" data-testid="grade-view">
+  <section class="task-card grade-intro" aria-labelledby="grade-title">
+    <h2 class="task-heading" id="grade-title" tabindex="-1"><span class="heading-row"><span data-i18n="grade_title">Estimate a raw card's grade</span><span class="chip chip-xs" data-unknown="true" data-i18n="grade_estimate_chip">Estimate</span></span></h2>
+    <p class="lead" data-i18n="grade_lead"></p>
+    <div class="grade-slots">
+      <div class="grade-slot" data-side="front" data-testid="grade-slot-front">
+        <button type="button" class="grade-slot-main" data-action="grade-select" data-side="front" aria-pressed="false">
+          <span class="grade-thumb"><img data-ref="img" alt="" hidden><svg class="icon" data-ref="ph" aria-hidden="true" focusable="false"><use href="#i-image"/></svg></span>
+          <span class="grade-slot-text"><span class="grade-slot-label" data-i18n="grade_front"></span><span class="grade-slot-state" data-ref="state" data-testid="grade-state-front"></span></span>
+        </button>
+        <div class="grade-slot-actions">
+          <button type="button" class="btn btn-secondary btn-xs" data-action="grade-choose" data-side="front" data-testid="grade-choose-front"><span data-i18n="upload_button">Choose image</span></button>
+          <button type="button" class="link link-xs link-muted" data-action="grade-remove" data-side="front" hidden><span data-i18n="grade_remove">Remove</span></button>
+        </div>
+      </div>
+      <div class="grade-slot" data-side="back" data-testid="grade-slot-back">
+        <button type="button" class="grade-slot-main" data-action="grade-select" data-side="back" aria-pressed="false">
+          <span class="grade-thumb"><img data-ref="img" alt="" hidden><svg class="icon" data-ref="ph" aria-hidden="true" focusable="false"><use href="#i-image"/></svg></span>
+          <span class="grade-slot-text"><span class="grade-slot-label" data-i18n="grade_back"></span><span class="grade-slot-state" data-ref="state" data-testid="grade-state-back"></span></span>
+        </button>
+        <div class="grade-slot-actions">
+          <button type="button" class="btn btn-secondary btn-xs" data-action="grade-choose" data-side="back" data-testid="grade-choose-back"><span data-i18n="upload_button">Choose image</span></button>
+          <button type="button" class="link link-xs link-muted" data-action="grade-remove" data-side="back" hidden><span data-i18n="grade_remove">Remove</span></button>
+        </div>
+      </div>
+    </div>
+    <p class="hint" id="grade-input-hint"></p>
+    <input type="file" id="grade-file" data-testid="grade-upload-input" class="visually-hidden" tabindex="-1" aria-hidden="true" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/bmp">
+    <p class="field-error" id="grade-error" data-testid="grade-error" aria-live="polite"></p>
+  </section>
+
+  <section class="rsec grade-detail" id="grade-detail" aria-labelledby="grade-detail-heading" hidden>
+    <div class="rsec-head"><h3 id="grade-detail-heading"></h3><button type="button" class="link link-xs" data-action="grade-swap" id="grade-swap" hidden><span data-i18n="grade_swap">Swap front and back</span></button></div>
+    <p class="small muted grade-busy" id="grade-busy" hidden><svg class="icon spin" aria-hidden="true" focusable="false"><use href="#i-spinner"/></svg><span data-i18n="grade_measuring">Measuring…</span></p>
+    <div class="grade-stage" id="grade-stage" data-testid="grade-stage" hidden>
+      <canvas id="grade-card" aria-hidden="true"></canvas>
+      <div class="grade-line grade-line-v" data-line="left" role="slider" tabindex="0" aria-orientation="horizontal" data-i18n-attr="aria-label:grade_line_left" data-testid="grade-line-left"></div>
+      <div class="grade-line grade-line-v" data-line="right" role="slider" tabindex="0" aria-orientation="horizontal" data-i18n-attr="aria-label:grade_line_right" data-testid="grade-line-right"></div>
+      <div class="grade-line grade-line-h" data-line="top" role="slider" tabindex="0" aria-orientation="vertical" data-i18n-attr="aria-label:grade_line_top" data-testid="grade-line-top"></div>
+      <div class="grade-line grade-line-h" data-line="bottom" role="slider" tabindex="0" aria-orientation="vertical" data-i18n-attr="aria-label:grade_line_bottom" data-testid="grade-line-bottom"></div>
+    </div>
+    <div class="grade-measure" id="grade-measure" data-testid="grade-measure" hidden>
+      <p><span class="grade-axis" data-i18n="grade_axis_lr">Left/right</span> <strong data-ref="lr" data-testid="grade-lr"></strong> <span class="grade-axis-note" data-ref="lr-note"></span></p>
+      <p><span class="grade-axis" data-i18n="grade_axis_tb">Top/bottom</span> <strong data-ref="tb" data-testid="grade-tb"></strong> <span class="grade-axis-note" data-ref="tb-note"></span></p>
+    </div>
+    <p class="hint" id="grade-borders"></p>
+    <ul class="grade-notes" id="grade-notes" data-testid="grade-notes"></ul>
+    <div class="actions" id="grade-detail-actions" hidden>
+      <button type="button" class="btn btn-secondary btn-sm" data-action="grade-corners" data-testid="grade-fix-corners"><span data-i18n="grade_fix_corners">Card outline wrong? Fix corners</span></button>
+      <button type="button" class="link link-sm" data-action="grade-reset" id="grade-reset" hidden><span data-i18n="grade_reset">Undo my changes</span></button>
+    </div>
+    <div class="grade-corners" id="grade-corners" hidden>
+      <p class="hint" data-i18n="grade_corners_hint"></p>
+      <div class="grade-photo" id="grade-photo">
+        <img id="grade-photo-img" alt="">
+        <svg class="grade-quad" id="grade-quad" aria-hidden="true" focusable="false"><polygon points=""/></svg>
+        <button type="button" class="grade-handle" data-corner="0" data-i18n-attr="aria-label:grade_corner_0"></button>
+        <button type="button" class="grade-handle" data-corner="1" data-i18n-attr="aria-label:grade_corner_1"></button>
+        <button type="button" class="grade-handle" data-corner="2" data-i18n-attr="aria-label:grade_corner_2"></button>
+        <button type="button" class="grade-handle" data-corner="3" data-i18n-attr="aria-label:grade_corner_3"></button>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-strong btn-sm" data-action="grade-measure" data-testid="grade-measure-corners"><span data-i18n="grade_measure_corners">Measure with these corners</span></button>
+        <button type="button" class="link link-sm" data-action="grade-corners-cancel"><span data-i18n="cancel_button">Cancel</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="rsec grade-caps-sec" id="grade-caps" aria-labelledby="grade-caps-heading" hidden>
+    <div class="rsec-head"><h3 id="grade-caps-heading"></h3></div>
+    <ul class="grade-caps" id="grade-caps-list" data-testid="grade-caps"></ul>
+    <ul class="grade-reasons" id="grade-reasons"></ul>
+    <p class="hint" id="grade-caps-note"></p>
+  </section>
+
+  <section class="rsec grade-ai" id="grade-ai" aria-labelledby="grade-ai-heading" data-testid="grade-ai" hidden>
+    <h3 id="grade-ai-heading" data-i18n="grade_ai_heading">Corners, edges and surface</h3>
+    <div class="grade-ai-body" id="grade-ai-body" aria-live="polite"></div>
+  </section>
+
+  <section class="rsec grade-fine" data-i18n-attr="aria-label:grade_fine_label">
+    <p class="hint" data-i18n="grade_disclaimer"></p>
+    <p class="hint grade-sources" id="grade-sources"></p>
+  </section>
+</main>
+
 <footer class="app-footer">
-  <p><span data-i18n="about_disclaimer">Not affiliated with PSA, CGC or Beckett.</span> · <span data-i18n="footer_local">Images stay on this device</span></p>
+  <p><span data-i18n="about_disclaimer">Not affiliated with PSA, CGC or Beckett.</span> · <span id="footer-local" data-i18n="footer_local">Images stay on this device</span></p>
 </footer>
 
 <!-- ============================ task-card templates (design v2) ============================
      Elements carrying ADR §13 test ids are singletons kept in #parking and moved into [data-slot] placeholders,
      so each id exists exactly once in the document at all times (e2e presence + Playwright strict locators). -->
+<template id="tpl-grade-icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-circle-i"/></svg></template>
+
 <template id="tpl-idle">
   <p class="lead" data-i18n="page_scan_lead"></p>
   <span data-slot="pagescan"></span>
   <p class="small muted" data-ref="shortcut-hint"></p>
+  <button type="button" class="link grade-entry" data-action="grade-open" data-testid="grade-open"><span data-i18n="grade_open">Raw card? Estimate its grade</span><span aria-hidden="true"> →</span></button>
 </template>
 
 <template id="tpl-scanning">
@@ -314,6 +443,7 @@
     <button type="button" class="btn btn-strong" data-action="type"><span data-i18n="type_number_button"></span></button>
     <button type="button" class="btn btn-secondary" data-action="choose"><span data-i18n="upload_button"></span></button>
   </div>
+  <button type="button" class="link grade-entry" data-action="grade-this" data-testid="grade-this"><span data-i18n="grade_this">Raw card without a slab? Estimate its grade</span><span aria-hidden="true"> →</span></button>
   <div data-ref="lowres-slot"></div>
   <div class="bottom-links">
     <button type="button" class="link link-muted" data-testid="report-button" data-action="report" data-ref="report-box" hidden><span data-i18n="report_button"></span></button>

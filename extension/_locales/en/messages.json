@@ -586,7 +586,7 @@
     "message": "About"
   },
   "about_privacy": {
-    "message": "Photos are read on this device. Images are never uploaded."
+    "message": "Photos are read on this device. Images are never uploaded, except the card photo for an AI grade check you start yourself with your own key."
   },
   "about_lookup": {
     "message": "A cert check shows that a number exists at the grader. It does not prove that this slab is genuine."
@@ -1512,5 +1512,688 @@
   },
   "grade_ungraded": {
     "message": "Ungraded"
+  },
+  "context_menu_grade": {
+    "message": "Estimate card grade (raw card)"
+  },
+  "grade_heading": {
+    "message": "Grade check"
+  },
+  "grade_title": {
+    "message": "Estimate a raw card's grade"
+  },
+  "grade_estimate_chip": {
+    "message": "Estimate"
+  },
+  "grade_lead": {
+    "message": "Measures the centering of a raw Pokémon, Lorcana, One Piece or other standard-size card from a photo and shows the highest grade it allows at PSA, BGS and CGC."
+  },
+  "grade_front": {
+    "message": "Front"
+  },
+  "grade_back": {
+    "message": "Back (optional)"
+  },
+  "grade_slot_empty": {
+    "message": "No photo yet"
+  },
+  "grade_replace": {
+    "message": "Replace"
+  },
+  "grade_remove": {
+    "message": "Remove"
+  },
+  "grade_swap": {
+    "message": "Swap front and back"
+  },
+  "grade_swapped": {
+    "message": "Front and back swapped."
+  },
+  "grade_input_hint": {
+    "message": "Drop or paste a photo here, or right-click a card photo on a page and choose “Estimate card grade”. Out of the sleeve, flat, straight from above, no flash. Photos stay on this device."
+  },
+  "grade_measuring": {
+    "message": "Measuring…"
+  },
+  "grade_state_no_card": {
+    "message": "Card not found"
+  },
+  "grade_state_no_border": {
+    "message": "No border measured"
+  },
+  "grade_err_too_large": {
+    "message": "This image is too large (over 15 MB or 40 megapixels)."
+  },
+  "grade_err_invalid": {
+    "message": "This isn't an image CertScanner can read."
+  },
+  "grade_err_fetch": {
+    "message": "Couldn't get this photo from the page. Save it and drop it here."
+  },
+  "grade_err_failed": {
+    "message": "Measuring failed or took too long. Try again or use a smaller photo."
+  },
+  "grade_line_left": {
+    "message": "Inner edge of the left border"
+  },
+  "grade_line_right": {
+    "message": "Inner edge of the right border"
+  },
+  "grade_line_top": {
+    "message": "Inner edge of the top border"
+  },
+  "grade_line_bottom": {
+    "message": "Inner edge of the bottom border"
+  },
+  "grade_line_value": {
+    "message": "$P1$ mm",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_axis_lr": {
+    "message": "Left/right"
+  },
+  "grade_axis_tb": {
+    "message": "Top/bottom"
+  },
+  "grade_axis_note": {
+    "message": "$P1$ wider · ±$P2$ points",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "grade_side_left": {
+    "message": "left"
+  },
+  "grade_side_right": {
+    "message": "right"
+  },
+  "grade_side_top": {
+    "message": "top"
+  },
+  "grade_side_bottom": {
+    "message": "bottom"
+  },
+  "grade_axis_unmeasured": {
+    "message": "not measured"
+  },
+  "grade_borders": {
+    "message": "Borders: left $P1$ · right $P2$ · top $P3$ · bottom $P4$ mm. Drag a red line (or select it and use the arrow keys) if it isn't on the border's inner edge.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      },
+      "p4": {
+        "content": "$4"
+      }
+    }
+  },
+  "grade_fix_corners": {
+    "message": "Card outline wrong? Fix corners"
+  },
+  "grade_reset": {
+    "message": "Undo my changes"
+  },
+  "grade_corners_hint": {
+    "message": "Drag the four squares onto the card's corners (or select one and use the arrow keys), then measure again."
+  },
+  "grade_corner_0": {
+    "message": "Top-left corner"
+  },
+  "grade_corner_1": {
+    "message": "Top-right corner"
+  },
+  "grade_corner_2": {
+    "message": "Bottom-right corner"
+  },
+  "grade_corner_3": {
+    "message": "Bottom-left corner"
+  },
+  "grade_measure_corners": {
+    "message": "Measure with these corners"
+  },
+  "grade_photo_alt": {
+    "message": "The photo, with the card's outline"
+  },
+  "grade_note_no_card": {
+    "message": "Couldn't find the card's edges in this photo. Place the corners by hand below."
+  },
+  "grade_note_no_border": {
+    "message": "No even border found (a full-art or borderless card, or the wrong outline). Graders judge such cards by the design; CertScanner gives no number then."
+  },
+  "grade_note_partial": {
+    "message": "Not every border could be measured. Drag the lines onto the borders' inner edges."
+  },
+  "grade_note_low_res": {
+    "message": "The card is small in this photo ($P1$ pixels per mm): the centering is a rough guide (±$P2$ points). A larger or sharper photo helps.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "grade_note_very_low_res": {
+    "message": "The card is very small in this photo ($P1$ pixels per mm): the centering is only a rough guide. Use a larger photo.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_note_blurry": {
+    "message": "The photo is blurry at the borders: the lines may be off a little."
+  },
+  "grade_note_glare": {
+    "message": "Glare on a border: tilt the card or the light and take the photo again."
+  },
+  "grade_note_skewed": {
+    "message": "Taken at an angle: straightened, but a photo from straight above measures better."
+  },
+  "grade_note_cropped": {
+    "message": "The photo is cropped to the card: its edges are taken as the card's edges, so the crop affects the result."
+  },
+  "grade_note_cut_off": {
+    "message": "Part of the card is outside the photo."
+  },
+  "grade_note_manual": {
+    "message": "Measured with the corners you placed."
+  },
+  "grade_note_adjusted": {
+    "message": "Includes lines you moved by hand."
+  },
+  "grade_caps_heading": {
+    "message": "What the centering allows"
+  },
+  "grade_est_heading": {
+    "message": "Estimate: centering and condition"
+  },
+  "grade_cap_upto": {
+    "message": "up to $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_bgs": {
+    "message": "centering subgrade $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_at_best": {
+    "message": "$P1$ at best (borderline)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_below": {
+    "message": "below $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_unknown": {
+    "message": "not measured"
+  },
+  "grade_cap_possible": {
+    "message": "$P1$ possible: the centering is right at the limit",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_cap_by_back": {
+    "message": "limited by the back"
+  },
+  "grade_cap_guides": {
+    "message": "BGS limits from collector guides"
+  },
+  "grade_est_centering": {
+    "message": "centering: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_bgs_subs": {
+    "message": "centering $P1$ · corners $P2$ · edges $P3$ · surface $P4$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      },
+      "p4": {
+        "content": "$4"
+      }
+    }
+  },
+  "grade_reason_centering": {
+    "message": "Centering allows up to $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_centering_back": {
+    "message": "The back's centering allows up to $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_no_back": {
+    "message": "The back was not measured."
+  },
+  "grade_reason_corners": {
+    "message": "Corners: $P1$ out of 10.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_edges": {
+    "message": "Edges: $P1$ out of 10.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_surface": {
+    "message": "Surface: $P1$ out of 10.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_reason_unassessed": {
+    "message": "Not judged from the photo: $P1$. The range is wider.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_note_front_only": {
+    "message": "Back not measured: a PSA 10 also needs about 75/25 or better on the back."
+  },
+  "grade_note_centering_only": {
+    "message": "Centering only: corners, edges and surface decide the rest of the grade."
+  },
+  "grade_area_corners": {
+    "message": "Corners"
+  },
+  "grade_area_edges": {
+    "message": "Edges"
+  },
+  "grade_area_surface": {
+    "message": "Surface"
+  },
+  "grade_rating_none": {
+    "message": "No wear visible"
+  },
+  "grade_rating_minor": {
+    "message": "Minor wear"
+  },
+  "grade_rating_moderate": {
+    "message": "Visible wear"
+  },
+  "grade_rating_heavy": {
+    "message": "Damage"
+  },
+  "grade_rating_unknown": {
+    "message": "Can't tell from the photo"
+  },
+  "grade_ai_heading": {
+    "message": "Corners, edges and surface"
+  },
+  "grade_ai_off": {
+    "message": "Not checked. A photo shows these only partly; an AI check with your own key can estimate them. Off by default: then nothing leaves this device."
+  },
+  "grade_ai_setup": {
+    "message": "Set up an AI check"
+  },
+  "grade_ai_no_key": {
+    "message": "Add your $P1$ key in Settings to check corners, edges and surface.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_add_key": {
+    "message": "Add your key"
+  },
+  "grade_ai_check": {
+    "message": "Check condition with $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_sends_front": {
+    "message": "Sends the straightened front photo to $P1$, with your key.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_sends_both": {
+    "message": "Sends the straightened front and back photos to $P1$, with your key.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_running": {
+    "message": "Checking with $P1$…",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_done": {
+    "message": "Condition check done."
+  },
+  "grade_ai_by": {
+    "message": "Checked by $P1$ (AI; an estimate).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_again": {
+    "message": "Check again"
+  },
+  "grade_ai_photo_issues": {
+    "message": "Limited by the photo: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_card": {
+    "message": "Card read as: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_open_settings": {
+    "message": "Open Settings"
+  },
+  "grade_ai_err_no_permission": {
+    "message": "CertScanner doesn't have access to $P1$ yet. Save your key again in Settings.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_auth": {
+    "message": "$P1$ didn't accept your key. Check it in Settings.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_forbidden": {
+    "message": "Your $P1$ key isn't allowed to do this check.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_limit": {
+    "message": "Your $P1$ limit or credit is used up. Try again later or check your account.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_too_large": {
+    "message": "The photo was too large for $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_overloaded": {
+    "message": "$P1$ is busy right now. Try again in a minute.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_refused": {
+    "message": "$P1$ declined this check.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_format": {
+    "message": "$P1$ sent an answer CertScanner couldn't read.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_error": {
+    "message": "The check with $P1$ failed. Check your connection and try again.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_ai_err_timeout": {
+    "message": "$P1$ took too long to answer.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_consent_title": {
+    "message": "Send the card photos to $P1$?",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_consent_what": {
+    "message": "What is sent: the straightened card photo (front, and back if added) as a JPEG, with your key."
+  },
+  "grade_consent_not": {
+    "message": "Not sent: the page address, file name, location or other photo data."
+  },
+  "grade_consent_terms": {
+    "message": "$P1$'s own terms and privacy policy apply, and the check is charged to your account with them.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_consent_ximilar": {
+    "message": "Ximilar returns images of its analysis that it hosts for a while."
+  },
+  "grade_consent_send": {
+    "message": "Send photos"
+  },
+  "grade_disclaimer": {
+    "message": "An estimate, not a grade. Graders also judge by eye, and photos hide much of a card's condition. CertScanner is not affiliated with or endorsed by PSA, Beckett (BGS), CGC or any grading company."
+  },
+  "grade_fine_label": {
+    "message": "About this estimate"
+  },
+  "grade_sources": {
+    "message": "Centering limits as published (checked $P1$):",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "grade_open": {
+    "message": "Raw card? Estimate its grade"
+  },
+  "grade_this": {
+    "message": "Raw card without a slab? Estimate its grade"
+  },
+  "settings_grade_heading": {
+    "message": "Grade check"
+  },
+  "setting_grade_ai": {
+    "message": "AI check of corners, edges and surface"
+  },
+  "setting_grade_ai_off": {
+    "message": "Off (centering only, on this device)"
+  },
+  "setting_grade_ai_haiku": {
+    "message": "Claude Haiku 5.5 (Anthropic)"
+  },
+  "setting_grade_ai_sonnet": {
+    "message": "Claude Sonnet 5.5 (Anthropic)"
+  },
+  "setting_grade_ai_ximilar": {
+    "message": "Ximilar card grading"
+  },
+  "setting_grade_ai_hint_off": {
+    "message": "Centering is measured on this device and no photo leaves it."
+  },
+  "setting_grade_ai_hint_claude_haiku": {
+    "message": "Describes visible wear; about $$0.003 per card on your Anthropic account. Only when you press Check condition."
+  },
+  "setting_grade_ai_hint_claude_sonnet": {
+    "message": "Describes visible wear in more detail; about $$0.04 per card on your Anthropic account. Only when you press Check condition."
+  },
+  "setting_grade_ai_hint_ximilar": {
+    "message": "A model made for card grading: subgrades for corners, edges and surface; 100 credits (about €0.06) per card on your Ximilar plan. Only when you press Check condition."
+  },
+  "setting_anthropic_key": {
+    "message": "Anthropic API key"
+  },
+  "setting_anthropic_key_hint": {
+    "message": "Starts with sk-ant-. Kept on this device only. Set a spending limit in your Anthropic account if you like."
+  },
+  "setting_ximilar_key": {
+    "message": "Ximilar API token"
+  },
+  "setting_ximilar_key_hint": {
+    "message": "From your Ximilar account (app.ximilar.com). Kept on this device only; not checked when saved."
+  },
+  "setting_key_get": {
+    "message": "Get a key"
+  },
+  "setting_ai_key_saved": {
+    "message": "Key saved for $P1$.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_works": {
+    "message": "Key works: $P1$ accepted it.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_saved_limit": {
+    "message": "Key saved; $P1$ says its limit is reached for now.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_invalid": {
+    "message": "This doesn't look like a $P1$ key.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_denied": {
+    "message": "Without access to $P1$ the key can't be used. Not saved.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_rejected": {
+    "message": "$P1$ rejected this key. Not saved.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "setting_ai_key_removed": {
+    "message": "Key removed; access to $P1$ given back.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "footer_local_ai": {
+    "message": "Images stay on this device, except for AI checks you start"
   }
 }

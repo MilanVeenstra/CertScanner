@@ -1,6 +1,6 @@
 // Service worker (ADR-001 §4, A9): stateless trigger. Every listener is registered synchronously at the
 // module top level. No runtime messaging listeners exist in v1 (ADR §10).
-import { MENU_ID, PAGE_COMMAND, createScanJob, createPageJob, jobKey } from '../shared/jobContract.js';
+import { MENU_ID, GRADE_MENU_ID, PAGE_COMMAND, createScanJob, createPageJob, jobKey } from '../shared/jobContract.js';
 import { seenJobsKey } from '../shared/seenJobs.js';
 import { SETTINGS_KEY, migrateSettings } from '../shared/settings.js';
 import { lastResultKey } from '../shared/lastResult.js';
@@ -11,6 +11,10 @@ function registerMenus() {
     void chrome.runtime.lastError;
     chrome.contextMenus.create(
       { id: MENU_ID, title: chrome.i18n.getMessage('context_menu_scan') || 'Scan slab cert number', contexts: ['image'] },
+      () => void chrome.runtime.lastError,
+    );
+    chrome.contextMenus.create(
+      { id: GRADE_MENU_ID, title: chrome.i18n.getMessage('context_menu_grade') || 'Estimate card grade (raw card)', contexts: ['image'] },
       () => void chrome.runtime.lastError,
     );
   });
@@ -54,9 +58,10 @@ chrome.storage.sync.onChanged.addListener((changes) => {
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== MENU_ID || !tab || !(tab.id >= 0)) return;
+  if ((info.menuItemId !== MENU_ID && info.menuItemId !== GRADE_MENU_ID) || !tab || !(tab.id >= 0)) return;
   openPanel(tab.windowId);
-  queue(tab.windowId, createScanJob(info, tab, Date.now(), crypto.randomUUID()));
+  const purpose = info.menuItemId === GRADE_MENU_ID ? 'grade' : undefined;
+  queue(tab.windowId, createScanJob(info, tab, Date.now(), crypto.randomUUID(), { purpose }));
 });
 
 // A9 trigger 1: toolbar icon (only fires while openPanelOnActionClick is false). Grants activeTab.

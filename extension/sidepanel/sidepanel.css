@@ -546,6 +546,8 @@ body.is-grade-drag .grade-slot { border-color: var(--cs-text); background: var(-
 .grade-ai-area { font-size: var(--cs-text-sm); font-weight: 700; }
 .grade-ai-rating { font-weight: 700; }
 .grade-ai-note { grid-column: 2; font-size: var(--cs-text-xs); color: var(--cs-text-muted); overflow-wrap: anywhere; }
+.grade-sub-heading { margin-block-start: var(--cs-space-2); font-size: var(--cs-text-sm); font-weight: 700; }
+.grade-ai-rows li[data-rating="visible"] .grade-ai-rating, .grade-ai-rows li[data-rating="minor"] .grade-ai-rating { color: var(--cs-accent); }
 .grade-consent { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: var(--cs-line) solid var(--cs-text); }
 .grade-consent ul { padding-inline-start: 18px; font-size: 12.5px; }
 .grade-sources { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: center; }

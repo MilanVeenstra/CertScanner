@@ -1550,7 +1550,7 @@
     "message": "Front and back swapped."
   },
   "grade_input_hint": {
-    "message": "Drop or paste a photo here, or right-click a card photo on a page and choose “Estimate card grade”. Out of the sleeve, flat, straight from above, no flash. Photos stay on this device."
+    "message": "Drop or paste a photo here, or right-click a card photo on a page and choose “Estimate card grade”. Out of the sleeve, flat, straight from above, on a dark plain background, no flash. Photos stay on this device."
   },
   "grade_measuring": {
     "message": "Measuring…"
@@ -1883,7 +1883,7 @@
     "message": "Corners, edges and surface"
   },
   "grade_ai_off": {
-    "message": "Not checked. A photo shows these only partly; an AI check with your own key can estimate them. Off by default: then nothing leaves this device."
+    "message": "For the surface or a second opinion, an AI check with your own key can look at the photo. Off by default: then nothing leaves this device."
   },
   "grade_ai_setup": {
     "message": "Set up an AI check"
@@ -2195,5 +2195,115 @@
   },
   "footer_local_ai": {
     "message": "Images stay on this device, except for AI checks you start"
+  },
+  "grade_photo_front": {
+    "message": "front"
+  },
+  "grade_photo_back": {
+    "message": "back"
+  },
+  "grade_where": {
+    "message": "$P1$ ($P2$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "grade_corner_tl_short": {
+    "message": "top-left corner"
+  },
+  "grade_corner_tr_short": {
+    "message": "top-right corner"
+  },
+  "grade_corner_br_short": {
+    "message": "bottom-right corner"
+  },
+  "grade_corner_bl_short": {
+    "message": "bottom-left corner"
+  },
+  "grade_edge_top": {
+    "message": "top edge"
+  },
+  "grade_edge_bottom": {
+    "message": "bottom edge"
+  },
+  "grade_edge_left": {
+    "message": "left edge"
+  },
+  "grade_edge_right": {
+    "message": "right edge"
+  },
+  "grade_dev_corners_none": {
+    "message": "No damage seen"
+  },
+  "grade_dev_corners_minor": {
+    "message": "Slightly worn"
+  },
+  "grade_dev_corners_visible": {
+    "message": "Worn or dinged"
+  },
+  "grade_dev_corners_unknown": {
+    "message": "Can't tell from this photo"
+  },
+  "grade_dev_edges_none": {
+    "message": "No whitening seen"
+  },
+  "grade_dev_edges_minor": {
+    "message": "A little whitening"
+  },
+  "grade_dev_edges_visible": {
+    "message": "Whitening"
+  },
+  "grade_dev_edges_unknown": {
+    "message": "Can't tell from this photo"
+  },
+  "grade_dev_surface": {
+    "message": "Not checked on this device"
+  },
+  "grade_dev_why_too_small": {
+    "message": "The card is too small in this photo."
+  },
+  "grade_dev_why_light": {
+    "message": "The background is too light: photograph the card on a dark background."
+  },
+  "grade_dev_why_pale_border": {
+    "message": "A silver, grey or white border hides whitening."
+  },
+  "grade_dev_why_no_background": {
+    "message": "The photo shows no background around the card."
+  },
+  "grade_dev_why_no_border": {
+    "message": "The border wasn't measured."
+  },
+  "grade_dev_why_outside": {
+    "message": "A corner is outside the photo."
+  },
+  "grade_dev_why_low_contrast": {
+    "message": "Too little contrast between card and background."
+  },
+  "grade_dev_why_shape": {
+    "message": "The corners couldn't be compared."
+  },
+  "grade_device_note": {
+    "message": "Checked on this device: whitening along the edges and the shape of each corner (marked in red on the card). A sharp photo on a dark, plain background, out of the sleeve, shows the most. The surface (scratches, dents) isn't judged here."
+  },
+  "grade_ai_sub": {
+    "message": "AI check (optional)"
+  },
+  "grade_reason_corners_device": {
+    "message": "Corner wear seen on this device."
+  },
+  "grade_reason_edges_device": {
+    "message": "Whitening seen on the edges on this device."
+  },
+  "grade_reason_surface_device": {
+    "message": "Surface wear seen on this device."
+  },
+  "grade_note_device_clean": {
+    "message": "No whitening or corner damage seen. That isn't proof of a 10, and the surface isn't judged, so this is still the centering limit."
   }
 }

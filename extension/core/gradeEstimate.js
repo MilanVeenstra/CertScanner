@@ -6,6 +6,38 @@ export const CONDITION_AREAS = Object.freeze(['corners', 'edges', 'surface']);
 
 /** Qualitative wear ratings (vision-LLM provider) mapped onto the 1-10 scale. */
 export const RATING_SCORE = Object.freeze({ none: 10, minor: 9, moderate: 7, heavy: 4 });
+/**
+ * Wear the device found (pipeline/grade/wear.js) as a cap on the 1-10 scale. Only what was seen counts: "no
+ * whitening seen" is no proof of a 10, so it adds no score.
+ */
+export const DEVICE_SCORE = Object.freeze({ minor: 9, visible: 8 });
+const WEAR_RANK = { unknown: -1, none: 0, minor: 1, visible: 2 };
+
+/** Worst on-device rating per area over the photos (front, back): 'none' | 'minor' | 'visible' | 'unknown'. */
+export function combineWear(list) {
+  const out = {};
+  for (const area of ['corners', 'edges']) {
+    out[area] = list.filter(Boolean).map((w) => w[area]?.rating ?? 'unknown')
+      .reduce((w, r) => ((WEAR_RANK[r] ?? -1) > WEAR_RANK[w] ? r : w), 'unknown');
+  }
+  return out;
+}
+
+/**
+ * One condition from the device check and the AI check: per area the lower score; `sources` says which one counted.
+ * @returns {{condition:{corners:number|null, edges:number|null, surface:number|null}|null, sources:Record<string, 'device'|'ai'>}}
+ */
+export function mergeCondition(deviceRatings, aiCondition) {
+  const ai = normalizeCondition(aiCondition);
+  const condition = { corners: null, edges: null, surface: null };
+  const sources = {};
+  for (const a of CONDITION_AREAS) {
+    const d = DEVICE_SCORE[deviceRatings?.[a]] ?? null;
+    const x = ai?.[a] ?? null;
+    if (d !== null && (x === null || d < x)) { condition[a] = d; sources[a] = 'device'; } else if (x !== null) { condition[a] = x; sources[a] = 'ai'; }
+  }
+  return { condition: Object.values(condition).some((v) => v !== null) ? condition : null, sources };
+}
 
 const floorHalf = (v) => Math.floor(v * 2 + 1e-9) / 2;
 const roundHalf = (v) => Math.round(v * 2) / 2;
@@ -44,7 +76,7 @@ export function bgsOverall(subs) {
  * @returns {{caps:object, condition:object|null, graders:Record<string, {low:number|null, high:number|null,
  *   centeringCap:number|null, possible:number|null, sub?:object, reasons:{key:string, subs:string[], areas?:string[]}[]}>}}
  */
-export function estimateGrades({ front = null, back = null, condition = null } = {}) {
+export function estimateGrades({ front = null, back = null, condition = null, sources = {} } = {}) {
   const caps = centeringCaps({ front, back });
   const cond = normalizeCondition(condition);
   const condScores = cond ? CONDITION_AREAS.map((a) => cond[a]).filter((v) => v !== null) : [];
@@ -78,7 +110,10 @@ export function estimateGrades({ front = null, back = null, condition = null } =
       low = clampGrade(high - (unassessed.length ? 2 : 1));
     }
     if (cond) {
-      for (const a of CONDITION_AREAS) if (cond[a] !== null && cond[a] < 10) reasons.push({ key: `grade_reason_${a}`, subs: [String(roundHalf(cond[a]))] });
+      for (const a of CONDITION_AREAS) {
+        if (cond[a] === null || cond[a] >= 10) continue;
+        reasons.push(sources[a] === 'device' ? { key: `grade_reason_${a}_device`, subs: [] } : { key: `grade_reason_${a}`, subs: [String(roundHalf(cond[a]))] });
+      }
       if (unassessed.length) reasons.push({ key: 'grade_reason_unassessed', subs: [], areas: unassessed });
     }
     graders[id] = { low, high, centeringCap: c.cap, possible: c.possible, below: c.below, sub, reasons };

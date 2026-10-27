@@ -1,7 +1,8 @@
 // Grade check: from a photo to border widths, centering ratios and photo-quality flags. Pure and DOM-free; the panel
 // runs it in a module worker (gradeWorker.js) and unit tests call it directly.
-import { detectCard, refineQuad, CARD_RATIO } from './detect.js';
-import { warpCard, measureBorders, centeringFrom, CARD_MM, SIDES } from './measure.js';
+import { detectCard, refineQuad, sampleRgb, CARD_RATIO } from './detect.js';
+import { warpCard, measureBorders, centeringFrom, toLab, CARD_MM, SIDES } from './measure.js';
+import { measureWear } from './wear.js';
 import { orderQuad, quadSkew, isConvex, quadArea } from './geometry.js';
 
 /** Photos are analysed at most this large (long side); enough for ~30 px/mm on a card that fills the frame. */
@@ -19,6 +20,42 @@ export function validQuad(q, width, height) {
   if (q.some(([x, y]) => x < -m * width || x > (1 + m) * width || y < -m * height || y > (1 + m) * height)) return false;
   const o = orderQuad(q);
   return isConvex(o) && quadArea(o) >= 0.01 * width * height;
+}
+
+/** Side of the quad (TL, TR, BR, BL) that each card side lies on: [from corner, to corner]. */
+const SIDE_CORNERS = { top: [0, 1], right: [1, 2], bottom: [3, 2], left: [0, 3] };
+
+/**
+ * Background colour next to each side of the card (median Lab of points 1.2-2.5 mm outside it, in the photo), or null
+ * where the photo shows too little beyond the card (cropped to it, or the card touches the frame).
+ */
+export function backgroundColors(img, quad, pxPerMm) {
+  const cx = (quad[0][0] + quad[2][0]) / 2; const cy = (quad[0][1] + quad[2][1]) / 2;
+  const out = {};
+  for (const side of SIDES) {
+    const [i, j] = SIDE_CORNERS[side];
+    const p = quad[i]; const q = quad[j];
+    const dx = q[0] - p[0]; const dy = q[1] - p[1];
+    const len = Math.hypot(dx, dy) || 1;
+    let nx = -dy / len; let ny = dx / len;
+    const mx = p[0] + dx / 2; const my = p[1] + dy / 2;
+    if ((cx - mx) * nx + (cy - my) * ny > 0) { nx = -nx; ny = -ny; }
+    const L = []; const A = []; const B = [];
+    let tried = 0;
+    for (let k = 0; k < 15; k++) {
+      const t = 0.2 + (0.6 * k) / 14;
+      for (const off of [1.2, 1.8, 2.5]) {
+        tried++;
+        const c = sampleRgb(img, p[0] + dx * t + nx * off * pxPerMm, p[1] + dy * t + ny * off * pxPerMm);
+        if (!c) continue;
+        const lab = toLab(c[0], c[1], c[2]);
+        L.push(lab[0]); A.push(lab[1]); B.push(lab[2]);
+      }
+    }
+    const med = (a) => { const v = [...a].sort((m, n) => m - n); return v[v.length >> 1]; };
+    out[side] = L.length >= tried * 0.6 ? [med(L), med(A), med(B)] : null;
+  }
+  return out;
 }
 
 /**
@@ -68,8 +105,11 @@ export function analyzeCard(img, { quad: given = null } = {}) {
   if (source === 'image-edges') flags.push('cropped');
   if (cutOff) flags.push('cut-off');
   const status = okSides.length === 4 ? 'ok' : (centering.lr || centering.tb) ? 'partial' : 'no-border';
+  // Wear needs the background next to the card: a photo cropped to the card has none.
+  const bg = source === 'image-edges' ? {} : backgroundColors(img, quad, pxPerMm);
+  const wear = status === 'no-border' ? null : measureWear(card, { borders, bg, blurPx: (edgeWidthPx ?? 1) * card.scale });
   return {
-    status, quad, source, card, borders, centering,
+    status, quad, source, card, borders, centering, wear,
     quality: { pxPerMm, blurMm, glare, skew, edgeWidthPx, flags, ratio: CARD_RATIO },
   };
 }

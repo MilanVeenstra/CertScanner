@@ -1,7 +1,7 @@
 // Grade check view (raw cards): front and back photos in, centering and per-grader limits out, plus the optional AI
 // check of corners, edges and surface. Lives in <main id="grade">; main.js shows it (showView('grade')) and hands it
 // photos (drop, paste, Choose image, the context menu). Everything is rendered with textContent / DOM nodes only.
-import { createGradeEngine, preparePhoto, cardJpeg } from './gradeEngine.js';
+import { createGradeEngine, preparePhoto, cardJpeg, cropRect, drawCrop, cropPhoto } from './gradeEngine.js';
 import { centeringFrom, ratioText, manualSide, SIDES } from '../pipeline/grade/measure.js';
 import { estimateGrades, combineWear, mergeCondition, CONDITION_AREAS } from '../core/gradeEstimate.js';
 import { GRADERS, GRADER_ORDER, STANDARDS_AS_OF } from '../core/gradeStandards.js';
@@ -11,7 +11,7 @@ import { classifyFile } from './inputs.js';
 const PHOTO_SIDES = ['front', 'back'];
 const WEAR_CORNERS = ['tl', 'tr', 'br', 'bl'];
 const CORNER_R_MM = 3.2;
-const blankSide = () => ({ status: 'empty', key: null, input: null, previewUrl: null, size: null, result: null, card: null, manual: {}, error: null, run: 0, ctl: null });
+const blankSide = () => ({ status: 'empty', key: null, input: null, previewUrl: null, native: null, frame: null, result: null, card: null, manual: {}, error: null, run: 0, ctl: null });
 const fmtGrade = (g) => (Number.isInteger(g) ? String(g) : g.toFixed(1));
 const ERROR_KEYS = {
   'too-large': 'grade_err_too_large', 'invalid-image': 'grade_err_invalid', timeout: 'grade_err_failed', failed: 'grade_err_failed',
@@ -75,22 +75,33 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     ai.state = 'idle'; ai.result = null; ai.status = null;
   }
 
-  async function measure(name, { input = null, quad = null } = {}) {
+  /** Photo pixels of a point in the current result's frame (the whole photo scaled down, or a cut-out of it). */
+  const toNative = (frame, pts) => pts.map(([x, y]) => [frame.ox + x * frame.k, frame.oy + y * frame.k]);
+  const forgetPhotos = (s) => { if (s.key) { engine.forget(`${s.key}o`); engine.forget(`${s.key}c`); } };
+
+  /**
+   * Measure one side. A new photo: first the whole photo (scaled down to find the card), then, when the photo is
+   * larger than that, the card cut out of the original at its own resolution (scans, large photos). Corners placed
+   * by hand (`nativeQuad`, photo pixels): the card is cut out around them and measured at full resolution.
+   */
+  async function measure(name, { input = null, nativeQuad = null } = {}) {
     const s = sides[name];
     s.ctl?.abort();
     const ctl = new AbortController();
     s.ctl = ctl;
     const run = ++s.run;
+    const signal = ctl.signal;
     s.status = 'loading'; s.error = null;
     render();
+    let bitmap = null;
     try {
-      let image = null;
+      let result;
       if (input) {
-        const prep = await preparePhoto(input, { signal: ctl.signal });
-        if (run !== s.run) return;
+        const prep = await preparePhoto(input, { signal, keepBitmap: true });
+        if (run !== s.run) { prep.bitmap?.close(); return; }
         if (!prep.ok) {
           // The new photo can't be used: the slot shows that, not the previous photo.
-          if (s.key) engine.forget(s.key);
+          forgetPhotos(s);
           if (s.previewUrl) URL.revokeObjectURL(s.previewUrl);
           Object.assign(s, { ...blankSide(), run: s.run, status: 'error', error: prep.reason });
           resetAi();
@@ -98,38 +109,54 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
           announce(t(errorKey(prep.reason)));
           return;
         }
-        if (s.key) engine.forget(s.key);
+        bitmap = prep.bitmap;
+        forgetPhotos(s);
         if (s.previewUrl) URL.revokeObjectURL(s.previewUrl);
-        Object.assign(s, { key: `p${++keySeq}`, input: { kind: 'blob', blob: prep.blob, method: input.method ?? 'upload' }, previewUrl: URL.createObjectURL(prep.preview), size: prep.size, manual: {} });
-        image = prep.image;
+        Object.assign(s, {
+          key: `p${++keySeq}`, input: { kind: 'blob', blob: prep.blob, method: input.method ?? 'upload' }, previewUrl: URL.createObjectURL(prep.preview),
+          native: prep.native, frame: { ox: 0, oy: 0, k: prep.native.width / prep.size.width }, manual: {},
+        });
         resetAi();
+        result = await engine.analyze(`${s.key}o`, { image: prep.image, signal });
+        if (run !== s.run) return;
+        const rect = result.status !== 'no-card' && s.frame.k > 1.15 ? cropRect(toNative(s.frame, result.quad), s.native) : null;
+        if (rect) {
+          const crop = drawCrop(bitmap, rect);
+          const fine = await engine.analyze(`${s.key}c`, { image: crop.image, signal });
+          if (run !== s.run) return;
+          // The finer pass wins unless it measured less (a wrong outline in the cut-out).
+          const rank = { ok: 3, partial: 2, 'no-border': 1, 'no-card': 0 };
+          if (rank[fine.status] >= rank[result.status]) { result = fine; s.frame = { ox: rect.x, oy: rect.y, k: crop.scale }; }
+        }
+      } else if (nativeQuad) {
+        const rect = cropRect(nativeQuad, s.native);
+        if (!rect) throw new Error('failed');
+        const crop = await cropPhoto(s.input.blob, rect);
+        if (run !== s.run) return;
+        const quad = nativeQuad.map(([x, y]) => [(x - rect.x) / crop.scale, (y - rect.y) / crop.scale]);
+        result = await engine.analyze(`${s.key}c`, { image: crop.image, quad, signal });
+        if (run !== s.run) return;
+        s.frame = { ox: rect.x, oy: rect.y, k: crop.scale };
+        s.manual = {};
+      } else {
+        return;
       }
-      let result;
-      try {
-        result = await engine.analyze(s.key, { image, quad, signal: ctl.signal });
-      } catch (e) {
-        if (ctl.signal.aborted || image) throw e;
-        // The worker was restarted (timeout or crash) and lost the photo: send it once more.
-        const again = await preparePhoto(s.input, { signal: ctl.signal });
-        if (!again.ok) throw e;
-        result = await engine.analyze(s.key, { image: again.image, quad, signal: ctl.signal });
-      }
-      if (run !== s.run) return;
       s.result = result;
       s.card = result.card ?? null;
       s.status = 'done';
-      if (quad) s.manual = {};
       corners = null;
       selected = name;
       render();
       announce(`${t(name === 'front' ? 'grade_front' : 'grade_back')}: ${sideText(name)}`);
       if (result.status === 'no-card') openCorners(name);
     } catch (e) {
-      if (ctl.signal.aborted || run !== s.run) return;
+      if (signal.aborted || run !== s.run) return;
       s.status = 'error';
       s.error = e?.message === 'timeout' ? 'timeout' : 'failed';
       render();
       announce(t(errorKey(s.error)));
+    } finally {
+      bitmap?.close();
     }
   }
 
@@ -155,7 +182,7 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
   function remove(name) {
     const s = sides[name];
     s.ctl?.abort();
-    if (s.key) engine.forget(s.key);
+    forgetPhotos(s);
     if (s.previewUrl) URL.revokeObjectURL(s.previewUrl);
     sides[name] = blankSide();
     if (corners?.side === name) corners = null;
@@ -551,10 +578,10 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
 
   function openCorners(name) {
     const s = sides[name];
-    if (!s.size) return;
+    if (!s.native) return;
     const q = s.result?.quad;
     const pts = q && s.result.status !== 'no-card'
-      ? q.map(([x, y]) => [Math.max(0, Math.min(1, x / s.size.width)), Math.max(0, Math.min(1, y / s.size.height))])
+      ? toNative(s.frame, q).map(([x, y]) => [Math.max(0, Math.min(1, x / s.native.width)), Math.max(0, Math.min(1, y / s.native.height))])
       : [[0.15, 0.1], [0.85, 0.1], [0.85, 0.9], [0.15, 0.9]];
     corners = { side: name, pts };
     selected = name;
@@ -632,9 +659,9 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     else if (a === 'grade-corners-cancel') { corners = null; render(); }
     else if (a === 'grade-measure' && corners) {
       const s = sides[corners.side];
-      const quad = corners.pts.map(([x, y]) => [x * s.size.width, y * s.size.height]);
-      measure(corners.side, { quad });
+      measure(corners.side, { nativeQuad: corners.pts.map(([x, y]) => [x * s.native.width, y * s.native.height]) });
     } else if (a === 'grade-reset') { sides[selected].manual = {}; render(); }
+    else if (a === 'grade-testcard') openTab(chromeApi.runtime.getURL('testcard/testcard.html'));
   });
 
   fileInput.addEventListener('change', () => {

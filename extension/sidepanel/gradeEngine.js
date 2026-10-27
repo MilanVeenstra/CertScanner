@@ -6,6 +6,10 @@ import { ANALYZE_MAX_SIDE } from '../pipeline/grade/analyze.js';
 export const GRADE_TIMEOUT_MS = 20_000;
 /** Size of the photo shown when the corners are placed by hand. */
 export const PREVIEW_SIDE = 900;
+/** Second pass at the photo's own resolution: the card cut out of the original, long side at most this. */
+export const CROP_MAX_SIDE = 3600;
+/** Margin around the card in that cut-out, as a share of the card's size. */
+const CROP_MARGIN = 0.08;
 
 /**
  * @param {{workerUrl?:string, WorkerImpl?:typeof Worker}} [o]
@@ -64,14 +68,15 @@ export function analysisSize(width, height, max = ANALYZE_MAX_SIDE) {
 
 /**
  * Decode a photo (blob, or a page image from a context-menu job) and prepare it: analysis pixels (transferable) and
- * a small preview. The bitmap is closed before returning.
+ * a small preview. The bitmap is closed before returning, unless `keepBitmap` (then the caller closes it).
  * @returns {Promise<{ok:true, image:ImageData, preview:Blob, size:{width:number, height:number}, info:object}
  *   | {ok:false, reason:string, origin?:string|null, canRequestSharper?:boolean}>}
  */
-export async function preparePhoto(input, { signal, Canvas = globalThis.OffscreenCanvas } = {}) {
+export async function preparePhoto(input, { signal, keepBitmap = false, Canvas = globalThis.OffscreenCanvas } = {}) {
   const acq = input.kind === 'job' ? await acquireFromJob(input.job, { signal }) : await acquireFromBlob(input.blob, input.method, { signal });
   if (!acq.ok) return acq;
   const { bitmap } = acq;
+  let keep = false;
   try {
     const size = analysisSize(bitmap.width, bitmap.height);
     const canvas = new Canvas(size.width, size.height);
@@ -83,10 +88,41 @@ export async function preparePhoto(input, { signal, Canvas = globalThis.Offscree
     const small = new Canvas(p.width, p.height);
     small.getContext('2d').drawImage(bitmap, 0, 0, p.width, p.height);
     const preview = await small.convertToBlob({ type: 'image/jpeg', quality: 0.85 });
-    return { ok: true, image, preview, size, info: acq.info, blob: acq.blob };
+    keep = keepBitmap;
+    return { ok: true, image, preview, size, native: { width: bitmap.width, height: bitmap.height }, info: acq.info, blob: acq.blob, bitmap: keep ? bitmap : null };
   } finally {
-    bitmap.close();
+    if (!keep) bitmap.close();
   }
+}
+
+/**
+ * Rectangle (photo pixels) around a card outline with a margin, inside the photo. Null when it would be tiny.
+ * @param {number[][]} quad corners in the photo's own pixels
+ */
+export function cropRect(quad, native, margin = CROP_MARGIN) {
+  const xs = quad.map((p) => p[0]); const ys = quad.map((p) => p[1]);
+  const w = Math.max(...xs) - Math.min(...xs); const h = Math.max(...ys) - Math.min(...ys);
+  const m = margin * Math.max(w, h);
+  const x0 = Math.max(0, Math.floor(Math.min(...xs) - m)); const y0 = Math.max(0, Math.floor(Math.min(...ys) - m));
+  const x1 = Math.min(native.width, Math.ceil(Math.max(...xs) + m)); const y1 = Math.min(native.height, Math.ceil(Math.max(...ys) + m));
+  return x1 - x0 >= 32 && y1 - y0 >= 32 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null;
+}
+
+/** Pixels of `rect` from a decoded photo, long side at most `maxSide`: {image, scale} (scale = photo px per crop px). */
+export function drawCrop(source, rect, { maxSide = CROP_MAX_SIDE, Canvas = globalThis.OffscreenCanvas } = {}) {
+  const k = Math.min(1, maxSide / Math.max(rect.w, rect.h));
+  const w = Math.max(1, Math.round(rect.w * k)); const h = Math.max(1, Math.round(rect.h * k));
+  const canvas = new Canvas(w, h);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, rect.x, rect.y, rect.w, rect.h, 0, 0, w, h);
+  return { image: ctx.getImageData(0, 0, w, h), scale: rect.w / w };
+}
+
+/** Decode the original photo again (EXIF orientation applied, as the first time) and cut `rect` out of it. */
+export async function cropPhoto(blob, rect, opts) {
+  const bitmap = await createImageBitmap(blob, { imageOrientation: 'from-image' });
+  try { return drawCrop(bitmap, rect, opts); } finally { bitmap.close(); }
 }
 
 /** JPEG of an RGBA buffer (the upright card), long side at most `maxSide`. Canvas output carries no EXIF or GPS data. */

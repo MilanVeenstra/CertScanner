@@ -2305,5 +2305,62 @@
   },
   "grade_note_device_clean": {
     "message": "Geen witte randjes of hoekschade gezien. Dat bewijst nog geen 10, en het oppervlak is niet beoordeeld, dus dit blijft de grens van de centering."
+  },
+  "tc_title": {
+    "message": "CertScanner-testkaarten"
+  },
+  "tc_intro": {
+    "message": "Vier geprinte testkaarten met een bekende centering, om te controleren hoe precies de grade-check meet met je eigen camera of scanner. Kaart B heeft ook bekende slijtage: witte randjes op twee randen en een afgesneden hoek."
+  },
+  "tc_step_print": {
+    "message": "Print deze pagina op ware grootte (100 %, niet ‘aanpassen aan pagina’), in kleur als dat kan."
+  },
+  "tc_step_check": {
+    "message": "Controleer met een liniaal dat de balk onderaan 100 mm is."
+  },
+  "tc_step_photo": {
+    "message": "Fotografeer of scan één testkaart tegelijk, met het zwarte vlak eromheen in beeld, zoals je een echte kaart zou doen."
+  },
+  "tc_step_compare": {
+    "message": "Voeg de foto toe in de grade-check en vergelijk de centering met de getallen onder de kaart."
+  },
+  "tc_note_ratio": {
+    "message": "Centering is een verhouding, dus een iets andere printschaal verandert die niet; de balk van 100 mm controleert alleen of niets is uitgerekt."
+  },
+  "tc_tolerance": {
+    "message": "Een scherpe foto of scan hoort binnen ongeveer 1 punt van de geprinte waarde te zitten; een kleine foto zoals in een advertentie binnen 2 à 3. De ± in de grade-check is de eigen schatting daarvan."
+  },
+  "tc_print": {
+    "message": "Printen"
+  },
+  "tc_truth_lr": {
+    "message": "Links/rechts"
+  },
+  "tc_truth_tb": {
+    "message": "Boven/onder"
+  },
+  "tc_wear_none": {
+    "message": "Geen slijtage."
+  },
+  "tc_wear_b": {
+    "message": "Slijtage: witte randjes op de bovenrand (20–25 mm van links) en de rechterrand (50–53 mm van boven); de hoek linksonder is 0,6 mm afgesneden."
+  },
+  "tc_ruler": {
+    "message": "Deze balk is precies 100 mm als hij op ware grootte is geprint."
+  },
+  "grade_testcard": {
+    "message": "Test de precisie met geprinte testkaarten"
+  },
+  "tc_card_a": {
+    "message": "Testkaart A"
+  },
+  "tc_card_b": {
+    "message": "Testkaart B"
+  },
+  "tc_card_c": {
+    "message": "Testkaart C"
+  },
+  "tc_card_d": {
+    "message": "Testkaart D"
   }
 }

@@ -7,7 +7,7 @@ import { homography, applyH } from './geometry.js';
 import { sampleRgb } from './detect.js';
 
 export const CARD_MM = Object.freeze({ width: 63, height: 88 });
-export const WARP_MAX = 2000;
+export const WARP_MAX = 2600;
 export const WARP_MIN = 240;
 export const SIDES = Object.freeze(['left', 'right', 'top', 'bottom']);
 const PROFILES = 72;
@@ -82,7 +82,7 @@ function labAt(card, side, i, pos) {
  * @returns {{pxPerMm:number, sides:Record<string, {ok:boolean, px:number, mm:number, sigmaPx:number, n:number, spreadMm:number,
  *   glare:number, edgeWidthPx:number|null, reason?:string}>}}
  */
-export function measureBorders(card) {
+export function measureBorders(card, { outer = null } = {}) {
   const s = card.height / CARD_MM.height;
   const d0 = Math.max(1, Math.round(0.3 * s)); // skip the cut edge: anti-aliasing, whitening, background bleed
   const refBand = Math.max(2, Math.round(0.4 * s));
@@ -92,6 +92,14 @@ export function measureBorders(card) {
     const along = side === 'left' || side === 'right' ? card.height : card.width;
     const positions = [];
     for (let k = 0; k < PROFILES; k++) positions.push(Math.round(along * (0.12 + (0.76 * k) / (PROFILES - 1))));
+    // Where the cut edge really is at each profile (depth from the straight edge of the upright image): the median of
+    // the photo's own edge points nearby. 0 without them (corners placed by hand, a photo cropped to the card).
+    const pts = outer?.[side] ?? [];
+    const win = 0.06 * along;
+    const outerAt = (pos) => {
+      const near = pts.filter((q) => Math.abs(q[0] - pos) <= win).map((q) => q[1]);
+      return near.length >= 3 ? Math.max(-1.5 * s, Math.min(1.0 * s, median(near))) : 0;
+    };
     // Reference: the border colour right inside the cut edge.
     const ref = [];
     for (const pos of positions) for (let i = d0; i < d0 + refBand; i++) { const c = labAt(card, side, i, pos); if (c) ref.push(c); }
@@ -128,7 +136,7 @@ export function measureBorders(card) {
       const dp = k + 2 < e.length ? e[k + 2] - e[k + 1] : best;
       const den = dm - 2 * best + dp;
       const delta = den < 0 && Number.isFinite(den) ? Math.max(-0.5, Math.min(0.5, (0.5 * (dm - dp)) / den)) : 0;
-      widths.push(k + 1 + delta);
+      widths.push(k + 1 + delta - outerAt(pos));
       // 10-90 % rise width of this transition (sharpness).
       const plateau = Math.max(...e.slice(first, first + plateauLen).filter(Number.isFinite));
       let a = k; while (a > d0 && e[a] >= 0.1 * plateau) a--;

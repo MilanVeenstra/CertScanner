@@ -213,11 +213,20 @@ function report(byScenario, { seed, n, src, elapsed, jobs, pipeline, faces = 0 }
   const out = [];
   out.push(`# Grade-check benchmark${faces ? ' (official card faces)' : ''}\n`);
   out.push(`seed ${seed}, ${n} cases per scenario, algorithm: \`${src}\` (${pipeline}), ${jobs} worker(s), ${(elapsed / 1000).toFixed(0)} s.\n`);
-  if (faces) out.push(`Cards: ${faces} official card renders (tests/bench/official/faces.json), the whole print moved against the cut by a known amount; true borders = the render's measured borders plus that shift.\n`);
+  if (faces) out.push(`Cards: ${faces} official card renders (tests/bench/official/faces.json), the whole print moved against the cut by a known amount; true borders = the render's measured borders plus that shift (Lorcana: centering taken against its wide bottom border).\n`);
   out.push('Error: |measured − true| share of the left (top) border, points, worst of the two axes, on cases measured on both axes. '
     + '"wrong outline": found, but a corner more than 1 mm from the true one. Within 1σ / 2σ: share of axis errors within the claimed sigma. '
     + 'Wear alarm: minor or visible on a card without wear.\n');
   out.push(table(byScenario));
+  if (faces) {
+    const byGame = new Map();
+    for (const r of [...byScenario.values()].flat()) {
+      const g = r.meta.variant?.game ?? 'other';
+      if (!byGame.has(g)) byGame.set(g, []);
+      byGame.get(g).push(r);
+    }
+    out.push(`\n## By game\n\n${table(new Map([...byGame].sort()))}`);
+  }
   const sc = [...byScenario.keys()];
   if (byScenario.has('wear')) out.push(`\n## Wear (scenario wear)\n\n${wearTable(byScenario.get('wear'))}`);
   out.push('\n## Scenarios\n');

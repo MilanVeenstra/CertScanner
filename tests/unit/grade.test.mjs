@@ -75,6 +75,22 @@ test('analyzeCard: the copyright line printed in the bottom border is not taken 
   near(r.centering.tb.pct, img.truth.tb, 1, 'top/bottom');
 });
 
+test('analyzeCard: Disney Lorcana prints its bottom border 3.2 mm wider; top/bottom is taken against that layout', () => {
+  const lorcana = (b) => renderCard({ width: 700, height: 940, pxPerMm: 9, cardMm: [63.5, 88.9], borderColor: COLORS.black, bg: [150, 150, 155], border: b });
+  // Centred: 3.0 mm at the top and 6.2 mm at the bottom reads about 50/50, not 67/33; printed 0.5 mm low reads about
+  // 55/45 with the top wide. (The fixture's dark frame line merges into a black border: a little wider all round.)
+  const centred = analyzeCard(lorcana({ l: 2.7, r: 2.7, t: 3.0, b: 6.2 }));
+  assert.equal(centred.layout?.name, 'lorcana');
+  near(centred.centering.tb.pct, 50, 3, 'centred');
+  const low = analyzeCard(lorcana({ l: 2.7, r: 2.7, t: 3.5, b: 5.7 }));
+  near(low.centering.tb.pct, ((3.5 + 1.6) / 9.2) * 100, 3, 'printed low');
+  assert.equal(low.centering.tb.wide, 'top');
+  // A black border of ordinary width, however miscut, is not that layout.
+  const other = analyzeCard(lorcana({ l: 2.7, r: 2.7, t: 1.5, b: 4.5 }));
+  assert.equal(other.layout, null);
+  near(other.centering.tb.pct, 75, 4, 'miscut, not Lorcana');
+});
+
 test('analyzeCard: a photo cropped to the card uses the photo edges and says so', () => {
   const img = renderCard({ fill: true, width: 504, height: 704, pxPerMm: 8, border: { l: 3.2, r: 2.8, t: 3, b: 3 } });
   const r = analyzeCard(img);

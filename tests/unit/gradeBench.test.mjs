@@ -101,7 +101,7 @@ test('grade sim: a case renders the same bytes every time', () => {
   assert.deepEqual(a.truth, b.truth);
 });
 
-test('grade sim: the PNG reader for the official card faces undoes all five row filters (RGB and RGBA)', async () => {
+test('grade sim: the PNG reader for the official card faces undoes all five row filters (RGB, RGBA, palette)', async () => {
   const { deflateSync } = await import('node:zlib');
   const W = 5; const H = 6;
   for (const bpp of [3, 4]) {
@@ -122,5 +122,16 @@ test('grade sim: the PNG reader for the official card faces undoes all five row 
     const img = decodePng(png);
     assert.equal(img.width, W); assert.equal(img.height, H);
     for (let i = 0; i < W * H; i++) for (let c = 0; c < 4; c++) assert.equal(img.data[i * 4 + c], c < bpp ? px[i * bpp + c] : 255, `pixel ${i} channel ${c} (${bpp} bytes)`);
+  }
+  // Palette with transparency (the One Piece card site serves those): index → colour, alpha from tRNS.
+  const idx = Uint8Array.from({ length: W * H }, (_, i) => i % 3);
+  const raw = []; for (let y = 0; y < H; y++) { raw.push(0); for (let x = 0; x < W; x++) raw.push(idx[y * W + x]); }
+  const chunk = (type, body) => { const len = Buffer.alloc(4); len.writeUInt32BE(body.length); return Buffer.concat([len, Buffer.from(type, 'latin1'), body, Buffer.alloc(4)]); };
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4); ihdr[8] = 8; ihdr[9] = 3;
+  const plte = Buffer.from([10, 20, 30, 40, 50, 60, 70, 80, 90]); const trns = Buffer.from([0, 128]);
+  const img = decodePng(Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('PLTE', plte), chunk('tRNS', trns), chunk('IDAT', deflateSync(Buffer.from(raw))), chunk('IEND', Buffer.alloc(0))]));
+  for (let i = 0; i < W * H; i++) {
+    const k = idx[i];
+    assert.deepEqual([...img.data.slice(i * 4, i * 4 + 4)], [plte[k * 3], plte[k * 3 + 1], plte[k * 3 + 2], k < 2 ? trns[k] : 255], `palette pixel ${i}`);
   }
 });

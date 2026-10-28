@@ -56,7 +56,7 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     const { borders } = s.result;
     const eff = {};
     for (const n of SIDES) eff[n] = s.manual[n] !== undefined ? manualSide(s.manual[n], borders.pxPerMm) : borders.sides[n];
-    return { ...centeringFrom(eff, { scale: s.card?.scale ?? 1, sysPx: s.result.source === 'image-edges' ? 2 : 0.5 }), sides: eff };
+    return { ...centeringFrom(eff, { scale: s.card?.scale ?? 1, sysPx: s.result.source === 'image-edges' ? 2 : 0.5, shift: s.result.layout?.shift }), sides: eff };
   }
 
   function sideText(name) {
@@ -280,6 +280,7 @@ export function createGradeView({ doc, t, announce, getProvider, openSettings, o
     if (q.flags.includes('very-low-res')) add('grade_note_very_low_res', [q.pxPerMm.toFixed(1)], 'warning');
     else if (q.flags.includes('low-res')) add('grade_note_low_res', [q.pxPerMm.toFixed(1), sigma ? sigma.toFixed(1) : '?'], 'warning');
     for (const f of ['blurry', 'glare', 'skewed', 'cropped', 'cut-off']) if (q.flags.includes(f)) add(`grade_note_${f.replace('-', '_')}`, [], 'warning');
+    if (r.layout?.name === 'lorcana') add('grade_note_layout_lorcana', [r.layout.extraMm.toFixed(1)]);
     if (r.source === 'manual') add('grade_note_manual');
     if (Object.keys(s.manual).length) add('grade_note_adjusted');
   }

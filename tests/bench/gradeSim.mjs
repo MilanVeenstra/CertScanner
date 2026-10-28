@@ -161,6 +161,9 @@ const TYPE_FRAMES = {
 };
 export const TEMPLATES = Object.freeze(['pokemon-front', 'pokemon-back', 'lorcana', 'onepiece', 'silver-fullart']);
 const CARD_SIZE = { lorcana: [63.5, 88.9] };
+/** Borders wider by design (mm moved from the second side to the first when centred): Lorcana's bottom border is 3.2 mm
+ * wider than its top one. The truth of such a card's centering is taken against that layout, as graders do. */
+const LAYOUT_SHIFT = { lorcana: { tb: 1.6 } };
 
 /** Print noise of a solid ink area: slow mottle plus fine grain (sRGB levels). */
 const printNoise = (u, v, seed, mottle, grain) => (vnoise(u * 1.4, v * 1.4, seed) - 0.5) * 2 * mottle + (hash2(Math.floor(u * 16), Math.floor(v * 16), seed) - 0.5) * 2 * grain;
@@ -420,29 +423,28 @@ let faceMode = false;
 export function registerFaces(faces, { use = true } = {}) { FACES.length = 0; FACES.push(...faces); faceMode = use && FACES.length > 0; }
 
 /** Per axis the render's total border, split by a sampled centering share (as sampleBorders does). */
-function shiftedBorders(rand, base, { spread = 5, maxShare = 70 } = {}) {
-  const axis = (a, b) => {
-    const T = a + b;
-    const share = Math.min(maxShare, 50 + Math.abs(gauss(rand)) * spread) / 100;
-    return chance(rand, 0.5) ? [T * share, T * (1 - share)] : [T * (1 - share), T * share];
-  };
-  const [l, r] = axis(base.l, base.r); const [t, b] = axis(base.t, base.b);
+function shiftedBorders(rand, base, shift = {}, { spread = 5, maxShare = 70 } = {}) {
+  const [l, r] = splitAxis(rand, base.l + base.r, shift.lr ?? 0, { spread, maxShare });
+  const [t, b] = splitAxis(rand, base.t + base.b, shift.tb ?? 0, { spread, maxShare });
   return { l, r, t, b };
 }
+
+/** A face's designed difference: Lorcana's wide bottom border, from the render itself (centred by design). */
+const faceShift = (F) => (F.game === 'lorcana' ? { tb: (F.borders.b - F.borders.t) / 2 } : {});
 
 function officialFace(rand, B, { face }) {
   const F = FACES.find((f) => f.id === face);
   if (!F) throw new Error(`card face ${face} is not loaded (bench:grade --faces)`);
   const { data, width: W, height: H } = F.img;
-  const cw = 63; const ch = 88; const sx = W / cw; const sy = H / ch;
+  const [cw, ch] = F.cardMm ?? [63, 88]; const sx = W / cw; const sy = H / ch;
   const dx = B.l - F.borders.l; const dy = B.t - F.borders.t; // the print moved right / down
   // Print points outside the render's own outline (the strip the print moved away from) take the colour 0.4 mm inside
   // it, the border's colour: clamped into a rounded rectangle that stays clear of the render's transparent corners.
   const m = 0.4; const rr = (F.cornerRadiusMm ?? 3) - m + 0.3;
   const lx = m + rr; const hx = cw - m - rr; const ly = m + rr; const hy = ch - m - rr;
   return {
-    template: 'official', cw, ch, radius: U(rand, 2.8, 3.2), thickness: 0.3, borders: B,
-    variant: { face }, wall: [214, 210, 200], gloss: 1,
+    template: 'official', cw, ch, radius: U(rand, 2.8, 3.2), thickness: F.game === 'lorcana' ? 0.33 : 0.3, borders: B,
+    variant: { face, game: F.game }, wall: [214, 210, 200], gloss: 1, layoutShift: faceShift(F),
     shade(u, v, o) {
       let x = u - dx; let y = v - dy;
       const cx = x < lx ? lx : x > hx ? hx : x; const cy = y < ly ? ly : y > hy ? hy : y;
@@ -461,13 +463,19 @@ function officialFace(rand, B, { face }) {
 /** Borders in mm per side: per-axis total around the template's nominal, split by a centering share. */
 export function sampleBorders(rand, template, { spread = 5, maxShare = 70 } = {}) {
   const total = { 'pokemon-front': [5.4, 7.0], 'pokemon-back': [7.0, 9.0], lorcana: [5.4, 7.2], onepiece: [5.0, 6.8], 'silver-fullart': [4.2, 6.0] }[template];
-  const axis = () => {
-    const T = U(rand, total[0], total[1]);
-    const share = Math.min(maxShare, 50 + Math.abs(gauss(rand)) * spread) / 100;
-    return chance(rand, 0.5) ? [T * share, T * (1 - share)] : [T * (1 - share), T * share];
-  };
-  const [l, r] = axis(); const [t, b] = axis();
+  const shift = LAYOUT_SHIFT[template] ?? {};
+  // Lorcana: top and bottom together 3.2 mm more (the wide bottom border).
+  const axis = (d = 0) => splitAxis(rand, U(rand, total[0], total[1]) + 2 * d, d, { spread, maxShare });
+  const [l, r] = axis(shift.lr); const [t, b] = axis(shift.tb);
   return { l, r, t, b };
+}
+
+/** Two borders with total T: a centering share sampled around 50 %, taken against the layout (d: mm of designed extra
+ * width on the second side over the first, halved). */
+function splitAxis(rand, T, d = 0, { spread = 5, maxShare = 70 } = {}) {
+  const share = Math.min(maxShare, 50 + Math.abs(gauss(rand)) * spread) / 100;
+  const first = (chance(rand, 0.5) ? T * share : T * (1 - share)) - d;
+  return [first, T - first];
 }
 
 /** A card model: template print + outline (rounded, possibly damaged) + wear. */
@@ -481,6 +489,7 @@ export function makeCard(rand, template, borders, { variant = {}, wear = null, p
               : null;
   if (!base) throw new Error(`unknown template ${template}`);
   const { cw, ch, radius } = base;
+  base.layoutShift = base.layoutShift ?? LAYOUT_SHIFT[template] ?? {};
   const W = wear ?? { edges: [], corners: [] };
   const seed = (rand() * 1e9) | 0;
   // Outline: per-corner radius (blunted corners are rounder), straight cuts across tips, round dents.
@@ -1341,8 +1350,9 @@ const ratio = (a, b) => (Math.max(a, b) / (a + b)) * 100;
 function truthOf(card, corners) {
   const B = card.trueBorders();
   const len = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1]);
+  const sh = card.layoutShift ?? {};
   return {
-    lr: ratio(B.l, B.r), tb: ratio(B.t, B.b), borders: { ...B }, corners,
+    lr: ratio(B.l + (sh.lr ?? 0), B.r - (sh.lr ?? 0)), tb: ratio(B.t + (sh.tb ?? 0), B.b - (sh.tb ?? 0)), borders: { ...B }, shift: { ...sh }, corners,
     pxPerMm: (len(corners[0], corners[3]) + len(corners[1], corners[2])) / 2 / card.ch,
     wear: { edges: card.wear.edges.map((e) => ({ ...e })), corners: card.wear.corners.map((c) => ({ ...c })) },
   };
@@ -1552,7 +1562,7 @@ function scanBase(rand, { dpi, bg, page = false }) {
 const withCard = (rand, p, { templates = NORMAL_TEMPLATES, spread = 5, template = null, variant = null, darkOnDark = false } = {}) => {
   if (faceMode) {
     const F = pick(rand, FACES);
-    return { ...p, template: 'official', variant: { face: F.id }, borders: shiftedBorders(rand, F.borders, { spread }) };
+    return { ...p, template: 'official', variant: { face: F.id, game: F.game }, borders: shiftedBorders(rand, F.borders, faceShift(F), { spread }) };
   }
   // A black border on black backing has no outline at all: such scans are left out.
   const pool = p.bg === 'lid-black' ? templates.filter((t) => t !== 'lorcana' && t !== 'onepiece') : templates;
@@ -1696,7 +1706,8 @@ export function scoreCentering(result, truth) {
     const c = result.centering?.[ax];
     if (!c) continue;
     const [a, b] = ax === 'lr' ? ['l', 'r'] : ['t', 'b'];
-    const trueShare = (truth.borders[a] / (truth.borders[a] + truth.borders[b])) * 100;
+    // Against the layout (Lorcana's wide bottom border), as the grade check reports it.
+    const trueShare = ((truth.borders[a] + (truth.shift?.[ax] ?? 0)) / (truth.borders[a] + truth.borders[b])) * 100;
     let share = c.wide === (ax === 'lr' ? 'left' : 'top') ? c.pct : 100 - c.pct;
     if (flip) share = 100 - share;
     out[ax] = { pct: c.pct, sigma: c.sigma, share, trueShare, err: Math.abs(share - trueShare) };

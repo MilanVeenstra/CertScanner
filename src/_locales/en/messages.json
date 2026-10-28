@@ -1712,6 +1712,14 @@
   "grade_note_cut_off": {
     "message": "Part of the card is outside the photo."
   },
+  "grade_note_layout_lorcana": {
+    "message": "Disney Lorcana layout recognised: its bottom border is $P1$ mm wider than the top one by design, so top/bottom is measured against that.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "grade_note_manual": {
     "message": "Measured with the corners you placed."
   },

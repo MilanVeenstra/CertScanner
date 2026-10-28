@@ -1,5 +1,5 @@
 {
- "about": "Official card faces for the grade-check benchmark (bench:grade --faces): digital renders from images.pokemontcg.io, fetched into .cache/grade-data/official/ by scripts/fetch-grade-data.mjs --faces. The images are the publisher's artwork: use them locally for testing only, never commit or ship them. borders: border width per side in mm (card 63 x 88 mm = the image bounds), where the colour is halfway (linear light) between the border and the print just inside it, median over the middle 60 % of the side; only designs with a crisp border end on all four sides (10-90 % rise of 0.26 mm or less) are listed, so XY/BW frames, full arts and SV trainers are left out. The benchmark moves the whole print against the cut by a known amount (a miscut), so the true borders of every case are these plus that shift.",
+ "about": "Official card faces for the grade-check benchmark (bench:grade --faces): digital renders: Pokémon from images.pokemontcg.io, Disney Lorcana from lorcana-api.com, fetched into .cache/grade-data/official/ by scripts/fetch-grade-data.mjs --faces. The images are the publisher's artwork: use them locally for testing only, never commit or ship them. borders: border width per side in mm (the image bounds are the card: 63 x 88 mm, Lorcana 63.5 x 88.9 mm), where the colour is halfway (linear light) between the border and the print just inside it, median over the middle 60 % of the side; only designs with a crisp border end on all four sides (10-90 % rise of 0.26 mm or less) are listed, so XY/BW frames, full arts and SV trainers are left out. The benchmark moves the whole print against the cut by a known amount (a miscut), so the true borders of every case are these plus that shift. Lorcana prints its bottom border about 3.2 mm wider than the top one: such a card is centred, and its truth taken, against that layout.",
  "faces": [
   {
    "id": "cel25-1",
@@ -11,7 +11,8 @@
     "t": 2.428,
     "b": 2.437
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sm1-1",
@@ -23,7 +24,8 @@
     "t": 2.464,
     "b": 2.519
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sm1-30",
@@ -35,7 +37,8 @@
     "t": 2.483,
     "b": 2.518
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sm115-1",
@@ -47,7 +50,8 @@
     "t": 2.469,
     "b": 2.519
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sm35-5",
@@ -59,7 +63,8 @@
     "t": 2.466,
     "b": 2.521
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sv1-1",
@@ -71,7 +76,8 @@
     "t": 2.39,
     "b": 2.414
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sv1-2",
@@ -83,7 +89,8 @@
     "t": 2.39,
     "b": 2.414
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sv2-120",
@@ -95,7 +102,8 @@
     "t": 2.371,
     "b": 2.388
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "sv3-100",
@@ -107,7 +115,8 @@
     "t": 2.363,
     "b": 2.455
    },
-   "cornerRadiusMm": 3.23
+   "cornerRadiusMm": 3.23,
+   "game": "pokemon"
   },
   {
    "id": "sv3pt5-1",
@@ -119,7 +128,8 @@
     "t": 2.479,
     "b": 2.35
    },
-   "cornerRadiusMm": 3.23
+   "cornerRadiusMm": 3.23,
+   "game": "pokemon"
   },
   {
    "id": "sv4-100",
@@ -131,7 +141,8 @@
     "t": 2.496,
     "b": 2.418
    },
-   "cornerRadiusMm": 3.23
+   "cornerRadiusMm": 3.23,
+   "game": "pokemon"
   },
   {
    "id": "sv5-1",
@@ -143,7 +154,8 @@
     "t": 2.423,
     "b": 2.441
    },
-   "cornerRadiusMm": 3.23
+   "cornerRadiusMm": 3.23,
+   "game": "pokemon"
   },
   {
    "id": "sv6-20",
@@ -155,7 +167,8 @@
     "t": 2.429,
     "b": 2.346
    },
-   "cornerRadiusMm": 3.23
+   "cornerRadiusMm": 3.23,
+   "game": "pokemon"
   },
   {
    "id": "sv8-10",
@@ -167,7 +180,8 @@
     "t": 2.39,
     "b": 2.414
    },
-   "cornerRadiusMm": 3.23
+   "cornerRadiusMm": 3.23,
+   "game": "pokemon"
   },
   {
    "id": "swsh1-118",
@@ -179,7 +193,8 @@
     "t": 2.502,
     "b": 2.414
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "swsh1-127",
@@ -191,7 +206,8 @@
     "t": 2.513,
     "b": 2.408
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "swsh1-180",
@@ -203,7 +219,8 @@
     "t": 2.044,
     "b": 2.541
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "swsh1-200",
@@ -215,7 +232,8 @@
     "t": 2.96,
     "b": 2.387
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "swsh9-10",
@@ -227,7 +245,8 @@
     "t": 2.421,
     "b": 2.435
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
   },
   {
    "id": "swsh12-100",
@@ -239,7 +258,212 @@
     "t": 2.427,
     "b": 2.396
    },
-   "cornerRadiusMm": 2.93
+   "cornerRadiusMm": 2.93,
+   "game": "pokemon"
+  },
+  {
+   "id": "lorcana-TFC-001",
+   "game": "lorcana",
+   "name": "Ariel - On Human Legs",
+   "url": "https://lorcana-api.com/images/ariel/on_human_legs/ariel-on_human_legs-large.png",
+   "borders": {
+    "l": 2.636,
+    "r": 2.64,
+    "t": 2.939,
+    "b": 6.156
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-025",
+   "game": "lorcana",
+   "name": "Be Our Guest",
+   "url": "https://lorcana-api.com/images/be_our_guest/be_our_guest-large.png",
+   "borders": {
+    "l": 2.65,
+    "r": 2.681,
+    "t": 2.966,
+    "b": 6.159
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-035",
+   "game": "lorcana",
+   "name": "Anna - Heir to Arendelle",
+   "url": "https://lorcana-api.com/images/anna/heir_to_arendelle/anna-heir_to_arendelle-large.png",
+   "borders": {
+    "l": 3.008,
+    "r": 3.057,
+    "t": 3.534,
+    "b": 6.746
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-066",
+   "game": "lorcana",
+   "name": "Magic Mirror",
+   "url": "https://lorcana-api.com/images/magic_mirror/magic_mirror-large.png",
+   "borders": {
+    "l": 2.662,
+    "r": 2.683,
+    "t": 2.962,
+    "b": 6.162
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-069",
+   "game": "lorcana",
+   "name": "Aladdin - Prince Ali",
+   "url": "https://lorcana-api.com/images/aladdin/prince_ali/aladdin-prince_ali-large.png",
+   "borders": {
+    "l": 3.008,
+    "r": 3.029,
+    "t": 3.52,
+    "b": 6.746
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-094",
+   "game": "lorcana",
+   "name": "Do It Again!",
+   "url": "https://lorcana-api.com/images/do_it_again!/do_it_again!-large.png",
+   "borders": {
+    "l": 3.007,
+    "r": 3.021,
+    "t": 3.51,
+    "b": 6.729
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-103",
+   "game": "lorcana",
+   "name": "Abu - Mischievous Monkey",
+   "url": "https://lorcana-api.com/images/abu/mischievous_monkey/abu-mischievous_monkey-large.png",
+   "borders": {
+    "l": 3.022,
+    "r": 3.03,
+    "t": 3.545,
+    "b": 6.747
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-134",
+   "game": "lorcana",
+   "name": "Poisoned Apple",
+   "url": "https://lorcana-api.com/images/poisoned_apple/poisoned_apple-large.png",
+   "borders": {
+    "l": 2.661,
+    "r": 2.681,
+    "t": 2.962,
+    "b": 6.162
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-137",
+   "game": "lorcana",
+   "name": "Ariel - Whoseit Collector",
+   "url": "https://lorcana-api.com/images/ariel/whoseit_collector/ariel-whoseit_collector-large.png",
+   "borders": {
+    "l": 3.024,
+    "r": 3.009,
+    "t": 3.508,
+    "b": 6.74
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-166",
+   "game": "lorcana",
+   "name": "Coconut Basket",
+   "url": "https://lorcana-api.com/images/coconut_basket/coconut_basket-large.png",
+   "borders": {
+    "l": 2.663,
+    "r": 2.681,
+    "t": 2.963,
+    "b": 6.164
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-171",
+   "game": "lorcana",
+   "name": "Aladdin - Cornered Swordsman",
+   "url": "https://lorcana-api.com/images/aladdin/cornered_swordsman/aladdin-cornered_swordsman-large.png",
+   "borders": {
+    "l": 2.592,
+    "r": 2.635,
+    "t": 2.926,
+    "b": 6.159
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
+  },
+  {
+   "id": "lorcana-TFC-201",
+   "game": "lorcana",
+   "name": "Beast's Mirror",
+   "url": "https://lorcana-api.com/images/beast's_mirror/beast's_mirror-large.png",
+   "borders": {
+    "l": 2.662,
+    "r": 2.679,
+    "t": 2.963,
+    "b": 6.164
+   },
+   "cardMm": [
+    63.5,
+    88.9
+   ],
+   "cornerRadiusMm": 3.5
   }
  ]
 }

@@ -219,7 +219,7 @@ export function measureBorders(card, { outer = null } = {}) {
     else if (mean < 0.25 * s || mean > 11 * s) reason = 'implausible';
     sides[side] = {
       ok: !reason, reason, px: mean, mm: mean / s, sigmaPx: Math.max(sd, 0.25 * k) / Math.sqrt(n), n, spreadMm: sd / s, glare,
-      edgeWidthPx: edgeW.length ? median(edgeW) : null, colourSpread,
+      edgeWidthPx: edgeW.length ? median(edgeW) : null, colourSpread, lab: mid,
     };
   }
   return { pxPerMm: s, sides };
@@ -295,24 +295,48 @@ function depthProfile(card, side, a0, a1, step, dMax) {
   return out;
 }
 
+/** Disney Lorcana prints its bottom border this much wider than the top one (the artist, number and copyright line). */
+export const LORCANA_BOTTOM_EXTRA_MM = 3.2;
+
+/**
+ * A card layout whose borders differ by design, from the measured borders: Lorcana (black all round, the bottom border
+ * 3.2 mm wider than the top; top and bottom together 9-10 mm whatever the cut, against 5-7 mm on other games' cards,
+ * left and right 5-6 mm; a very small photo reads every border a little narrow).
+ * Returns {name, shift} with `shift` in warped px for centeringFrom (+ moves width from the second side to the first;
+ * the card may lie upside down), or null.
+ */
+export function cardLayout(sides, pxPerMm) {
+  if (!SIDES.every((n) => sides[n]?.ok && sides[n].lab)) return null;
+  if (!SIDES.every((n) => sides[n].lab[0] < 25 && Math.hypot(sides[n].lab[1], sides[n].lab[2]) < 15)) return null;
+  const t = sides.top.mm; const b = sides.bottom.mm; const lr = sides.left.mm + sides.right.mm;
+  // A miscut moves width from one side to the other but keeps the sum; up to about 65/35 against the layout.
+  const diff = Math.abs(b - t);
+  if (t + b < 7.2 || t + b > 11.5 || lr < 4.4 || lr > 7.2 || diff < 0.4 || diff > 6) return null;
+  const d = (LORCANA_BOTTOM_EXTRA_MM / 2) * pxPerMm;
+  return { name: 'lorcana', extraMm: LORCANA_BOTTOM_EXTRA_MM, shift: { tb: b > t ? d : -d } };
+}
+
 /**
  * Centering ratios from border widths. pct = the wider border's share of both (55 means 55/45).
- * `scale` = warped px per source px; `sysPx` = systematic error per border in source px (edge fit, warp).
+ * `scale` = warped px per source px; `sysPx` = systematic error per border in source px (edge fit, warp); `shift`: a
+ * layout's designed difference ({lr, tb}, warped px; cardLayout).
  * @returns {{lr:object|null, tb:object|null, worst:object|null}}
  */
-export function centeringFrom(sides, { scale = 1, sysPx = 0.5, floorPct = 0.3 } = {}) {
+export function centeringFrom(sides, { scale = 1, sysPx = 0.5, floorPct = 0.3, shift = null } = {}) {
   const sys = Math.hypot(0.35, sysPx * scale); // warped px
-  const axis = (a, b, names) => {
+  const axis = (a, b, names, d = 0) => {
     const A = sides[a]; const B = sides[b];
     if (!A?.ok || !B?.ok) return null;
     const sA = Math.hypot(A.sigmaPx ?? 0, sys); const sB = Math.hypot(B.sigmaPx ?? 0, sys);
-    const tot = A.px + B.px;
-    const share = Math.max(A.px, B.px) / tot;
-    const sigma = Math.hypot((Math.sqrt((B.px * sA) ** 2 + (A.px * sB) ** 2) / tot ** 2) * 100, floorPct);
-    return { pct: share * 100, sigma, wide: A.px >= B.px ? names[0] : names[1], a: A.px, b: B.px };
+    // A layout that prints one border wider by design is centred when both are equal after taking `d` from it.
+    const pa = A.px + d; const pb = B.px - d;
+    const tot = pa + pb;
+    const share = Math.max(pa, pb) / tot;
+    const sigma = Math.hypot((Math.sqrt((pb * sA) ** 2 + (pa * sB) ** 2) / tot ** 2) * 100, floorPct);
+    return { pct: share * 100, sigma, wide: pa >= pb ? names[0] : names[1], a: A.px, b: B.px };
   };
-  const lr = axis('left', 'right', ['left', 'right']);
-  const tb = axis('top', 'bottom', ['top', 'bottom']);
+  const lr = axis('left', 'right', ['left', 'right'], shift?.lr ?? 0);
+  const tb = axis('top', 'bottom', ['top', 'bottom'], shift?.tb ?? 0);
   const worst = [lr && { axis: 'lr', ...lr }, tb && { axis: 'tb', ...tb }].filter(Boolean).sort((p, q) => q.pct - p.pct)[0] ?? null;
   return { lr, tb, worst };
 }

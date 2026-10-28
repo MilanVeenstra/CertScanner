@@ -1,7 +1,7 @@
 // Grade check: from a photo to border widths, centering ratios and photo-quality flags. Pure and DOM-free; the panel
 // runs it in a module worker (gradeWorker.js) and unit tests call it directly.
 import { detectCard, refineQuad, sampleRgb, CARD_RATIO } from './detect.js';
-import { warpCard, measureBorders, centeringFrom, toLab, CARD_MM, SIDES } from './measure.js';
+import { warpCard, measureBorders, centeringFrom, cardLayout, toLab, CARD_MM, SIDES } from './measure.js';
 import { measureWear } from './wear.js';
 import { orderQuad, quadSkew, isConvex, quadArea, homography, applyH } from './geometry.js';
 
@@ -111,7 +111,9 @@ export function analyzeCard(img, { quad: given = null } = {}) {
   const card = warpCard(img, quad);
   const borders = measureBorders(card, { outer: edgePoints ? outerOffsets(edgePoints, quad, card) : null });
   // A photo cropped to the card has no cut edge of its own: its crop line can be off by a few pixels.
-  const centering = centeringFrom(borders.sides, { scale: card.scale, sysPx: source === 'image-edges' ? 2 : 0.5 });
+  // Lorcana's bottom border is wider by design: centering is then taken against that layout.
+  const layout = cardLayout(borders.sides, borders.pxPerMm);
+  const centering = centeringFrom(borders.sides, { scale: card.scale, sysPx: source === 'image-edges' ? 2 : 0.5, shift: layout?.shift });
 
   let transparent = 0;
   for (let j = 3; j < card.data.length; j += 4 * 7) if (card.data[j] === 0) transparent++;
@@ -134,7 +136,7 @@ export function analyzeCard(img, { quad: given = null } = {}) {
   const bg = source === 'image-edges' ? {} : backgroundColors(img, quad, pxPerMm);
   const wear = status === 'no-border' ? null : measureWear(card, { borders, bg, blurPx: (edgeWidthPx ?? 1) * card.scale });
   return {
-    status, quad, source, card, borders, centering, wear,
+    status, quad, source, card, borders, centering, wear, layout,
     quality: { pxPerMm, blurMm, glare, skew, edgeWidthPx, flags, ratio: CARD_RATIO },
   };
 }

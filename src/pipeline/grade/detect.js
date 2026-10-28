@@ -326,6 +326,33 @@ function margins(inner, outer, tol = 0) {
 }
 
 /**
+ * True when the photo looks cropped to the card around `inner` (its print frame): on every side an even band up to
+ * the photo edge, and in the photo's corners (outside the card's rounded corners) a colour unlike that band. When
+ * the corners have the band's colour, the band is the surface around a card that nearly fills the photo.
+ */
+function croppedToCard(inner, imageRect, small, short) {
+  const m = margins(inner, imageRect, 1.5);
+  if (!m) return false;
+  const bands = [];
+  for (let s = 0; s < 4; s++) {
+    if (m[s] < 0.01 * short || m[s] > 0.09 * short) return false;
+    const band = medianColor(small, bandPoints(inner, imageRect, s, 0.5));
+    if (!band || band.spread >= 14) return false;
+    bands.push(band);
+  }
+  const { width: w, height: h } = small;
+  const e = Math.max(2, Math.round(0.012 * Math.min(w, h)));
+  let alike = 0;
+  for (const [cx, cy] of [[0, 0], [w - e, 0], [w - e, h - e], [0, h - e]]) {
+    const pts = [];
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) pts.push([cx + ((i + 0.5) * e) / 3, cy + ((j + 0.5) * e) / 3]);
+    const c = medianColor(small, pts);
+    if (c && bands.some((b) => rgbDist(b, c) < 25)) alike++;
+  }
+  return alike < 3;
+}
+
+/**
  * Choose the card among the candidates. When the best quad has an enclosing quad up to 9 % of the card's short side
  * further out (some sides may coincide), and on the sides that moved the band between them has a colour unlike the
  * area outside, the inner quad was the print frame and the outer one is the card edge. A band that looks like the
@@ -356,14 +383,8 @@ function chooseCard(cands, small, imageRect) {
       if (border < Math.ceil(moved.length * 0.75)) continue;
       if (!next || c.score > next.score) next = c;
     }
-    if (!next && imageRect) {
-      const m = margins(best.quad, imageRect, 1.5);
-      const even = m && [0, 1, 2, 3].every((s) => {
-        if (m[s] < 0.01 * short || m[s] > 0.09 * short) return false;
-        const band = medianColor(small, bandPoints(best.quad, imageRect, s, 0.5));
-        return band && band.spread < 14;
-      });
-      if (even) return { quad: imageRect, source: 'image-edges', score: best.score, support: [1, 1, 1, 1], ratio: best.ratio };
+    if (!next && imageRect && croppedToCard(best.quad, imageRect, small, short)) {
+      return { quad: imageRect, source: 'image-edges', score: best.score, support: [1, 1, 1, 1], ratio: best.ratio };
     }
     if (!next) break;
     best = next;

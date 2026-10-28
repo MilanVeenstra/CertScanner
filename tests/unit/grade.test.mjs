@@ -101,6 +101,11 @@ test('analyzeCard: a card that nearly fills a 3:4 photo is measured from its own
   assert.equal(r.source, 'detected');
   near(r.centering.lr.pct, img.truth.lr, 1, 'left/right');
   near(r.centering.tb.pct, img.truth.tb, 1, 'top/bottom');
+  // An even strip of surface all round, in a photo of nearly card shape: still the surface, not a border.
+  const framed = renderCard({ width: 564, height: 764, pxPerMm: 8, bg: [225, 225, 222], border: { l: 3.4, r: 2.6, t: 3.3, b: 2.7 } });
+  const f = analyzeCard(framed);
+  assert.equal(f.source, 'detected');
+  near(f.centering.lr.pct, framed.truth.lr, 1, 'framed left/right');
 });
 
 test('analyzeCard: low resolution measures roughly and is flagged; borderless art is not given a number', () => {

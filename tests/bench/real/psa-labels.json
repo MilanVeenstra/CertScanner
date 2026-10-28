@@ -1,0 +1,8061 @@
+{
+ "about": "Border widths (mm, from the card edge to where the border ends, at the middle of each side) of PSA-graded card scans from huggingface.co/datasets/jyesr/pokemon-tcg-grading (fetch: scripts/fetch-grade-data.mjs). outer: the card corners in scan pixels (TL, TR, BR, BL). by: who set the values; method: agree = two independent measurements agreed within 0.12 mm, review = set after looking at the border (scripts/annotate-grade.mjs shows and corrects them).",
+ "images": [
+  {
+   "file": "100016945_back.jpg",
+   "cert": "100016945",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2024 POKEMON SCR EN-STELLAR CROWN #134 DELUXE BOMB",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     15.35,
+     20.15
+    ],
+    [
+     1130.55,
+     17.23
+    ],
+    [
+     1136.81,
+     1572.28
+    ],
+    [
+     17.27,
+     1575.04
+    ]
+   ],
+   "borders": {
+    "left": 3.264,
+    "right": 3.206,
+    "top": 3.598,
+    "bottom": 3.493
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100016945_front.jpg",
+   "cert": "100016945",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2024 POKEMON SCR EN-STELLAR CROWN #134 DELUXE BOMB",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     19.34,
+     20.18
+    ],
+    [
+     1139.63,
+     19.26
+    ],
+    [
+     1136.75,
+     1575.01
+    ],
+    [
+     23.74,
+     1571.92
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "holo full-art trainer, no plain border"
+  },
+  {
+   "file": "100016974_back.jpg",
+   "cert": "100016974",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "1999 POKEMON JAPANESE GYM 2 #132 KOGA'S DITTO HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     17.94,
+     22.43
+    ],
+    [
+     1131.36,
+     19.33
+    ],
+    [
+     1138.94,
+     1572.12
+    ],
+    [
+     9.77,
+     1560.38
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line in a dark blue border"
+  },
+  {
+   "file": "100016974_front.jpg",
+   "cert": "100016974",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "1999 POKEMON JAPANESE GYM 2 #132 KOGA'S DITTO HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     22.04,
+     22.47
+    ],
+    [
+     1125.49,
+     21.92
+    ],
+    [
+     1125.49,
+     1566.87
+    ],
+    [
+     22.92,
+     1568.76
+    ]
+   ],
+   "borders": {
+    "left": 2.232,
+    "right": 2.228,
+    "top": 2.312,
+    "bottom": 2.236
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100016981_back.jpg",
+   "cert": "100016981",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2010 POKEMON WORLD COLLECTION PIKACHU-HOLO PROMO-POLISH",
+   "year": 2010,
+   "miscut": false,
+   "outer": [
+    [
+     24.22,
+     21.16
+    ],
+    [
+     1126.15,
+     25.52
+    ],
+    [
+     1123.07,
+     1574.4
+    ],
+    [
+     17.29,
+     1570.38
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "soft gradient from the border into the back, no edge"
+  },
+  {
+   "file": "100016981_front.jpg",
+   "cert": "100016981",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2010 POKEMON WORLD COLLECTION PIKACHU-HOLO PROMO-POLISH",
+   "year": 2010,
+   "miscut": false,
+   "outer": [
+    [
+     18.03,
+     30.96
+    ],
+    [
+     1125.37,
+     25.82
+    ],
+    [
+     1131.77,
+     1574.4
+    ],
+    [
+     28.4,
+     1559.81
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Polish holo design with a silver bar inside the border"
+  },
+  {
+   "file": "100039019_back.jpg",
+   "cert": "100039019",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #166 BULBASAUR ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     17.02,
+     18.76
+    ],
+    [
+     1125.04,
+     17.43
+    ],
+    [
+     1131.16,
+     1570.14
+    ],
+    [
+     19.43,
+     1572.04
+    ]
+   ],
+   "borders": {
+    "left": 3.457,
+    "right": 2.955,
+    "top": 3.327,
+    "bottom": 3.478
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100039019_front.jpg",
+   "cert": "100039019",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #166 BULBASAUR ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     24.32,
+     19.44
+    ],
+    [
+     1141.26,
+     25.59
+    ],
+    [
+     1133.77,
+     1579.21
+    ],
+    [
+     17.41,
+     1573.03
+    ]
+   ],
+   "borders": {
+    "left": 2.466,
+    "right": 2.655,
+    "top": 2.336,
+    "bottom": 2.571
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100039031_back.jpg",
+   "cert": "100039031",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #170 SQUIRTLE ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     16.3,
+     13.45
+    ],
+    [
+     1124.29,
+     13.45
+    ],
+    [
+     1122.93,
+     1565.89
+    ],
+    [
+     13.18,
+     1564.95
+    ]
+   ],
+   "borders": {
+    "left": 3.173,
+    "right": 2.685,
+    "top": 3.706,
+    "bottom": 3.236
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100039031_front.jpg",
+   "cert": "100039031",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #170 SQUIRTLE ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     12.55,
+     18.14
+    ],
+    [
+     1130.58,
+     20.38
+    ],
+    [
+     1130.55,
+     1567.47
+    ],
+    [
+     17.66,
+     1567.58
+    ]
+   ],
+   "borders": {
+    "left": 2.716,
+    "right": 2.549,
+    "top": 2.456,
+    "bottom": 2.316
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100040980_back.jpg",
+   "cert": "100040980",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1999 POKEMON GAME #46 CHARMANDER SHADOWLESS",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     27.55,
+     16.98
+    ],
+    [
+     1134.6,
+     24.51
+    ],
+    [
+     1137.75,
+     1575.47
+    ],
+    [
+     10.09,
+     1564.09
+    ]
+   ],
+   "borders": {
+    "left": 3.221,
+    "right": 3.665,
+    "top": 3.199,
+    "bottom": 4.029
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100040980_front.jpg",
+   "cert": "100040980",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1999 POKEMON GAME #46 CHARMANDER SHADOWLESS",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     19.61,
+     6.38
+    ],
+    [
+     1130.64,
+     9.54
+    ],
+    [
+     1128.74,
+     1570.22
+    ],
+    [
+     15.27,
+     1561.58
+    ]
+   ],
+   "borders": {
+    "left": 2.87,
+    "right": 3.063,
+    "top": 3.06,
+    "bottom": 4.132
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100040986_back.jpg",
+   "cert": "100040986",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "1999 POKEMON GAME #23 ARCANINE 1ST EDITION",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     27.55,
+     20.84
+    ],
+    [
+     1133.99,
+     20.09
+    ],
+    [
+     1131.4,
+     1573.22
+    ],
+    [
+     21.29,
+     1573.22
+    ]
+   ],
+   "borders": {
+    "left": 3.04,
+    "right": 3.274,
+    "top": 3.305,
+    "bottom": 4.028
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100040986_front.jpg",
+   "cert": "100040986",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "1999 POKEMON GAME #23 ARCANINE 1ST EDITION",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     17.24,
+     6.47
+    ],
+    [
+     1131.79,
+     14.64
+    ],
+    [
+     1131.79,
+     1570.55
+    ],
+    [
+     12.91,
+     1564.56
+    ]
+   ],
+   "borders": {
+    "left": 2.917,
+    "right": 3.151,
+    "top": 3.391,
+    "bottom": 3.539
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100092912_back.jpg",
+   "cert": "100092912",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2021 POKEMON JAPANESE PROMO CARD PACK 25TH ANNIVERSARY EDITION #003 BLASTOISE-HOLO PCP 25TH ANNIVERSARY ED.",
+   "year": 2021,
+   "miscut": false,
+   "outer": [
+    [
+     18.29,
+     16.03
+    ],
+    [
+     1134.97,
+     21.49
+    ],
+    [
+     1125.26,
+     1574.22
+    ],
+    [
+     12.69,
+     1566.13
+    ]
+   ],
+   "borders": {
+    "left": 2.501,
+    "right": 2.664,
+    "top": 2.094,
+    "bottom": 2.857
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100092912_front.jpg",
+   "cert": "100092912",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2021 POKEMON JAPANESE PROMO CARD PACK 25TH ANNIVERSARY EDITION #003 BLASTOISE-HOLO PCP 25TH ANNIVERSARY ED.",
+   "year": 2021,
+   "miscut": false,
+   "outer": [
+    [
+     16.77,
+     19.32
+    ],
+    [
+     1131.03,
+     26.27
+    ],
+    [
+     1133.07,
+     1561.52
+    ],
+    [
+     11.14,
+     1556.41
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "glitter holo border, logo over the right border"
+  },
+  {
+   "file": "100095630_back.jpg",
+   "cert": "100095630",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2024 POKEMON JAPANESE SV8-SUPER ELECTRIC BREAKER #112 MAGNETON ART RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     13.91,
+     24.29
+    ],
+    [
+     1126.08,
+     21.56
+    ],
+    [
+     1126.94,
+     1569.6
+    ],
+    [
+     15.84,
+     1569.36
+    ]
+   ],
+   "borders": {
+    "left": 3.23,
+    "right": 3.724,
+    "top": 3.47,
+    "bottom": 3.46
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100095630_front.jpg",
+   "cert": "100095630",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2024 POKEMON JAPANESE SV8-SUPER ELECTRIC BREAKER #112 MAGNETON ART RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     18.17,
+     20.02
+    ],
+    [
+     1143.51,
+     20.02
+    ],
+    [
+     1143.38,
+     1571.82
+    ],
+    [
+     18.33,
+     1572.8
+    ]
+   ],
+   "borders": {
+    "left": 2.98,
+    "right": 2.672,
+    "top": 2.4,
+    "bottom": 2.428
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100095649_back.jpg",
+   "cert": "100095649",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #218 FA/RAIKOU V VSTAR UNIVERSE",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     15.34,
+     30.41
+    ],
+    [
+     1124.23,
+     26.76
+    ],
+    [
+     1126.15,
+     1571.36
+    ],
+    [
+     17.13,
+     1571.45
+    ]
+   ],
+   "borders": {
+    "left": 3.411,
+    "right": 3.31,
+    "top": 3.448,
+    "bottom": 3.469
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100095649_front.jpg",
+   "cert": "100095649",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #218 FA/RAIKOU V VSTAR UNIVERSE",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     25.65,
+     27.42
+    ],
+    [
+     1134.29,
+     25.63
+    ],
+    [
+     1135.06,
+     1572.62
+    ],
+    [
+     27.15,
+     1562.07
+    ]
+   ],
+   "borders": {
+    "left": 2.672,
+    "right": 2.306,
+    "top": 2.551,
+    "bottom": 1.454
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100102291_back.jpg",
+   "cert": "100102291",
+   "side": "back",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2007 POKEMON DIAMOND & PEARL SECRET WONDERS #1 AMPHAROS-HOLO SECRET WONDERS",
+   "year": 2007,
+   "miscut": false,
+   "outer": [
+    [
+     18.31,
+     15.33
+    ],
+    [
+     1126.43,
+     19.76
+    ],
+    [
+     1135.56,
+     1565.59
+    ],
+    [
+     14.15,
+     1564.9
+    ]
+   ],
+   "borders": {
+    "left": 3.122,
+    "right": 3.703,
+    "top": 3.75,
+    "bottom": 3.496
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100102291_front.jpg",
+   "cert": "100102291",
+   "side": "front",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2007 POKEMON DIAMOND & PEARL SECRET WONDERS #1 AMPHAROS-HOLO SECRET WONDERS",
+   "year": 2007,
+   "miscut": false,
+   "outer": [
+    [
+     16.66,
+     6.08
+    ],
+    [
+     1129.42,
+     9.08
+    ],
+    [
+     1129.42,
+     1566.67
+    ],
+    [
+     15.9,
+     1569.57
+    ]
+   ],
+   "borders": {
+    "left": 2.388,
+    "right": 2.482,
+    "top": 2.778,
+    "bottom": 2.498
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "DP-era: faint outer border edge inside the yellow"
+  },
+  {
+   "file": "100183138_back.jpg",
+   "cert": "100183138",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2018 POKEMON JAPANESE SM PROMO #210 GENTLMNL. PIKACHU POKEMON CENTER TOKYO DX",
+   "year": 2018,
+   "miscut": false,
+   "outer": [
+    [
+     28.54,
+     16.49
+    ],
+    [
+     1139.47,
+     15.25
+    ],
+    [
+     1143.24,
+     1556.82
+    ],
+    [
+     21.46,
+     1558.15
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "outline off on the left (holder)"
+  },
+  {
+   "file": "100183138_front.jpg",
+   "cert": "100183138",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2018 POKEMON JAPANESE SM PROMO #210 GENTLMNL. PIKACHU POKEMON CENTER TOKYO DX",
+   "year": 2018,
+   "miscut": false,
+   "outer": [
+    [
+     16.95,
+     16.28
+    ],
+    [
+     1133.36,
+     11.5
+    ],
+    [
+     1126.57,
+     1567.64
+    ],
+    [
+     20.87,
+     1567.43
+    ]
+   ],
+   "borders": {
+    "left": 2.639,
+    "right": 2.536,
+    "top": 2.742,
+    "bottom": 2.436
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100266803_back.jpg",
+   "cert": "100266803",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON SCR EN-STELLAR CROWN #171 BRIAR SPECIAL ILLUSTRATION RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     14.28,
+     16.47
+    ],
+    [
+     1129.01,
+     16.47
+    ],
+    [
+     1133.07,
+     1559.78
+    ],
+    [
+     11.61,
+     1561.41
+    ]
+   ],
+   "borders": {
+    "left": 3.078,
+    "right": 3.903,
+    "top": 3.682,
+    "bottom": 3.331
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100266803_front.jpg",
+   "cert": "100266803",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON SCR EN-STELLAR CROWN #171 BRIAR SPECIAL ILLUSTRATION RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     20.58,
+     17.9
+    ],
+    [
+     1135.05,
+     17.15
+    ],
+    [
+     1141.2,
+     1575.68
+    ],
+    [
+     17.51,
+     1574.2
+    ]
+   ],
+   "borders": {
+    "left": 2.575,
+    "right": 2.811,
+    "top": 2.083,
+    "bottom": 2.418
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100267371_back.jpg",
+   "cert": "100267371",
+   "side": "back",
+   "grade": 3,
+   "label": "VG 3",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #085 DODRIO MASTER BALL REVERSE HOLO",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     18.4,
+     24.16
+    ],
+    [
+     1133.33,
+     20.63
+    ],
+    [
+     1135.82,
+     1568.73
+    ],
+    [
+     23.97,
+     1570.9
+    ]
+   ],
+   "borders": {
+    "left": 3.225,
+    "right": 3.228,
+    "top": 3.17,
+    "bottom": 3.436
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100267371_front.jpg",
+   "cert": "100267371",
+   "side": "front",
+   "grade": 3,
+   "label": "VG 3",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #085 DODRIO MASTER BALL REVERSE HOLO",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     23.33,
+     8.56
+    ],
+    [
+     1149.61,
+     11.36
+    ],
+    [
+     1150.82,
+     1572.88
+    ],
+    [
+     21.71,
+     1569.68
+    ]
+   ],
+   "borders": {
+    "left": 2.816,
+    "right": 2.916,
+    "top": 2.275,
+    "bottom": 2.577
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100381480_back.jpg",
+   "cert": "100381480",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8 (MC)",
+   "name": "2000 TOPPS POKEMON THE MOVIE 2000 #26 THE BANQUET THE MOVIE 2000",
+   "year": 2000,
+   "miscut": true,
+   "outer": [
+    [
+     30.54,
+     15.26
+    ],
+    [
+     1124.38,
+     24.12
+    ],
+    [
+     1129.26,
+     1570.78
+    ],
+    [
+     14.79,
+     1572.54
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps back, no border"
+  },
+  {
+   "file": "100381480_front.jpg",
+   "cert": "100381480",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8 (MC)",
+   "name": "2000 TOPPS POKEMON THE MOVIE 2000 #26 THE BANQUET THE MOVIE 2000",
+   "year": 2000,
+   "miscut": true,
+   "outer": [
+    [
+     17.26,
+     23.08
+    ],
+    [
+     1152.92,
+     13.54
+    ],
+    [
+     1152.72,
+     1569.58
+    ],
+    [
+     20.37,
+     1565.46
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card, no border"
+  },
+  {
+   "file": "100383330_back.jpg",
+   "cert": "100383330",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2000 POKEMON JAPANESE NEO 2 PROMO #172 PICHU PROMO-REVERSE FOIL",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     27.68,
+     17.46
+    ],
+    [
+     1125.39,
+     29.04
+    ],
+    [
+     1125,
+     1572.71
+    ],
+    [
+     13.39,
+     1568.97
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "100383330_front.jpg",
+   "cert": "100383330",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2000 POKEMON JAPANESE NEO 2 PROMO #172 PICHU PROMO-REVERSE FOIL",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     8.14,
+     18.62
+    ],
+    [
+     1123.8,
+     22.3
+    ],
+    [
+     1119.01,
+     1577.38
+    ],
+    [
+     20.42,
+     1572.85
+    ]
+   ],
+   "borders": {
+    "left": 2.64,
+    "right": 2.017,
+    "top": 2.566,
+    "bottom": 2.386
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100383333_back.jpg",
+   "cert": "100383333",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2002 POKEMON EXPEDITION #9 DRAGONITE-HOLO",
+   "year": 2002,
+   "miscut": false,
+   "outer": [
+    [
+     11.74,
+     16.49
+    ],
+    [
+     1125.79,
+     17.5
+    ],
+    [
+     1127.82,
+     1566.16
+    ],
+    [
+     14.1,
+     1566.59
+    ]
+   ],
+   "borders": {
+    "left": 3.065,
+    "right": 3.528,
+    "top": 3.603,
+    "bottom": 3.24
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100383333_front.jpg",
+   "cert": "100383333",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2002 POKEMON EXPEDITION #9 DRAGONITE-HOLO",
+   "year": 2002,
+   "miscut": false,
+   "outer": [
+    [
+     10.03,
+     14.49
+    ],
+    [
+     1127.93,
+     14.49
+    ],
+    [
+     1127.16,
+     1575.88
+    ],
+    [
+     6.19,
+     1575.18
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "no border edge on the left (yellow design runs into the card)"
+  },
+  {
+   "file": "100383343_back.jpg",
+   "cert": "100383343",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON MEW EN-151 #188 ALAKAZAM ex ULTRA RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     22.19,
+     16.16
+    ],
+    [
+     1133.68,
+     12.72
+    ],
+    [
+     1133.91,
+     1557.52
+    ],
+    [
+     22.04,
+     1557.52
+    ]
+   ],
+   "borders": {
+    "left": 3.466,
+    "right": 3.148,
+    "top": 4.09,
+    "bottom": 2.927
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100383343_front.jpg",
+   "cert": "100383343",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON MEW EN-151 #188 ALAKAZAM ex ULTRA RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     3.15,
+     6.18
+    ],
+    [
+     1141.12,
+     8.15
+    ],
+    [
+     1139.25,
+     1569.51
+    ],
+    [
+     10.42,
+     1576.33
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "full-art: the art runs over the left border"
+  },
+  {
+   "file": "100390344_back.jpg",
+   "cert": "100390344",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2024 POKEMON SSP EN-SURGING SPARKS #239 LATIAS ex SPECIAL ILLUSTRATION RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     23,
+     15.67
+    ],
+    [
+     1133.96,
+     21.02
+    ],
+    [
+     1125.68,
+     1567.07
+    ],
+    [
+     19.33,
+     1562.24
+    ]
+   ],
+   "borders": {
+    "left": 3.07,
+    "right": 3.288,
+    "top": 3.333,
+    "bottom": 3.751
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100390344_front.jpg",
+   "cert": "100390344",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2024 POKEMON SSP EN-SURGING SPARKS #239 LATIAS ex SPECIAL ILLUSTRATION RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     18.05,
+     18.95
+    ],
+    [
+     1136.21,
+     16.79
+    ],
+    [
+     1133.71,
+     1578.1
+    ],
+    [
+     25.27,
+     1576.5
+    ]
+   ],
+   "borders": {
+    "left": 2.282,
+    "right": 2.75,
+    "top": 2.449,
+    "bottom": 2.791
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100390963_back.jpg",
+   "cert": "100390963",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #168 CHARMANDER ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     17.26,
+     18.65
+    ],
+    [
+     1123.21,
+     18.65
+    ],
+    [
+     1119.48,
+     1567.36
+    ],
+    [
+     10.25,
+     1569.64
+    ]
+   ],
+   "borders": {
+    "left": 3.006,
+    "right": 3.073,
+    "top": 3.588,
+    "bottom": 3.315
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100390963_front.jpg",
+   "cert": "100390963",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #168 CHARMANDER ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     23.84,
+     21.55
+    ],
+    [
+     1129.8,
+     21.55
+    ],
+    [
+     1127.14,
+     1578.55
+    ],
+    [
+     14.51,
+     1566.8
+    ]
+   ],
+   "borders": {
+    "left": 2.385,
+    "right": 2.336,
+    "top": 2.424,
+    "bottom": 2.247
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100391252_back.jpg",
+   "cert": "100391252",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON JAPANESE SV5a-CRIMSON HAZE #075 HISUIAN GROWLITHE ART RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     17.57,
+     19.13
+    ],
+    [
+     1125.09,
+     15.86
+    ],
+    [
+     1128.69,
+     1567.97
+    ],
+    [
+     23.84,
+     1569.24
+    ]
+   ],
+   "borders": {
+    "left": 3.23,
+    "right": 3.275,
+    "top": 4.277,
+    "bottom": 3.214
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100391252_front.jpg",
+   "cert": "100391252",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON JAPANESE SV5a-CRIMSON HAZE #075 HISUIAN GROWLITHE ART RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     15.67,
+     24.97
+    ],
+    [
+     1135.59,
+     26.15
+    ],
+    [
+     1132.75,
+     1581.79
+    ],
+    [
+     12.6,
+     1577.96
+    ]
+   ],
+   "borders": {
+    "left": 3.12,
+    "right": 2.364,
+    "top": 2.56,
+    "bottom": 2.574
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100629798_back.jpg",
+   "cert": "100629798",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #TG05 FA/PIKACHU LOST ORIGIN",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     17.26,
+     19.28
+    ],
+    [
+     1128.52,
+     12.74
+    ],
+    [
+     1135.41,
+     1559.71
+    ],
+    [
+     17.97,
+     1564.69
+    ]
+   ],
+   "borders": {
+    "left": 3.478,
+    "right": 3.296,
+    "top": 3.245,
+    "bottom": 3.902
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100629798_front.jpg",
+   "cert": "100629798",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #TG05 FA/PIKACHU LOST ORIGIN",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     21.68,
+     9.67
+    ],
+    [
+     1131.87,
+     7.24
+    ],
+    [
+     1137.35,
+     1566.18
+    ],
+    [
+     21.68,
+     1563.81
+    ]
+   ],
+   "borders": {
+    "left": 2.114,
+    "right": 2.963,
+    "top": 2.297,
+    "bottom": 2.078
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100630828_back.jpg",
+   "cert": "100630828",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2003 POKEMON JAPANESE MAGMA VS AQUA #036 AQUA'S CRAWDAUNT-HOLO MAGMA VS AQUA-1ST ED.",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     196.5,
+     74.48
+    ],
+    [
+     1201.34,
+     64.91
+    ],
+    [
+     1212.15,
+     1487.32
+    ],
+    [
+     205.56,
+     1494.36
+    ]
+   ],
+   "borders": {
+    "left": 2.383,
+    "right": 2.52,
+    "top": null,
+    "bottom": 2.269
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dataset error: front and back are the same image"
+  },
+  {
+   "file": "100630828_front.jpg",
+   "cert": "100630828",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2003 POKEMON JAPANESE MAGMA VS AQUA #036 AQUA'S CRAWDAUNT-HOLO MAGMA VS AQUA-1ST ED.",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     196.5,
+     74.48
+    ],
+    [
+     1201.34,
+     64.91
+    ],
+    [
+     1212.15,
+     1487.32
+    ],
+    [
+     205.56,
+     1494.36
+    ]
+   ],
+   "borders": {
+    "left": 2.383,
+    "right": 2.52,
+    "top": null,
+    "bottom": 2.269
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dataset error: front and back are the same image"
+  },
+  {
+   "file": "100630984_back.jpg",
+   "cert": "100630984",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2003 POKEMON AQUAPOLIS #H2 ARCANINE-HOLO",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     16.12,
+     23.25
+    ],
+    [
+     1124.38,
+     23.25
+    ],
+    [
+     1127.44,
+     1571.17
+    ],
+    [
+     14,
+     1571.17
+    ]
+   ],
+   "borders": {
+    "left": 2.881,
+    "right": 3.669,
+    "top": 3.427,
+    "bottom": 3.463
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100630984_front.jpg",
+   "cert": "100630984",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2003 POKEMON AQUAPOLIS #H2 ARCANINE-HOLO",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     15.37,
+     17.93
+    ],
+    [
+     1121.6,
+     17.93
+    ],
+    [
+     1128.71,
+     1566.98
+    ],
+    [
+     13.41,
+     1571.11
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 3.046,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Base set: yellow border runs into the yellow frame (no edge mid-side)"
+  },
+  {
+   "file": "100630991_back.jpg",
+   "cert": "100630991",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2003 POKEMON AQUAPOLIS #37 SUICUNE",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     14.9,
+     10.76
+    ],
+    [
+     1127.39,
+     11.62
+    ],
+    [
+     1133.08,
+     1561.43
+    ],
+    [
+     17.18,
+     1561.43
+    ]
+   ],
+   "borders": {
+    "left": 3.517,
+    "right": 3.09,
+    "top": 3.706,
+    "bottom": 3.57
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100630991_front.jpg",
+   "cert": "100630991",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2003 POKEMON AQUAPOLIS #37 SUICUNE",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     16.57,
+     12.38
+    ],
+    [
+     1134.18,
+     4.95
+    ],
+    [
+     1139.31,
+     1564.14
+    ],
+    [
+     20.06,
+     1570.99
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 3.094,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Base set: yellow border runs into the yellow frame"
+  },
+  {
+   "file": "100631021_back.jpg",
+   "cert": "100631021",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2000 TOPPS POKEMON TV ANIMATION SERIES 3 #127 PINSIR ANIMATION SERIES 3",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     4.71,
+     4.37
+    ],
+    [
+     1129.49,
+     4.89
+    ],
+    [
+     1132.45,
+     1572.33
+    ],
+    [
+     7.2,
+     1575.2
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "100631021_front.jpg",
+   "cert": "100631021",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2000 TOPPS POKEMON TV ANIMATION SERIES 3 #127 PINSIR ANIMATION SERIES 3",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     15.03,
+     20.37
+    ],
+    [
+     1137.82,
+     28.28
+    ],
+    [
+     1134.39,
+     1566.21
+    ],
+    [
+     10.78,
+     1567.4
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "100631037_back.jpg",
+   "cert": "100631037",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2000 TOPPS POKEMON TV ANIMATION SERIES 3 #151 MEW ANIMATION SERIES 3",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     2.82,
+     13.79
+    ],
+    [
+     1126.37,
+     -0.19
+    ],
+    [
+     1147.48,
+     1582.6
+    ],
+    [
+     18.54,
+     1572.82
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "100631037_front.jpg",
+   "cert": "100631037",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2000 TOPPS POKEMON TV ANIMATION SERIES 3 #151 MEW ANIMATION SERIES 3",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     5.66,
+     23.29
+    ],
+    [
+     1135.2,
+     18.07
+    ],
+    [
+     1146.87,
+     1576.69
+    ],
+    [
+     16.03,
+     1563.72
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "100631057_back.jpg",
+   "cert": "100631057",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2000 TOPPS CHROME POKEMON T.V. #46 PARAS POKEMON T.V.",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     13.44,
+     20.33
+    ],
+    [
+     1135.41,
+     22.54
+    ],
+    [
+     1131.78,
+     1581.03
+    ],
+    [
+     17.52,
+     1577.44
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "100631057_front.jpg",
+   "cert": "100631057",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2000 TOPPS CHROME POKEMON T.V. #46 PARAS POKEMON T.V.",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     15.45,
+     16.29
+    ],
+    [
+     1137.98,
+     19.54
+    ],
+    [
+     1135.35,
+     1568.46
+    ],
+    [
+     11.28,
+     1569.24
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "100632737_back.jpg",
+   "cert": "100632737",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "1999 POKEMON GAME #59 POLIWAG",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     14.92,
+     28.17
+    ],
+    [
+     1128.36,
+     24.57
+    ],
+    [
+     1126.98,
+     1572.15
+    ],
+    [
+     13.33,
+     1571.04
+    ]
+   ],
+   "borders": {
+    "left": 3.205,
+    "right": 3.396,
+    "top": 3.679,
+    "bottom": 3.455
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100632737_front.jpg",
+   "cert": "100632737",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "1999 POKEMON GAME #59 POLIWAG",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     21.38,
+     14.53
+    ],
+    [
+     1134.37,
+     14.53
+    ],
+    [
+     1131.84,
+     1560.45
+    ],
+    [
+     18.08,
+     1566.58
+    ]
+   ],
+   "borders": {
+    "left": 3.025,
+    "right": 3.237,
+    "top": 3.666,
+    "bottom": 3.422
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100919090_back.jpg",
+   "cert": "100919090",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #037 VULPIX MASTER BALL REVERSE HOLO",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     25.3,
+     23.55
+    ],
+    [
+     1136.32,
+     22.18
+    ],
+    [
+     1141.07,
+     1571.68
+    ],
+    [
+     23.44,
+     1571.68
+    ]
+   ],
+   "borders": {
+    "left": 3.1,
+    "right": 3.745,
+    "top": 3.297,
+    "bottom": 3.771
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "100919090_front.jpg",
+   "cert": "100919090",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #037 VULPIX MASTER BALL REVERSE HOLO",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     21.68,
+     8.82
+    ],
+    [
+     1131.67,
+     10.13
+    ],
+    [
+     1136.77,
+     1563.34
+    ],
+    [
+     21.45,
+     1564.66
+    ]
+   ],
+   "borders": {
+    "left": 2.564,
+    "right": 2.485,
+    "top": 2.239,
+    "bottom": 2.693
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100932381_back.jpg",
+   "cert": "100932381",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2017 POKEMON JAPANESE SUN & MOON TO HAVE SEEN THE BATTLE RAINBOW #058 FA/CHARIZARD GX TO HAVE SN.BTL.RNBW-HYPER",
+   "year": 2017,
+   "miscut": false,
+   "outer": [
+    [
+     18.25,
+     17.57
+    ],
+    [
+     1131.33,
+     23.71
+    ],
+    [
+     1125.88,
+     1558.38
+    ],
+    [
+     12.2,
+     1554.04
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light band at the left edge: outline unsure"
+  },
+  {
+   "file": "100932381_front.jpg",
+   "cert": "100932381",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2017 POKEMON JAPANESE SUN & MOON TO HAVE SEEN THE BATTLE RAINBOW #058 FA/CHARIZARD GX TO HAVE SN.BTL.RNBW-HYPER",
+   "year": 2017,
+   "miscut": false,
+   "outer": [
+    [
+     32.4,
+     28.08
+    ],
+    [
+     1159.39,
+     36.55
+    ],
+    [
+     1136.8,
+     1559.36
+    ],
+    [
+     28.26,
+     1564.47
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "GX full art: silver frame lines, border end unclear"
+  },
+  {
+   "file": "100940887_back.jpg",
+   "cert": "100940887",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON SVI EN-SCARLET & VIOLET #247 KORAIDON ex SPECIAL ILLUSTRATION RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     16.4,
+     11.06
+    ],
+    [
+     1127.64,
+     13.55
+    ],
+    [
+     1137.45,
+     1563.71
+    ],
+    [
+     16.4,
+     1559.01
+    ]
+   ],
+   "borders": {
+    "left": 3.091,
+    "right": 3.866,
+    "top": 3.553,
+    "bottom": 3.809
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "100940887_front.jpg",
+   "cert": "100940887",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON SVI EN-SCARLET & VIOLET #247 KORAIDON ex SPECIAL ILLUSTRATION RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     15.37,
+     16.98
+    ],
+    [
+     1126.01,
+     13.56
+    ],
+    [
+     1139.51,
+     1569.42
+    ],
+    [
+     21.21,
+     1577.81
+    ]
+   ],
+   "borders": {
+    "left": 2.63,
+    "right": 2.447,
+    "top": 2.312,
+    "bottom": 2.772
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101119211_back.jpg",
+   "cert": "101119211",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2022 POKEMON SWORD & SHIELD BRILLIANT STARS #TG02 FA/VAPOREON BRILLIANT STARS",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     16.5,
+     11.42
+    ],
+    [
+     1129.05,
+     8.98
+    ],
+    [
+     1132.38,
+     1557.4
+    ],
+    [
+     12.6,
+     1558.38
+    ]
+   ],
+   "borders": {
+    "left": 3.059,
+    "right": 3.774,
+    "top": 3.8,
+    "bottom": 3.399
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101119211_front.jpg",
+   "cert": "101119211",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2022 POKEMON SWORD & SHIELD BRILLIANT STARS #TG02 FA/VAPOREON BRILLIANT STARS",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     17.13,
+     11.95
+    ],
+    [
+     1116.83,
+     9.26
+    ],
+    [
+     1132.11,
+     1560.83
+    ],
+    [
+     12.27,
+     1565.54
+    ]
+   ],
+   "borders": {
+    "left": 2.608,
+    "right": 2.422,
+    "top": 2.677,
+    "bottom": 2.279
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101119245_back.jpg",
+   "cert": "101119245",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON CLV-TRADING CARD GAME CLASSIC VENUSAUR & LUGIA ex DECK #002 IVYSAUR",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     19.12,
+     21.46
+    ],
+    [
+     1138.93,
+     15.73
+    ],
+    [
+     1142.54,
+     1573.19
+    ],
+    [
+     16.37,
+     1573.19
+    ]
+   ],
+   "borders": {
+    "left": 3.36,
+    "right": 3.784,
+    "top": 3.551,
+    "bottom": 3.979
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101119245_front.jpg",
+   "cert": "101119245",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON CLV-TRADING CARD GAME CLASSIC VENUSAUR & LUGIA ex DECK #002 IVYSAUR",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     12.7,
+     11.07
+    ],
+    [
+     1124.41,
+     9.57
+    ],
+    [
+     1129.81,
+     1568.06
+    ],
+    [
+     12.7,
+     1564.99
+    ]
+   ],
+   "borders": {
+    "left": 2.798,
+    "right": 2.796,
+    "top": 3.329,
+    "bottom": 3.023
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101129904_back.jpg",
+   "cert": "101129904",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2004 POKEMON JAPANESE CLASH OF THE BLUE SKY #046 DEOXYS EX-HOLO CLASH OF THE BLUE SKY",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     194.36,
+     57.54
+    ],
+    [
+     1258.71,
+     50.69
+    ],
+    [
+     1253.75,
+     1533.13
+    ],
+    [
+     183.13,
+     1527.43
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": 2.494
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dataset error: front and back are the same image"
+  },
+  {
+   "file": "101129904_front.jpg",
+   "cert": "101129904",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2004 POKEMON JAPANESE CLASH OF THE BLUE SKY #046 DEOXYS EX-HOLO CLASH OF THE BLUE SKY",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     194.36,
+     57.54
+    ],
+    [
+     1258.71,
+     50.69
+    ],
+    [
+     1253.75,
+     1533.13
+    ],
+    [
+     183.13,
+     1527.43
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": 2.494
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dataset error: front and back are the same image"
+  },
+  {
+   "file": "101129907_back.jpg",
+   "cert": "101129907",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2005 POKEMON JAPANESE QUICK CONSTRUCTION PACKS #002 RAICHU EX-HOLO LIGHTNING QUICK CNST.PACKS",
+   "year": 2005,
+   "miscut": false,
+   "outer": [
+    [
+     6.74,
+     29.47
+    ],
+    [
+     1125.75,
+     28.02
+    ],
+    [
+     1124.71,
+     1579.24
+    ],
+    [
+     6.17,
+     1574.84
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline unsure"
+  },
+  {
+   "file": "101129907_front.jpg",
+   "cert": "101129907",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2005 POKEMON JAPANESE QUICK CONSTRUCTION PACKS #002 RAICHU EX-HOLO LIGHTNING QUICK CNST.PACKS",
+   "year": 2005,
+   "miscut": false,
+   "outer": [
+    [
+     25.7,
+     10.47
+    ],
+    [
+     1131.31,
+     16.18
+    ],
+    [
+     1132.05,
+     1572.02
+    ],
+    [
+     25.7,
+     1568.12
+    ]
+   ],
+   "borders": {
+    "left": 2.492,
+    "right": 2.199,
+    "top": 1.659,
+    "bottom": 1.224
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101290843_back.jpg",
+   "cert": "101290843",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2023 POKEMON MEW EN-151 #181 DRAGONAIR ILLUSTRATION RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     18.24,
+     25.04
+    ],
+    [
+     1130.15,
+     25.04
+    ],
+    [
+     1127.02,
+     1573.96
+    ],
+    [
+     16.01,
+     1575.51
+    ]
+   ],
+   "borders": {
+    "left": 3.297,
+    "right": 3.355,
+    "top": 4.048,
+    "bottom": 3.467
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101290843_front.jpg",
+   "cert": "101290843",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2023 POKEMON MEW EN-151 #181 DRAGONAIR ILLUSTRATION RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     18.43,
+     14.01
+    ],
+    [
+     1133.96,
+     12.53
+    ],
+    [
+     1141.7,
+     1567.96
+    ],
+    [
+     23.03,
+     1570.79
+    ]
+   ],
+   "borders": {
+    "left": 2.613,
+    "right": 2.753,
+    "top": 2.692,
+    "bottom": 2.298
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101291727_back.jpg",
+   "cert": "101291727",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #015 QUILAVA-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     15.92,
+     17.43
+    ],
+    [
+     1131.21,
+     15.57
+    ],
+    [
+     1130.31,
+     1565.99
+    ],
+    [
+     15.92,
+     1564.99
+    ]
+   ],
+   "borders": {
+    "left": 3.435,
+    "right": 3.541,
+    "top": 2.999,
+    "bottom": 3.219
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "101291727_front.jpg",
+   "cert": "101291727",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #015 QUILAVA-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     9.27,
+     16.37
+    ],
+    [
+     1129.05,
+     20.2
+    ],
+    [
+     1127.1,
+     1573.97
+    ],
+    [
+     9.27,
+     1570.84
+    ]
+   ],
+   "borders": {
+    "left": 2.692,
+    "right": 2.402,
+    "top": 2.092,
+    "bottom": 2.704
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101291737_back.jpg",
+   "cert": "101291737",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #022 MAGIKARP-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     24.99,
+     15.89
+    ],
+    [
+     1130.54,
+     15.89
+    ],
+    [
+     1127.92,
+     1562.54
+    ],
+    [
+     22.43,
+     1558.58
+    ]
+   ],
+   "borders": {
+    "left": 2.726,
+    "right": 3.32,
+    "top": 2.814,
+    "bottom": 3.16
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "101291737_front.jpg",
+   "cert": "101291737",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #022 MAGIKARP-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     16.52,
+     21.86
+    ],
+    [
+     1127.74,
+     19.16
+    ],
+    [
+     1129.66,
+     1580.99
+    ],
+    [
+     13.89,
+     1570.11
+    ]
+   ],
+   "borders": {
+    "left": 2.559,
+    "right": 2.253,
+    "top": 2.322,
+    "bottom": 2.504
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101291746_back.jpg",
+   "cert": "101291746",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2010 POKEMON JAPANESE REVIVING LEGENDS #024 ESPEON-HOLO REVIVING LEGENDS-1ST ED.",
+   "year": 2010,
+   "miscut": false,
+   "outer": [
+    [
+     17.48,
+     17.76
+    ],
+    [
+     1132.32,
+     15.02
+    ],
+    [
+     1131.88,
+     1565.2
+    ],
+    [
+     22.47,
+     1565.2
+    ]
+   ],
+   "borders": {
+    "left": 3.169,
+    "right": 2.944,
+    "top": 3.025,
+    "bottom": 3.282
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "101291746_front.jpg",
+   "cert": "101291746",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2010 POKEMON JAPANESE REVIVING LEGENDS #024 ESPEON-HOLO REVIVING LEGENDS-1ST ED.",
+   "year": 2010,
+   "miscut": false,
+   "outer": [
+    [
+     4.4,
+     12.31
+    ],
+    [
+     1131.29,
+     15.07
+    ],
+    [
+     1126.51,
+     1585.92
+    ],
+    [
+     13.24,
+     1572.8
+    ]
+   ],
+   "borders": {
+    "left": 2.661,
+    "right": 2.393,
+    "top": 2.331,
+    "bottom": 2.903
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101291754_back.jpg",
+   "cert": "101291754",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #033 RAICHU-HOLO SOULSILVER COLL-1ST ED.",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     23.48,
+     19.54
+    ],
+    [
+     1127.22,
+     17.88
+    ],
+    [
+     1127.22,
+     1563.88
+    ],
+    [
+     23.48,
+     1561.01
+    ]
+   ],
+   "borders": {
+    "left": 2.35,
+    "right": 2.505,
+    "top": 2.74,
+    "bottom": 2.764
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "101291754_front.jpg",
+   "cert": "101291754",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #033 RAICHU-HOLO SOULSILVER COLL-1ST ED.",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     23.75,
+     8.57
+    ],
+    [
+     1129.11,
+     17.13
+    ],
+    [
+     1126.17,
+     1574.23
+    ],
+    [
+     14.45,
+     1564.52
+    ]
+   ],
+   "borders": {
+    "left": 2.162,
+    "right": 2.41,
+    "top": 2.5,
+    "bottom": 2.397
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101291757_back.jpg",
+   "cert": "101291757",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2000 POKEMON JAPANESE NEO 2 #202 WOBBUFFET-HOLO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     10.64,
+     19.85
+    ],
+    [
+     1121.78,
+     17.34
+    ],
+    [
+     1133.43,
+     1572.45
+    ],
+    [
+     21.1,
+     1575.54
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "101291757_front.jpg",
+   "cert": "101291757",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2000 POKEMON JAPANESE NEO 2 #202 WOBBUFFET-HOLO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     22.08,
+     21.2
+    ],
+    [
+     1129.72,
+     25.62
+    ],
+    [
+     1124.23,
+     1585.01
+    ],
+    [
+     18.16,
+     1582.01
+    ]
+   ],
+   "borders": {
+    "left": 2.024,
+    "right": 2.381,
+    "top": 1.983,
+    "bottom": 2.871
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101295645_back.jpg",
+   "cert": "101295645",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2004 POKEMON JAPANESE ROCKET GANG STRIKES BACK #011 TREECKO-HOLO RCKT.GNG.STRKS.BCK-1ST ED.",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     13.46,
+     10.12
+    ],
+    [
+     1119.28,
+     7.02
+    ],
+    [
+     1121.29,
+     1551.05
+    ],
+    [
+     11.44,
+     1551.72
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline unsure"
+  },
+  {
+   "file": "101295645_front.jpg",
+   "cert": "101295645",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2004 POKEMON JAPANESE ROCKET GANG STRIKES BACK #011 TREECKO-HOLO RCKT.GNG.STRKS.BCK-1ST ED.",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     19.38,
+     4.84
+    ],
+    [
+     1123.38,
+     4.84
+    ],
+    [
+     1125.9,
+     1559.58
+    ],
+    [
+     15.3,
+     1559.58
+    ]
+   ],
+   "borders": {
+    "left": 2.192,
+    "right": 2.555,
+    "top": 2.4,
+    "bottom": 2.691
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101299873_back.jpg",
+   "cert": "101299873",
+   "side": "back",
+   "grade": 1,
+   "label": "PR 1",
+   "name": "2016 POKEMON XY EVOLUTIONS #11 CHARIZARD-HOLO EVOLUTIONS",
+   "year": 2016,
+   "miscut": false,
+   "outer": [
+    [
+     14.51,
+     13.27
+    ],
+    [
+     1126.46,
+     8.95
+    ],
+    [
+     1130.9,
+     1559.4
+    ],
+    [
+     14.51,
+     1561.2
+    ]
+   ],
+   "borders": {
+    "left": 3.187,
+    "right": 3.477,
+    "top": 3.522,
+    "bottom": 3.818
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "101299873_front.jpg",
+   "cert": "101299873",
+   "side": "front",
+   "grade": 1,
+   "label": "PR 1",
+   "name": "2016 POKEMON XY EVOLUTIONS #11 CHARIZARD-HOLO EVOLUTIONS",
+   "year": 2016,
+   "miscut": false,
+   "outer": [
+    [
+     16.72,
+     14.54
+    ],
+    [
+     1125.38,
+     10.86
+    ],
+    [
+     1129.6,
+     1571.59
+    ],
+    [
+     13.75,
+     1569.39
+    ]
+   ],
+   "borders": {
+    "left": 2.516,
+    "right": 2.601,
+    "top": 2.362,
+    "bottom": 2.854
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "70100070_back.jpg",
+   "cert": "70100070",
+   "side": "back",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2002 POKEMON JAPANESE McDONALD'S PROMO #036/P SNEASEL McDONALD'S PROMO",
+   "year": 2002,
+   "miscut": false,
+   "outer": [
+    [
+     18,
+     27.86
+    ],
+    [
+     1120.15,
+     25.89
+    ],
+    [
+     1124.38,
+     1573.26
+    ],
+    [
+     18,
+     1573.96
+    ]
+   ],
+   "borders": {
+    "left": 2.723,
+    "right": 2.415,
+    "top": 2.832,
+    "bottom": 2.548
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "70100070_front.jpg",
+   "cert": "70100070",
+   "side": "front",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2002 POKEMON JAPANESE McDONALD'S PROMO #036/P SNEASEL McDONALD'S PROMO",
+   "year": 2002,
+   "miscut": false,
+   "outer": [
+    [
+     24.21,
+     24.55
+    ],
+    [
+     1128.89,
+     24.55
+    ],
+    [
+     1132.73,
+     1580.32
+    ],
+    [
+     21.79,
+     1578.88
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 2.982,
+    "top": 3.156,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dotted band inside the yellow border: border end unclear"
+  },
+  {
+   "file": "70100095_back.jpg",
+   "cert": "70100095",
+   "side": "back",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2004 POKEMON JAPANESE FLIGHT OF LEGENDS #037 PIKACHU FLIGHT OF LEGENDS-1ST ED.",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     9.68,
+     28.1
+    ],
+    [
+     1130.82,
+     29.31
+    ],
+    [
+     1130.66,
+     1578.38
+    ],
+    [
+     7.44,
+     1576.69
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dark holder rim at the right edge: outline off"
+  },
+  {
+   "file": "70100095_front.jpg",
+   "cert": "70100095",
+   "side": "front",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2004 POKEMON JAPANESE FLIGHT OF LEGENDS #037 PIKACHU FLIGHT OF LEGENDS-1ST ED.",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     25.32,
+     8.6
+    ],
+    [
+     1149.87,
+     8.6
+    ],
+    [
+     1142.89,
+     1567.05
+    ],
+    [
+     32.47,
+     1560.81
+    ]
+   ],
+   "borders": {
+    "left": 2.137,
+    "right": 2.708,
+    "top": 2.187,
+    "bottom": 2.847
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "70522658_back.jpg",
+   "cert": "70522658",
+   "side": "back",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2015 POKEMON XY BREAKTHROUGH #159 FA/M MEWTWO EX BREAKTHROUGH",
+   "year": 2015,
+   "miscut": false,
+   "outer": [
+    [
+     21.6,
+     12.93
+    ],
+    [
+     1134.12,
+     12.93
+    ],
+    [
+     1133.99,
+     1566.35
+    ],
+    [
+     19.51,
+     1565.02
+    ]
+   ],
+   "borders": {
+    "left": 3.038,
+    "right": 3.451,
+    "top": 3.617,
+    "bottom": 3.584
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "70522658_front.jpg",
+   "cert": "70522658",
+   "side": "front",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2015 POKEMON XY BREAKTHROUGH #159 FA/M MEWTWO EX BREAKTHROUGH",
+   "year": 2015,
+   "miscut": false,
+   "outer": [
+    [
+     17.17,
+     11.07
+    ],
+    [
+     1128.71,
+     13.4
+    ],
+    [
+     1131.13,
+     1573.31
+    ],
+    [
+     17.54,
+     1562.25
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "EX full art: dark holo border, no edge"
+  },
+  {
+   "file": "71206945_back.jpg",
+   "cert": "71206945",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2000 POKEMON JAPANESE NEO 3 PROMO #244 ENTEI PROMO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     17.18,
+     30.79
+    ],
+    [
+     1132.77,
+     30.37
+    ],
+    [
+     1132.77,
+     1575.75
+    ],
+    [
+     17.22,
+     1575.37
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "71206945_front.jpg",
+   "cert": "71206945",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2000 POKEMON JAPANESE NEO 3 PROMO #244 ENTEI PROMO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     24.77,
+     8.6
+    ],
+    [
+     1129.11,
+     8.6
+    ],
+    [
+     1134.4,
+     1567.8
+    ],
+    [
+     23.04,
+     1563.18
+    ]
+   ],
+   "borders": {
+    "left": 2.397,
+    "right": 2.252,
+    "top": 2.379,
+    "bottom": 2.297
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "74409381_back.jpg",
+   "cert": "74409381",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2022 POKEMON SWORD & SHIELD SILVER TEMPEST #TG20 FA/RAYQUAZA VMAX SILVER TEMPEST",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     18.8,
+     32.34
+    ],
+    [
+     1135.79,
+     25.72
+    ],
+    [
+     1136.1,
+     1577.78
+    ],
+    [
+     23.1,
+     1580.22
+    ]
+   ],
+   "borders": {
+    "left": 3.091,
+    "right": 3.631,
+    "top": 3.55,
+    "bottom": 3.926
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "74409381_front.jpg",
+   "cert": "74409381",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2022 POKEMON SWORD & SHIELD SILVER TEMPEST #TG20 FA/RAYQUAZA VMAX SILVER TEMPEST",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     22.89,
+     21.66
+    ],
+    [
+     1134.51,
+     22.7
+    ],
+    [
+     1134.26,
+     1562.82
+    ],
+    [
+     23.61,
+     1579.47
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "VMAX full art, no border"
+  },
+  {
+   "file": "74535768_back.jpg",
+   "cert": "74535768",
+   "side": "back",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2019 POKEMON JAPANESE S PROMO #001 FA/PIKACHU SWSH PRE-ORDER",
+   "year": 2019,
+   "miscut": false,
+   "outer": [
+    [
+     32,
+     3.6
+    ],
+    [
+     1159.67,
+     0.48
+    ],
+    [
+     1167.71,
+     1584.32
+    ],
+    [
+     44.36,
+     1590.88
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dataset error: front and back are the same image"
+  },
+  {
+   "file": "74535768_front.jpg",
+   "cert": "74535768",
+   "side": "front",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "name": "2019 POKEMON JAPANESE S PROMO #001 FA/PIKACHU SWSH PRE-ORDER",
+   "year": 2019,
+   "miscut": false,
+   "outer": [
+    [
+     32,
+     3.6
+    ],
+    [
+     1159.67,
+     0.48
+    ],
+    [
+     1167.71,
+     1584.32
+    ],
+    [
+     44.36,
+     1590.88
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dataset error: front and back are the same image"
+  },
+  {
+   "file": "74660231_back.jpg",
+   "cert": "74660231",
+   "side": "back",
+   "grade": 1,
+   "label": "PR 1",
+   "name": "2003 POKEMON AQUAPOLIS #4 AZUMARILL REVERSE FOIL",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     19.18,
+     18.57
+    ],
+    [
+     1131.59,
+     18.57
+    ],
+    [
+     1132.08,
+     1566.83
+    ],
+    [
+     23.44,
+     1564.34
+    ]
+   ],
+   "borders": {
+    "left": 3.196,
+    "right": 3.138,
+    "top": 3.173,
+    "bottom": 3.637
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "74660231_front.jpg",
+   "cert": "74660231",
+   "side": "front",
+   "grade": 1,
+   "label": "PR 1",
+   "name": "2003 POKEMON AQUAPOLIS #4 AZUMARILL REVERSE FOIL",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     13.03,
+     12.46
+    ],
+    [
+     1132.16,
+     12.46
+    ],
+    [
+     1131.18,
+     1568.55
+    ],
+    [
+     13.16,
+     1565.39
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Base set: yellow border runs into the yellow frame"
+  },
+  {
+   "file": "74661010_back.jpg",
+   "cert": "74661010",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1999 POKEMON JAPANESE GYM 2 #26 LT. SURGE'S RAICHU HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     15.46,
+     31.37
+    ],
+    [
+     1131.88,
+     31.49
+    ],
+    [
+     1127.31,
+     1572.12
+    ],
+    [
+     12.49,
+     1576.29
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "74661010_front.jpg",
+   "cert": "74661010",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1999 POKEMON JAPANESE GYM 2 #26 LT. SURGE'S RAICHU HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     11.07,
+     31.35
+    ],
+    [
+     1118.73,
+     35.45
+    ],
+    [
+     1127.24,
+     1585
+    ],
+    [
+     15.43,
+     1582.3
+    ]
+   ],
+   "borders": {
+    "left": 2.139,
+    "right": 2.524,
+    "top": 2.24,
+    "bottom": 2.51
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "74661026_back.jpg",
+   "cert": "74661026",
+   "side": "back",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "2000 POKEMON JAPANESE NEO #249 LUGIA-HOLO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     13.08,
+     23.9
+    ],
+    [
+     1127.92,
+     32.31
+    ],
+    [
+     1131.66,
+     1559.57
+    ],
+    [
+     16.72,
+     1562.21
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "74661026_front.jpg",
+   "cert": "74661026",
+   "side": "front",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "2000 POKEMON JAPANESE NEO #249 LUGIA-HOLO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     20.29,
+     19.03
+    ],
+    [
+     1128.33,
+     13.17
+    ],
+    [
+     1134.22,
+     1564.39
+    ],
+    [
+     23.21,
+     1569.92
+    ]
+   ],
+   "borders": {
+    "left": 2.17,
+    "right": 2.326,
+    "top": 2.381,
+    "bottom": 2.511
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "74943040_back.jpg",
+   "cert": "74943040",
+   "side": "back",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #TG30 FA/MEW VMAX LOST ORIGIN",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     22.43,
+     24.1
+    ],
+    [
+     1137.85,
+     19.42
+    ],
+    [
+     1133.3,
+     1575.62
+    ],
+    [
+     20.64,
+     1579.84
+    ]
+   ],
+   "borders": {
+    "left": 2.718,
+    "right": 3.861,
+    "top": 3.42,
+    "bottom": 4.084
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "74943040_front.jpg",
+   "cert": "74943040",
+   "side": "front",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #TG30 FA/MEW VMAX LOST ORIGIN",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     19,
+     20.45
+    ],
+    [
+     1125.09,
+     9.32
+    ],
+    [
+     1129.72,
+     1575.29
+    ],
+    [
+     10.94,
+     1573.92
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "VMAX full art, no border"
+  },
+  {
+   "file": "75238734_back.jpg",
+   "cert": "75238734",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2008 POKEMON DIAMOND & PEARL MAJESTIC DAWN #98 GLACEON LV.X-HOLO MAJESTIC DAWN",
+   "year": 2008,
+   "miscut": false,
+   "outer": [
+    [
+     9.17,
+     22.08
+    ],
+    [
+     1138.72,
+     38.32
+    ],
+    [
+     1141.98,
+     1574.49
+    ],
+    [
+     28.31,
+     1559.18
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 3.423,
+    "bottom": 3.635
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "outline off on the left (holder rim taken as the edge)"
+  },
+  {
+   "file": "75238734_front.jpg",
+   "cert": "75238734",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "2008 POKEMON DIAMOND & PEARL MAJESTIC DAWN #98 GLACEON LV.X-HOLO MAJESTIC DAWN",
+   "year": 2008,
+   "miscut": false,
+   "outer": [
+    [
+     43.85,
+     22.73
+    ],
+    [
+     1149.24,
+     20.66
+    ],
+    [
+     1159.45,
+     1585.4
+    ],
+    [
+     49.82,
+     1584.6
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "glitter silver border with a darker inner band: end unclear"
+  },
+  {
+   "file": "75240149_back.jpg",
+   "cert": "75240149",
+   "side": "back",
+   "grade": 2,
+   "label": "GOOD 2",
+   "name": "2004 POKEMON JAPANESE PROMO #054 CHARIZARD MEIJI CHOCOLATE",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     2.48,
+     28.84
+    ],
+    [
+     1133.85,
+     25.93
+    ],
+    [
+     1130.83,
+     1569.74
+    ],
+    [
+     20.5,
+     1566.31
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline unsure"
+  },
+  {
+   "file": "75240149_front.jpg",
+   "cert": "75240149",
+   "side": "front",
+   "grade": 2,
+   "label": "GOOD 2",
+   "name": "2004 POKEMON JAPANESE PROMO #054 CHARIZARD MEIJI CHOCOLATE",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     8.18,
+     19.43
+    ],
+    [
+     1128.39,
+     24.77
+    ],
+    [
+     1119.77,
+     1578
+    ],
+    [
+     21.31,
+     1571.68
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 2.362,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "top border runs into a white name bar: no edge"
+  },
+  {
+   "file": "75252267_back.jpg",
+   "cert": "75252267",
+   "side": "back",
+   "grade": 3,
+   "label": "VG 3",
+   "name": "2022 POKEMON SWORD & SHIELD BRILLIANT STARS #182 FA/GALARIAN ZAPDOS V BRILLIANT STARS-SECRET",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     30.71,
+     32.64
+    ],
+    [
+     1227.37,
+     24.74
+    ],
+    [
+     1221.21,
+     1571.68
+    ],
+    [
+     29.45,
+     1574.6
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 4.695,
+    "top": 3.329,
+    "bottom": 3.92
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "outline off on the right (holder)"
+  },
+  {
+   "file": "75252267_front.jpg",
+   "cert": "75252267",
+   "side": "front",
+   "grade": 3,
+   "label": "VG 3",
+   "name": "2022 POKEMON SWORD & SHIELD BRILLIANT STARS #182 FA/GALARIAN ZAPDOS V BRILLIANT STARS-SECRET",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     26.93,
+     31.3
+    ],
+    [
+     1272.9,
+     19.77
+    ],
+    [
+     1261.46,
+     1575.27
+    ],
+    [
+     29.56,
+     1579.42
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "outline off on the right (holder)"
+  },
+  {
+   "file": "75259537_back.jpg",
+   "cert": "75259537",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1999 POKEMON FOSSIL #2 ARTICUNO-HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     21.96,
+     19.58
+    ],
+    [
+     1127.22,
+     21.91
+    ],
+    [
+     1120.98,
+     1565.12
+    ],
+    [
+     15.09,
+     1564.48
+    ]
+   ],
+   "borders": {
+    "left": 2.884,
+    "right": 3.274,
+    "top": 3.558,
+    "bottom": 3.195
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "75259537_front.jpg",
+   "cert": "75259537",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1999 POKEMON FOSSIL #2 ARTICUNO-HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     21.33,
+     19.7
+    ],
+    [
+     1131.5,
+     22.31
+    ],
+    [
+     1131.63,
+     1574.98
+    ],
+    [
+     21.33,
+     1575.61
+    ]
+   ],
+   "borders": {
+    "left": 3.486,
+    "right": 2.668,
+    "top": 3.478,
+    "bottom": 3.91
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "75327739_back.jpg",
+   "cert": "75327739",
+   "side": "back",
+   "grade": 3,
+   "label": "VG 3",
+   "name": "2017 POKEMON JAPANESE SUN & MOON STRENGTH EXPANSION PACK SHINING LEGENDS #058 SHINING LUGIA-HOLO S.E.P. SHINING LEGENDS",
+   "year": 2017,
+   "miscut": false,
+   "outer": [
+    [
+     22.86,
+     28.6
+    ],
+    [
+     1131.94,
+     28.43
+    ],
+    [
+     1130.7,
+     1577.61
+    ],
+    [
+     22.86,
+     1575.65
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light band at the bottom edge: outline unsure"
+  },
+  {
+   "file": "75327739_front.jpg",
+   "cert": "75327739",
+   "side": "front",
+   "grade": 3,
+   "label": "VG 3",
+   "name": "2017 POKEMON JAPANESE SUN & MOON STRENGTH EXPANSION PACK SHINING LEGENDS #058 SHINING LUGIA-HOLO S.E.P. SHINING LEGENDS",
+   "year": 2017,
+   "miscut": false,
+   "outer": [
+    [
+     5.9,
+     31.74
+    ],
+    [
+     1118.21,
+     27.95
+    ],
+    [
+     1121.65,
+     1577.19
+    ],
+    [
+     13.06,
+     1580.82
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 2.53,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "white card with faint frame lines: border end unclear"
+  },
+  {
+   "file": "75502239_back.jpg",
+   "cert": "75502239",
+   "side": "back",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "2023 POKEMON SIMPLIFIED CHINESE CSM2D C-SHINING SYNERGY GX STARTER DECK #345 ERIKA'S HOSPITALITY",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     20.62,
+     28.01
+    ],
+    [
+     1121.87,
+     28.9
+    ],
+    [
+     1124.28,
+     1566.86
+    ],
+    [
+     20.62,
+     1566.86
+    ]
+   ],
+   "borders": {
+    "left": 2.971,
+    "right": 3.314,
+    "top": 3.505,
+    "bottom": 3.552
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "75502239_front.jpg",
+   "cert": "75502239",
+   "side": "front",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "2023 POKEMON SIMPLIFIED CHINESE CSM2D C-SHINING SYNERGY GX STARTER DECK #345 ERIKA'S HOSPITALITY",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     17.83,
+     14.26
+    ],
+    [
+     1133.01,
+     12.31
+    ],
+    [
+     1135.61,
+     1568.09
+    ],
+    [
+     21.1,
+     1571.18
+    ]
+   ],
+   "borders": {
+    "left": 2.593,
+    "right": 2.504,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "top border runs into a white name band"
+  },
+  {
+   "file": "75504879_back.jpg",
+   "cert": "75504879",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2004 POKEMON JAPANESE ROCKET GANG STRIKES BACK #015 DARK WEEZING-HOLO RCKT.GNG.STRKS.BCK-1ST ED.",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     26.46,
+     25.19
+    ],
+    [
+     1137.89,
+     26.55
+    ],
+    [
+     1137.89,
+     1575.36
+    ],
+    [
+     23.56,
+     1576.3
+    ]
+   ],
+   "borders": {
+    "left": 2.969,
+    "right": 2.703,
+    "top": 2.731,
+    "bottom": 2.669
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "75504879_front.jpg",
+   "cert": "75504879",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2004 POKEMON JAPANESE ROCKET GANG STRIKES BACK #015 DARK WEEZING-HOLO RCKT.GNG.STRKS.BCK-1ST ED.",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     11.91,
+     28.65
+    ],
+    [
+     1123.14,
+     29.25
+    ],
+    [
+     1121.21,
+     1578.21
+    ],
+    [
+     18.49,
+     1578.32
+    ]
+   ],
+   "borders": {
+    "left": 2.181,
+    "right": 2.751,
+    "top": 2.625,
+    "bottom": 2.556
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "75788726_back.jpg",
+   "cert": "75788726",
+   "side": "back",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "1999 POKEMON JUNGLE #33 BUTTERFREE \"d\" EDITION ERROR",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     17.72,
+     16.71
+    ],
+    [
+     1134.01,
+     15.91
+    ],
+    [
+     1133.75,
+     1559.42
+    ],
+    [
+     17.78,
+     1565.7
+    ]
+   ],
+   "borders": {
+    "left": 3.13,
+    "right": 3.643,
+    "top": 3.313,
+    "bottom": 3.375
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "75788726_front.jpg",
+   "cert": "75788726",
+   "side": "front",
+   "grade": 5,
+   "label": "EX 5",
+   "name": "1999 POKEMON JUNGLE #33 BUTTERFREE \"d\" EDITION ERROR",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     27.92,
+     14
+    ],
+    [
+     1140.54,
+     16
+    ],
+    [
+     1137.91,
+     1572.32
+    ],
+    [
+     24.8,
+     1565.48
+    ]
+   ],
+   "borders": {
+    "left": 3.215,
+    "right": 3.174,
+    "top": 3.655,
+    "bottom": 3.681
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "75884936_back.jpg",
+   "cert": "75884936",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2021 POKEMON SWORD & SHIELD EVOLVING SKIES #215 FA/NACHTARA VMAX EVOLVING SKIES-GER-SECRET",
+   "year": 2021,
+   "miscut": false,
+   "outer": [
+    [
+     20.91,
+     18.74
+    ],
+    [
+     1134.25,
+     17.86
+    ],
+    [
+     1130.78,
+     1565.28
+    ],
+    [
+     14.92,
+     1563.49
+    ]
+   ],
+   "borders": {
+    "left": 3.321,
+    "right": 3.147,
+    "top": 3.233,
+    "bottom": 3.509
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "75884936_front.jpg",
+   "cert": "75884936",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2021 POKEMON SWORD & SHIELD EVOLVING SKIES #215 FA/NACHTARA VMAX EVOLVING SKIES-GER-SECRET",
+   "year": 2021,
+   "miscut": false,
+   "outer": [
+    [
+     15.33,
+     13.02
+    ],
+    [
+     1131.68,
+     13.7
+    ],
+    [
+     1121.8,
+     1565.04
+    ],
+    [
+     18.09,
+     1568.29
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "VMAX full art, no border"
+  },
+  {
+   "file": "75885115_back.jpg",
+   "cert": "75885115",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4 (MC)",
+   "name": "1957 TOPPS #128 LENNY MOORE",
+   "year": 1957,
+   "miscut": true,
+   "outer": [
+    [
+     16.77,
+     9.23
+    ],
+    [
+     1142.17,
+     5.45
+    ],
+    [
+     1142.62,
+     1555.35
+    ],
+    [
+     24.27,
+     1552.3
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "75885115_front.jpg",
+   "cert": "75885115",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4 (MC)",
+   "name": "1957 TOPPS #128 LENNY MOORE",
+   "year": 1957,
+   "miscut": true,
+   "outer": [
+    [
+     1.32,
+     3.83
+    ],
+    [
+     1128.66,
+     3.57
+    ],
+    [
+     1129.58,
+     1553.07
+    ],
+    [
+     9.2,
+     1557.42
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 2.663,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "95459626_back.jpg",
+   "cert": "95459626",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1999 POKEMON FOSSIL #1 AERODACTYL-HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     15,
+     18.49
+    ],
+    [
+     1130.57,
+     19.51
+    ],
+    [
+     1132.46,
+     1566.22
+    ],
+    [
+     14.41,
+     1564.95
+    ]
+   ],
+   "borders": {
+    "left": 3.441,
+    "right": 3.151,
+    "top": 3.155,
+    "bottom": 3.559
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95459626_front.jpg",
+   "cert": "95459626",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1999 POKEMON FOSSIL #1 AERODACTYL-HOLO",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     9.82,
+     12.6
+    ],
+    [
+     1126.22,
+     12.63
+    ],
+    [
+     1128.48,
+     1567.94
+    ],
+    [
+     9.82,
+     1571.22
+    ]
+   ],
+   "borders": {
+    "left": 3.096,
+    "right": 3.019,
+    "top": 3.695,
+    "bottom": 3.576
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95459747_back.jpg",
+   "cert": "95459747",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1999 TOPPS POKEMON THE MOVIE EDT #37 MOVIE EDITION THE TEARS OF POKEMON",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     12.49,
+     16.87
+    ],
+    [
+     1138.16,
+     9.15
+    ],
+    [
+     1141.09,
+     1582.76
+    ],
+    [
+     12.49,
+     1573.96
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "95459747_front.jpg",
+   "cert": "95459747",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1999 TOPPS POKEMON THE MOVIE EDT #37 MOVIE EDITION THE TEARS OF POKEMON",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     18.75,
+     14.52
+    ],
+    [
+     1144.22,
+     2.49
+    ],
+    [
+     1137.21,
+     1586.17
+    ],
+    [
+     11.54,
+     1586.05
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Topps card"
+  },
+  {
+   "file": "95459780_back.jpg",
+   "cert": "95459780",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1996 POKEMON JAPANESE BASIC #2 IVYSAUR",
+   "year": 1996,
+   "miscut": false,
+   "outer": [
+    [
+     23.99,
+     18.2
+    ],
+    [
+     1136.25,
+     10.4
+    ],
+    [
+     1132.16,
+     1553.89
+    ],
+    [
+     10.2,
+     1564.18
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "95459780_front.jpg",
+   "cert": "95459780",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7",
+   "name": "1996 POKEMON JAPANESE BASIC #2 IVYSAUR",
+   "year": 1996,
+   "miscut": false,
+   "outer": [
+    [
+     24.81,
+     10.2
+    ],
+    [
+     1126.87,
+     5.83
+    ],
+    [
+     1138.13,
+     1566.1
+    ],
+    [
+     26.08,
+     1564.49
+    ]
+   ],
+   "borders": {
+    "left": 2.269,
+    "right": 2.207,
+    "top": 2.463,
+    "bottom": 2.491
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95459782_back.jpg",
+   "cert": "95459782",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1997 POKEMON JAPANESE FOSSIL #93 HAUNTER-HOLO",
+   "year": 1997,
+   "miscut": false,
+   "outer": [
+    [
+     19.76,
+     9.21
+    ],
+    [
+     1130.27,
+     11.31
+    ],
+    [
+     1134.57,
+     1552.84
+    ],
+    [
+     13.61,
+     1559.78
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "95459782_front.jpg",
+   "cert": "95459782",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1997 POKEMON JAPANESE FOSSIL #93 HAUNTER-HOLO",
+   "year": 1997,
+   "miscut": false,
+   "outer": [
+    [
+     10.77,
+     9.99
+    ],
+    [
+     1121.42,
+     8.85
+    ],
+    [
+     1123.83,
+     1569.36
+    ],
+    [
+     7.38,
+     1566.17
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": 2.849
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "outline off on the left (holder rim)"
+  },
+  {
+   "file": "95472650_back.jpg",
+   "cert": "95472650",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2001 POKEMON JAPANESE NEO 4 #212 DARK SCIZOR-HOLO",
+   "year": 2001,
+   "miscut": false,
+   "outer": [
+    [
+     25.67,
+     25.13
+    ],
+    [
+     1136.48,
+     24.69
+    ],
+    [
+     1130.8,
+     1571.89
+    ],
+    [
+     25.45,
+     1566.19
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "95472650_front.jpg",
+   "cert": "95472650",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2001 POKEMON JAPANESE NEO 4 #212 DARK SCIZOR-HOLO",
+   "year": 2001,
+   "miscut": false,
+   "outer": [
+    [
+     28.19,
+     29.2
+    ],
+    [
+     1137.79,
+     28.09
+    ],
+    [
+     1135.01,
+     1582.21
+    ],
+    [
+     28.16,
+     1580.96
+    ]
+   ],
+   "borders": {
+    "left": 2.657,
+    "right": 2.112,
+    "top": 2.137,
+    "bottom": 2.306
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95472653_back.jpg",
+   "cert": "95472653",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2001 POKEMON JAPANESE WEB #019 VENOMOTH",
+   "year": 2001,
+   "miscut": false,
+   "outer": [
+    [
+     35.6,
+     20.18
+    ],
+    [
+     1154.85,
+     25.76
+    ],
+    [
+     1149.69,
+     1571.41
+    ],
+    [
+     30,
+     1571.74
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "halfway point missed on two sides"
+  },
+  {
+   "file": "95472653_front.jpg",
+   "cert": "95472653",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2001 POKEMON JAPANESE WEB #019 VENOMOTH",
+   "year": 2001,
+   "miscut": false,
+   "outer": [
+    [
+     27.4,
+     24.96
+    ],
+    [
+     1136.3,
+     24.96
+    ],
+    [
+     1147.8,
+     1568.41
+    ],
+    [
+     25.39,
+     1567.46
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 3.161,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "yellow border runs into the yellow frame"
+  },
+  {
+   "file": "95472682_back.jpg",
+   "cert": "95472682",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2001 POKEMON JAPANESE EXPEDITION #018 ABRA EXPEDITION-1ST EDITION",
+   "year": 2001,
+   "miscut": false,
+   "outer": [
+    [
+     41.85,
+     27.96
+    ],
+    [
+     1163.94,
+     24.23
+    ],
+    [
+     1162.88,
+     1574.99
+    ],
+    [
+     46.45,
+     1571.08
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the right edge: outline off"
+  },
+  {
+   "file": "95472682_front.jpg",
+   "cert": "95472682",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2001 POKEMON JAPANESE EXPEDITION #018 ABRA EXPEDITION-1ST EDITION",
+   "year": 2001,
+   "miscut": false,
+   "outer": [
+    [
+     26.82,
+     25.78
+    ],
+    [
+     1130.08,
+     28.15
+    ],
+    [
+     1131.86,
+     1586.01
+    ],
+    [
+     22.62,
+     1574.81
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 2.804,
+    "top": 3.415,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dotted band inside the yellow border"
+  },
+  {
+   "file": "95472704_back.jpg",
+   "cert": "95472704",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2004 POKEMON JAPANESE UNDONE SEAL #047 BANETTE-HOLO UNDONE SEAL-1ST EDITION",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     17.8,
+     10.78
+    ],
+    [
+     1135.34,
+     12.24
+    ],
+    [
+     1130.65,
+     1562.64
+    ],
+    [
+     17.8,
+     1556.98
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline off"
+  },
+  {
+   "file": "95472704_front.jpg",
+   "cert": "95472704",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2004 POKEMON JAPANESE UNDONE SEAL #047 BANETTE-HOLO UNDONE SEAL-1ST EDITION",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     23.8,
+     13.22
+    ],
+    [
+     1129.73,
+     14.57
+    ],
+    [
+     1127.61,
+     1569.08
+    ],
+    [
+     25.52,
+     1564.83
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 1.769,
+    "top": null,
+    "bottom": 2.433
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "top border runs into a white name band"
+  },
+  {
+   "file": "95472815_back.jpg",
+   "cert": "95472815",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2004 POKEMON JAPANESE PLAY PROMO #012 _____'s CELEBI-HOLO 2ND SEASON SUB.-PROMO",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     30.16,
+     21.69
+    ],
+    [
+     1145.97,
+     20.38
+    ],
+    [
+     1140.89,
+     1564.68
+    ],
+    [
+     31.64,
+     1561.57
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the right edge: outline off"
+  },
+  {
+   "file": "95472815_front.jpg",
+   "cert": "95472815",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2004 POKEMON JAPANESE PLAY PROMO #012 _____'s CELEBI-HOLO 2ND SEASON SUB.-PROMO",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     17.89,
+     20.29
+    ],
+    [
+     1124.13,
+     24.42
+    ],
+    [
+     1127.95,
+     1582.69
+    ],
+    [
+     3.85,
+     1571.95
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "top border runs into a white name band"
+  },
+  {
+   "file": "95518622_back.jpg",
+   "cert": "95518622",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON SIMPLIFIED CHINESE CS4.5 C-FLAME DANCE OF THE END #069 DRAGONITE V SUPER RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     17.67,
+     19.42
+    ],
+    [
+     1132.57,
+     22.39
+    ],
+    [
+     1128.17,
+     1568.01
+    ],
+    [
+     13.72,
+     1562.94
+    ]
+   ],
+   "borders": {
+    "left": 3.326,
+    "right": 3.517,
+    "top": 3.393,
+    "bottom": 3.482
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95518622_front.jpg",
+   "cert": "95518622",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON SIMPLIFIED CHINESE CS4.5 C-FLAME DANCE OF THE END #069 DRAGONITE V SUPER RARE",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     21.36,
+     27.91
+    ],
+    [
+     1124.71,
+     25.68
+    ],
+    [
+     1123.85,
+     1560.99
+    ],
+    [
+     19.43,
+     1561.92
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Chinese V card: silver frame, border end unclear"
+  },
+  {
+   "file": "95518698_back.jpg",
+   "cert": "95518698",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON SIMPLIFIED CHINESE CS4b C-POLYCHROMATIC GATHERING: ORIGIN #165 RAYQUAZA VMAX HYPER RARE-25 CARD PACK",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     13.58,
+     26.12
+    ],
+    [
+     1137.39,
+     16.87
+    ],
+    [
+     1134.46,
+     1570.49
+    ],
+    [
+     22.54,
+     1570.23
+    ]
+   ],
+   "borders": {
+    "left": 2.813,
+    "right": 3.809,
+    "top": 3.488,
+    "bottom": 3.755
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95518698_front.jpg",
+   "cert": "95518698",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2024 POKEMON SIMPLIFIED CHINESE CS4b C-POLYCHROMATIC GATHERING: ORIGIN #165 RAYQUAZA VMAX HYPER RARE-25 CARD PACK",
+   "year": 2024,
+   "miscut": false,
+   "outer": [
+    [
+     18.46,
+     18.88
+    ],
+    [
+     1133.37,
+     27.99
+    ],
+    [
+     1122.4,
+     1568.71
+    ],
+    [
+     11.45,
+     1574.12
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "VMAX full art, no border"
+  },
+  {
+   "file": "95520486_back.jpg",
+   "cert": "95520486",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2000 POKEMON BASE 2 PACK THICK FONT MEWTWO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     121.08,
+     122
+    ],
+    [
+     988.47,
+     122
+    ],
+    [
+     988.47,
+     1342.86
+    ],
+    [
+     122.26,
+     1342.13
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "red promo back, no border"
+  },
+  {
+   "file": "95520486_front.jpg",
+   "cert": "95520486",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2000 POKEMON BASE 2 PACK THICK FONT MEWTWO",
+   "year": 2000,
+   "miscut": false,
+   "outer": [
+    [
+     103.56,
+     118.67
+    ],
+    [
+     984.22,
+     118.09
+    ],
+    [
+     984.22,
+     1359.94
+    ],
+    [
+     102.26,
+     1358.72
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "red promo card without a border, outline off"
+  },
+  {
+   "file": "95684841_back.jpg",
+   "cert": "95684841",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON JAPANESE SV1a-TRIPLET BEAT #099 DENDRA SPECIAL ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     18.73,
+     18.85
+    ],
+    [
+     1132.64,
+     18.85
+    ],
+    [
+     1126.43,
+     1574.12
+    ],
+    [
+     13.69,
+     1568.12
+    ]
+   ],
+   "borders": {
+    "left": 3.643,
+    "right": 3.375,
+    "top": 3.602,
+    "bottom": 3.301
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient; left border faded"
+  },
+  {
+   "file": "95684841_front.jpg",
+   "cert": "95684841",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2023 POKEMON JAPANESE SV1a-TRIPLET BEAT #099 DENDRA SPECIAL ART RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     13.8,
+     19.18
+    ],
+    [
+     1136.23,
+     14.73
+    ],
+    [
+     1135.02,
+     1563.82
+    ],
+    [
+     19.24,
+     1554.18
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "white/silver border with patterned inner band"
+  },
+  {
+   "file": "95695250_back.jpg",
+   "cert": "95695250",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY BREAKPOINT #112 TIERNO BREAKPOINT",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     18.42,
+     12.91
+    ],
+    [
+     1132.2,
+     10.19
+    ],
+    [
+     1132.2,
+     1560.28
+    ],
+    [
+     12.88,
+     1562.81
+    ]
+   ],
+   "borders": {
+    "left": 2.981,
+    "right": 3.511,
+    "top": 6.816,
+    "bottom": 2.272
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut back; right end between two steps"
+  },
+  {
+   "file": "95695250_front.jpg",
+   "cert": "95695250",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY BREAKPOINT #112 TIERNO BREAKPOINT",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     31.54,
+     38.23
+    ],
+    [
+     1128.56,
+     35.42
+    ],
+    [
+     1130.99,
+     1566.35
+    ],
+    [
+     20.59,
+     1562.22
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 5.348,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "trainer card: outline off at the bottom"
+  },
+  {
+   "file": "95695251_back.jpg",
+   "cert": "95695251",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY GENERATIONS #62 EVOSODA GENERATIONS",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     17.36,
+     26.53
+    ],
+    [
+     1126.76,
+     18.45
+    ],
+    [
+     1134.43,
+     1565.52
+    ],
+    [
+     12.76,
+     1564.67
+    ]
+   ],
+   "borders": {
+    "left": 2.903,
+    "right": 3.53,
+    "top": 7.27,
+    "bottom": 3.254
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut back; right end between two steps"
+  },
+  {
+   "file": "95695251_front.jpg",
+   "cert": "95695251",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY GENERATIONS #62 EVOSODA GENERATIONS",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     27.16,
+     15.54
+    ],
+    [
+     1146.13,
+     15.54
+    ],
+    [
+     1142.37,
+     1567.4
+    ],
+    [
+     30.72,
+     1561.88
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "outline off at the top (white band)"
+  },
+  {
+   "file": "95695252_back.jpg",
+   "cert": "95695252",
+   "side": "back",
+   "grade": 5,
+   "label": "EX 5 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #71 KLINK STEAM SIEGE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     17.71,
+     23.04
+    ],
+    [
+     1128.1,
+     31.13
+    ],
+    [
+     1129.61,
+     1563.82
+    ],
+    [
+     9.1,
+     1565.66
+    ]
+   ],
+   "borders": {
+    "left": 3.293,
+    "right": 3.538,
+    "top": 7.172,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695252_front.jpg",
+   "cert": "95695252",
+   "side": "front",
+   "grade": 5,
+   "label": "EX 5 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #71 KLINK STEAM SIEGE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     12.45,
+     18.46
+    ],
+    [
+     1123.32,
+     29.15
+    ],
+    [
+     1124.75,
+     1568.82
+    ],
+    [
+     15.42,
+     1576.41
+    ]
+   ],
+   "borders": {
+    "left": 2.823,
+    "right": 2.499,
+    "top": 6.284,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695253_back.jpg",
+   "cert": "95695253",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #72 KLANG STEAM SIEGE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     33.68,
+     13.28
+    ],
+    [
+     1154.64,
+     12.62
+    ],
+    [
+     1152.75,
+     1564.96
+    ],
+    [
+     31.39,
+     1572.38
+    ]
+   ],
+   "borders": {
+    "left": 3.106,
+    "right": 3.953,
+    "top": 8.027,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695253_front.jpg",
+   "cert": "95695253",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #72 KLANG STEAM SIEGE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     46.76,
+     22.09
+    ],
+    [
+     1177.41,
+     23.98
+    ],
+    [
+     1176.25,
+     1577.23
+    ],
+    [
+     53.99,
+     1574.03
+    ]
+   ],
+   "borders": {
+    "left": 2.759,
+    "right": 3.265,
+    "top": 6.132,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695254_back.jpg",
+   "cert": "95695254",
+   "side": "back",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #73 KLINKLANG STS-GEARS OF FIRE TD",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     20.33,
+     9.54
+    ],
+    [
+     1127.62,
+     7.25
+    ],
+    [
+     1136.06,
+     1561.9
+    ],
+    [
+     9.05,
+     1557.26
+    ]
+   ],
+   "borders": {
+    "left": 3.26,
+    "right": 3.417,
+    "top": 6.367,
+    "bottom": 0.792
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): thin bottom border"
+  },
+  {
+   "file": "95695254_front.jpg",
+   "cert": "95695254",
+   "side": "front",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #73 KLINKLANG STS-GEARS OF FIRE TD",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     22.53,
+     18.58
+    ],
+    [
+     1133.86,
+     18.09
+    ],
+    [
+     1127.52,
+     1559.85
+    ],
+    [
+     27.76,
+     1561.4
+    ]
+   ],
+   "borders": {
+    "left": 2.35,
+    "right": 3.047,
+    "top": 5.111,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695255_back.jpg",
+   "cert": "95695255",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #88 MEOWTH STEAM SIEGE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     21.19,
+     9.69
+    ],
+    [
+     1131.15,
+     12.42
+    ],
+    [
+     1136.5,
+     1561.79
+    ],
+    [
+     12.54,
+     1560.79
+    ]
+   ],
+   "borders": {
+    "left": 3.064,
+    "right": 3.472,
+    "top": 6.846,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695255_front.jpg",
+   "cert": "95695255",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8 (MC)",
+   "name": "2016 POKEMON XY STEAM SIEGE #88 MEOWTH STEAM SIEGE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     33.57,
+     27.67
+    ],
+    [
+     1126.69,
+     49.8
+    ],
+    [
+     1134.18,
+     1562.72
+    ],
+    [
+     20.32,
+     1562.72
+    ]
+   ],
+   "borders": {
+    "left": 2.381,
+    "right": 2.843,
+    "top": 4.907,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695256_back.jpg",
+   "cert": "95695256",
+   "side": "back",
+   "grade": 2,
+   "label": "GOOD 2 (MC)",
+   "name": "2016 POKEMON XY FATES COLLIDE #111 SHAUNA FATES COLLIDE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     16.81,
+     29.38
+    ],
+    [
+     1137.01,
+     32.29
+    ],
+    [
+     1131.74,
+     1571.35
+    ],
+    [
+     10.28,
+     1573.29
+    ]
+   ],
+   "borders": {
+    "left": 3.047,
+    "right": 3.348,
+    "top": 7.263,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95695256_front.jpg",
+   "cert": "95695256",
+   "side": "front",
+   "grade": 2,
+   "label": "GOOD 2 (MC)",
+   "name": "2016 POKEMON XY FATES COLLIDE #111 SHAUNA FATES COLLIDE",
+   "year": 2016,
+   "miscut": true,
+   "outer": [
+    [
+     11.19,
+     23.15
+    ],
+    [
+     1132.25,
+     28.72
+    ],
+    [
+     1136.62,
+     1551.48
+    ],
+    [
+     17.2,
+     1555.39
+    ]
+   ],
+   "borders": {
+    "left": 2.725,
+    "right": 2.955,
+    "top": 6.832,
+    "bottom": 0
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC): no bottom border"
+  },
+  {
+   "file": "95705800_back.jpg",
+   "cert": "95705800",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2008 POKEMON BATTRIO SERIES 3: MEWTWO'S CHALLENGE #034 JOLTEON",
+   "year": 2008,
+   "miscut": false,
+   "outer": [
+    [
+     190.29,
+     974.84
+    ],
+    [
+     198.44,
+     39.99
+    ],
+    [
+     1506.17,
+     39.99
+    ],
+    [
+     1506.17,
+     940.39
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "not a standard card (round item)"
+  },
+  {
+   "file": "95705800_front.jpg",
+   "cert": "95705800",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2008 POKEMON BATTRIO SERIES 3: MEWTWO'S CHALLENGE #034 JOLTEON",
+   "year": 2008,
+   "miscut": false,
+   "outer": [
+    [
+     11.26,
+     1582.76
+    ],
+    [
+     -24.35,
+     223.1
+    ],
+    [
+     1543.36,
+     168.35
+    ],
+    [
+     1543.36,
+     1582.76
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "not a standard card (round item)"
+  },
+  {
+   "file": "95705802_back.jpg",
+   "cert": "95705802",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2010 POKEMON BATTRIO SERIES 13: CHALLENGING THE MYTHS #022 SCIZOR",
+   "year": 2010,
+   "miscut": false,
+   "outer": [
+    [
+     54.28,
+     959.09
+    ],
+    [
+     102.33,
+     41.99
+    ],
+    [
+     1479.91,
+     41.99
+    ],
+    [
+     1520.5,
+     971.88
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Battrio disc, not a card"
+  },
+  {
+   "file": "95705802_front.jpg",
+   "cert": "95705802",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2010 POKEMON BATTRIO SERIES 13: CHALLENGING THE MYTHS #022 SCIZOR",
+   "year": 2010,
+   "miscut": false,
+   "outer": [
+    [
+     119.23,
+     947.61
+    ],
+    [
+     119.23,
+     139.03
+    ],
+    [
+     1447,
+     139.03
+    ],
+    [
+     1439.84,
+     959.14
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Battrio disc, not a card"
+  },
+  {
+   "file": "95705804_back.jpg",
+   "cert": "95705804",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2008 POKEMON BATTRIO SERIES 6: ENCOUNTER WITH SHAYMIN #024 MAROWAK",
+   "year": 2008,
+   "miscut": false,
+   "outer": [
+    [
+     25.22,
+     33.97
+    ],
+    [
+     1535.49,
+     38.42
+    ],
+    [
+     1531.45,
+     1560.5
+    ],
+    [
+     28.86,
+     1575.38
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 1.152,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Battrio disc, not a card"
+  },
+  {
+   "file": "95705804_front.jpg",
+   "cert": "95705804",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2008 POKEMON BATTRIO SERIES 6: ENCOUNTER WITH SHAYMIN #024 MAROWAK",
+   "year": 2008,
+   "miscut": false,
+   "outer": [
+    [
+     203.41,
+     190.9
+    ],
+    [
+     1433.89,
+     190.9
+    ],
+    [
+     1446.04,
+     1582.77
+    ],
+    [
+     203.41,
+     1582.77
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Battrio disc, not a card"
+  },
+  {
+   "file": "95705807_back.jpg",
+   "cert": "95705807",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2009 POKEMON BATTRIO SERIES 10: HO-OH AND LUGIA SOAR #032 PICHU",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     19.88,
+     31.27
+    ],
+    [
+     1523.52,
+     38.87
+    ],
+    [
+     1527.85,
+     1563.43
+    ],
+    [
+     25.92,
+     1563.49
+    ]
+   ],
+   "borders": {
+    "left": 1.019,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Battrio disc, not a card"
+  },
+  {
+   "file": "95705807_front.jpg",
+   "cert": "95705807",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2009 POKEMON BATTRIO SERIES 10: HO-OH AND LUGIA SOAR #032 PICHU",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     11.67,
+     -0.08
+    ],
+    [
+     1533.39,
+     43.84
+    ],
+    [
+     1515.97,
+     1559.98
+    ],
+    [
+     8.56,
+     1569.96
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": 0.908,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "Battrio disc, not a card"
+  },
+  {
+   "file": "95706479_back.jpg",
+   "cert": "95706479",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2018 POKEMON JAPANESE SUN & MOON ULTRA SHINY GX #157 FA/MORGAN ULTRA SHINY GX",
+   "year": 2018,
+   "miscut": false,
+   "outer": [
+    [
+     16.12,
+     26.27
+    ],
+    [
+     1131.72,
+     27.02
+    ],
+    [
+     1132.9,
+     1570.43
+    ],
+    [
+     16.79,
+     1573.02
+    ]
+   ],
+   "borders": {
+    "left": 2.775,
+    "right": 2.431,
+    "top": 2.675,
+    "bottom": 1.974
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "95706479_front.jpg",
+   "cert": "95706479",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2018 POKEMON JAPANESE SUN & MOON ULTRA SHINY GX #157 FA/MORGAN ULTRA SHINY GX",
+   "year": 2018,
+   "miscut": false,
+   "outer": [
+    [
+     22.32,
+     20.5
+    ],
+    [
+     1136.13,
+     27.42
+    ],
+    [
+     1122.01,
+     1563.61
+    ],
+    [
+     20.99,
+     1560.16
+    ]
+   ],
+   "borders": {
+    "left": 2.261,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "white border runs into a white band at the top"
+  },
+  {
+   "file": "95707453_back.jpg",
+   "cert": "95707453",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2016 POKEMON JAPANESE SUN & MOON PIKACHU'S NEW FRIENDS #004 PIKACHU-HOLO PIKACHU'S NEW FRIENDS",
+   "year": 2016,
+   "miscut": false,
+   "outer": [
+    [
+     23.55,
+     16.52
+    ],
+    [
+     1141.59,
+     16.52
+    ],
+    [
+     1135.9,
+     1565.02
+    ],
+    [
+     20.28,
+     1559.89
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline off"
+  },
+  {
+   "file": "95707453_front.jpg",
+   "cert": "95707453",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2016 POKEMON JAPANESE SUN & MOON PIKACHU'S NEW FRIENDS #004 PIKACHU-HOLO PIKACHU'S NEW FRIENDS",
+   "year": 2016,
+   "miscut": false,
+   "outer": [
+    [
+     18.35,
+     22.11
+    ],
+    [
+     1133.3,
+     19.35
+    ],
+    [
+     1132.44,
+     1569.09
+    ],
+    [
+     11.62,
+     1567.09
+    ]
+   ],
+   "borders": {
+    "left": 2.751,
+    "right": 2.657,
+    "top": 2.401,
+    "bottom": 2.192
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95707455_back.jpg",
+   "cert": "95707455",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2004 POKEMON JAPANESE SILVER DECK KIT #011 DARK DRAGONAIR SILVER DECK KIT",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     19.21,
+     29.73
+    ],
+    [
+     1133.43,
+     27.2
+    ],
+    [
+     1133.43,
+     1578.65
+    ],
+    [
+     22.31,
+     1575.88
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline off"
+  },
+  {
+   "file": "95707455_front.jpg",
+   "cert": "95707455",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2004 POKEMON JAPANESE SILVER DECK KIT #011 DARK DRAGONAIR SILVER DECK KIT",
+   "year": 2004,
+   "miscut": false,
+   "outer": [
+    [
+     20.35,
+     24.37
+    ],
+    [
+     1135.17,
+     21.7
+    ],
+    [
+     1135.46,
+     1576.06
+    ],
+    [
+     22.91,
+     1573.1
+    ]
+   ],
+   "borders": {
+    "left": 2.801,
+    "right": 2.723,
+    "top": 2.331,
+    "bottom": 2.987
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95707519_back.jpg",
+   "cert": "95707519",
+   "side": "back",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2023 POKEMON PAL EN-PALDEA EVOLVED #203 MAGIKARP ILLUSTRATION RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     18.61,
+     22.6
+    ],
+    [
+     1135.23,
+     27.7
+    ],
+    [
+     1123.11,
+     1575.05
+    ],
+    [
+     11.55,
+     1567.56
+    ]
+   ],
+   "borders": {
+    "left": 3.557,
+    "right": 3.201,
+    "top": 3.718,
+    "bottom": 3.361
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "95707519_front.jpg",
+   "cert": "95707519",
+   "side": "front",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "name": "2023 POKEMON PAL EN-PALDEA EVOLVED #203 MAGIKARP ILLUSTRATION RARE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     15.66,
+     23.11
+    ],
+    [
+     1131.07,
+     23.11
+    ],
+    [
+     1134.18,
+     1564.42
+    ],
+    [
+     18.15,
+     1557.08
+    ]
+   ],
+   "borders": {
+    "left": 2.275,
+    "right": 2.93,
+    "top": 2.5,
+    "bottom": 1.696
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "96270633_back.jpg",
+   "cert": "96270633",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2003 POKEMON AQUAPOLIS #H26 TENTACRUEL-HOLO",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     24.2,
+     25.23
+    ],
+    [
+     1130.24,
+     25.23
+    ],
+    [
+     1128.37,
+     1574.75
+    ],
+    [
+     24.2,
+     1576.96
+    ]
+   ],
+   "borders": {
+    "left": 2.969,
+    "right": 3.186,
+    "top": 3.545,
+    "bottom": 3.801
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "96270633_front.jpg",
+   "cert": "96270633",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2003 POKEMON AQUAPOLIS #H26 TENTACRUEL-HOLO",
+   "year": 2003,
+   "miscut": false,
+   "outer": [
+    [
+     8.95,
+     17.52
+    ],
+    [
+     1130.9,
+     15.44
+    ],
+    [
+     1135.14,
+     1563.96
+    ],
+    [
+     14.42,
+     1571.1
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 3.465,
+    "bottom": 6.329
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "left border runs into yellow art"
+  },
+  {
+   "file": "96654488_back.jpg",
+   "cert": "96654488",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON SVP EN-SV BLACK STAR PROMO #085 PIKACHU/GREY FELT HAT POKEMON X VAN GOGH",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     14.62,
+     28.08
+    ],
+    [
+     1121.69,
+     27.82
+    ],
+    [
+     1120.97,
+     1574.06
+    ],
+    [
+     18.26,
+     1571.33
+    ]
+   ],
+   "borders": {
+    "left": 3.185,
+    "right": 3.126,
+    "top": 3.506,
+    "bottom": 3.702
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "96654488_front.jpg",
+   "cert": "96654488",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON SVP EN-SV BLACK STAR PROMO #085 PIKACHU/GREY FELT HAT POKEMON X VAN GOGH",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     19.15,
+     26.84
+    ],
+    [
+     1135.59,
+     26.84
+    ],
+    [
+     1133.48,
+     1565.02
+    ],
+    [
+     18.4,
+     1554.48
+    ]
+   ],
+   "borders": {
+    "left": 2.46,
+    "right": 2.756,
+    "top": 2.29,
+    "bottom": 1.705
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "96657108_back.jpg",
+   "cert": "96657108",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1997 POKEMON JAPANESE JUNGLE #18 PIDGEOT-HOLO",
+   "year": 1997,
+   "miscut": false,
+   "outer": [
+    [
+     10.28,
+     11.34
+    ],
+    [
+     1127.93,
+     9.02
+    ],
+    [
+     1133.85,
+     1560.69
+    ],
+    [
+     12.55,
+     1560.69
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "1996 Japanese back: red frame line"
+  },
+  {
+   "file": "96657108_front.jpg",
+   "cert": "96657108",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "1997 POKEMON JAPANESE JUNGLE #18 PIDGEOT-HOLO",
+   "year": 1997,
+   "miscut": false,
+   "outer": [
+    [
+     27.03,
+     19.14
+    ],
+    [
+     1130.5,
+     18.96
+    ],
+    [
+     1141.84,
+     1558.3
+    ],
+    [
+     25.27,
+     1558.3
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "dark rim at the left edge: outline unsure"
+  },
+  {
+   "file": "96657164_back.jpg",
+   "cert": "96657164",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #177 FA/ROTOM V LOST ORIGIN",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     12.92,
+     21.06
+    ],
+    [
+     1128.86,
+     16.33
+    ],
+    [
+     1133.64,
+     1572.31
+    ],
+    [
+     15.13,
+     1572.31
+    ]
+   ],
+   "borders": {
+    "left": 2.687,
+    "right": 3.889,
+    "top": 3.756,
+    "bottom": 3.334
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "glare on the left border"
+  },
+  {
+   "file": "96657164_front.jpg",
+   "cert": "96657164",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #177 FA/ROTOM V LOST ORIGIN",
+   "year": 2022,
+   "miscut": false,
+   "outer": [
+    [
+     23.81,
+     28.59
+    ],
+    [
+     1129.99,
+     23.95
+    ],
+    [
+     1131.05,
+     1565.76
+    ],
+    [
+     24.3,
+     1564.93
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "full-art silver border: bottom end unclear"
+  },
+  {
+   "file": "96657170_back.jpg",
+   "cert": "96657170",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2015 POKEMON XY BREAKTHROUGH #92 ZOROARK BREAK BREAKTHROUGH",
+   "year": 2015,
+   "miscut": false,
+   "outer": [
+    [
+     17.38,
+     8.31
+    ],
+    [
+     1130.67,
+     8.31
+    ],
+    [
+     1130.67,
+     1565.37
+    ],
+    [
+     12.58,
+     1559.13
+    ]
+   ],
+   "borders": {
+    "left": 3.147,
+    "right": 3.413,
+    "top": 3.802,
+    "bottom": 3.294
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "96657170_front.jpg",
+   "cert": "96657170",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2015 POKEMON XY BREAKTHROUGH #92 ZOROARK BREAK BREAKTHROUGH",
+   "year": 2015,
+   "miscut": false,
+   "outer": [
+    [
+     27.83,
+     19.74
+    ],
+    [
+     1137.11,
+     18.81
+    ],
+    [
+     1137.11,
+     1561.09
+    ],
+    [
+     27.83,
+     1562.79
+    ]
+   ],
+   "borders": {
+    "left": 2.265,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "BREAK card: art over three borders"
+  },
+  {
+   "file": "96763380_back.jpg",
+   "cert": "96763380",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2007 POKEMON JAPANESE PROMO #046 DARKRAI-HOLO 10th POKEMON MOVIE",
+   "year": 2007,
+   "miscut": false,
+   "outer": [
+    [
+     22.72,
+     21.31
+    ],
+    [
+     1125.01,
+     18.49
+    ],
+    [
+     1125.01,
+     1564.29
+    ],
+    [
+     23.57,
+     1562.76
+    ]
+   ],
+   "borders": {
+    "left": 3.215,
+    "right": 3.549,
+    "top": 2.985,
+    "bottom": 3.491
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "96763380_front.jpg",
+   "cert": "96763380",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2007 POKEMON JAPANESE PROMO #046 DARKRAI-HOLO 10th POKEMON MOVIE",
+   "year": 2007,
+   "miscut": false,
+   "outer": [
+    [
+     18.4,
+     22.6
+    ],
+    [
+     1135.79,
+     22.6
+    ],
+    [
+     1131.88,
+     1582.78
+    ],
+    [
+     19.83,
+     1572.75
+    ]
+   ],
+   "borders": {
+    "left": 2.883,
+    "right": 2.353,
+    "top": 2.491,
+    "bottom": 2.953
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "96763404_back.jpg",
+   "cert": "96763404",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2015 POKEMON JAPANESE XY DOUBLE CRISIS #015 FA/TM.MG.GROUDON EX DOUBLE CRISIS-1ST ED",
+   "year": 2015,
+   "miscut": false,
+   "outer": [
+    [
+     14.42,
+     18.16
+    ],
+    [
+     1131.28,
+     22.19
+    ],
+    [
+     1132.36,
+     1569.82
+    ],
+    [
+     22.03,
+     1560.55
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline off"
+  },
+  {
+   "file": "96763404_front.jpg",
+   "cert": "96763404",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9",
+   "name": "2015 POKEMON JAPANESE XY DOUBLE CRISIS #015 FA/TM.MG.GROUDON EX DOUBLE CRISIS-1ST ED",
+   "year": 2015,
+   "miscut": false,
+   "outer": [
+    [
+     23.42,
+     22.87
+    ],
+    [
+     1135.3,
+     22.16
+    ],
+    [
+     1135.81,
+     1567.66
+    ],
+    [
+     22.57,
+     1573.51
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "full art, no border"
+  },
+  {
+   "file": "96763460_back.jpg",
+   "cert": "96763460",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2019 POKEMON JAPANESE SUN & MOON GG END #064 FA/RACH & AL.RACH.GX GG END-HYPER",
+   "year": 2019,
+   "miscut": false,
+   "outer": [
+    [
+     11.2,
+     24.65
+    ],
+    [
+     1140.19,
+     31.4
+    ],
+    [
+     1131.8,
+     1580.32
+    ],
+    [
+     9.94,
+     1568.5
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "light holder rim at the left edge: outline off"
+  },
+  {
+   "file": "96763460_front.jpg",
+   "cert": "96763460",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2019 POKEMON JAPANESE SUN & MOON GG END #064 FA/RACH & AL.RACH.GX GG END-HYPER",
+   "year": 2019,
+   "miscut": false,
+   "outer": [
+    [
+     22.55,
+     28.34
+    ],
+    [
+     1164.76,
+     22.25
+    ],
+    [
+     1144.47,
+     1561.75
+    ],
+    [
+     23.26,
+     1564.73
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "full art, no border"
+  },
+  {
+   "file": "96795194_back.jpg",
+   "cert": "96795194",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2009 POKEMON PLATINUM SUPREME VICTORS #15 ARCANINE G-HOLO SV-CRSHTCH-'10 PKMN.LEAGUE",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     18.39,
+     14.19
+    ],
+    [
+     1131.24,
+     13.43
+    ],
+    [
+     1134.81,
+     1575.81
+    ],
+    [
+     12.67,
+     1567.03
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": 3.182,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "glare washes out the left and right borders"
+  },
+  {
+   "file": "96795194_front.jpg",
+   "cert": "96795194",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2009 POKEMON PLATINUM SUPREME VICTORS #15 ARCANINE G-HOLO SV-CRSHTCH-'10 PKMN.LEAGUE",
+   "year": 2009,
+   "miscut": false,
+   "outer": [
+    [
+     24.38,
+     23.46
+    ],
+    [
+     1138.97,
+     23.83
+    ],
+    [
+     1134.05,
+     1564.37
+    ],
+    [
+     29.67,
+     1567.16
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "white band inside a pale border: end unclear"
+  },
+  {
+   "file": "96835709_back.jpg",
+   "cert": "96835709",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON CLB-TRADING CARD GAME CLASSIC BLASTOISE & SUICUNE ex DECK #005 STARMIE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     10.78,
+     25.17
+    ],
+    [
+     1122.23,
+     25.92
+    ],
+    [
+     1126.74,
+     1570.85
+    ],
+    [
+     16.22,
+     1575.15
+    ]
+   ],
+   "borders": {
+    "left": 3.392,
+    "right": 3.097,
+    "top": 3.248,
+    "bottom": 3.987
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "96835709_front.jpg",
+   "cert": "96835709",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "2023 POKEMON CLB-TRADING CARD GAME CLASSIC BLASTOISE & SUICUNE ex DECK #005 STARMIE",
+   "year": 2023,
+   "miscut": false,
+   "outer": [
+    [
+     22.46,
+     15.55
+    ],
+    [
+     1132.61,
+     16.79
+    ],
+    [
+     1132.61,
+     1577.37
+    ],
+    [
+     20.55,
+     1580.44
+    ]
+   ],
+   "borders": {
+    "left": 2.739,
+    "right": 2.462,
+    "top": 2.596,
+    "bottom": 2.565
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "97251302_back.jpg",
+   "cert": "97251302",
+   "side": "back",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2021 POKEMON JAPANESE SWORD & SHIELD VMAX CLIMAX #255 FA/ACEROLA'S PRMNTN. VMAX CLIMAX",
+   "year": 2021,
+   "miscut": false,
+   "outer": [
+    [
+     21.59,
+     26.43
+    ],
+    [
+     1130.56,
+     22.42
+    ],
+    [
+     1129.41,
+     1578.08
+    ],
+    [
+     23.76,
+     1571.86
+    ]
+   ],
+   "borders": {
+    "left": 2.759,
+    "right": 2.36,
+    "top": 2.493,
+    "bottom": 3.02
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "Japanese back: halfway through the gradient"
+  },
+  {
+   "file": "97251302_front.jpg",
+   "cert": "97251302",
+   "side": "front",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "name": "2021 POKEMON JAPANESE SWORD & SHIELD VMAX CLIMAX #255 FA/ACEROLA'S PRMNTN. VMAX CLIMAX",
+   "year": 2021,
+   "miscut": false,
+   "outer": [
+    [
+     27.98,
+     21.37
+    ],
+    [
+     1154.52,
+     25.48
+    ],
+    [
+     1141.37,
+     1581.5
+    ],
+    [
+     21.13,
+     1568.65
+    ]
+   ],
+   "borders": {
+    "left": 2.276,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "white border runs into a white band at the top"
+  },
+  {
+   "file": "97366440_back.jpg",
+   "cert": "97366440",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "1999 POKEMON GAME #63 SQUIRTLE TRAINER DECK B",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     26.54,
+     30.36
+    ],
+    [
+     1131.57,
+     26.91
+    ],
+    [
+     1130.42,
+     1564.06
+    ],
+    [
+     26.47,
+     1571.54
+    ]
+   ],
+   "borders": {
+    "left": 3.151,
+    "right": 3.064,
+    "top": 3.768,
+    "bottom": 3.359
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "red back (trainer deck)"
+  },
+  {
+   "file": "97366440_front.jpg",
+   "cert": "97366440",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "1999 POKEMON GAME #63 SQUIRTLE TRAINER DECK B",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     25.18,
+     18.61
+    ],
+    [
+     1144.68,
+     25.42
+    ],
+    [
+     1143.41,
+     1575.99
+    ],
+    [
+     19.57,
+     1575.99
+    ]
+   ],
+   "borders": {
+    "left": 3.466,
+    "right": 3.134,
+    "top": 3.935,
+    "bottom": 3.351
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "97366442_back.jpg",
+   "cert": "97366442",
+   "side": "back",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "1999 POKEMON GAME #63 SQUIRTLE TRAINER DECK B",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     34.49,
+     37.7
+    ],
+    [
+     1150.12,
+     37.7
+    ],
+    [
+     1148.05,
+     1572.07
+    ],
+    [
+     37.96,
+     1578.06
+    ]
+   ],
+   "borders": {
+    "left": 3.123,
+    "right": 3.575,
+    "top": 3.51,
+    "bottom": 3.618
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "red back (trainer deck)"
+  },
+  {
+   "file": "97366442_front.jpg",
+   "cert": "97366442",
+   "side": "front",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "name": "1999 POKEMON GAME #63 SQUIRTLE TRAINER DECK B",
+   "year": 1999,
+   "miscut": false,
+   "outer": [
+    [
+     31.8,
+     21.3
+    ],
+    [
+     1152.41,
+     29.33
+    ],
+    [
+     1159.12,
+     1577.2
+    ],
+    [
+     28.69,
+     1573.51
+    ]
+   ],
+   "borders": {
+    "left": 3.353,
+    "right": 3.45,
+    "top": 3.798,
+    "bottom": 3.542
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": ""
+  },
+  {
+   "file": "97366843_back.jpg",
+   "cert": "97366843",
+   "side": "back",
+   "grade": 9,
+   "label": "MINT 9 (MC)",
+   "name": "2023 POKEMON SVI EN-SCARLET & VIOLET #258 BASIC FIGHTING ENERGY HYPER RARE",
+   "year": 2023,
+   "miscut": true,
+   "outer": [
+    [
+     18.41,
+     15.58
+    ],
+    [
+     1134.45,
+     18.67
+    ],
+    [
+     1126.29,
+     1566.67
+    ],
+    [
+     22.8,
+     1564.03
+    ]
+   ],
+   "borders": {
+    "left": 3.706,
+    "right": 2.992,
+    "top": 2.434,
+    "bottom": 5.101
+   },
+   "status": "ok",
+   "by": "claude",
+   "method": "review",
+   "note": "miscut (PSA MC) back"
+  },
+  {
+   "file": "97366843_front.jpg",
+   "cert": "97366843",
+   "side": "front",
+   "grade": 9,
+   "label": "MINT 9 (MC)",
+   "name": "2023 POKEMON SVI EN-SCARLET & VIOLET #258 BASIC FIGHTING ENERGY HYPER RARE",
+   "year": 2023,
+   "miscut": true,
+   "outer": [
+    [
+     12.53,
+     27.32
+    ],
+    [
+     1125.09,
+     32.17
+    ],
+    [
+     1128.71,
+     1568.48
+    ],
+    [
+     9.35,
+     1569.55
+    ]
+   ],
+   "borders": {
+    "left": null,
+    "right": null,
+    "top": null,
+    "bottom": null
+   },
+   "status": "unusable",
+   "by": "claude",
+   "method": "agree",
+   "note": "gold hyper rare: gold border into gold art"
+  }
+ ]
+}

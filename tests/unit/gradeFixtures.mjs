@@ -34,13 +34,15 @@ export const COLORS = Object.freeze({
  *   Wear: whitening [{side:'top'|'right'|'bottom'|'left', fromMm, toMm, depthMm}] (white paper showing along a cut edge,
  *   positions measured along the side from its top/left end); cornerWhite ['tl'|'tr'|'br'|'bl'] (whitening around that
  *   corner's curve); cornerCut [{corner, mm}] (the tip is missing: a straight cut that far inside the rounded corner).
+ *   borderText [{side, fromMm, toMm, depthMm: [a, b]}]: a line of small dark print inside the border (the copyright
+ *   line in the bottom border of modern cards), between depths a and b from the cut edge.
  * @returns {{data:Uint8ClampedArray, width:number, height:number, corners:number[][], truth:{lr:number, tb:number}}}
  */
 export function renderCard(o = {}) {
   const {
     width = 1000, height = 1300, pxPerMm = 12, angle = 0, tilt = 0, border = { l: 3, r: 3, t: 3, b: 3 },
     borderColor = COLORS.yellow, bg = [120, 122, 128], bgTexture = 0, noise = 3, blur = 1, seed = 1, radiusMm = 3,
-    cardMm = [63, 88], fill = false, whitening = [], cornerWhite = [], cornerCut = [], surround = null,
+    cardMm = [63, 88], fill = false, whitening = [], cornerWhite = [], cornerCut = [], surround = null, borderText = [],
   } = o;
   const [cw, ch] = cardMm;
   const center = o.center ?? [width / 2, height / 2];
@@ -83,7 +85,16 @@ export function renderCard(o = {}) {
   };
   const cardColor = (u, v) => {
     if (worn(u, v)) return WHITE;
-    if (border && (u < border.l || u > cw - border.r || v < border.t || v > ch - border.b)) return borderColor;
+    if (border && (u < border.l || u > cw - border.r || v < border.t || v > ch - border.b)) {
+      for (const t of borderText) {
+        const along = t.side === 'top' || t.side === 'bottom' ? u : v;
+        const depth = { top: v, bottom: ch - v, left: u, right: cw - u }[t.side];
+        // Letters: strokes about 0.12 mm wide, with gaps between letters and words.
+        if (along >= t.fromMm && along <= t.toMm && depth >= t.depthMm[0] && depth <= t.depthMm[1]
+          && hash(Math.floor(along * 8), Math.floor(depth * 6), 99) < 0.7) return [40, 34, 30];
+      }
+      return borderColor;
+    }
     // Art: blocks of colours unlike the border, with a dark frame line where the art starts.
     const fx = border ? u - border.l : u; const fy = border ? v - border.t : v;
     if (border && (fx < 0.35 || fy < 0.35 || u > cw - border.r - 0.35 || v > ch - border.b - 0.35)) return [60, 40, 30];

@@ -18,11 +18,14 @@
     "e2e": "node scripts/build.mjs --e2e && node --test --test-concurrency=1 \"tests/e2e/**/*.test.mjs\"",
     "fixtures": "node scripts/gen-fixtures.mjs",
     "bench:grade": "node scripts/bench-grade.mjs",
+    "bench:grade-real": "node scripts/bench-grade-real.mjs",
+    "annotate:grade": "node scripts/annotate-grade.mjs",
     "version": "node scripts/version.mjs --sync && git add src/manifest.json"
   },
   "devDependencies": {
     "@tesseract.js-data/eng": "1.0.0",
     "bwip-js": "4.8.0",
+    "jpeg-js": "0.4.4",
     "playwright": "1.56.1",
     "tesseract.js": "7.0.0",
     "zxing-wasm": "3.1.5"

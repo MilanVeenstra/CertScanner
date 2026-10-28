@@ -3,7 +3,7 @@
 // simulated phone photos and flatbed scans (tests/bench/gradeSim.mjs). Deterministic for a given seed.
 //
 //   node scripts/bench-grade.mjs [--n 20] [--seed 1] [--scenario a,b] [--out file.md] [--save-images dir]
-//        [--case i] [--jobs 4] [--src dir] [--json file.json] [--compare before.json]
+//        [--case i] [--jobs 4] [--src dir] [--json file.json] [--compare before.json] [--faces]
 //
 //   --scenario     one or more of the scenario names (comma separated); default all
 //   --case i       run only case i of the chosen scenario(s) and print it in detail (reproduce a worst case)
@@ -15,6 +15,9 @@
 //                  its gradeEngine.js has cropRect (second pass), the card cut out of the full-size photo and measured
 //                  again; single: one pass on the scaled photo only
 //   --json         write every case's result; --compare prints the change against such a file
+//   --faces        every scenario draws its card from the official card renders (tests/bench/official/faces.json;
+//                  fetch them first: node scripts/fetch-grade-data.mjs --faces), the print moved against the cut by
+//                  a known amount; without it the stylised templates (no network, the default)
 //
 // Centering error per axis: |measured − true| share of the left (top) border, in points. Unlike the folded "55/45"
 // number it doesn't shrink near 50/50, so it is never smaller than the error of the number the panel shows.
@@ -25,8 +28,9 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import {
-  renderCase, prepareForAnalysis, cropArea, quadErrorMm, scoreCentering, drawQuads, encodePng, SCENARIOS, SCENARIO_NAMES,
+  renderCase, prepareForAnalysis, cropArea, quadErrorMm, scoreCentering, drawQuads, encodePng, SCENARIOS, SCENARIO_NAMES, registerFaces,
 } from '../tests/bench/gradeSim.mjs';
+import { loadFaces } from '../tests/bench/officialFaces.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const POSITIVE = new Set(['minor', 'visible']);
@@ -205,10 +209,11 @@ function caseLine(r, seed) {
     + `  \`node scripts/bench-grade.mjs --scenario ${r.scenario} --seed ${seed} --case ${r.index}\``;
 }
 
-function report(byScenario, { seed, n, src, elapsed, jobs, pipeline }) {
+function report(byScenario, { seed, n, src, elapsed, jobs, pipeline, faces = 0 }) {
   const out = [];
-  out.push(`# Grade-check benchmark\n`);
+  out.push(`# Grade-check benchmark${faces ? ' (official card faces)' : ''}\n`);
   out.push(`seed ${seed}, ${n} cases per scenario, algorithm: \`${src}\` (${pipeline}), ${jobs} worker(s), ${(elapsed / 1000).toFixed(0)} s.\n`);
+  if (faces) out.push(`Cards: ${faces} official card renders (tests/bench/official/faces.json), the whole print moved against the cut by a known amount; true borders = the render's measured borders plus that shift.\n`);
   out.push('Error: |measured − true| share of the left (top) border, points, worst of the two axes, on cases measured on both axes. '
     + '"wrong outline": found, but a corner more than 1 mm from the true one. Within 1σ / 2σ: share of axis errors within the claimed sigma. '
     + 'Wear alarm: minor or visible on a card without wear.\n');
@@ -257,6 +262,7 @@ function compare(byScenario, beforeFile, seed) {
 
 async function workerMain() {
   const pipe = await loadPipeline(workerData.analyze, workerData.pipeline);
+  if (workerData.faces) registerFaces(loadFaces());
   parentPort.on('message', async (job) => {
     try {
       const rec = await runCase(pipe, job.scenario, job.seed, job.index, { keep: !!job.save });
@@ -276,11 +282,11 @@ async function saveImages(rec, dir) {
   writeFileSync(`${base}-overlay.png`, await encodePng(over));
 }
 
-function pool(jobs, analyze, pipeline) {
+function pool(jobs, analyze, pipeline, faces) {
   const workers = []; const waiting = new Map(); let id = 0;
   const queue = [];
   const spawn = () => {
-    const w = new Worker(fileURLToPath(import.meta.url), { workerData: { analyze, pipeline } });
+    const w = new Worker(fileURLToPath(import.meta.url), { workerData: { analyze, pipeline, faces } });
     w.on('message', (m) => { const p = waiting.get(m.id); waiting.delete(m.id); w.busy = false; if (m.error) p.reject(new Error(m.error)); else p.resolve(m.rec); pump(); });
     w.on('error', (e) => { for (const p of waiting.values()) p.reject(e); });
     workers.push(w);
@@ -308,7 +314,7 @@ async function main() {
       n: { type: 'string', default: '20' }, seed: { type: 'string', default: '1' }, scenario: { type: 'string' },
       out: { type: 'string' }, 'save-images': { type: 'string' }, case: { type: 'string' }, jobs: { type: 'string' },
       src: { type: 'string' }, json: { type: 'string' }, compare: { type: 'string' }, quiet: { type: 'boolean', default: false },
-      pipeline: { type: 'string', default: 'panel' },
+      pipeline: { type: 'string', default: 'panel' }, faces: { type: 'boolean', default: false },
     },
   });
   const seed = Number(o.seed); const n = Number(o.n);
@@ -320,6 +326,8 @@ async function main() {
   const srcLabel = rel && !rel.startsWith('..') ? rel : path.dirname(analyze);
   const jobsN = Math.max(1, Number(o.jobs ?? Math.min(4, os.availableParallelism?.() ?? os.cpus().length)));
   const t0 = performance.now();
+  // Load once here first: a missing face fails before any worker starts.
+  const faceCount = o.faces ? (() => { const f = loadFaces(); registerFaces(f); return f.length; })() : 0;
 
   if (o.case !== undefined) {
     // One case in detail (in this thread: steady timing).
@@ -343,7 +351,7 @@ async function main() {
     return;
   }
 
-  const p = pool(jobsN, analyze, o.pipeline);
+  const p = pool(jobsN, analyze, o.pipeline, o.faces);
   const pipeInfo = await loadPipeline(analyze, o.pipeline);
   const pipelineLabel = pipeInfo.cropRect ? `panel: ≤ ${pipeInfo.maxSide} px, then the card at full size (≤ ${pipeInfo.cropMax} px)` : `one pass, ≤ ${pipeInfo.maxSide} px`;
   // Expensive scenarios first, so the workers finish together.
@@ -358,7 +366,7 @@ async function main() {
   if (!o.quiet && process.stderr.isTTY) process.stderr.write('\n');
   const byScenario = new Map(names.map((s) => [s, results.filter((r) => r.scenario === s).sort((a, b) => a.index - b.index)]));
   const elapsed = performance.now() - t0;
-  let md = report(byScenario, { seed, n, src: srcLabel, elapsed, jobs: jobsN, pipeline: pipelineLabel });
+  let md = report(byScenario, { seed, n, src: srcLabel, elapsed, jobs: jobsN, pipeline: pipelineLabel, faces: faceCount });
   if (o.compare) md += `\n${compare(byScenario, o.compare, seed)}\n`;
   console.log(md);
   if (o.out) writeFileSync(o.out, `${md}\n`);

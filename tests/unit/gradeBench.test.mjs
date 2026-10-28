@@ -11,6 +11,7 @@ import { analyzeCard } from '../../src/pipeline/grade/analyze.js';
 import {
   renderCase, prepareForAnalysis, quadErrorMm, scoreCentering, jpegRoundTrip, dct2, idct2, dct2Reference, cameraModel, rng,
 } from '../bench/gradeSim.mjs';
+import { decodePng } from '../bench/png.mjs';
 
 // [scenario, index (seed 1), max centering error in points per axis, wear expected]. Baseline errors (2026-10):
 // 0.01-0.22 points, outlines within 0.3 mm, no false wear alarms, the worn case seen. Every case must be found
@@ -98,4 +99,28 @@ test('grade sim: a case renders the same bytes every time', () => {
   const a = renderCase('phone-low', 7, 3); const b = renderCase('phone-low', 7, 3);
   assert.equal(hash(a.img.data), hash(b.img.data));
   assert.deepEqual(a.truth, b.truth);
+});
+
+test('grade sim: the PNG reader for the official card faces undoes all five row filters (RGB and RGBA)', async () => {
+  const { deflateSync } = await import('node:zlib');
+  const W = 5; const H = 6;
+  for (const bpp of [3, 4]) {
+    const px = Uint8Array.from({ length: W * H * bpp }, (_, i) => (i * 37 + (i >> 3) * 11) & 255);
+    const stride = W * bpp; const raw = [];
+    for (let y = 0; y < H; y++) {
+      const f = y % 5; raw.push(f);
+      for (let x = 0; x < stride; x++) {
+        const a = x >= bpp ? px[y * stride + x - bpp] : 0; const b = y ? px[(y - 1) * stride + x] : 0; const c = x >= bpp && y ? px[(y - 1) * stride + x - bpp] : 0;
+        const q = a + b - c; const pa = Math.abs(q - a); const pb = Math.abs(q - b); const pc = Math.abs(q - c);
+        const pred = [0, a, b, (a + b) >> 1, pa <= pb && pa <= pc ? a : pb <= pc ? b : c][f];
+        raw.push((px[y * stride + x] - pred) & 255);
+      }
+    }
+    const chunk = (type, body) => { const len = Buffer.alloc(4); len.writeUInt32BE(body.length); return Buffer.concat([len, Buffer.from(type, 'latin1'), body, Buffer.alloc(4)]); };
+    const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4); ihdr[8] = 8; ihdr[9] = bpp === 4 ? 6 : 2;
+    const png = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(Buffer.from(raw))), chunk('IEND', Buffer.alloc(0))]);
+    const img = decodePng(png);
+    assert.equal(img.width, W); assert.equal(img.height, H);
+    for (let i = 0; i < W * H; i++) for (let c = 0; c < 4; c++) assert.equal(img.data[i * 4 + c], c < bpp ? px[i * bpp + c] : 255, `pixel ${i} channel ${c} (${bpp} bytes)`);
+  }
 });

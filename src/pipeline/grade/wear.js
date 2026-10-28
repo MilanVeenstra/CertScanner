@@ -4,12 +4,14 @@
 //    and the background next to the card (so the blend of the two along the cut edge never counts), clearly so, and
 //    (on a coloured border) much less coloured. The same position a little deeper in the border must look normal:
 //    glare and light print spread inward, edge wear doesn't.
-//  - Corner shape: rays from the centre of each corner's curve find where the card ends. A corner whose outline lies
-//    inside the curve the other corners share is dinged, soft or missing its tip.
+//  - Corner shape: rays from the centre of each corner's curve find where the card ends, and a circle is fitted to each
+//    corner's outline. A corner whose outline dips inside its own circle is dinged or cut; one whose circle is wider
+//    than the others' is rounded off. A curve that only sits a little off the straight edges is not damage.
 // What it cannot see is reported as such: too few pixels per mm, a light background or a pale (white, silver) border,
 // a photo cropped to the card (no background), or a corner outside the photo. Surface is not judged here.
 import { toLab, SIDES } from './measure.js';
 import { sampleRgb } from './detect.js';
+import { solve } from './geometry.js';
 
 /** Below this many pixels per mm on the card, wear is not judged at all. */
 export const WEAR_MIN_PX_PER_MM = 7;
@@ -149,9 +151,35 @@ function cornerRays(card, corner, { s, R0, test, i0, i1, cardRef = null, bgRef =
         if (c && test(toLab(c[0], c[1], c[2]))) white = true;
       }
     }
-    rays.push({ deg, r, white });
+    rays.push({ deg, r, white, x: dx * r, y: dy * r });
   }
   return rays;
+}
+
+/**
+ * Circle through the outline points {x, y} (algebraic fit, then refit without the points well inside it: a dent or a
+ * cut must not pull the circle in). Null when the points don't make a usable circle.
+ */
+function fitCircle(rays) {
+  const fit = (pts) => {
+    if (pts.length < 6) return null;
+    let sx = 0; let sy = 0; let sxx = 0; let syy = 0; let sxy = 0; let sz = 0; let sxz = 0; let syz = 0;
+    for (const p of pts) { const z = p.x * p.x + p.y * p.y; sx += p.x; sy += p.y; sxx += p.x * p.x; syy += p.y * p.y; sxy += p.x * p.y; sz += z; sxz += p.x * z; syz += p.y * z; }
+    const n = pts.length;
+    const sol = solve([[sxx, sxy, sx], [sxy, syy, sy], [sx, sy, n]], [-sxz, -syz, -sz]);
+    if (!sol) return null;
+    const [D, E, F] = sol; const x = -D / 2; const y = -E / 2; const R2 = x * x + y * y - F;
+    return R2 > 0 ? { x, y, R: Math.sqrt(R2) } : null;
+  };
+  let c = fit(rays);
+  for (let it = 0; it < 2 && c; it++) {
+    const res = rays.map((p) => c.R - Math.hypot(p.x - c.x, p.y - c.y));
+    const mad = median(res.map((v) => Math.abs(v))) * 1.4826 + 0.5;
+    const keep = rays.filter((p, i) => res[i] <= 2.5 * mad);
+    if (keep.length < rays.length * 0.6) break;
+    c = fit(keep) ?? c;
+  }
+  return c;
 }
 
 const RANK = { none: 0, minor: 1, visible: 2 };
@@ -199,15 +227,30 @@ export function measureWear(card, { borders, bg = {}, blurPx = 1 }) {
     if (valid.length < rays.length * 0.6) { list[corner] = { status: 'unknown', reason: rays.includes('cut') ? 'outside' : 'low-contrast' }; continue; }
     measured[corner] = { rays: valid, radius: median(valid.map((r) => r.r)), test, reason };
   }
+  // Each corner's own circle (centre and radius free): a curve that sits a little off the straight edges (the cut is
+  // rarely exact) is not damage; a bigger radius (blunted), a flat (cut tip) or a bite (dent) is.
+  for (const m of Object.values(measured)) m.fit = fitCircle(m.rays);
   const radii = Object.values(measured).map((m) => m.radius);
   const ref = radii.length >= 2 ? median(radii) : NaN;
   const geometryOk = Number.isFinite(ref) && Math.abs(ref - R0) < 1.5 * s;
-  const minor = Math.max(0.15 * s, 1.5); const visible = Math.max(0.3 * s, 3);
+  const minor = Math.max(0.3 * s, 2); const visible = Math.max(0.5 * s, 3.5);
   for (const [corner, m] of Object.entries(measured)) {
     if (!geometryOk) { list[corner] = { status: 'unknown', reason: 'shape' }; continue; }
-    // Missing material: the outline lies inside the shared curve. Third-largest inward deviation (robust to a stray ray).
-    const dev = m.rays.map((r) => ref - r.r).sort((p, q) => q - p);
-    const inward = dev[Math.min(2, dev.length - 1)];
+    // Missing material: the outline lies inside its own circle (third-largest inward deviation, robust to a stray
+    // ray), or the circle is wider than the other corners' (the tip is rounded off: it moves in by ΔR·(√2-1)).
+    const others = Object.entries(measured).filter(([c, o]) => c !== corner && o.fit).map(([, o]) => o.fit.R);
+    let inward;
+    if (m.fit && others.length >= 1) {
+      const dev = m.rays.map((r) => m.fit.R - Math.hypot(r.x - m.fit.x, r.y - m.fit.y)).sort((p, q) => q - p);
+      // A straight cut fits a huge circle: then the tip's own distance inside the shared curve says how much is gone.
+      const Rref = median(others);
+      const tip = median(m.rays.filter((r) => r.deg >= 38 && r.deg <= 52).map((r) => ref - r.r));
+      const blunt = m.fit.R > 2 * Rref ? Math.max(0, Number.isFinite(tip) ? tip : 0) : Math.max(0, m.fit.R - Rref) * (Math.SQRT2 - 1);
+      inward = Math.max(dev[Math.min(2, dev.length - 1)], blunt);
+    } else {
+      const dev = m.rays.map((r) => ref - r.r).sort((p, q) => q - p);
+      inward = dev[Math.min(2, dev.length - 1)];
+    }
     const whiteFrac = m.test ? m.rays.filter((r) => r.white).length / m.rays.length : null;
     let rating = inward >= visible ? 'visible' : inward >= minor ? 'minor' : 'none';
     if (whiteFrac !== null) rating = worst([rating, whiteFrac >= 0.25 ? 'visible' : whiteFrac >= 0.08 ? 'minor' : 'none']);

@@ -1,0 +1,245 @@
+{
+ "about": "Official card faces for the grade-check benchmark (bench:grade --faces): digital renders from images.pokemontcg.io, fetched into .cache/grade-data/official/ by scripts/fetch-grade-data.mjs --faces. The images are the publisher's artwork: use them locally for testing only, never commit or ship them. borders: border width per side in mm (card 63 x 88 mm = the image bounds), where the colour is halfway (linear light) between the border and the print just inside it, median over the middle 60 % of the side; only designs with a crisp border end on all four sides (10-90 % rise of 0.26 mm or less) are listed, so XY/BW frames, full arts and SV trainers are left out. The benchmark moves the whole print against the cut by a known amount (a miscut), so the true borders of every case are these plus that shift.",
+ "faces": [
+  {
+   "id": "cel25-1",
+   "name": "Ho-Oh",
+   "url": "https://images.pokemontcg.io/cel25/1_hires.png",
+   "borders": {
+    "l": 2.427,
+    "r": 2.572,
+    "t": 2.428,
+    "b": 2.437
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sm1-1",
+   "name": "Caterpie",
+   "url": "https://images.pokemontcg.io/sm1/1_hires.png",
+   "borders": {
+    "l": 2.478,
+    "r": 2.488,
+    "t": 2.464,
+    "b": 2.519
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sm1-30",
+   "name": "Poliwag",
+   "url": "https://images.pokemontcg.io/sm1/30_hires.png",
+   "borders": {
+    "l": 2.499,
+    "r": 2.502,
+    "t": 2.483,
+    "b": 2.518
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sm115-1",
+   "name": "Caterpie",
+   "url": "https://images.pokemontcg.io/sm115/1_hires.png",
+   "borders": {
+    "l": 2.442,
+    "r": 2.539,
+    "t": 2.469,
+    "b": 2.519
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sm35-5",
+   "name": "Breloom",
+   "url": "https://images.pokemontcg.io/sm35/5_hires.png",
+   "borders": {
+    "l": 2.481,
+    "r": 2.489,
+    "t": 2.466,
+    "b": 2.521
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sv1-1",
+   "name": "Pineco",
+   "url": "https://images.pokemontcg.io/sv1/1_hires.png",
+   "borders": {
+    "l": 2.406,
+    "r": 2.603,
+    "t": 2.39,
+    "b": 2.414
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sv1-2",
+   "name": "Heracross",
+   "url": "https://images.pokemontcg.io/sv1/2_hires.png",
+   "borders": {
+    "l": 2.406,
+    "r": 2.603,
+    "t": 2.39,
+    "b": 2.414
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sv2-120",
+   "name": "Nacli",
+   "url": "https://images.pokemontcg.io/sv2/120_hires.png",
+   "borders": {
+    "l": 2.465,
+    "r": 2.717,
+    "t": 2.371,
+    "b": 2.388
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "sv3-100",
+   "name": "Greavard",
+   "url": "https://images.pokemontcg.io/sv3/100_hires.png",
+   "borders": {
+    "l": 2.38,
+    "r": 2.516,
+    "t": 2.363,
+    "b": 2.455
+   },
+   "cornerRadiusMm": 3.23
+  },
+  {
+   "id": "sv3pt5-1",
+   "name": "Bulbasaur",
+   "url": "https://images.pokemontcg.io/sv3pt5/1_hires.png",
+   "borders": {
+    "l": 2.472,
+    "r": 2.471,
+    "t": 2.479,
+    "b": 2.35
+   },
+   "cornerRadiusMm": 3.23
+  },
+  {
+   "id": "sv4-100",
+   "name": "Toxtricity ex",
+   "url": "https://images.pokemontcg.io/sv4/100_hires.png",
+   "borders": {
+    "l": 2.479,
+    "r": 2.515,
+    "t": 2.496,
+    "b": 2.418
+   },
+   "cornerRadiusMm": 3.23
+  },
+  {
+   "id": "sv5-1",
+   "name": "Scyther",
+   "url": "https://images.pokemontcg.io/sv5/1_hires.png",
+   "borders": {
+    "l": 2.459,
+    "r": 2.48,
+    "t": 2.423,
+    "b": 2.441
+   },
+   "cornerRadiusMm": 3.23
+  },
+  {
+   "id": "sv6-20",
+   "name": "Poltchageist",
+   "url": "https://images.pokemontcg.io/sv6/20_hires.png",
+   "borders": {
+    "l": 2.421,
+    "r": 2.456,
+    "t": 2.429,
+    "b": 2.346
+   },
+   "cornerRadiusMm": 3.23
+  },
+  {
+   "id": "sv8-10",
+   "name": "Dhelmise",
+   "url": "https://images.pokemontcg.io/sv8/10_hires.png",
+   "borders": {
+    "l": 2.409,
+    "r": 2.467,
+    "t": 2.39,
+    "b": 2.414
+   },
+   "cornerRadiusMm": 3.23
+  },
+  {
+   "id": "swsh1-118",
+   "name": "Galarian Linoone",
+   "url": "https://images.pokemontcg.io/swsh1/118_hires.png",
+   "borders": {
+    "l": 2.442,
+    "r": 2.495,
+    "t": 2.502,
+    "b": 2.414
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "swsh1-127",
+   "name": "Galarian Meowth",
+   "url": "https://images.pokemontcg.io/swsh1/127_hires.png",
+   "borders": {
+    "l": 2.453,
+    "r": 2.494,
+    "t": 2.513,
+    "b": 2.408
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "swsh1-180",
+   "name": "Rare Candy",
+   "url": "https://images.pokemontcg.io/swsh1/180_hires.png",
+   "borders": {
+    "l": 2.507,
+    "r": 2.548,
+    "t": 2.044,
+    "b": 2.541
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "swsh1-200",
+   "name": "Marnie",
+   "url": "https://images.pokemontcg.io/swsh1/200_hires.png",
+   "borders": {
+    "l": 2.456,
+    "r": 2.492,
+    "t": 2.96,
+    "b": 2.387
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "swsh9-10",
+   "name": "Wormadam",
+   "url": "https://images.pokemontcg.io/swsh9/10_hires.png",
+   "borders": {
+    "l": 2.421,
+    "r": 2.568,
+    "t": 2.421,
+    "b": 2.435
+   },
+   "cornerRadiusMm": 2.93
+  },
+  {
+   "id": "swsh12-100",
+   "name": "Palossand",
+   "url": "https://images.pokemontcg.io/swsh12/100_hires.png",
+   "borders": {
+    "l": 2.417,
+    "r": 2.566,
+    "t": 2.427,
+    "b": 2.396
+   },
+   "cornerRadiusMm": 2.93
+  }
+ ]
+}

@@ -4,7 +4,10 @@
 //  3. Pair near-parallel lines, combine two roughly perpendicular pairs into quads, keep the card-shaped ones
 //     (perspective-corrected aspect near 63:88) and score them by how much of each side lies on a matching edge.
 //  4. Prefer the outer edge over the inner print frame when both are found (the band between them is the border).
-//  5. Refine the 4 sides at full resolution with sub-pixel edge profiles and a robust line fit.
+//     Then, among quads a little in or out, the one with most sides on the cut edge: the border's colour just inside,
+//     something else just outside (not a holder, sleeve or scanner-lid line around a tightly cropped card).
+//  5. Refine the 4 sides at full resolution with sub-pixel edge profiles and a robust line fit: per profile the step
+//     where the border ends, not a stronger one just outside it.
 import { lineFromPolar, lineThrough, intersect, quadArea, isConvex, orderQuad, rectAspect, fitLine, quadSkew } from './geometry.js';
 
 /** Short/long side of a standard card: Pokémon and One Piece 63 × 88 mm; Disney Lorcana 63.5 × 88.9 mm (0.714). */
@@ -272,24 +275,28 @@ export function cardQuads(lines, grad, mask) {
   return out;
 }
 
+/** Median of RGB samples (nulls skipped) with `spread`, the median distance of the samples from it; null with < 6. */
+function medianOf(samples) {
+  const ok = samples.filter(Boolean);
+  if (ok.length < 6) return null;
+  const med = (a) => { const s = [...a].sort((p, q) => p - q); return s[s.length >> 1]; };
+  const c = [0, 1, 2].map((ch) => med(ok.map((v) => v[ch])));
+  c.spread = med(ok.map((v) => Math.hypot(v[0] - c[0], v[1] - c[1], v[2] - c[2])));
+  return c;
+}
+
 /**
  * Median colour of the low-res planes at the given points (points outside the image are skipped), with `spread`: the
  * median distance of the samples from it (small for a printed border, large for texture). Null with too few points.
  */
 function medianColor(small, points) {
   const { r, g, b, width: w, height: h } = small;
-  const rs = []; const gs = []; const bs = [];
-  for (const [x, y] of points) {
+  return medianOf(points.map(([x, y]) => {
     const xi = Math.floor(x); const yi = Math.floor(y);
-    if (xi < 0 || yi < 0 || xi >= w || yi >= h) continue;
+    if (xi < 0 || yi < 0 || xi >= w || yi >= h) return null;
     const i = yi * w + xi;
-    rs.push(r[i]); gs.push(g[i]); bs.push(b[i]);
-  }
-  if (rs.length < 6) return null;
-  const med = (a) => { const s = [...a].sort((p, q) => p - q); return s[s.length >> 1]; };
-  const c = [med(rs), med(gs), med(bs)];
-  c.spread = med(rs.map((v, i) => Math.hypot(v - c[0], gs[i] - c[1], bs[i] - c[2])));
-  return c;
+    return [r[i], g[i], b[i]];
+  }));
 }
 
 const rgbDist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
@@ -350,6 +357,88 @@ function croppedToCard(inner, imageRect, small, short) {
     if (c && bands.some((b) => rgbDist(b, c) < 25)) alike++;
   }
   return alike < 3;
+}
+
+/**
+ * Per side of `quad` (low-res px; k = source px per low-res px), whether it lies on the card's cut edge: just inside
+ * it (0.7 and 1.3 mm in, past a light rim along the cut) one even colour, the same as inside most other sides (the
+ * card's border), and just outside it (0.5 mm) a different one, on each third of the side (a line that crosses from
+ * the card's edge to a holder line fails). A holder or sleeve line a little outside the card has its narrow strip
+ * inside, then the card; a print frame has art inside. Null for every side when no border colour is shared (art up
+ * to the edge), and for a side where the photo ends just outside it.
+ */
+function edgeEvidence(img, quad, k) {
+  const len = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1]) || 1;
+  const mm = [0, 1, 2, 3].reduce((t, i) => t + len(quad[i], quad[(i + 1) % 4]), 0) / (2 * (63 + 88));
+  const c = [(quad[0][0] + quad[2][0]) / 2, (quad[0][1] + quad[2][1]) / 2];
+  const sides = [0, 1, 2, 3].map((s) => {
+    const p = quad[s]; const r = quad[(s + 1) % 4];
+    const L = len(p, r);
+    let nx = -(r[1] - p[1]) / L; let ny = (r[0] - p[0]) / L;
+    if ((c[0] - (p[0] + r[0]) / 2) * nx + (c[1] - (p[1] + r[1]) / 2) * ny > 0) { nx = -nx; ny = -ny; } // outward
+    return [0.15, 0.4, 0.65].map((t0) => {
+      const at = (o) => medianOf(Array.from({ length: 8 }, (_, j) => {
+        const t = t0 + (0.2 * j) / 7;
+        return sampleRgb(img, (p[0] + (r[0] - p[0]) * t + nx * o * mm) * k, (p[1] + (r[1] - p[1]) * t + ny * o * mm) * k);
+      }));
+      const near = at(-0.7); const deep = at(-1.3);
+      return { even: !!(near && deep && near.spread < 40 && rgbDist(near, deep) < 40), near, out: at(0.5) };
+    });
+  });
+  // The border colour: the even inside colour that most stretches share.
+  const all = sides.flat().filter((a) => a.even);
+  let border = null; let n = 0;
+  for (const a of all) {
+    const m = all.filter((b) => sameInk(a.near, b.near)).length;
+    if (m > n) { n = m; border = a.near; }
+  }
+  if (n < 5) return sides.map(() => null);
+  return sides.map((parts) => {
+    if (parts.some((a) => !a.out)) return null;
+    return parts.every((a) => a.even && sameInk(a.near, border) && rgbDist(a.out, border) > 40);
+  });
+}
+
+/**
+ * Whether two colours are the same border ink: close, or both grey within a third in brightness (a silver border's
+ * metallic sheen runs from light to dark along a side).
+ */
+function sameInk(p, q) {
+  if (rgbDist(p, q) < 40) return true;
+  const lp = (p[0] + p[1] + p[2]) / 3 + 1; const lq = (q[0] + q[1] + q[2]) / 3 + 1;
+  if (lp / lq > 1.33 || lq / lp > 1.33) return false;
+  const grey = (v, l) => Math.max(Math.abs(v[0] - v[1]), Math.abs(v[1] - v[2]), Math.abs(v[0] - v[2])) / l < 0.08;
+  return grey(p, lp) && grey(q, lq) && rgbDist(p, q) < 90;
+}
+
+/** Signed distance (+ outward) of each side's midpoint of `q` from the matching side of `ref`. */
+function sideShifts(q, ref) {
+  const c = [(ref[0][0] + ref[2][0]) / 2, (ref[0][1] + ref[2][1]) / 2];
+  return [0, 1, 2, 3].map((s) => {
+    const l = lineThrough(ref[s], ref[(s + 1) % 4]);
+    const m = [(q[s][0] + q[(s + 1) % 4][0]) / 2, (q[s][1] + q[(s + 1) % 4][1]) / 2];
+    const sign = l.a * c[0] + l.b * c[1] - l.c > 0 ? -1 : 1;
+    return sign * (l.a * m[0] + l.b * m[1] - l.c);
+  });
+}
+
+/**
+ * Of the candidates whose sides lie at most 2 mm inside and 3.8 mm outside the sides of `pick` (a holder line just
+ * outside the card, the print frame just inside it; not the print frame of a card found at its edge), the one with
+ * the most sides on the card's cut edge (edgeEvidence); `pick` on a tie.
+ */
+function onCardEdge(pick, cands, img, k) {
+  const short = shortSide(pick.quad);
+  const count = (q) => edgeEvidence(img, q, k).filter((v) => v === true).length;
+  let best = pick; let bestN = count(pick.quad);
+  if (bestN === 4) return pick;
+  for (const c of cands) {
+    if (c.score < 0.35 * cands[0].score || Math.min(...c.support) < 0.4) continue;
+    if (sideShifts(c.quad, pick.quad).some((d) => d < -0.032 * short || d > 0.06 * short)) continue;
+    const n = count(c.quad);
+    if (n > bestN || (n === bestN && best !== pick && c.score > best.score)) { best = c; bestN = n; }
+  }
+  return best === pick ? pick : { quad: best.quad, source: 'detected', score: best.score, support: best.support, ratio: best.ratio };
 }
 
 /**
@@ -441,6 +530,7 @@ export function detectCard(img) {
   }
   if (!pick) return null;
   const k = 1 / small.scale;
+  if (pick.source === 'detected') pick = onCardEdge(pick, cands, img, k);
   return { ...pick, quad: pick.quad.map(([x, y]) => [x * k, y * k]), candidates: cands.length };
 }
 
@@ -462,8 +552,66 @@ export function sampleRgb(img, x, y) {
 }
 
 /**
+ * Step index of the card edge in a profile across it (inside first; dv[i] = change from sample i to i+1): the first
+ * strong step that ends an even run from the inner end (the card's border) with a clear change of colour, or a
+ * stronger step up to `mergeSteps` further out (a light rim or the card's core along the cut). A holder rim or a
+ * sleeve edge just outside the card can be the strongest step. Where the colour leaves the border without such a
+ * step (art up to the edge, a rim at the inner end), the first step at least 0.6 × the strongest from there.
+ */
+function edgeStep(prof, dv, bi, bv, mergeSteps = 0, perMm = 20) {
+  if (!prof[0] || !prof[1] || !prof[2]) return bi;
+  let ref = [0, 1, 2].map((c) => (prof[0][c] + prof[1][c] + prof[2][c]) / 3);
+  let start = 0;
+  if (bi < Math.round(0.45 * perMm)) {
+    // The strongest step right at the inner end, and another nearly as strong further out: the profile starts on
+    // print in the border (the copyright line). Start again past it, with the colour there. Past the card's own edge
+    // there is only the background, with no such step.
+    const past = medianOf(prof.slice(bi + 2, bi + 2 + Math.max(6, Math.round(0.2 * perMm))));
+    let b2 = -1; let v2 = 0;
+    for (let i = bi + 4; i < dv.length; i++) if (dv[i] > v2) { v2 = dv[i]; b2 = i; }
+    if (past && b2 >= 0 && v2 >= 0.5 * bv) { ref = past; start = bi + 2; bi = b2; bv = v2; }
+  }
+  const peak = (i, f) => dv[i] >= f * bv && dv[i] >= dv[i - 1] && dv[i] >= dv[i + 1];
+  const top = (i) => {
+    let j = i;
+    for (let k = i + 1; k < dv.length && (dv[k] >= 0.3 * bv || k <= i + mergeSteps); k++) if (dv[k] > dv[j]) j = k;
+    return j;
+  };
+  let dev = 0; // the largest change from the border colour before the current step starts
+  let m = start;
+  let i = start + 2;
+  for (; i < bi; i++) {
+    if (!peak(i, 0.3)) continue;
+    let j = i;
+    while (j > 1 && dv[j - 1] >= 0.3 * dv[i]) j--; // a blurred step starts at sample j
+    for (; m < j; m++) if (prof[m]) dev = Math.max(dev, rgbDist(prof[m], ref));
+    const after = prof[i + 3] ?? prof[prof.length - 1];
+    if (!after) continue;
+    const change = rgbDist(after, ref);
+    if (dev > Math.max(20, 0.3 * change)) break;
+    if (change < 25) continue;
+    // Print inside the border (the copyright line in the bottom border): the border's colour comes back for a while
+    // within 1 mm after the step. Past the card's edge it doesn't.
+    const back = backAt(prof, ref, i + 3, Math.round(1.0 * perMm), Math.max(1, Math.round(0.25 * perMm)), Math.max(12, 0.25 * change));
+    if (back < 0) return top(i);
+    i = back; m = back; dev = 0;
+  }
+  for (; i < bi; i++) if (peak(i, 0.6)) return top(i);
+  return bi;
+}
+
+/** Start of the first run of `run` samples within `tol` of `ref` in prof[from .. from + span]; -1 if none. */
+function backAt(prof, ref, from, span, run, tol) {
+  let n = 0;
+  for (let k = from; k < Math.min(prof.length, from + span); k++) {
+    if (prof[k] && rgbDist(prof[k], ref) < tol) { if (++n >= run) return k - run + 1; } else n = 0;
+  }
+  return -1;
+}
+
+/**
  * Refine the quad's sides at full resolution: per side ~64 profiles across the edge, the sub-pixel position of the
- * strongest colour step (edges whose brightness step has the minority sign are dropped), then a robust line fit.
+ * card's edge step (edgeStep; edges whose brightness step has the minority sign are dropped), then a robust line fit.
  * A side without enough good points keeps its coarse line.
  */
 export function refineQuad(img, quad, { searchPx } = {}) {
@@ -471,6 +619,10 @@ export function refineQuad(img, quad, { searchPx } = {}) {
   const longSide = Math.max(Math.hypot(quad[3][0] - quad[0][0], quad[3][1] - quad[0][1]), 1);
   const r = searchPx ?? Math.max(3, Math.min(0.015 * longSide, (4 * Math.max(img.width, img.height)) / DETECT_SIDE));
   const step = 0.5;
+  // A stronger step within 0.2 mm outside the first one is the same edge (a light rim along the cut, the card's core).
+  const merge = Math.round((0.2 * longSide) / 88 / step);
+  // Profiles start 0.35 mm further in, in the card's border even when the coarse side is on a holder line just outside.
+  const rIn = r + (0.35 * longSide) / 88;
   const lines = [];
   /** Per side (0 top, 1 right, 2 bottom, 3 left), the sub-pixel edge points that agree with the fitted line. */
   const edgePoints = [];
@@ -489,7 +641,7 @@ export function refineQuad(img, quad, { searchPx } = {}) {
       const t = 0.1 + (0.8 * k) / (K - 1);
       const bx = p[0] + dx * t; const by = p[1] + dy * t;
       const prof = [];
-      for (let o = -r; o <= r + 1e-9; o += step) prof.push(sampleRgb(img, bx + nx * o, by + ny * o));
+      for (let o = -rIn; o <= r + 1e-9; o += step) prof.push(sampleRgb(img, bx + nx * o, by + ny * o));
       let bi = -1; let bv = 0;
       const dv = [];
       for (let i = 1; i < prof.length; i++) {
@@ -499,17 +651,19 @@ export function refineQuad(img, quad, { searchPx } = {}) {
         if (d > bv) { bv = d; bi = i - 1; }
       }
       if (bi < 0 || bv < 3) continue;
+      bi = edgeStep(prof, dv, bi, bv, merge, longSide / 88 / step);
       // Parabolic peak between samples bi-1, bi, bi+1 of the step curve.
       const y0 = dv[bi - 1] ?? dv[bi]; const y1 = dv[bi]; const y2 = dv[bi + 1] ?? dv[bi];
       const den = y0 - 2 * y1 + y2;
       const frac = den < 0 ? Math.max(-0.5, Math.min(0.5, (0.5 * (y0 - y2)) / den)) : 0;
-      const o = -r + (bi + 0.5 + frac) * step;
+      const o = -rIn + (bi + 0.5 + frac) * step;
       const lumIn = prof[bi] ? prof[bi][0] * 0.3 + prof[bi][1] * 0.59 + prof[bi][2] * 0.11 : 0;
       const lumOut = prof[bi + 1] ? prof[bi + 1][0] * 0.3 + prof[bi + 1][1] * 0.59 + prof[bi + 1][2] * 0.11 : 0;
-      // 10-90 % width of the step (sharpness), in source pixels.
-      const total = dv.reduce((a, v) => a + v, 0);
-      let acc = 0; let i10 = 0; let i90 = dv.length - 1;
-      for (let i = 0; i < dv.length; i++) { acc += dv[i]; if (acc < 0.1 * total) i10 = i; if (acc <= 0.9 * total) i90 = i; }
+      // 10-90 % width of the step (sharpness), in source pixels, over the ±r window.
+      const w0 = Math.round((rIn - r) / step);
+      const total = dv.reduce((a, v, i) => (i >= w0 ? a + v : a), 0);
+      let acc = 0; let i10 = w0; let i90 = dv.length - 1;
+      for (let i = w0; i < dv.length; i++) { acc += dv[i]; if (acc < 0.1 * total) i10 = i; if (acc <= 0.9 * total) i90 = i; }
       found.push({ pt: [bx + nx * o, by + ny * o], sign: Math.sign(lumOut - lumIn), width: (i90 - i10 + 1) * step });
     }
     const plus = found.filter((f) => f.sign > 0).length;
@@ -521,8 +675,14 @@ export function refineQuad(img, quad, { searchPx } = {}) {
       points += fit.inliers;
       widths = widths.concat(good.map((f) => f.width));
       // Kept for the local edge position (a lens or a bent card curves the edge; the line can't follow that).
-      const lim = Math.max(1.5, 3 * fit.rms);
-      edgePoints.push(good.map((f) => f.pt).filter(([x, y]) => Math.abs(fit.a * x + fit.b * y - fit.c) <= lim));
+      // Only points near the line that agree with their neighbours: a curve is smooth and shallow, a jump to a holder
+      // line or a rim is not.
+      const lim = Math.max(1.5, Math.min(3 * fit.rms, (0.15 * longSide) / 88));
+      const res = good.map(({ pt: [x, y] }) => fit.a * x + fit.b * y - fit.c);
+      edgePoints.push(good.map((f) => f.pt).filter((_, i) => {
+        const near = res.slice(Math.max(0, i - 3), i + 4).sort((u, v) => u - v);
+        return Math.abs(res[i]) <= lim && Math.abs(res[i] - near[near.length >> 1]) <= 1.5;
+      }));
     } else {
       lines.push(lineThrough(p, q));
       edgePoints.push([]);

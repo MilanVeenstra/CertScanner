@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grade labels</title>
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<aside>
+  <label>Show <select id="filter">
+    <option value="all">all</option>
+    <option value="unchecked">not checked by you</option>
+    <option value="review">labelled after review</option>
+    <option value="unusable">unusable</option>
+  </select></label>
+  <ol id="list"></ol>
+</aside>
+<main>
+  <header>
+    <b id="title"></b> <span id="grade"></span>
+    <span id="ratio"></span>
+  </header>
+  <div class="views">
+    <canvas id="scan" width="620" height="860" aria-label="Scan with the card outline and the four border lines"></canvas>
+    <div class="side">
+      <div class="sides" role="group" aria-label="Border">
+        <button data-side="left">1 Left</button><button data-side="right">2 Right</button><button data-side="top">3 Top</button><button data-side="bottom">4 Bottom</button>
+      </div>
+      <canvas id="zoom" width="460" height="560" aria-label="Selected border, enlarged: outside on the left; click to place the line"></canvas>
+      <p id="value"></p>
+      <p class="help">Click in the enlarged strip to place the line where the border ends. ← → move it 0.05 mm (Shift: 0.5 mm). 1-4 choose the border. Enter: correct, next. U: unusable.</p>
+      <label>Note <input id="note" maxlength="300"></label>
+      <p><button id="ok">Correct (Enter)</button> <button id="bad">Unusable (U)</button> <button id="next">Skip →</button></p>
+      <p id="status" role="status"></p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

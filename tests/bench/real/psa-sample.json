@@ -1,0 +1,1614 @@
+{
+ "source": "huggingface.co/datasets/jyesr/pokemon-tcg-grading",
+ "note": "cert numbers and PSA grades only; the scans are fetched by scripts/fetch-grade-data.mjs",
+ "certs": [
+  {
+   "cert": "100016945",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2024,
+   "name": "2024 POKEMON SCR EN-STELLAR CROWN #134 DELUXE BOMB",
+   "miscut": false
+  },
+  {
+   "cert": "100016969",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2024,
+   "name": "2024 POKEMON SCR EN-STELLAR CROWN #152 MILCERY ILLUSTRATION RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100016974",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 1999,
+   "name": "1999 POKEMON JAPANESE GYM 2 #132 KOGA'S DITTO HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100016978",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2003,
+   "name": "2003 POKEMON SKYRIDGE #H8 FORRETRESS-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100016981",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2010,
+   "name": "2010 POKEMON WORLD COLLECTION PIKACHU-HOLO PROMO-POLISH",
+   "miscut": false
+  },
+  {
+   "cert": "100016984",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2010,
+   "name": "2010 POKEMON WORLD COLLECTION PIKACHU-HOLO PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "100039019",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #166 BULBASAUR ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100039024",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #168 CHARMANDER ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100039031",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #170 SQUIRTLE ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100039045",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #177 MACHOKE ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100040980",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #46 CHARMANDER SHADOWLESS",
+   "miscut": false
+  },
+  {
+   "cert": "100040983",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #46 CHARMANDER SHADOWLESS",
+   "miscut": false
+  },
+  {
+   "cert": "100040986",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #23 ARCANINE 1ST EDITION",
+   "miscut": false
+  },
+  {
+   "cert": "100092901",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON JAPANESE SV5a-CRIMSON HAZE #078 EEVEE ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100092912",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2021,
+   "name": "2021 POKEMON JAPANESE PROMO CARD PACK 25TH ANNIVERSARY EDITION #003 BLASTOISE-HOLO PCP 25TH ANNIVERSARY ED.",
+   "miscut": false
+  },
+  {
+   "cert": "100094394",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2023,
+   "name": "2023 POKEMON PAL EN-PALDEA EVOLVED #278 BASIC GRASS ENERGY HYPER RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100095630",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2024,
+   "name": "2024 POKEMON JAPANESE SV8-SUPER ELECTRIC BREAKER #112 MAGNETON ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100095631",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON JAPANESE SV8-SUPER ELECTRIC BREAKER #112 MAGNETON ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100095649",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2022,
+   "name": "2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #218 FA/RAIKOU V VSTAR UNIVERSE",
+   "miscut": false
+  },
+  {
+   "cert": "100102290",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2006,
+   "name": "2006 POKEMON EX HOLON PHANTOMS #11 LATIAS-REV.FOIL HOLON PHANTOMS",
+   "miscut": false
+  },
+  {
+   "cert": "100102291",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2007,
+   "name": "2007 POKEMON DIAMOND & PEARL SECRET WONDERS #1 AMPHAROS-HOLO SECRET WONDERS",
+   "miscut": false
+  },
+  {
+   "cert": "100102296",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2004,
+   "name": "2004 POKEMON EX TEAM ROCKET RETURNS #99 ROCKET'S MEWTWO EX TEAM ROCKET RETURNS-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100183138",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2018,
+   "name": "2018 POKEMON JAPANESE SM PROMO #210 GENTLMNL. PIKACHU POKEMON CENTER TOKYO DX",
+   "miscut": false
+  },
+  {
+   "cert": "100266164",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO 2 PROMO #006 CHARIZARD PROMO-REVERSE FOIL",
+   "miscut": false
+  },
+  {
+   "cert": "100266803",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON SCR EN-STELLAR CROWN #171 BRIAR SPECIAL ILLUSTRATION RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100267247",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2014,
+   "name": "2014 POKEMON XY PHANTOM FORCES #34 GENGAR EX PHANTOM FORCES",
+   "miscut": false
+  },
+  {
+   "cert": "100267371",
+   "grade": 3,
+   "label": "VG 3",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #085 DODRIO MASTER BALL REVERSE HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100379037",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2001,
+   "name": "2001 POKEMON SOUTHERN ISLANDS PROMO #11 MARILL-HOLO PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "100381480",
+   "grade": 8,
+   "label": "NM-MT 8 (MC)",
+   "year": 2000,
+   "name": "2000 TOPPS POKEMON THE MOVIE 2000 #26 THE BANQUET THE MOVIE 2000",
+   "miscut": true
+  },
+  {
+   "cert": "100381978",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2006,
+   "name": "2006 POKEMON EX CRYSTAL GUARDIANS #14 BLASTOISE-HOLO CG-STORM SURGE TD",
+   "miscut": false
+  },
+  {
+   "cert": "100383330",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO 2 PROMO #172 PICHU PROMO-REVERSE FOIL",
+   "miscut": false
+  },
+  {
+   "cert": "100383331",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO 2 PROMO #006 CHARIZARD PROMO-REVERSE FOIL",
+   "miscut": false
+  },
+  {
+   "cert": "100383333",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2002,
+   "name": "2002 POKEMON EXPEDITION #9 DRAGONITE-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100383336",
+   "grade": 2,
+   "label": "GOOD 2",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #12 NINETALES-HOLO SHADOWLESS",
+   "miscut": false
+  },
+  {
+   "cert": "100383343",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2023,
+   "name": "2023 POKEMON MEW EN-151 #188 ALAKAZAM ex ULTRA RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100388626",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #090 SHELLDER MASTER BALL REVERSE HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100390344",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2024,
+   "name": "2024 POKEMON SSP EN-SURGING SPARKS #239 LATIAS ex SPECIAL ILLUSTRATION RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100390349",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2015,
+   "name": "2015 POKEMON XY DOUBLE CRISIS #6 TM.AQUA'S KYOGRE EX DOUBLE CRISIS-FA",
+   "miscut": false
+  },
+  {
+   "cert": "100390963",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #168 CHARMANDER ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100390964",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #170 SQUIRTLE ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100391252",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON JAPANESE SV5a-CRIMSON HAZE #075 HISUIAN GROWLITHE ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100391264",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON JAPANESE SV5a-CRIMSON HAZE #071 PHIONE ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "100629798",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2022,
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #TG05 FA/PIKACHU LOST ORIGIN",
+   "miscut": false
+  },
+  {
+   "cert": "100630826",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2021,
+   "name": "2021 POKEMON JAPANESE 25TH ANNIVERSARY COLLECTION #030 FA/MEW 25TH ANNIVERSARY COLL-UR",
+   "miscut": false
+  },
+  {
+   "cert": "100630828",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2003,
+   "name": "2003 POKEMON JAPANESE MAGMA VS AQUA #036 AQUA'S CRAWDAUNT-HOLO MAGMA VS AQUA-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "100630829",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2003,
+   "name": "2003 POKEMON JAPANESE MAGMA VS AQUA #036 AQUA'S CRAWDAUNT-HOLO MAGMA VS AQUA-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "100630984",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2003,
+   "name": "2003 POKEMON AQUAPOLIS #H2 ARCANINE-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100630990",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2003,
+   "name": "2003 POKEMON AQUAPOLIS #37 SUICUNE",
+   "miscut": false
+  },
+  {
+   "cert": "100630991",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2003,
+   "name": "2003 POKEMON AQUAPOLIS #37 SUICUNE",
+   "miscut": false
+  },
+  {
+   "cert": "100631020",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2000,
+   "name": "2000 TOPPS POKEMON TV ANIMATION SERIES 3 #126 MAGMAR ANIMATION SERIES 3",
+   "miscut": false
+  },
+  {
+   "cert": "100631021",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2000,
+   "name": "2000 TOPPS POKEMON TV ANIMATION SERIES 3 #127 PINSIR ANIMATION SERIES 3",
+   "miscut": false
+  },
+  {
+   "cert": "100631027",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2001,
+   "name": "2001 POKEMON SOUTHERN ISLANDS PROMO #13 EXEGGUTOR PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "100631037",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2000,
+   "name": "2000 TOPPS POKEMON TV ANIMATION SERIES 3 #151 MEW ANIMATION SERIES 3",
+   "miscut": false
+  },
+  {
+   "cert": "100631056",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2000,
+   "name": "2000 TOPPS CHROME POKEMON T.V. #45 VILEPLUME POKEMON T.V.",
+   "miscut": false
+  },
+  {
+   "cert": "100631057",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2000,
+   "name": "2000 TOPPS CHROME POKEMON T.V. #46 PARAS POKEMON T.V.",
+   "miscut": false
+  },
+  {
+   "cert": "100631385",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON SVP EN-SV BLACK STAR PROMO #131 KINGDRA ex SFA SPECIAL ILLUSTRATION COLL",
+   "miscut": false
+  },
+  {
+   "cert": "100632737",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #59 POLIWAG",
+   "miscut": false
+  },
+  {
+   "cert": "100919058",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2018,
+   "name": "2018 POKEMON JAPANESE SUN & MOON TAG BOLT #038 GENGAR & MIMIKYU GX TAG BOLT",
+   "miscut": false
+  },
+  {
+   "cert": "100919090",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV2a-POKEMON 151 #037 VULPIX MASTER BALL REVERSE HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "100930789",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2024,
+   "name": "2024 POKEMON SVP EN-SV BLACK STAR PROMO #123 TEAL MASK OGERPON TWILIGHT MASQUERADE ETB",
+   "miscut": false
+  },
+  {
+   "cert": "100932381",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2017,
+   "name": "2017 POKEMON JAPANESE SUN & MOON TO HAVE SEEN THE BATTLE RAINBOW #058 FA/CHARIZARD GX TO HAVE SN.BTL.RNBW-HYPER",
+   "miscut": false
+  },
+  {
+   "cert": "100940885",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2003,
+   "name": "2003 POKEMON JAPANESE PLAY PROMO #003 REGISTEEL EX-HOLO 1st SEASON SUB-PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "100940887",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2023,
+   "name": "2023 POKEMON SVI EN-SCARLET & VIOLET #247 KORAIDON ex SPECIAL ILLUSTRATION RARE",
+   "miscut": false
+  },
+  {
+   "cert": "101119205",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2021,
+   "name": "2021 POKEMON SWORD & SHIELD FUSION STRIKE #270 FA/ESPEON VMAX FUSION STRIKE-SECRET",
+   "miscut": false
+  },
+  {
+   "cert": "101119211",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2022,
+   "name": "2022 POKEMON SWORD & SHIELD BRILLIANT STARS #TG02 FA/VAPOREON BRILLIANT STARS",
+   "miscut": false
+  },
+  {
+   "cert": "101119240",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2023,
+   "name": "2023 POKEMON CLC-TRADING CARD GAME CLASSIC CHARIZARD & HO-OH ex DECK #003 CHARIZARD",
+   "miscut": false
+  },
+  {
+   "cert": "101119245",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2023,
+   "name": "2023 POKEMON CLV-TRADING CARD GAME CLASSIC VENUSAUR & LUGIA ex DECK #002 IVYSAUR",
+   "miscut": false
+  },
+  {
+   "cert": "101119275",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2023,
+   "name": "2023 POKEMON SWORD AND SHIELD CROWN ZENITH #GG37 FA/SIMISEAR VSTAR CROWN ZENITH",
+   "miscut": false
+  },
+  {
+   "cert": "101129904",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE CLASH OF THE BLUE SKY #046 DEOXYS EX-HOLO CLASH OF THE BLUE SKY",
+   "miscut": false
+  },
+  {
+   "cert": "101129906",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2005,
+   "name": "2005 POKEMON JAPANESE QUICK CONSTRUCTION PACKS #002 RAICHU EX-HOLO LIGHTNING QUICK CNST.PACKS",
+   "miscut": false
+  },
+  {
+   "cert": "101129907",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2005,
+   "name": "2005 POKEMON JAPANESE QUICK CONSTRUCTION PACKS #002 RAICHU EX-HOLO LIGHTNING QUICK CNST.PACKS",
+   "miscut": false
+  },
+  {
+   "cert": "101290842",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2023,
+   "name": "2023 POKEMON MEW EN-151 #180 OMANYTE ILLUSTRATION RARE",
+   "miscut": false
+  },
+  {
+   "cert": "101290843",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2023,
+   "name": "2023 POKEMON MEW EN-151 #181 DRAGONAIR ILLUSTRATION RARE",
+   "miscut": false
+  },
+  {
+   "cert": "101291726",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2009,
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #014 CYNDAQUIL-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291727",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2009,
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #015 QUILAVA-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291730",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2009,
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #018 POLIWAG-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291737",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2009,
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #022 MAGIKARP-REV.FOIL SOULSILVER COLL-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291745",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2010,
+   "name": "2010 POKEMON JAPANESE REVIVING LEGENDS #011 MAGCARGO-HOLO REVIVING LEGENDS-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291746",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2010,
+   "name": "2010 POKEMON JAPANESE REVIVING LEGENDS #024 ESPEON-HOLO REVIVING LEGENDS-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291747",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2010,
+   "name": "2010 POKEMON JAPANESE REVIVING LEGENDS #024 ESPEON-HOLO REVIVING LEGENDS-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291754",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2009,
+   "name": "2009 POKEMON JAPANESE SOULSILVER COLLECTION #033 RAICHU-HOLO SOULSILVER COLL-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101291756",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO #181 AMPHAROS-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "101291757",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO 2 #202 WOBBUFFET-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "101295644",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE CLASH OF THE BLUE SKY #067 RAYQUAZA-HOLO CLASH/BLUE SKY-GOLD STAR",
+   "miscut": false
+  },
+  {
+   "cert": "101295645",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE ROCKET GANG STRIKES BACK #011 TREECKO-HOLO RCKT.GNG.STRKS.BCK-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "101295646",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 2005,
+   "name": "2005 POKEMON JAPANESE MIRAGE FOREST #033 REGICE-HOLO MIRAGE FOREST",
+   "miscut": false
+  },
+  {
+   "cert": "101299873",
+   "grade": 1,
+   "label": "PR 1",
+   "year": 2016,
+   "name": "2016 POKEMON XY EVOLUTIONS #11 CHARIZARD-HOLO EVOLUTIONS",
+   "miscut": false
+  },
+  {
+   "cert": "101307189",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2000,
+   "name": "2000 POKEMON ROCKET #32 DARK CHARMELEON",
+   "miscut": false
+  },
+  {
+   "cert": "70100070",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2002,
+   "name": "2002 POKEMON JAPANESE McDONALD'S PROMO #036/P SNEASEL McDONALD'S PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "70100072",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2002,
+   "name": "2002 POKEMON JAPANESE McDONALD'S PROMO #035/P TOGEPI McDONALD'S PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "70100095",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE FLIGHT OF LEGENDS #037 PIKACHU FLIGHT OF LEGENDS-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "70320443",
+   "grade": 3,
+   "label": "VG 3",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE TOPSUN #115 KANGASKHAN BLUE BACK",
+   "miscut": false
+  },
+  {
+   "cert": "70522658",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2015,
+   "name": "2015 POKEMON XY BREAKTHROUGH #159 FA/M MEWTWO EX BREAKTHROUGH",
+   "miscut": false
+  },
+  {
+   "cert": "71204689",
+   "grade": 2,
+   "label": "GOOD 2",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #2 BLASTOISE-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "71206945",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO 3 PROMO #244 ENTEI PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "74397318",
+   "grade": 2,
+   "label": "GOOD 2",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #4 CHARIZARD-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "74409381",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2022,
+   "name": "2022 POKEMON SWORD & SHIELD SILVER TEMPEST #TG20 FA/RAYQUAZA VMAX SILVER TEMPEST",
+   "miscut": false
+  },
+  {
+   "cert": "74524749",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE PROMO COROCORO COMICS #151 SHINING MEW COROCORO COMICS-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "74535768",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2019,
+   "name": "2019 POKEMON JAPANESE S PROMO #001 FA/PIKACHU SWSH PRE-ORDER",
+   "miscut": false
+  },
+  {
+   "cert": "74654559",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #2 BLASTOISE-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "74660231",
+   "grade": 1,
+   "label": "PR 1",
+   "year": 2003,
+   "name": "2003 POKEMON AQUAPOLIS #4 AZUMARILL REVERSE FOIL",
+   "miscut": false
+  },
+  {
+   "cert": "74660239",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2008,
+   "name": "2008 POKEMON DIAMOND & PEARL GREAT ENCOUNTERS #2 CRESSELIA-HOLO GREAT ENCOUNTERS",
+   "miscut": false
+  },
+  {
+   "cert": "74661010",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 1999,
+   "name": "1999 POKEMON JAPANESE GYM 2 #26 LT. SURGE'S RAICHU HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "74661015",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE JUNGLE #135 JOLTEON-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "74661026",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO #249 LUGIA-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "74736737",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2015,
+   "name": "2015 POKEMON XY BLACK STAR PROMOS #XY69 RAYQUAZA EX BLACK STAR PROMOS",
+   "miscut": false
+  },
+  {
+   "cert": "74943040",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 2022,
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #TG30 FA/MEW VMAX LOST ORIGIN",
+   "miscut": false
+  },
+  {
+   "cert": "75215913",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2000,
+   "name": "2000 POKEMON GERMAN FOSSIL #2 ARKTOS-HOLO 1ST EDITION",
+   "miscut": false
+  },
+  {
+   "cert": "75238734",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2008,
+   "name": "2008 POKEMON DIAMOND & PEARL MAJESTIC DAWN #98 GLACEON LV.X-HOLO MAJESTIC DAWN",
+   "miscut": false
+  },
+  {
+   "cert": "75239922",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2007,
+   "name": "2007 POKEMON JAPANESE PROMO #41 CROAGUNK MEIJI CHOCOLATE",
+   "miscut": false
+  },
+  {
+   "cert": "75240149",
+   "grade": 2,
+   "label": "GOOD 2",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE PROMO #054 CHARIZARD MEIJI CHOCOLATE",
+   "miscut": false
+  },
+  {
+   "cert": "75251494",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 1970,
+   "name": "1970 TOPPS #1 NBA SCORING LEADERS ALCINDOR/WEST/HAYES",
+   "miscut": false
+  },
+  {
+   "cert": "75252267",
+   "grade": 3,
+   "label": "VG 3",
+   "year": 2022,
+   "name": "2022 POKEMON SWORD & SHIELD BRILLIANT STARS #182 FA/GALARIAN ZAPDOS V BRILLIANT STARS-SECRET",
+   "miscut": false
+  },
+  {
+   "cert": "75252272",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2005,
+   "name": "2005 POKEMON JAPANESE HOLON RESEARCH TOWER #058 MAROWAK-HOLO HOLON RSRCH.TWR-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "75259537",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 1999,
+   "name": "1999 POKEMON FOSSIL #2 ARTICUNO-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "75259591",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2022,
+   "name": "2022 POKEMON JAPANESE S PROMO LET'S HAVE FUN! SPRING, POKEKA-STICKER",
+   "miscut": false
+  },
+  {
+   "cert": "75327739",
+   "grade": 3,
+   "label": "VG 3",
+   "year": 2017,
+   "name": "2017 POKEMON JAPANESE SUN & MOON STRENGTH EXPANSION PACK SHINING LEGENDS #058 SHINING LUGIA-HOLO S.E.P. SHINING LEGENDS",
+   "miscut": false
+  },
+  {
+   "cert": "75500481",
+   "grade": 2,
+   "label": "GOOD 2",
+   "year": 2002,
+   "name": "2002 POKEMON NEO DESTINY #108 SHINING KABUTOPS",
+   "miscut": false
+  },
+  {
+   "cert": "75502239",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 2023,
+   "name": "2023 POKEMON SIMPLIFIED CHINESE CSM2D C-SHINING SYNERGY GX STARTER DECK #345 ERIKA'S HOSPITALITY",
+   "miscut": false
+  },
+  {
+   "cert": "75502240",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2023,
+   "name": "2023 POKEMON SIMPLIFIED CHINESE CSM2D C-SHINING SYNERGY GX STARTER DECK #345 ERIKA'S HOSPITALITY",
+   "miscut": false
+  },
+  {
+   "cert": "75504879",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE ROCKET GANG STRIKES BACK #015 DARK WEEZING-HOLO RCKT.GNG.STRKS.BCK-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "75516535",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 2005,
+   "name": "2005 POKEMON EX EMERALD #9 RAYQUAZA-HOLO EMERALD",
+   "miscut": false
+  },
+  {
+   "cert": "75788726",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 1999,
+   "name": "1999 POKEMON JUNGLE #33 BUTTERFREE \"d\" EDITION ERROR",
+   "miscut": false
+  },
+  {
+   "cert": "75798552",
+   "grade": 1,
+   "label": "PR 1",
+   "year": 2006,
+   "name": "2006 POKEMON EX HOLON PHANTOMS #8 GYARADOS-HOLO HOLON PHANTOMS",
+   "miscut": false
+  },
+  {
+   "cert": "75884936",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2021,
+   "name": "2021 POKEMON SWORD & SHIELD EVOLVING SKIES #215 FA/NACHTARA VMAX EVOLVING SKIES-GER-SECRET",
+   "miscut": false
+  },
+  {
+   "cert": "75885115",
+   "grade": 4,
+   "label": "VG-EX 4 (MC)",
+   "year": 1957,
+   "name": "1957 TOPPS #128 LENNY MOORE",
+   "miscut": true
+  },
+  {
+   "cert": "95459626",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 1999,
+   "name": "1999 POKEMON FOSSIL #1 AERODACTYL-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "95459746",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 1999,
+   "name": "1999 TOPPS POKEMON THE MOVIE EDT #51 MOVIE EDITION TRAPPED CHARIZARD",
+   "miscut": false
+  },
+  {
+   "cert": "95459747",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 1999,
+   "name": "1999 TOPPS POKEMON THE MOVIE EDT #37 MOVIE EDITION THE TEARS OF POKEMON",
+   "miscut": false
+  },
+  {
+   "cert": "95459751",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 1999,
+   "name": "1999 POKEMON FOSSIL #8 HYPNO-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "95459780",
+   "grade": 7,
+   "label": "NM 7",
+   "year": 1996,
+   "name": "1996 POKEMON JAPANESE BASIC #2 IVYSAUR",
+   "miscut": false
+  },
+  {
+   "cert": "95459781",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2000,
+   "name": "2000 POKEMON JAPANESE NEO #179 MAREEP",
+   "miscut": false
+  },
+  {
+   "cert": "95459782",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE FOSSIL #93 HAUNTER-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "95459787",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE FOSSIL MR. FUJI",
+   "miscut": false
+  },
+  {
+   "cert": "95472650",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE NEO 4 #212 DARK SCIZOR-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "95472651",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE NEO 4 #212 DARK SCIZOR-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "95472653",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE WEB #019 VENOMOTH",
+   "miscut": false
+  },
+  {
+   "cert": "95472680",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE EXPEDITION #014 QWILFISH EXPEDITION-1ST EDITION",
+   "miscut": false
+  },
+  {
+   "cert": "95472682",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE EXPEDITION #018 ABRA EXPEDITION-1ST EDITION",
+   "miscut": false
+  },
+  {
+   "cert": "95472683",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE EXPEDITION #019 GASTLY EXPEDITION-1ST EDITION",
+   "miscut": false
+  },
+  {
+   "cert": "95472704",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE UNDONE SEAL #047 BANETTE-HOLO UNDONE SEAL-1ST EDITION",
+   "miscut": false
+  },
+  {
+   "cert": "95472709",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE FLIGHT OF LEGENDS #044 SLOWPOKE FLIGHT OF LEGENDS-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "95472815",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE PLAY PROMO #012 _____'s CELEBI-HOLO 2ND SEASON SUB.-PROMO",
+   "miscut": false
+  },
+  {
+   "cert": "95508166",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE ROCKET #130 DARK GYARADOS-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "95518622",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON SIMPLIFIED CHINESE CS4.5 C-FLAME DANCE OF THE END #069 DRAGONITE V SUPER RARE",
+   "miscut": false
+  },
+  {
+   "cert": "95518682",
+   "grade": 2,
+   "label": "GOOD 2",
+   "year": 1996,
+   "name": "1996 POKEMON JAPANESE BANDAI CARDDASS VENDING #156 BLASTOISE TRAINER CARDDASS VENDING",
+   "miscut": false
+  },
+  {
+   "cert": "95518698",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2024,
+   "name": "2024 POKEMON SIMPLIFIED CHINESE CS4b C-POLYCHROMATIC GATHERING: ORIGIN #165 RAYQUAZA VMAX HYPER RARE-25 CARD PACK",
+   "miscut": false
+  },
+  {
+   "cert": "95520485",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2000,
+   "name": "2000 POKEMON BASE 2 PACK THICK FONT MEWTWO",
+   "miscut": false
+  },
+  {
+   "cert": "95520486",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2000,
+   "name": "2000 POKEMON BASE 2 PACK THICK FONT MEWTWO",
+   "miscut": false
+  },
+  {
+   "cert": "95628839",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2000,
+   "name": "2000 POKEMON GYM CHALLENGE #15 ROCKET'S ZAPDOS HOLO-1ST EDITION",
+   "miscut": false
+  },
+  {
+   "cert": "95684841",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2023,
+   "name": "2023 POKEMON JAPANESE SV1a-TRIPLET BEAT #099 DENDRA SPECIAL ART RARE",
+   "miscut": false
+  },
+  {
+   "cert": "95695250",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "year": 2016,
+   "name": "2016 POKEMON XY BREAKPOINT #112 TIERNO BREAKPOINT",
+   "miscut": true
+  },
+  {
+   "cert": "95695251",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "year": 2016,
+   "name": "2016 POKEMON XY GENERATIONS #62 EVOSODA GENERATIONS",
+   "miscut": true
+  },
+  {
+   "cert": "95695252",
+   "grade": 5,
+   "label": "EX 5 (MC)",
+   "year": 2016,
+   "name": "2016 POKEMON XY STEAM SIEGE #71 KLINK STEAM SIEGE",
+   "miscut": true
+  },
+  {
+   "cert": "95695253",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "year": 2016,
+   "name": "2016 POKEMON XY STEAM SIEGE #72 KLANG STEAM SIEGE",
+   "miscut": true
+  },
+  {
+   "cert": "95695254",
+   "grade": 7,
+   "label": "NM 7 (MC)",
+   "year": 2016,
+   "name": "2016 POKEMON XY STEAM SIEGE #73 KLINKLANG STS-GEARS OF FIRE TD",
+   "miscut": true
+  },
+  {
+   "cert": "95695255",
+   "grade": 8,
+   "label": "NM-MT 8 (MC)",
+   "year": 2016,
+   "name": "2016 POKEMON XY STEAM SIEGE #88 MEOWTH STEAM SIEGE",
+   "miscut": true
+  },
+  {
+   "cert": "95695256",
+   "grade": 2,
+   "label": "GOOD 2 (MC)",
+   "year": 2016,
+   "name": "2016 POKEMON XY FATES COLLIDE #111 SHAUNA FATES COLLIDE",
+   "miscut": true
+  },
+  {
+   "cert": "95705800",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2008,
+   "name": "2008 POKEMON BATTRIO SERIES 3: MEWTWO'S CHALLENGE #034 JOLTEON",
+   "miscut": false
+  },
+  {
+   "cert": "95705801",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2008,
+   "name": "2008 POKEMON BATTRIO SERIES 5: GIRATINA TREMOR #035 SCIZOR",
+   "miscut": false
+  },
+  {
+   "cert": "95705802",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2010,
+   "name": "2010 POKEMON BATTRIO SERIES 13: CHALLENGING THE MYTHS #022 SCIZOR",
+   "miscut": false
+  },
+  {
+   "cert": "95705803",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2008,
+   "name": "2008 POKEMON BATTRIO SERIES 6: ENCOUNTER WITH SHAYMIN #041 CUBONE",
+   "miscut": false
+  },
+  {
+   "cert": "95705804",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2008,
+   "name": "2008 POKEMON BATTRIO SERIES 6: ENCOUNTER WITH SHAYMIN #024 MAROWAK",
+   "miscut": false
+  },
+  {
+   "cert": "95705805",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2010,
+   "name": "2010 POKEMON BATTRIO PROMO #P MEGANIUM McDONALD'S 10",
+   "miscut": false
+  },
+  {
+   "cert": "95705807",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2009,
+   "name": "2009 POKEMON BATTRIO SERIES 10: HO-OH AND LUGIA SOAR #032 PICHU",
+   "miscut": false
+  },
+  {
+   "cert": "95706478",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2016,
+   "name": "2016 POKEMON JAPANESE XY PROMO #230 PONCHO-WEAR.PIKACHU RAYQUAZA P.W. PIKACHU BOX",
+   "miscut": false
+  },
+  {
+   "cert": "95706479",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2018,
+   "name": "2018 POKEMON JAPANESE SUN & MOON ULTRA SHINY GX #157 FA/MORGAN ULTRA SHINY GX",
+   "miscut": false
+  },
+  {
+   "cert": "95707448",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2008,
+   "name": "2008 POKEMON JAPANESE BONDS TO THE END OF TIME #028 JOLTEON BONDS/END OF TIME-1ST ED.",
+   "miscut": false
+  },
+  {
+   "cert": "95707453",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2016,
+   "name": "2016 POKEMON JAPANESE SUN & MOON PIKACHU'S NEW FRIENDS #004 PIKACHU-HOLO PIKACHU'S NEW FRIENDS",
+   "miscut": false
+  },
+  {
+   "cert": "95707454",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE FLIGHT OF LEGENDS #055 NIDOQUEEN-HOLO FLIGHT OF LEGENDS",
+   "miscut": false
+  },
+  {
+   "cert": "95707455",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2004,
+   "name": "2004 POKEMON JAPANESE SILVER DECK KIT #011 DARK DRAGONAIR SILVER DECK KIT",
+   "miscut": false
+  },
+  {
+   "cert": "95707501",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2003,
+   "name": "2003 POKEMON SKYRIDGE #8 FLAREON",
+   "miscut": false
+  },
+  {
+   "cert": "95707519",
+   "grade": 4,
+   "label": "VG-EX 4",
+   "year": 2023,
+   "name": "2023 POKEMON PAL EN-PALDEA EVOLVED #203 MAGIKARP ILLUSTRATION RARE",
+   "miscut": false
+  },
+  {
+   "cert": "95750711",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2005,
+   "name": "2005 CARDDASS THE POKEMON WEEKLY ADVANCED GENERATION SNAP CARD #009 JAMES & MIME JR. JAMES/MIME JR-SNAP CARD",
+   "miscut": false
+  },
+  {
+   "cert": "96270633",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2003,
+   "name": "2003 POKEMON AQUAPOLIS #H26 TENTACRUEL-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "96270636",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2021,
+   "name": "2021 POKEMON CELEBRATIONS ULTRA-PREMIUM COLLECTION #58 PIKACHU ULTRA-PREMIUM COLLECTION",
+   "miscut": false
+  },
+  {
+   "cert": "96654488",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2023,
+   "name": "2023 POKEMON SVP EN-SV BLACK STAR PROMO #085 PIKACHU/GREY FELT HAT POKEMON X VAN GOGH",
+   "miscut": false
+  },
+  {
+   "cert": "96657106",
+   "grade": 5,
+   "label": "EX 5",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE JUNGLE #101 ELECTRODE-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "96657108",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE JUNGLE #18 PIDGEOT-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "96657109",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 1996,
+   "name": "1996 POKEMON JAPANESE BASIC #113 CHANSEY-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "96657164",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2022,
+   "name": "2022 POKEMON SWORD & SHIELD LOST ORIGIN #177 FA/ROTOM V LOST ORIGIN",
+   "miscut": false
+  },
+  {
+   "cert": "96657165",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 1997,
+   "name": "1997 POKEMON JAPANESE FOSSIL #97 HYPNO-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "96657170",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2015,
+   "name": "2015 POKEMON XY BREAKTHROUGH #92 ZOROARK BREAK BREAKTHROUGH",
+   "miscut": false
+  },
+  {
+   "cert": "96657171",
+   "grade": 6,
+   "label": "EX-MT 6",
+   "year": 2019,
+   "name": "2019 POKEMON SUN & MOON HIDDEN FATES #44 MLTRS/ZPDS/ARTCN.GX HIDDEN FATES",
+   "miscut": false
+  },
+  {
+   "cert": "96763380",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2007,
+   "name": "2007 POKEMON JAPANESE PROMO #046 DARKRAI-HOLO 10th POKEMON MOVIE",
+   "miscut": false
+  },
+  {
+   "cert": "96763381",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2007,
+   "name": "2007 POKEMON JAPANESE PROMO #046 DARKRAI-HOLO 10th POKEMON MOVIE",
+   "miscut": false
+  },
+  {
+   "cert": "96763404",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2015,
+   "name": "2015 POKEMON JAPANESE XY DOUBLE CRISIS #015 FA/TM.MG.GROUDON EX DOUBLE CRISIS-1ST ED",
+   "miscut": false
+  },
+  {
+   "cert": "96763405",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2019,
+   "name": "2019 POKEMON JAPANESE SM PROMO #407 PRTND.CMDN.PIKACHU PM.CENTER OSAKA DX OPENING",
+   "miscut": false
+  },
+  {
+   "cert": "96763460",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2019,
+   "name": "2019 POKEMON JAPANESE SUN & MOON GG END #064 FA/RACH & AL.RACH.GX GG END-HYPER",
+   "miscut": false
+  },
+  {
+   "cert": "96795136",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2023,
+   "name": "2023 POKEMON SWORD AND SHIELD CROWN ZENITH #GG69 FA/GIRATINA VSTAR CROWN ZENITH-SECRET",
+   "miscut": false
+  },
+  {
+   "cert": "96795194",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2009,
+   "name": "2009 POKEMON PLATINUM SUPREME VICTORS #15 ARCANINE G-HOLO SV-CRSHTCH-'10 PKMN.LEAGUE",
+   "miscut": false
+  },
+  {
+   "cert": "96795196",
+   "grade": 9,
+   "label": "MINT 9",
+   "year": 2001,
+   "name": "2001 POKEMON JAPANESE PROMO COROCORO COMICS #151 SHINING MEW COROCORO COMICS-HOLO",
+   "miscut": false
+  },
+  {
+   "cert": "96835709",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2023,
+   "name": "2023 POKEMON CLB-TRADING CARD GAME CLASSIC BLASTOISE & SUICUNE ex DECK #005 STARMIE",
+   "miscut": false
+  },
+  {
+   "cert": "97251300",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2021,
+   "name": "2021 POKEMON JAPANESE SWORD & SHIELD JET-BLACK SPIRIT #080 FA/CAITLIN JET-BLACK SPIRIT",
+   "miscut": false
+  },
+  {
+   "cert": "97251302",
+   "grade": 8,
+   "label": "NM-MT 8",
+   "year": 2021,
+   "name": "2021 POKEMON JAPANESE SWORD & SHIELD VMAX CLIMAX #255 FA/ACEROLA'S PRMNTN. VMAX CLIMAX",
+   "miscut": false
+  },
+  {
+   "cert": "97251316",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 2020,
+   "name": "2020 POKEMON JAPANESE SWORD & SHIELD SHINY STAR V #307 FA/CHARIZARD V SHINY STAR V",
+   "miscut": false
+  },
+  {
+   "cert": "97366440",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #63 SQUIRTLE TRAINER DECK B",
+   "miscut": false
+  },
+  {
+   "cert": "97366441",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #63 SQUIRTLE TRAINER DECK B",
+   "miscut": false
+  },
+  {
+   "cert": "97366442",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #63 SQUIRTLE TRAINER DECK B",
+   "miscut": false
+  },
+  {
+   "cert": "97366443",
+   "grade": 10,
+   "label": "GEM MT 10",
+   "year": 1999,
+   "name": "1999 POKEMON GAME #77 POKEMON TRADER TRAINER DECK B",
+   "miscut": false
+  },
+  {
+   "cert": "97366843",
+   "grade": 9,
+   "label": "MINT 9 (MC)",
+   "year": 2023,
+   "name": "2023 POKEMON SVI EN-SCARLET & VIOLET #258 BASIC FIGHTING ENERGY HYPER RARE",
+   "miscut": true
+  }
+ ]
+}

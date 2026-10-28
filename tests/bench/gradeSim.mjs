@@ -4,7 +4,8 @@
 //  Card     stylised templates (no real artwork or logos) drawn analytically in card millimetres, with known border
 //           widths per side (truth: the width at each side's midpoint), a rounded outline, print noise, a print turned
 //           slightly against the cut, and optional wear (edge and corner whitening, cut, blunted or dented corners)
-//           whose ground truth is recorded.
+//           whose ground truth is recorded. Optionally (registerFaces) official card renders instead, the whole print
+//           moved against the cut by a known amount.
 //  Photo    a pinhole camera over a card lying on a surface, by ray casting: focal length, distance, tilt (pitch/yaw)
 //           and in-plane rotation give the projection; the card may curl (cylindrical bow); its face sits 0.3 mm above
 //           the surface, so its side wall shows on the side facing the camera and it casts a soft contact shadow.
@@ -410,6 +411,53 @@ function silverFullArt(rand, B, { greyArt = null } = {}) {
   };
 }
 
+// ---------------------------------------------------------------- official card faces (opt-in: bench:grade --faces)
+// Real print designs (tests/bench/officialFaces.mjs). The whole print is moved against the cut by a known amount, as a
+// miscut does, so the true borders are the render's measured ones plus that shift.
+const FACES = [];
+let faceMode = false;
+/** Make the faces available ([{id, img, borders:{l,r,t,b} mm, cornerRadiusMm}]); `use`: every scenario draws its card from them. */
+export function registerFaces(faces, { use = true } = {}) { FACES.length = 0; FACES.push(...faces); faceMode = use && FACES.length > 0; }
+
+/** Per axis the render's total border, split by a sampled centering share (as sampleBorders does). */
+function shiftedBorders(rand, base, { spread = 5, maxShare = 70 } = {}) {
+  const axis = (a, b) => {
+    const T = a + b;
+    const share = Math.min(maxShare, 50 + Math.abs(gauss(rand)) * spread) / 100;
+    return chance(rand, 0.5) ? [T * share, T * (1 - share)] : [T * (1 - share), T * share];
+  };
+  const [l, r] = axis(base.l, base.r); const [t, b] = axis(base.t, base.b);
+  return { l, r, t, b };
+}
+
+function officialFace(rand, B, { face }) {
+  const F = FACES.find((f) => f.id === face);
+  if (!F) throw new Error(`card face ${face} is not loaded (bench:grade --faces)`);
+  const { data, width: W, height: H } = F.img;
+  const cw = 63; const ch = 88; const sx = W / cw; const sy = H / ch;
+  const dx = B.l - F.borders.l; const dy = B.t - F.borders.t; // the print moved right / down
+  // Print points outside the render's own outline (the strip the print moved away from) take the colour 0.4 mm inside
+  // it, the border's colour: clamped into a rounded rectangle that stays clear of the render's transparent corners.
+  const m = 0.4; const rr = (F.cornerRadiusMm ?? 3) - m + 0.3;
+  const lx = m + rr; const hx = cw - m - rr; const ly = m + rr; const hy = ch - m - rr;
+  return {
+    template: 'official', cw, ch, radius: U(rand, 2.8, 3.2), thickness: 0.3, borders: B,
+    variant: { face }, wall: [214, 210, 200], gloss: 1,
+    shade(u, v, o) {
+      let x = u - dx; let y = v - dy;
+      const cx = x < lx ? lx : x > hx ? hx : x; const cy = y < ly ? ly : y > hy ? hy : y;
+      const ex = x - cx; const ey = y - cy; const e = Math.hypot(ex, ey);
+      if (e > rr) { x = cx + (ex * rr) / e; y = cy + (ey * rr) / e; }
+      // Bilinear in the render (pixel centres at +0.5).
+      const fx = x * sx - 0.5; const fy = y * sy - 0.5;
+      const x0 = Math.max(0, Math.min(W - 2, Math.floor(fx))); const y0 = Math.max(0, Math.min(H - 2, Math.floor(fy)));
+      const ax = Math.max(0, Math.min(1, fx - x0)); const ay = Math.max(0, Math.min(1, fy - y0));
+      const i = (y0 * W + x0) * 4; const j = i + W * 4;
+      for (let c = 0; c < 3; c++) o[c] = (data[i + c] * (1 - ax) + data[i + 4 + c] * ax) * (1 - ay) + (data[j + c] * (1 - ax) + data[j + 4 + c] * ax) * ay;
+    },
+  };
+}
+
 /** Borders in mm per side: per-axis total around the template's nominal, split by a centering share. */
 export function sampleBorders(rand, template, { spread = 5, maxShare = 70 } = {}) {
   const total = { 'pokemon-front': [5.4, 7.0], 'pokemon-back': [7.0, 9.0], lorcana: [5.4, 7.2], onepiece: [5.0, 6.8], 'silver-fullart': [4.2, 6.0] }[template];
@@ -429,7 +477,8 @@ export function makeCard(rand, template, borders, { variant = {}, wear = null, p
       : template === 'lorcana' ? lorcana(rand, borders)
         : template === 'onepiece' ? onePiece(rand, borders)
           : template === 'silver-fullart' ? silverFullArt(rand, borders, variant)
-            : null;
+            : template === 'official' ? officialFace(rand, borders, variant)
+              : null;
   if (!base) throw new Error(`unknown template ${template}`);
   const { cw, ch, radius } = base;
   const W = wear ?? { edges: [], corners: [] };
@@ -1501,6 +1550,10 @@ function scanBase(rand, { dpi, bg, page = false }) {
 }
 
 const withCard = (rand, p, { templates = NORMAL_TEMPLATES, spread = 5, template = null, variant = null, darkOnDark = false } = {}) => {
+  if (faceMode) {
+    const F = pick(rand, FACES);
+    return { ...p, template: 'official', variant: { face: F.id }, borders: shiftedBorders(rand, F.borders, { spread }) };
+  }
   // A black border on black backing has no outline at all: such scans are left out.
   const pool = p.bg === 'lid-black' ? templates.filter((t) => t !== 'lorcana' && t !== 'onepiece') : templates;
   const t = template ?? pick(rand, pool);
@@ -1546,7 +1599,9 @@ export const SCENARIOS = {
   hard: {
     description: 'yellow-on-yellow frame, silver full-art, strong tilt, glare, textured or dark-on-dark background, sleeve, curled card',
     sample: (rand) => {
-      const factors = [pick(rand, ['yellow-on-yellow', 'silver-fullart', 'strong-tilt', 'glare', 'textured-bg', 'dark-on-dark', 'sleeve', 'curled'])];
+      // With official faces the card itself is a real design: only the photo factors apply.
+      const first = faceMode ? ['strong-tilt', 'glare', 'textured-bg', 'sleeve', 'curled'] : ['yellow-on-yellow', 'silver-fullart', 'strong-tilt', 'glare', 'textured-bg', 'dark-on-dark', 'sleeve', 'curled'];
+      const factors = [pick(rand, first)];
       if (chance(rand, 0.4)) { const f = pick(rand, ['strong-tilt', 'glare', 'textured-bg', 'sleeve', 'curled']); if (!factors.includes(f)) factors.push(f); }
       const has = (f) => factors.includes(f);
       const strong = has('strong-tilt');

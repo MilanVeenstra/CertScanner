@@ -4,3 +4,6 @@ node_modules/
 /dist-e2e/
 *.zip
 .extension-builder/
+
+# Real card scans for the grade benchmark (scripts/fetch-grade-data.mjs): never committed.
+/.cache/

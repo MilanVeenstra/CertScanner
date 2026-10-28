@@ -65,6 +65,16 @@ test('analyzeCard: centering of synthetic cards within 1.5 points (yellow, silve
   }
 });
 
+test('analyzeCard: the copyright line printed in the bottom border is not taken for the border end', () => {
+  // Modern cards print it in the middle 40 % of the bottom border, about 1 mm from the cut: 5 of the 9 stretches see it.
+  const img = renderCard({ width: 684, height: 900, pxPerMm: 9, border: { l: 2.5, r: 2.5, t: 2.6, b: 2.4 },
+    borderText: [{ side: 'bottom', fromMm: 19, toMm: 44, depthMm: [0.9, 1.6] }] });
+  const r = analyzeCard(img);
+  assert.equal(r.status, 'ok');
+  near(r.borders.sides.bottom.mm, 2.4, 0.15, 'bottom border');
+  near(r.centering.tb.pct, img.truth.tb, 1, 'top/bottom');
+});
+
 test('analyzeCard: a photo cropped to the card uses the photo edges and says so', () => {
   const img = renderCard({ fill: true, width: 504, height: 704, pxPerMm: 8, border: { l: 3.2, r: 2.8, t: 3, b: 3 } });
   const r = analyzeCard(img);
@@ -83,6 +93,25 @@ test('analyzeCard: a card on a black surround (the printed test card) is not mix
   assert.equal(r.status, 'ok', r.status);
   near(r.centering.lr.pct, img.truth.lr, 1, 'left/right');
   near(r.centering.tb.pct, img.truth.tb, 1, 'top/bottom');
+});
+
+test('analyzeCard: a tightly cropped card (a slab or sleeve scan) is found at its own edge, not the strip around it', () => {
+  // A thin strip to the photo edge (a dark gap and a light holder rim, or a light rim): the strip's outer line is
+  // card-shaped too, and often the stronger edge.
+  const cases = [
+    ['dark gap, light rim', { surround: { mm: 0.5, color: [25, 25, 28] }, bg: [205, 205, 200] }, 1.2],
+    ['light rim, dark beyond', { surround: { mm: 0.6, color: [215, 215, 210] }, bg: [40, 40, 45] }, 1.3],
+  ];
+  for (const [name, o, pad] of cases) {
+    const img = renderCard({ width: Math.round((63 + 2 * pad) * 10), height: Math.round((88 + 2 * pad) * 10), pxPerMm: 10,
+      border: { l: 3.5, r: 2.5, t: 3.2, b: 2.8 }, ...o });
+    const r = analyzeCard(img);
+    assert.equal(r.source, 'detected', name);
+    const off = Math.max(...r.quad.map((p) => Math.min(...img.corners.map((q) => Math.hypot(p[0] - q[0], p[1] - q[1])))));
+    assert.ok(off < 2.5, `${name}: outline ${(off / 10).toFixed(2)} mm off`);
+    near(r.centering.lr.pct, img.truth.lr, 1, `${name} left/right`);
+    near(r.centering.tb.pct, img.truth.tb, 1, `${name} top/bottom`);
+  }
 });
 
 test('test card page: matches its generator; each card fits and states its true centering', () => {
@@ -245,8 +274,11 @@ test('wear: a damaged corner stands out against the other three', () => {
   assert.equal(cut.corners.list.br.rating, 'visible');
   near(cut.corners.list.br.shapeMm, 0.6, 0.12, 'missing tip');
   for (const c of ['tl', 'tr', 'bl']) assert.equal(cut.corners.list[c].rating, 'none', c);
-  const small = wearOf({ borderColor: COLORS.navy, bg: [40, 40, 45], cornerCut: [{ corner: 'tr', mm: 0.3 }] });
+  // 0.3 mm is the alarm threshold: on real scans of PSA 10 cards, corners differ by up to that much without damage.
+  const small = wearOf({ borderColor: COLORS.navy, bg: [40, 40, 45], cornerCut: [{ corner: 'tr', mm: 0.4 }] });
   assert.ok(['minor', 'visible'].includes(small.corners.list.tr.rating));
+  const tiny = wearOf({ borderColor: COLORS.navy, bg: [40, 40, 45], cornerCut: [{ corner: 'tr', mm: 0.15 }] });
+  assert.equal(tiny.corners.list.tr.rating, 'none', 'below what a photo can tell apart');
   const white = wearOf({ borderColor: COLORS.black, bg: [130, 130, 135], cornerWhite: ['tl'] });
   assert.notEqual(white.corners.list.tl.rating, 'none');
 });
